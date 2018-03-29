@@ -9,22 +9,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func authSetup() (*github.Client, *github.RepositoryListByOrgOptions) {
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GITHUB_TOKEN")},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
-
-	opt := &github.RepositoryListByOrgOptions{
-		Type:        "all",
-		ListOptions: github.ListOptions{Page: 2, PerPage: 1000},
-	}
-
-	return client, opt
-}
-
 // TODO: Figure out how to use go channels for this
 func getAllOrgCloneUrls() ([]string, error) {
 	ctx := context.Background()
