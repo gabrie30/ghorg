@@ -55,16 +55,13 @@ func CloneAllReposByOrg() error {
 	}
 
 	for _, target := range cloneTargets {
-		go func(repoUrl string) (string, error) {
+		go func(repoUrl string) {
 			fmt.Println("Cloning!!!!!!", repoUrl)
 			cmd := exec.Command("git", "clone", repoUrl)
 			err := cmd.Run()
 			if err != nil {
 				fmt.Print("ERROR DETECTEDs")
-				return repoUrl, err
 			}
-
-			return "Done", nil
 		}(target)
 	}
 
