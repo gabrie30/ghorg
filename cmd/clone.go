@@ -56,6 +56,14 @@ func CreateDirIfNotExist() {
 	}
 }
 
+func repoExistsLocally(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
 func getAppNameFromURL(url string) string {
 	withGit := strings.Split(url, "/")
 	appName := withGit[len(withGit)-1]
@@ -75,12 +83,36 @@ func CloneAllReposByOrg() {
 	for _, target := range cloneTargets {
 		appName := getAppNameFromURL(target)
 		go func(repoUrl string) {
-			cmd := exec.Command("git", "clone", repoUrl, os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")+"/"+appName)
-			err := cmd.Run()
-			if err != nil {
-				errc <- err
-				return
+			repoDir := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO") + "/" + appName
+
+			if repoExistsLocally(repoDir) == true {
+				cmd := exec.Command("git", "checkout", "master")
+				cmd.Dir = repoDir
+				err := cmd.Run()
+				if err != nil {
+					fmt.Println("Error trying to checkout master from", repoDir)
+					errc <- err
+					return
+				}
+
+				cmd2 := exec.Command("git", "pull", "origin", "master")
+				cmd2.Dir = repoDir
+				err2 := cmd2.Run()
+				if err2 != nil {
+					fmt.Println("Error trying to pull master from", repoDir)
+					errc <- err2
+					return
+				}
+			} else {
+				cmd := exec.Command("git", "clone", repoUrl, repoDir)
+				err := cmd.Run()
+				if err != nil {
+					fmt.Println("Error trying to clone", repoUrl)
+					errc <- err
+					return
+				}
 			}
+
 			resc <- repoUrl
 		}(target)
 	}
@@ -88,9 +120,9 @@ func CloneAllReposByOrg() {
 	for i := 0; i < len(cloneTargets); i++ {
 		select {
 		case res := <-resc:
-			fmt.Println("Finished cloning:", res)
+			fmt.Println(res)
 		case err := <-errc:
-			fmt.Println("Error while cloning...", err)
+			fmt.Println(err)
 		}
 	}
 	fmt.Println("Finished!")
