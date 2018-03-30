@@ -2,12 +2,10 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
@@ -65,28 +63,37 @@ func getAppNameFromURL(url string) string {
 }
 
 // CloneAllReposByOrg clones all repos for a given org
-func CloneAllReposByOrg() error {
+func CloneAllReposByOrg() {
+	resc, errc := make(chan string), make(chan error)
 	CreateDirIfNotExist()
 	cloneTargets, err := getAllOrgCloneUrls()
 
 	if err != nil {
-		return errors.New("Problem fetching org repo urls to clone")
+		fmt.Print("Problem fetching org repo urls to clone")
 	}
 
 	for _, target := range cloneTargets {
 		appName := getAppNameFromURL(target)
-		// go func(repoUrl string) {
-		fmt.Println("Cloning!!!!!!", target)
-		cmd := exec.Command("git", "clone", target, os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")+"/"+appName)
-		err := cmd.Run()
-		if err != nil {
-			fmt.Println("ERROR DETECTED while cloning...", err)
-		}
-		// }(target)
+		go func(repoUrl string) {
+			cmd := exec.Command("git", "clone", repoUrl, os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")+"/"+appName)
+			err := cmd.Run()
+			if err != nil {
+				errc <- err
+				return
+			}
+			resc <- repoUrl
+		}(target)
 	}
 
-	time.Sleep(30)
-	return nil
+	for i := 0; i < len(cloneTargets); i++ {
+		select {
+		case res := <-resc:
+			fmt.Println("Finished cloning:", res)
+		case err := <-errc:
+			fmt.Println("Error while cloning...", err)
+		}
+	}
+	fmt.Println("Finished!")
 }
 
 // TODO: Clone via http or ssh flag
