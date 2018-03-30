@@ -1,14 +1,14 @@
-# Ghorg
+# ghorg
 
 ### Purpose
-Github search is terrible. The idea here is quickly clone all org repos into a single directory and use something like ack for searching.
+Github search is terrible. The idea here is quickly clone all org repos into a single directory and use something like ack for searching. Can also be used for setting up kuve <https://github.com/wrsinc/kuve>
 
 ### Use
-- `$ ghorg nameoforg`
+`$ ghorg nameoforg`
 
 ### Setup
-1. `git clone`
-1. `cd ghorg`
+1. `$ git clone`
+1. `$ cd ghorg`
 1. `$cp .env-sample .env`
 2. update .env
 3. `$ go install`
