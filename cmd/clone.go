@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
@@ -20,7 +22,7 @@ func getAllOrgCloneUrls() ([]string, error) {
 
 	opt := &github.RepositoryListByOrgOptions{
 		Type:        "all",
-		ListOptions: github.ListOptions{PerPage: 100},
+		ListOptions: github.ListOptions{PerPage: 100, Page: 0},
 	}
 
 	// get all pages of results
@@ -38,15 +40,36 @@ func getAllOrgCloneUrls() ([]string, error) {
 	}
 	cloneUrls := []string{}
 	for _, repo := range allRepos {
-		fmt.Println(*repo.CloneURL)
+		cloneUrls = append(cloneUrls, *repo.CloneURL)
 	}
 
 	return cloneUrls, nil
 }
 
 // CloneAllReposByOrg clones all repos for a given org
-func CloneAllReposByOrg() {
-	getAllOrgCloneUrls()
+func CloneAllReposByOrg() error {
+	cloneTargets, err := getAllOrgCloneUrls()
+
+	if err != nil {
+		return errors.New("Problem fetching org repo urls to clone")
+	}
+
+	for _, target := range cloneTargets {
+		go func(repoUrl string) (string, error) {
+			fmt.Println("Cloning!!!!!!", repoUrl)
+			cmd := exec.Command("git", "clone", repoUrl)
+			err := cmd.Run()
+			if err != nil {
+				fmt.Print("ERROR DETECTEDs")
+				return repoUrl, err
+			}
+
+			return "Done", nil
+		}(target)
+	}
+
+	fmt.Scanln("Press any key when things look done")
+	return nil
 }
 
 // TODO: Clone via http or ssh flag
