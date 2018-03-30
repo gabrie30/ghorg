@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
+	"time"
 
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
@@ -46,8 +48,25 @@ func getAllOrgCloneUrls() ([]string, error) {
 	return cloneUrls, nil
 }
 
+func CreateDirIfNotExist() {
+	clonePath := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")
+	if _, err := os.Stat(clonePath); os.IsNotExist(err) {
+		err = os.MkdirAll(clonePath, 0755)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func getAppNameFromURL(url string) string {
+	withGit := strings.Split(url, "/")
+	appName := withGit[len(withGit)-1]
+	return strings.Split(appName, ".")[0]
+}
+
 // CloneAllReposByOrg clones all repos for a given org
 func CloneAllReposByOrg() error {
+	CreateDirIfNotExist()
 	cloneTargets, err := getAllOrgCloneUrls()
 
 	if err != nil {
@@ -55,20 +74,18 @@ func CloneAllReposByOrg() error {
 	}
 
 	for _, target := range cloneTargets {
-		go func(repoUrl string) (string, error) {
-			fmt.Println("Cloning!!!!!!", repoUrl)
-			cmd := exec.Command("git", "clone", repoUrl)
-			err := cmd.Run()
-			if err != nil {
-				fmt.Print("ERROR DETECTEDs")
-				return repoUrl, err
-			}
-
-			return "Done", nil
-		}(target)
+		appName := getAppNameFromURL(target)
+		// go func(repoUrl string) {
+		fmt.Println("Cloning!!!!!!", target)
+		cmd := exec.Command("git", "clone", target, os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")+"/"+appName)
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println("ERROR DETECTED while cloning...", err)
+		}
+		// }(target)
 	}
 
-	fmt.Scanln("Press any key when things look done")
+	time.Sleep(30)
 	return nil
 }
 

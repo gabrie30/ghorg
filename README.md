@@ -7,5 +7,5 @@ Github search is terrible. The idea here is quickly clone all org repos into a s
 - `$ ghorg nameoforg`
 
 ### Auth
-- Create a .env add your personal access token
+- `$cp .env-sample .env` add your personal access token
 - If org is behind SSO add it to the token https://help.github.com/articles/authorizing-a-personal-access-token-for-use-with-a-saml-single-sign-on-organization/
