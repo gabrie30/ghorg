@@ -46,7 +46,7 @@ func getAllOrgCloneUrls() ([]string, error) {
 	return cloneUrls, nil
 }
 
-func CreateDirIfNotExist() {
+func createDirIfNotExist() {
 	clonePath := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")
 	if _, err := os.Stat(clonePath); os.IsNotExist(err) {
 		err = os.MkdirAll(clonePath, 0755)
@@ -73,7 +73,7 @@ func getAppNameFromURL(url string) string {
 // CloneAllReposByOrg clones all repos for a given org
 func CloneAllReposByOrg() {
 	resc, errc := make(chan string), make(chan error)
-	CreateDirIfNotExist()
+	createDirIfNotExist()
 	cloneTargets, err := getAllOrgCloneUrls()
 
 	if err != nil {
