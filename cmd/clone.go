@@ -48,7 +48,7 @@ func getAllOrgCloneUrls() ([]string, error) {
 
 func createDirIfNotExist() {
 	clonePath := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")
-	if _, err := os.Stat(clonePath); os.IsNotExist(err) {
+	if _, err := os.Stat(clonePath + os.Args[1] + "_ghorg"); os.IsNotExist(err) {
 		err = os.MkdirAll(clonePath, 0755)
 		if err != nil {
 			panic(err)
@@ -83,7 +83,7 @@ func CloneAllReposByOrg() {
 	for _, target := range cloneTargets {
 		appName := getAppNameFromURL(target)
 		go func(repoUrl string) {
-			repoDir := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO") + "/" + appName
+			repoDir := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO") + os.Args[1] + "_ghorg" + "/" + appName
 
 			if repoExistsLocally(repoDir) == true {
 				cmd := exec.Command("git", "checkout", "master")
