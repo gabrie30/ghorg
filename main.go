@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
-	"github.com/ghorg/cmd"
+	"github.com/gabrie30/ghorg/cmd"
 	"github.com/joho/godotenv"
 )
 
@@ -14,8 +15,9 @@ func main() {
 }
 
 func init() {
-	err := godotenv.Load()
+	home := os.Getenv("HOME")
+	err := godotenv.Load(home + "/.ghorg")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("Error loading .ghorg file, create a .env from the sample and run Make install")
 	}
 }
