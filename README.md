@@ -15,7 +15,7 @@ Github search is terrible. The idea here is quickly clone all org repos into a s
 - $ make install
 - $ go install
 
-## Use existing Github Token
+## Use Existing GitHub Token
 
 ```
 $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
