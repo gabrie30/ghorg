@@ -9,7 +9,7 @@ Github search is terrible. The idea here is quickly clone all org repos into a s
 ## Setup
 
 - $ go get -u github.com/gabrie30/ghorg
-- $ cd ghorg
+- $ cd $HOME/go/src/github.com/gabrie30/ghorg
 - $ cp .env-sample .env
 - update your .env
 - $ make install
