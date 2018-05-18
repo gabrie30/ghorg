@@ -8,7 +8,10 @@ Github search is terrible. The idea here is quickly clone all org repos into a s
 
 ## Setup
 
-- $ git clone
+- $ cd $GOPATH
+- $ mkdir -p src/github.com/gabrie30
+- $ cd src/github.com/gabrie30
+- $ git clone https://github.com/gabrie30/ghorg.git
 - $ cd ghorg
 - $ cp .env-sample .env
 - update your .env
