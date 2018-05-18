@@ -46,16 +46,8 @@ func getAllOrgCloneUrls() ([]string, error) {
 	return cloneUrls, nil
 }
 
-func ensureTrailingSlash(path string) string {
-	if string(path[len(path)-1]) == "/" {
-		return path
-	}
-
-	return path + "/"
-}
-
 func createDirIfNotExist() {
-	clonePath := ensureTrailingSlash(os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO"))
+	clonePath := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")
 	if _, err := os.Stat(clonePath + os.Args[1] + "_ghorg"); os.IsNotExist(err) {
 		err = os.MkdirAll(clonePath, 0755)
 		if err != nil {
