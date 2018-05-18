@@ -39,6 +39,7 @@ func getAllOrgCloneUrls() ([]string, error) {
 		opt.Page = resp.NextPage
 	}
 	cloneUrls := []string{}
+
 	for _, repo := range allRepos {
 		cloneUrls = append(cloneUrls, *repo.CloneURL)
 	}
@@ -67,7 +68,8 @@ func repoExistsLocally(path string) bool {
 func getAppNameFromURL(url string) string {
 	withGit := strings.Split(url, "/")
 	appName := withGit[len(withGit)-1]
-	return strings.Split(appName, ".")[0]
+	split := strings.Split(appName, ".")
+	return strings.Join(split[0:len(split)-1], ".")
 }
 
 // CloneAllReposByOrg clones all repos for a given org
