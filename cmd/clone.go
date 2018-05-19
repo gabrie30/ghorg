@@ -97,16 +97,25 @@ func CloneAllReposByOrg() {
 					return
 				}
 
-				cmd2 := exec.Command("git", "pull", "origin", "master")
-				cmd2.Dir = repoDir
-				err2 := cmd2.Run()
-				if err2 != nil {
+				cmd = exec.Command("git", "fetch", "--all")
+				cmd.Dir = repoDir
+				err = cmd.Run()
+				if err != nil {
+					fmt.Println("Error trying to fetch all", repoDir)
+					errc <- err
+					return
+				}
+
+				cmd = exec.Command("git", "reset", "--hard", "origin/master")
+				cmd.Dir = repoDir
+				err = cmd.Run()
+				if err != nil {
 					fmt.Println("Error trying to pull master from", repoDir)
-					errc <- err2
+					errc <- err
 					return
 				}
 			} else {
-				cmd := exec.Command("git", "clone", repoUrl, repoDir)
+				cmd := exec.Command("git", "clone", "-b master", repoUrl, repoDir)
 				err := cmd.Run()
 				if err != nil {
 					fmt.Println("Error trying to clone", repoUrl)
