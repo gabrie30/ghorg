@@ -6,7 +6,8 @@ Github search is terrible. The idea with ghorg is to quickly clone all org repos
 
 - $ ghorg org
 
-```NOTE: When ran ghorg will overwrite any local changes. If you are using ghorg to create a directory to work out of, make sure you rename the directory before running a second time.```
+```NOTE: When ran ghorg will overwrite any local changes. If you are using ghorg to create a directory to work out of, make sure you rename the directory before running a second time.
+```
 
 ## Setup
 
@@ -19,9 +20,8 @@ Github search is terrible. The idea with ghorg is to quickly clone all org repos
 
 ## Get Existing GitHub Token
 
-```
-$ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
-```
+- $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
+
 
 ## Auth through SSO
 
