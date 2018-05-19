@@ -4,7 +4,7 @@ Github search is terrible. The idea with ghorg is to quickly clone all org repos
 
 ## Use
 
-> NOTE: When ran ghorg will overwrite any local changes. If you are using ghorg to create a directory to work out of, make sure you rename the directory before running a second time.
+> NOTE: When running ghorg a second time all local changes in that directory will be overwritten. If you are working out of the ghorg directory, make sure you rename it before running a second time.
 
 ```
 $ ghorg org
