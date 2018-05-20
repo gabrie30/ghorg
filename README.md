@@ -18,14 +18,14 @@ $ go install
 
 ## Use
 
-```
+```bash
 $ ghorg org
 ```
 
 ## Default GitHub Token Used
 
 ```bash
-security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
+$ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
 ```
 
 ## Auth through SSO
