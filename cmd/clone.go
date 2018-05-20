@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )
@@ -50,7 +51,7 @@ func getAllOrgCloneUrls() ([]string, error) {
 func createDirIfNotExist() {
 	clonePath := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")
 	if _, err := os.Stat(clonePath + os.Args[1] + "_ghorg"); os.IsNotExist(err) {
-		err = os.MkdirAll(clonePath, 0755)
+		err = os.MkdirAll(clonePath, 0666)
 		if err != nil {
 			panic(err)
 		}
@@ -79,7 +80,7 @@ func CloneAllReposByOrg() {
 	cloneTargets, err := getAllOrgCloneUrls()
 
 	if err != nil {
-		fmt.Print("Problem fetching org repo urls to clone")
+		color.New(color.FgRed).Println("Problem fetching org repo urls to clone")
 	}
 
 	for _, target := range cloneTargets {
@@ -88,21 +89,19 @@ func CloneAllReposByOrg() {
 			repoDir := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO") + os.Args[1] + "_ghorg" + "/" + appName
 
 			if repoExistsLocally(repoDir) == true {
-				cmd := exec.Command("git", "checkout", "master")
-				cmd.Dir = repoDir
-				err := cmd.Run()
-				if err != nil {
-					fmt.Println("Error trying to checkout master from", repoDir)
-					errc <- err
-					return
-				}
-
-				cmd = exec.Command("git", "fetch", "--all")
+				cmd := exec.Command("git", "fetch", "--all")
 				cmd.Dir = repoDir
 				err = cmd.Run()
 				if err != nil {
-					fmt.Println("Error trying to fetch all", repoDir)
-					errc <- err
+					errc <- fmt.Errorf("Problem trying to fetch all Repo: "+repoUrl+" Error: %v", err)
+					return
+				}
+
+				cmd = exec.Command("git", "checkout", "master")
+				cmd.Dir = repoDir
+				err := cmd.Run()
+				if err != nil {
+					errc <- fmt.Errorf("Problem checking out master Repo: "+repoUrl+" Error: %v", err)
 					return
 				}
 
@@ -110,16 +109,22 @@ func CloneAllReposByOrg() {
 				cmd.Dir = repoDir
 				err = cmd.Run()
 				if err != nil {
-					fmt.Println("Error trying to pull master from", repoDir)
-					errc <- err
+					errc <- fmt.Errorf("Problem trying to pull master Repo: "+repoUrl+" Error: %v", err)
 					return
 				}
 			} else {
-				cmd := exec.Command("git", "clone", "-b master", repoUrl, repoDir)
+				cmd := exec.Command("git", "clone", repoUrl, repoDir)
 				err := cmd.Run()
 				if err != nil {
-					fmt.Println("Error trying to clone", repoUrl)
-					errc <- err
+					errc <- fmt.Errorf("Problem trying to clone Repo: "+repoUrl+" Error: %v", err)
+					return
+				}
+
+				cmd = exec.Command("git", "fetch", "--all")
+				cmd.Dir = repoDir
+				err = cmd.Run()
+				if err != nil {
+					errc <- fmt.Errorf("Problem trying to fetch all Repo: "+repoUrl+" Error: %v", err)
 					return
 				}
 			}
@@ -131,12 +136,12 @@ func CloneAllReposByOrg() {
 	for i := 0; i < len(cloneTargets); i++ {
 		select {
 		case res := <-resc:
-			fmt.Println(res)
+			color.New(color.FgGreen).Println("Success " + res)
 		case err := <-errc:
-			fmt.Println(err)
+			color.New(color.FgRed).Println(err)
 		}
 	}
-	fmt.Println("Finished!")
+	color.New(color.FgYellow).Println("Finished!")
 }
 
 // TODO: Clone via http or ssh flag

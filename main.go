@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/gabrie30/ghorg/cmd"
 	"github.com/joho/godotenv"
 	homedir "github.com/mitchellh/go-homedir"
@@ -35,6 +35,6 @@ func ensureTrailingSlash(path string) string {
 }
 
 func main() {
-	fmt.Println("--- Time to Ghorg ---")
+	color.New(color.FgYellow).Println("--- Time to Ghorg ---")
 	cmd.CloneAllReposByOrg()
 }
