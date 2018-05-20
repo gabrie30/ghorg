@@ -1,5 +1,11 @@
 # ghorg
 
+```
+ +-+-+-+-+ +-+-+ +-+-+-+-+-+
+ |T|I|M|E| |T|O| |G|H|O|R|G|
+ +-+-+-+-+ +-+-+ +-+-+-+-+-+
+```
+
 GitHub search is terrible. The idea with ghorg is to quickly clone all org repos into a single directory and use something like ack to search.
 
 > NOTE: When running ghorg a second time, all local changes in your ghorg directory will be overwritten by whats on GitHub. If you are working out of this directory, make sure you rename it before running a second time.

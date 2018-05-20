@@ -35,6 +35,11 @@ func ensureTrailingSlash(path string) string {
 }
 
 func main() {
-	color.New(color.FgYellow).Println("--- Time to Ghorg ---")
+	color.New(color.FgYellow).Println(
+		`
+ +-+-+-+-+ +-+-+ +-+-+-+-+-+
+ |T|I|M|E| |T|O| |G|H|O|R|G|
+ +-+-+-+-+ +-+-+ +-+-+-+-+-+
+`)
 	cmd.CloneAllReposByOrg()
 }
