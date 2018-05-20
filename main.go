@@ -22,6 +22,10 @@ func init() {
 		log.Fatal("Error loading .ghorg file, create a .env from the sample and run Make install")
 	}
 
+	if len(os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")) == 0 {
+		log.Fatal("You must set ABSOLUTE_PATH_TO_CLONE_TO in your .env")
+	}
+
 	withTrailingSlash := ensureTrailingSlash(os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO"))
 	os.Setenv("ABSOLUTE_PATH_TO_CLONE_TO", withTrailingSlash)
 }

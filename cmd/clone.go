@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -13,15 +14,21 @@ import (
 )
 
 func getToken() string {
-	if len(os.Getenv("GITHUB_TOKEN")) <= 10 {
-		color.New(color.FgYellow).Println("No GITHUB_TOKEN set in .ghorg defaulting to keychain")
+	if len(os.Getenv("GITHUB_TOKEN")) != 40 {
+		color.New(color.FgYellow).Println("GITHUB_TOKEN not set in .ghorg, defaulting to keychain")
 		cmd := `security find-internet-password -s github.com | grep "acct" | awk -F\" '{ print $4 }'`
 		out, err := exec.Command("bash", "-c", cmd).Output()
 		if err != nil {
 			return color.New(color.FgRed).Sprintf("Failed to execute command: %s", cmd)
 		}
-		// fmt.Println(string(out))
-		return string(out)
+
+		token := strings.TrimSuffix(string(out), "\n")
+
+		if len(token) != 40 {
+			log.Fatal("Could not find a GitHub token in keychain, create token and set GITHUB_TOKEN in .env")
+		}
+
+		return token
 	}
 
 	return os.Getenv("GITHUB_TOKEN")
@@ -31,8 +38,9 @@ func getToken() string {
 func getAllOrgCloneUrls() ([]string, error) {
 	ctx := context.Background()
 	githubToken := getToken()
+
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: githubToken},
+		&oauth2.Token{AccessToken: string(githubToken)},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
@@ -66,6 +74,7 @@ func getAllOrgCloneUrls() ([]string, error) {
 
 func createDirIfNotExist() {
 	clonePath := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")
+
 	if _, err := os.Stat(clonePath + os.Args[1] + "_ghorg"); os.IsNotExist(err) {
 		err = os.MkdirAll(clonePath, 0666)
 		if err != nil {
@@ -92,11 +101,12 @@ func getAppNameFromURL(url string) string {
 // CloneAllReposByOrg clones all repos for a given org
 func CloneAllReposByOrg() {
 	resc, errc := make(chan string), make(chan error)
+
 	createDirIfNotExist()
 	cloneTargets, err := getAllOrgCloneUrls()
 
 	if err != nil {
-		color.New(color.FgRed).Println("Problem fetching org repo urls to clone")
+		color.New(color.FgRed).Println(err)
 	}
 
 	for _, target := range cloneTargets {
