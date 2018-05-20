@@ -12,11 +12,27 @@ import (
 	"golang.org/x/oauth2"
 )
 
+func getToken() string {
+	if len(os.Getenv("GITHUB_TOKEN")) <= 10 {
+		color.New(color.FgYellow).Println("No GITHUB_TOKEN set in .ghorg defaulting to keychain")
+		cmd := `security find-internet-password -s github.com | grep "acct" | awk -F\" '{ print $4 }'`
+		out, err := exec.Command("bash", "-c", cmd).Output()
+		if err != nil {
+			return color.New(color.FgRed).Sprintf("Failed to execute command: %s", cmd)
+		}
+		// fmt.Println(string(out))
+		return string(out)
+	}
+
+	return os.Getenv("GITHUB_TOKEN")
+}
+
 // TODO: Figure out how to use go channels for this
 func getAllOrgCloneUrls() ([]string, error) {
 	ctx := context.Background()
+	githubToken := getToken()
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GITHUB_TOKEN")},
+		&oauth2.Token{AccessToken: githubToken},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
