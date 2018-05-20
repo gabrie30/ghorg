@@ -18,7 +18,7 @@ $ ghorg org
 1.  $ cd $HOME/go/src/github.com/gabrie30/ghorg
 1. $ cp .env-sample .env
 1. update your .env
-  - If GITHUB_TOKEN is not set in .ghorg, defaults to keychain, see below
+    - If GITHUB_TOKEN is not set in .ghorg, defaults to keychain, see below
 1. $ make install
 1. $ go install
 
