@@ -1,8 +1,4 @@
-```
- +-+-+-+-+ +-+-+ +-+-+-+-+-+
- |T|I|M|E| |T|O| |G|H|O|R|G|
- +-+-+-+-+ +-+-+ +-+-+-+-+-+
-```
+# ghorg
 
 GitHub search is terrible. The idea with ghorg is to quickly clone all org repos into a single directory and use something like ack to search.
 
