@@ -4,14 +4,6 @@ GitHub search is terrible. The idea with ghorg is to quickly clone all org repos
 
 > NOTE: When running ghorg a second time, all local changes in your ghorg directory will be overwritten by whats on GitHub. If you are working out of this directory, make sure you rename it before running a second time.
 
-## Use
-
-```
-$ ghorg org
-```
-
-
-
 ## Setup
 
 1.  $ go get -u github.com/gabrie30/ghorg
@@ -21,6 +13,12 @@ $ ghorg org
     - If GITHUB_TOKEN is not set in .ghorg, defaults to keychain, see below
 1. $ make install
 1. $ go install
+
+## Use
+
+```
+$ ghorg org
+```
 
 ## Default GitHub Token Used
 
