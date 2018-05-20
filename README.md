@@ -6,13 +6,15 @@ GitHub search is terrible. The idea with ghorg is to quickly clone all org repos
 
 ## Setup
 
-1.  $ go get -u github.com/gabrie30/ghorg
-1.  $ cd $HOME/go/src/github.com/gabrie30/ghorg
-1. $ cp .env-sample .env
-1. update your .env
-    - If GITHUB_TOKEN is not set in .ghorg, defaults to keychain, see below
-1. $ make install
-1. $ go install
+```bash
+$ go get -u github.com/gabrie30/ghorg
+$ cd $HOME/go/src/github.com/gabrie30/ghorg
+$ cp .env-sample .env
+  # update your .env
+  # If GITHUB_TOKEN is not set in .ghorg, defaults to keychain, see below
+$ make install
+$ go install
+```
 
 ## Use
 
