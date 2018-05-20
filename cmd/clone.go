@@ -37,10 +37,9 @@ func getToken() string {
 // TODO: Figure out how to use go channels for this
 func getAllOrgCloneUrls() ([]string, error) {
 	ctx := context.Background()
-	githubToken := getToken()
 
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: string(githubToken)},
+		&oauth2.Token{AccessToken: getToken()},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
