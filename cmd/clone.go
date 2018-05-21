@@ -100,7 +100,7 @@ func getAppNameFromURL(url string) string {
 
 // CloneAllReposByOrg clones all repos for a given org
 func CloneAllReposByOrg() {
-	resc, errc := make(chan string), make(chan error)
+	resc, errc, infoc := make(chan string), make(chan error), make(chan error)
 
 	createDirIfNotExist()
 
@@ -139,7 +139,7 @@ func CloneAllReposByOrg() {
 				cmd.Dir = repoDir
 				err := cmd.Run()
 				if err != nil {
-					errc <- fmt.Errorf("Problem checking out "+branch+" Repo: "+repoUrl+" Error: %v", err)
+					infoc <- fmt.Errorf("Could not checkout out "+branch+", no changes made."+" Repo: "+repoUrl+" Error: %v", err)
 					return
 				}
 
@@ -165,6 +165,14 @@ func CloneAllReposByOrg() {
 					errc <- fmt.Errorf("Problem trying to fetch all Repo: "+repoUrl+" Error: %v", err)
 					return
 				}
+
+				cmd = exec.Command("git", "checkout", branch)
+				cmd.Dir = repoDir
+				err = cmd.Run()
+				if err != nil {
+					infoc <- fmt.Errorf("Repo cloned but could not checkout "+branch+" Repo: "+repoUrl+" Error: %v", err)
+					return
+				}
 			}
 
 			resc <- repoUrl
@@ -172,6 +180,7 @@ func CloneAllReposByOrg() {
 	}
 
 	errors := []error{}
+	infoMessages := []error{}
 
 	for i := 0; i < len(cloneTargets); i++ {
 		select {
@@ -179,8 +188,19 @@ func CloneAllReposByOrg() {
 			color.New(color.FgGreen).Println("Success " + res)
 		case err := <-errc:
 			errors = append(errors, err)
-			//color.New(color.FgRed).Println(err)
+		case info := <-infoc:
+			infoMessages = append(infoMessages, info)
 		}
+	}
+
+	if len(infoMessages) > 0 {
+		fmt.Println()
+		color.New(color.FgYellow).Println("============ Info ============")
+		fmt.Println()
+		for _, i := range infoMessages {
+			color.New(color.FgYellow).Println(i)
+		}
+		fmt.Println()
 	}
 
 	if len(errors) > 0 {
