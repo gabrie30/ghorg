@@ -24,11 +24,11 @@ $ ghorg org
 
 ## Default GitHub Token Used
 
-> If running this does not return the correct key you will need to generate a token via GithHub and add it to your .env
-
 ```bash
 $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
 ```
+
+> If running this does not return the correct key you will need to generate a token via GithHub and add it to your .env
 
 ## Auth through SSO
 
