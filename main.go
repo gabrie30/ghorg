@@ -12,13 +12,16 @@ import (
 
 func init() {
 	home, err := homedir.Dir()
+	if err != nil {
+		log.Fatal("Error trying to find users home directory")
+	}
+
+	if len(os.Getenv("GHORG_BRANCH")) == 0 {
+		os.Setenv("GHORG_BRANCH", "master")
+	}
 
 	if len(os.Args) <= 1 {
 		log.Fatal("You must provide an org to clone from")
-	}
-
-	if err != nil {
-		log.Fatal("Error trying to find users home directory")
 	}
 
 	err = godotenv.Load(home + "/.ghorg")

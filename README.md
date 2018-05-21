@@ -22,6 +22,8 @@ $ go install
 $ ghorg org
 ```
 
+> ghorg defaults to master however, for gitflows you can run on develop by setting GHORG_BRANCH=develop or similar
+
 ## Default GitHub Token Used
 
 ```bash

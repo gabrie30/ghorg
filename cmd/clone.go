@@ -103,15 +103,27 @@ func CloneAllReposByOrg() {
 	resc, errc := make(chan string), make(chan error)
 
 	createDirIfNotExist()
+
+	if os.Getenv("GHORG_BRANCH") != "master" {
+		color.New(color.FgHiMagenta).Println("***********************************************************")
+		color.New(color.FgHiMagenta).Println("* Ghorg will be running on branch: " + os.Getenv("GHORG_BRANCH"))
+		color.New(color.FgHiMagenta).Println("* To change back to master run $ export GHORG_BRANCH=master")
+		color.New(color.FgHiMagenta).Println("***********************************************************")
+		fmt.Println()
+	}
+
 	cloneTargets, err := getAllOrgCloneUrls()
 
 	if err != nil {
 		color.New(color.FgRed).Println(err)
 	}
 
+	branch := os.Getenv("GHORG_BRANCH")
+
 	for _, target := range cloneTargets {
 		appName := getAppNameFromURL(target)
-		go func(repoUrl string) {
+
+		go func(repoUrl string, branch string) {
 			repoDir := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO") + os.Args[1] + "_ghorg" + "/" + appName
 
 			if repoExistsLocally(repoDir) == true {
@@ -123,19 +135,19 @@ func CloneAllReposByOrg() {
 					return
 				}
 
-				cmd = exec.Command("git", "checkout", "master")
+				cmd = exec.Command("git", "checkout", branch)
 				cmd.Dir = repoDir
 				err := cmd.Run()
 				if err != nil {
-					errc <- fmt.Errorf("Problem checking out master Repo: "+repoUrl+" Error: %v", err)
+					errc <- fmt.Errorf("Problem checking out "+branch+" Repo: "+repoUrl+" Error: %v", err)
 					return
 				}
 
-				cmd = exec.Command("git", "reset", "--hard", "origin/master")
+				cmd = exec.Command("git", "reset", "--hard", "origin/"+branch)
 				cmd.Dir = repoDir
 				err = cmd.Run()
 				if err != nil {
-					errc <- fmt.Errorf("Problem trying to pull master Repo: "+repoUrl+" Error: %v", err)
+					errc <- fmt.Errorf("Problem trying to pull "+branch+" Repo: "+repoUrl+" Error: %v", err)
 					return
 				}
 			} else {
@@ -156,7 +168,7 @@ func CloneAllReposByOrg() {
 			}
 
 			resc <- repoUrl
-		}(target)
+		}(target, branch)
 	}
 
 	errors := []error{}
