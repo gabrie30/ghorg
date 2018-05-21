@@ -2,7 +2,7 @@
 
 GitHub search is terrible. The idea with ghorg is to quickly clone all org repos into a single directory and use something like ack to search.
 
-> NOTE: When running ghorg a second time, all local changes in your *_ghorg directory will be overwritten by whats on GitHub. If you are working out of this directory, make sure you rename it before running a second time.
+> When running ghorg a second time, all local changes in your *_ghorg directory will be overwritten by whats on GitHub. If you are working out of this directory, make sure you rename it before running a second time.
 
 ## Setup
 
@@ -24,7 +24,7 @@ $ ghorg org
 
 ## Default GitHub Token Used
 
-> NOTE: If running this does not return the correct key you will need to generate a token via GithHub and add it to your .env
+> If running this does not return the correct key you will need to generate a token via GithHub and add it to your .env
 
 ```bash
 $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
