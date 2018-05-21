@@ -45,12 +45,16 @@ func ensureTrailingSlash(path string) string {
 	return path + "/"
 }
 
-func main() {
+func asciiTime() {
 	color.New(color.FgYellow).Println(
 		`
  +-+-+-+-+ +-+-+ +-+-+-+-+-+
  |T|I|M|E| |T|O| |G|H|O|R|G|
  +-+-+-+-+ +-+-+ +-+-+-+-+-+
 `)
+}
+
+func main() {
+	asciiTime()
 	cmd.CloneAllReposByOrg()
 }
