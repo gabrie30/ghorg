@@ -15,7 +15,8 @@ import (
 
 func getToken() string {
 	if len(os.Getenv("GITHUB_TOKEN")) != 40 {
-		color.New(color.FgYellow).Println("GITHUB_TOKEN not set in .ghorg, defaulting to keychain")
+		color.New(color.FgYellow).Println("Note: GITHUB_TOKEN not set in .env, defaulting to keychain")
+		fmt.Println()
 		cmd := `security find-internet-password -s github.com | grep "acct" | awk -F\" '{ print $4 }'`
 		out, err := exec.Command("bash", "-c", cmd).Output()
 		if err != nil {
@@ -158,14 +159,28 @@ func CloneAllReposByOrg() {
 		}(target)
 	}
 
+	errors := []error{}
+
 	for i := 0; i < len(cloneTargets); i++ {
 		select {
 		case res := <-resc:
 			color.New(color.FgGreen).Println("Success " + res)
 		case err := <-errc:
-			color.New(color.FgRed).Println(err)
+			errors = append(errors, err)
+			//color.New(color.FgRed).Println(err)
 		}
 	}
+
+	if len(errors) > 0 {
+		fmt.Println()
+		color.New(color.FgRed).Println("============ Issues ============")
+		fmt.Println()
+		for _, e := range errors {
+			color.New(color.FgRed).Println(e)
+		}
+		fmt.Println()
+	}
+
 	color.New(color.FgYellow).Println("Finished!")
 }
 
