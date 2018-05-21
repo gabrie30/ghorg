@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
@@ -116,6 +117,9 @@ func CloneAllReposByOrg() {
 
 	if err != nil {
 		color.New(color.FgRed).Println(err)
+	} else {
+		color.New(color.FgYellow).Println(strconv.Itoa(len(cloneTargets)) + " repos")
+		fmt.Println()
 	}
 
 	branch := os.Getenv("GHORG_BRANCH")
