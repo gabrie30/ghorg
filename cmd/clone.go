@@ -131,15 +131,8 @@ func CloneAllReposByOrg() {
 			repoDir := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO") + os.Args[1] + "_ghorg" + "/" + appName
 
 			if repoExistsLocally(repoDir) == true {
-				cmd := exec.Command("git", "fetch", "--all")
-				cmd.Dir = repoDir
-				err = cmd.Run()
-				if err != nil {
-					errc <- fmt.Errorf("Problem trying to fetch all Repo: "+repoUrl+" Error: %v", err)
-					return
-				}
 
-				cmd = exec.Command("git", "checkout", branch)
+				cmd := exec.Command("git", "checkout", branch)
 				cmd.Dir = repoDir
 				err := cmd.Run()
 				if err != nil {
@@ -147,11 +140,19 @@ func CloneAllReposByOrg() {
 					return
 				}
 
+				cmd = exec.Command("git", "fetch", "--all")
+				cmd.Dir = repoDir
+				err = cmd.Run()
+				if err != nil {
+					errc <- fmt.Errorf("Problem trying to fetch all Repo: "+repoUrl+" Error: %v", err)
+					return
+				}
+
 				cmd = exec.Command("git", "reset", "--hard", "origin/"+branch)
 				cmd.Dir = repoDir
 				err = cmd.Run()
 				if err != nil {
-					errc <- fmt.Errorf("Problem trying to pull "+branch+" Repo: "+repoUrl+" Error: %v", err)
+					errc <- fmt.Errorf("Problem resetting "+branch+" Repo: "+repoUrl+" Error: %v", err)
 					return
 				}
 			} else {
