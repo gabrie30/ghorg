@@ -35,6 +35,10 @@ func init() {
 
 	withTrailingSlash := ensureTrailingSlash(os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO"))
 	os.Setenv("ABSOLUTE_PATH_TO_CLONE_TO", withTrailingSlash)
+
+	cmd.GitHubToken = os.Getenv("GITHUB_TOKEN")
+	cmd.AbsolutePathToCloneTo = os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")
+	cmd.GhorgBranch = os.Getenv("GHORG_BRANCH")
 }
 
 func ensureTrailingSlash(path string) string {

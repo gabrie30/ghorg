@@ -14,8 +14,17 @@ import (
 	"golang.org/x/oauth2"
 )
 
+var (
+	// GitHubToken used to auth to github, either comes from keychain locally or from the .env
+	GitHubToken string
+	// AbsolutePathToCloneTo Path to which ghorg will create a new folder to place all cloned repos
+	AbsolutePathToCloneTo string
+	// GhorgBranch branch that ghorg will checkout
+	GhorgBranch string
+)
+
 func getToken() string {
-	if len(os.Getenv("GITHUB_TOKEN")) != 40 {
+	if len(GitHubToken) != 40 {
 		printInfo("Note: GITHUB_TOKEN not set in .env, defaulting to keychain")
 		fmt.Println()
 		cmd := `security find-internet-password -s github.com | grep "acct" | awk -F\" '{ print $4 }'`
@@ -33,22 +42,22 @@ func getToken() string {
 		return token
 	}
 
-	return os.Getenv("GITHUB_TOKEN")
+	return GitHubToken
 }
 
-func printInfo(msg ...interface{}) {
+func printInfo(msg interface{}) {
 	color.New(color.FgYellow).Println(msg)
 }
 
-func printSuccess(msg ...interface{}) {
+func printSuccess(msg interface{}) {
 	color.New(color.FgGreen).Println(msg)
 }
 
-func printError(msg ...interface{}) {
+func printError(msg interface{}) {
 	color.New(color.FgRed).Println(msg)
 }
 
-func printSubtle(msg ...interface{}) {
+func printSubtle(msg interface{}) {
 	color.New(color.FgHiMagenta).Println(msg)
 }
 
@@ -90,10 +99,8 @@ func getAllOrgCloneUrls() ([]string, error) {
 }
 
 func createDirIfNotExist() {
-	clonePath := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")
-
-	if _, err := os.Stat(clonePath + os.Args[1] + "_ghorg"); os.IsNotExist(err) {
-		err = os.MkdirAll(clonePath, 0666)
+	if _, err := os.Stat(AbsolutePathToCloneTo + os.Args[1] + "_ghorg"); os.IsNotExist(err) {
+		err = os.MkdirAll(AbsolutePathToCloneTo, 0666)
 		if err != nil {
 			panic(err)
 		}
@@ -121,9 +128,9 @@ func CloneAllReposByOrg() {
 
 	createDirIfNotExist()
 
-	if os.Getenv("GHORG_BRANCH") != "master" {
+	if GhorgBranch != "master" {
 		printSubtle("***********************************************************")
-		printSubtle("* Ghorg will be running on branch: " + os.Getenv("GHORG_BRANCH"))
+		printSubtle("* Ghorg will be running on branch: " + GhorgBranch)
 		printSubtle("* To change back to master run $ export GHORG_BRANCH=master")
 		printSubtle("***********************************************************")
 		fmt.Println()
@@ -138,13 +145,11 @@ func CloneAllReposByOrg() {
 		fmt.Println()
 	}
 
-	branch := os.Getenv("GHORG_BRANCH")
-
 	for _, target := range cloneTargets {
 		appName := getAppNameFromURL(target)
 
 		go func(repoUrl string, branch string) {
-			repoDir := os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO") + os.Args[1] + "_ghorg" + "/" + appName
+			repoDir := AbsolutePathToCloneTo + os.Args[1] + "_ghorg" + "/" + appName
 
 			if repoExistsLocally(repoDir) == true {
 
@@ -197,7 +202,7 @@ func CloneAllReposByOrg() {
 			}
 
 			resc <- repoUrl
-		}(target, branch)
+		}(target, GhorgBranch)
 	}
 
 	errors := []error{}
