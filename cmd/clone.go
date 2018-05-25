@@ -16,24 +16,40 @@ import (
 
 func getToken() string {
 	if len(os.Getenv("GITHUB_TOKEN")) != 40 {
-		color.New(color.FgYellow).Println("Note: GITHUB_TOKEN not set in .env, defaulting to keychain")
+		printInfo("Note: GITHUB_TOKEN not set in .env, defaulting to keychain")
 		fmt.Println()
 		cmd := `security find-internet-password -s github.com | grep "acct" | awk -F\" '{ print $4 }'`
 		out, err := exec.Command("bash", "-c", cmd).Output()
 		if err != nil {
-			return color.New(color.FgRed).Sprintf("Failed to execute command: %s", cmd)
+			printError(fmt.Sprintf("Failed to execute command: %s", cmd))
 		}
 
 		token := strings.TrimSuffix(string(out), "\n")
 
 		if len(token) != 40 {
-			log.Fatal("Could not find a GitHub token in keychain, create token and set GITHUB_TOKEN in .env")
+			log.Fatal("Could not find a GitHub token in keychain, create token, set GITHUB_TOKEN in your .env, and then make install")
 		}
 
 		return token
 	}
 
 	return os.Getenv("GITHUB_TOKEN")
+}
+
+func printInfo(msg ...interface{}) {
+	color.New(color.FgYellow).Println(msg)
+}
+
+func printSuccess(msg ...interface{}) {
+	color.New(color.FgGreen).Println(msg)
+}
+
+func printError(msg ...interface{}) {
+	color.New(color.FgRed).Println(msg)
+}
+
+func printSubtle(msg ...interface{}) {
+	color.New(color.FgHiMagenta).Println(msg)
 }
 
 // TODO: Figure out how to use go channels for this
@@ -106,19 +122,19 @@ func CloneAllReposByOrg() {
 	createDirIfNotExist()
 
 	if os.Getenv("GHORG_BRANCH") != "master" {
-		color.New(color.FgHiMagenta).Println("***********************************************************")
-		color.New(color.FgHiMagenta).Println("* Ghorg will be running on branch: " + os.Getenv("GHORG_BRANCH"))
-		color.New(color.FgHiMagenta).Println("* To change back to master run $ export GHORG_BRANCH=master")
-		color.New(color.FgHiMagenta).Println("***********************************************************")
+		printSubtle("***********************************************************")
+		printSubtle("* Ghorg will be running on branch: " + os.Getenv("GHORG_BRANCH"))
+		printSubtle("* To change back to master run $ export GHORG_BRANCH=master")
+		printSubtle("***********************************************************")
 		fmt.Println()
 	}
 
 	cloneTargets, err := getAllOrgCloneUrls()
 
 	if err != nil {
-		color.New(color.FgRed).Println(err)
+		printError(err)
 	} else {
-		color.New(color.FgYellow).Println(strconv.Itoa(len(cloneTargets)) + " repos")
+		printInfo(strconv.Itoa(len(cloneTargets)) + " repos")
 		fmt.Println()
 	}
 
@@ -190,7 +206,7 @@ func CloneAllReposByOrg() {
 	for i := 0; i < len(cloneTargets); i++ {
 		select {
 		case res := <-resc:
-			color.New(color.FgGreen).Println("Success " + res)
+			printSuccess("Success " + res)
 		case err := <-errc:
 			errors = append(errors, err)
 		case info := <-infoc:
@@ -200,25 +216,25 @@ func CloneAllReposByOrg() {
 
 	if len(infoMessages) > 0 {
 		fmt.Println()
-		color.New(color.FgYellow).Println("============ Info ============")
+		printInfo("============ Info ============")
 		fmt.Println()
 		for _, i := range infoMessages {
-			color.New(color.FgYellow).Println(i)
+			printInfo(i)
 		}
 		fmt.Println()
 	}
 
 	if len(errors) > 0 {
 		fmt.Println()
-		color.New(color.FgRed).Println("============ Issues ============")
+		printError("============ Issues ============")
 		fmt.Println()
 		for _, e := range errors {
-			color.New(color.FgRed).Println(e)
+			printError(e)
 		}
 		fmt.Println()
 	}
 
-	color.New(color.FgYellow).Println("Finished!")
+	printInfo("Finished!")
 }
 
 // TODO: Clone via http or ssh flag
