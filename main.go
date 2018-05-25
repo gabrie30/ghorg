@@ -16,7 +16,7 @@ func init() {
 		log.Fatal("Error trying to find users home directory")
 	}
 
-	if len(os.Getenv("GHORG_BRANCH")) == 0 {
+	if os.Getenv("GHORG_BRANCH") == "" {
 		os.Setenv("GHORG_BRANCH", "master")
 	}
 
@@ -29,7 +29,7 @@ func init() {
 		log.Fatal("Error loading .ghorg file, create a .env from the sample and run Make install")
 	}
 
-	if len(os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")) == 0 {
+	if os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO") == "" {
 		log.Fatal("You must set ABSOLUTE_PATH_TO_CLONE_TO in your .env")
 	}
 
