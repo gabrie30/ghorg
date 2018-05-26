@@ -9,28 +9,20 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fatih/color"
+	"github.com/gabrie30/ghorg/colorlog"
+	"github.com/gabrie30/ghorg/config"
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )
 
-var (
-	// GitHubToken used to auth to github, either comes from keychain locally or from the .env
-	GitHubToken string
-	// AbsolutePathToCloneTo Path to which ghorg will create a new folder to place all cloned repos
-	AbsolutePathToCloneTo string
-	// GhorgBranch branch that ghorg will checkout
-	GhorgBranch string
-)
-
 func getToken() string {
-	if len(GitHubToken) != 40 {
-		printInfo("Note: GITHUB_TOKEN not set in .env, defaulting to keychain")
+	if len(config.GitHubToken) != 40 {
+		colorlog.PrintInfo("Note: GITHUB_TOKEN not set in .env, defaulting to keychain")
 		fmt.Println()
 		cmd := `security find-internet-password -s github.com | grep "acct" | awk -F\" '{ print $4 }'`
 		out, err := exec.Command("bash", "-c", cmd).Output()
 		if err != nil {
-			printError(fmt.Sprintf("Failed to execute command: %s", cmd))
+			colorlog.PrintError(fmt.Sprintf("Failed to execute command: %s", cmd))
 		}
 
 		token := strings.TrimSuffix(string(out), "\n")
@@ -42,23 +34,7 @@ func getToken() string {
 		return token
 	}
 
-	return GitHubToken
-}
-
-func printInfo(msg interface{}) {
-	color.New(color.FgYellow).Println(msg)
-}
-
-func printSuccess(msg interface{}) {
-	color.New(color.FgGreen).Println(msg)
-}
-
-func printError(msg interface{}) {
-	color.New(color.FgRed).Println(msg)
-}
-
-func printSubtle(msg interface{}) {
-	color.New(color.FgHiMagenta).Println(msg)
+	return config.GitHubToken
 }
 
 // TODO: Figure out how to use go channels for this
@@ -99,8 +75,8 @@ func getAllOrgCloneUrls() ([]string, error) {
 }
 
 func createDirIfNotExist() {
-	if _, err := os.Stat(AbsolutePathToCloneTo + os.Args[1] + "_ghorg"); os.IsNotExist(err) {
-		err = os.MkdirAll(AbsolutePathToCloneTo, 0666)
+	if _, err := os.Stat(config.AbsolutePathToCloneTo + os.Args[1] + "_ghorg"); os.IsNotExist(err) {
+		err = os.MkdirAll(config.AbsolutePathToCloneTo, 0666)
 		if err != nil {
 			panic(err)
 		}
@@ -128,20 +104,20 @@ func CloneAllReposByOrg() {
 
 	createDirIfNotExist()
 
-	if GhorgBranch != "master" {
-		printSubtle("***********************************************************")
-		printSubtle("* Ghorg will be running on branch: " + GhorgBranch)
-		printSubtle("* To change back to master run $ export GHORG_BRANCH=master")
-		printSubtle("***********************************************************")
+	if config.GhorgBranch != "master" {
+		colorlog.PrintSubtleInfo("***********************************************************")
+		colorlog.PrintSubtleInfo("* Ghorg will be running on branch: " + config.GhorgBranch)
+		colorlog.PrintSubtleInfo("* To change back to master run $ export GHORG_BRANCH=master")
+		colorlog.PrintSubtleInfo("***********************************************************")
 		fmt.Println()
 	}
 
 	cloneTargets, err := getAllOrgCloneUrls()
 
 	if err != nil {
-		printError(err)
+		colorlog.PrintError(err)
 	} else {
-		printInfo(strconv.Itoa(len(cloneTargets)) + " repos")
+		colorlog.PrintInfo(strconv.Itoa(len(cloneTargets)) + " repos")
 		fmt.Println()
 	}
 
@@ -149,7 +125,7 @@ func CloneAllReposByOrg() {
 		appName := getAppNameFromURL(target)
 
 		go func(repoUrl string, branch string) {
-			repoDir := AbsolutePathToCloneTo + os.Args[1] + "_ghorg" + "/" + appName
+			repoDir := config.AbsolutePathToCloneTo + os.Args[1] + "_ghorg" + "/" + appName
 
 			if repoExistsLocally(repoDir) == true {
 
@@ -202,7 +178,7 @@ func CloneAllReposByOrg() {
 			}
 
 			resc <- repoUrl
-		}(target, GhorgBranch)
+		}(target, config.GhorgBranch)
 	}
 
 	errors := []error{}
@@ -211,7 +187,7 @@ func CloneAllReposByOrg() {
 	for i := 0; i < len(cloneTargets); i++ {
 		select {
 		case res := <-resc:
-			printSuccess("Success " + res)
+			colorlog.PrintSuccess("Success " + res)
 		case err := <-errc:
 			errors = append(errors, err)
 		case info := <-infoc:
@@ -221,25 +197,25 @@ func CloneAllReposByOrg() {
 
 	if len(infoMessages) > 0 {
 		fmt.Println()
-		printInfo("============ Info ============")
+		colorlog.PrintInfo("============ Info ============")
 		fmt.Println()
 		for _, i := range infoMessages {
-			printInfo(i)
+			colorlog.PrintInfo(i)
 		}
 		fmt.Println()
 	}
 
 	if len(errors) > 0 {
 		fmt.Println()
-		printError("============ Issues ============")
+		colorlog.PrintError("============ Issues ============")
 		fmt.Println()
 		for _, e := range errors {
-			printError(e)
+			colorlog.PrintError(e)
 		}
 		fmt.Println()
 	}
 
-	printInfo("Finished!")
+	colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg", config.AbsolutePathToCloneTo, os.Args[1]))
 }
 
 // TODO: Clone via http or ssh flag

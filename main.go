@@ -4,24 +4,21 @@ import (
 	"log"
 	"os"
 
-	"github.com/fatih/color"
 	"github.com/gabrie30/ghorg/cmd"
+	"github.com/gabrie30/ghorg/colorlog"
+	"github.com/gabrie30/ghorg/config"
 	"github.com/joho/godotenv"
 	homedir "github.com/mitchellh/go-homedir"
 )
 
 func init() {
+	if len(os.Args) <= 1 {
+		log.Fatal("You must provide an org to clone from")
+	}
+
 	home, err := homedir.Dir()
 	if err != nil {
 		log.Fatal("Error trying to find users home directory")
-	}
-
-	if os.Getenv("GHORG_BRANCH") == "" {
-		os.Setenv("GHORG_BRANCH", "master")
-	}
-
-	if len(os.Args) <= 1 {
-		log.Fatal("You must provide an org to clone from")
 	}
 
 	err = godotenv.Load(home + "/.ghorg")
@@ -29,16 +26,20 @@ func init() {
 		log.Fatal("Error loading .ghorg file, create a .env from the sample and run Make install")
 	}
 
-	if os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO") == "" {
-		log.Fatal("You must set ABSOLUTE_PATH_TO_CLONE_TO in your .env")
+	config.GitHubToken = os.Getenv("GITHUB_TOKEN")
+	config.AbsolutePathToCloneTo = os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")
+	config.GhorgBranch = os.Getenv("GHORG_BRANCH")
+
+	if config.GhorgBranch == "" {
+		config.GhorgBranch = "master"
 	}
 
-	withTrailingSlash := ensureTrailingSlash(os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO"))
-	os.Setenv("ABSOLUTE_PATH_TO_CLONE_TO", withTrailingSlash)
+	if config.AbsolutePathToCloneTo == "" {
+		config.AbsolutePathToCloneTo = home + "/Desktop/"
+	}
 
-	cmd.GitHubToken = os.Getenv("GITHUB_TOKEN")
-	cmd.AbsolutePathToCloneTo = os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")
-	cmd.GhorgBranch = os.Getenv("GHORG_BRANCH")
+	withTrailingSlash := ensureTrailingSlash(config.AbsolutePathToCloneTo)
+	config.AbsolutePathToCloneTo = withTrailingSlash
 }
 
 func ensureTrailingSlash(path string) string {
@@ -50,7 +51,7 @@ func ensureTrailingSlash(path string) string {
 }
 
 func asciiTime() {
-	color.New(color.FgYellow).Println(
+	colorlog.PrintInfo(
 		`
  +-+-+-+-+ +-+-+ +-+-+-+-+-+
  |T|I|M|E| |T|O| |G|H|O|R|G|
