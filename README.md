@@ -13,8 +13,6 @@ $ brew tap gabrie30/utils
 $ brew install ghorg
 ```
 
-> If default values are causing issues copy the .env-sample to $HOME/.ghorg
-
 ### Golang
 
 ```bash
