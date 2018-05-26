@@ -26,8 +26,8 @@ func init() {
 		log.Fatal("Error loading .ghorg file, create a .env from the sample and run Make install")
 	}
 
-	config.GitHubToken = os.Getenv("GITHUB_TOKEN")
-	config.AbsolutePathToCloneTo = os.Getenv("ABSOLUTE_PATH_TO_CLONE_TO")
+	config.GitHubToken = os.Getenv("GHORG_GITHUB_TOKEN")
+	config.AbsolutePathToCloneTo = os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
 	config.GhorgBranch = os.Getenv("GHORG_BRANCH")
 
 	if config.GhorgBranch == "" {

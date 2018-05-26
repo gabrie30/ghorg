@@ -10,8 +10,8 @@ GitHub search is terrible. The idea with ghorg is to quickly clone all org repos
 $ go get -u github.com/gabrie30/ghorg
 $ cd $HOME/go/src/github.com/gabrie30/ghorg
 $ cp .env-sample .env
-# update your .env
-# If GITHUB_TOKEN is not set in .ghorg, defaults to keychain, see below
+# update your .env, if needed
+# If GHORG_GITHUB_TOKEN is not set in .ghorg, defaults to keychain, see below
 $ make install
 $ go install
 ```
@@ -31,6 +31,8 @@ $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ pri
 ```
 
 > If running this does not return the correct key you will need to generate a token via GithHub and add it to your .env
+
+> To view all other default environment variables see .env-sample
 
 ## Auth through SSO
 

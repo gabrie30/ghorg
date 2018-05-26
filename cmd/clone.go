@@ -17,7 +17,7 @@ import (
 
 func getToken() string {
 	if len(config.GitHubToken) != 40 {
-		colorlog.PrintInfo("Note: GITHUB_TOKEN not set in .env, defaulting to keychain")
+		colorlog.PrintInfo("Note: GHORG_GITHUB_TOKEN not set in .env, defaulting to keychain")
 		fmt.Println()
 		cmd := `security find-internet-password -s github.com | grep "acct" | awk -F\" '{ print $4 }'`
 		out, err := exec.Command("bash", "-c", cmd).Output()
