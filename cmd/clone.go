@@ -17,7 +17,7 @@ import (
 
 func getToken() string {
 	if len(config.GitHubToken) != 40 {
-		colorlog.PrintInfo("Note: GHORG_GITHUB_TOKEN not set in .env, defaulting to keychain")
+		colorlog.PrintInfo("Note: GHORG_GITHUB_TOKEN not set in $HOME/.ghorg, defaulting to keychain")
 		fmt.Println()
 		cmd := `security find-internet-password -s github.com | grep "acct" | awk -F\" '{ print $4 }'`
 		out, err := exec.Command("bash", "-c", cmd).Output()
@@ -28,7 +28,7 @@ func getToken() string {
 		token := strings.TrimSuffix(string(out), "\n")
 
 		if len(token) != 40 {
-			log.Fatal("Could not find a GitHub token in keychain, create token, set GITHUB_TOKEN in your .env, and then make install")
+			log.Fatal("Could not find a GitHub token in keychain, create token, set GITHUB_TOKEN in your $HOME/.ghorg")
 		}
 
 		return token

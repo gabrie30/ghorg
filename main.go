@@ -23,7 +23,7 @@ func init() {
 
 	err = godotenv.Load(home + "/.ghorg")
 	if err != nil {
-		log.Fatal("Error loading .ghorg file, create a .env from the sample and run Make install")
+		log.Fatal("Error loading $HOME/.ghorg")
 	}
 
 	config.GitHubToken = os.Getenv("GHORG_GITHUB_TOKEN")
