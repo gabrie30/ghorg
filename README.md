@@ -46,3 +46,7 @@ $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ pri
 ## Auth through SSO
 
 - If org is behind SSO a normal token will not work. You will need to add SSO to the [Github token](https://help.github.com/articles/authorizing-a-personal-access-token-for-use-with-a-saml-single-sign-on-organization/)
+
+## Troubleshooting
+- You may need to increase your ulimits if cloning a large org
+- Other issues can most likely be resolved by adding a .ghorg to your home directory and setting the necessary values defined in the `.env-sample`
