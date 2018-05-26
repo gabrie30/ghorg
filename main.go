@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -23,7 +24,8 @@ func init() {
 
 	err = godotenv.Load(home + "/.ghorg")
 	if err != nil {
-		log.Fatal("Error loading $HOME/.ghorg")
+		fmt.Println()
+		colorlog.PrintSubtleInfo("Could not find a $HOME/.ghorg proceeding with defaults")
 	}
 
 	config.GitHubToken = os.Getenv("GHORG_GITHUB_TOKEN")
