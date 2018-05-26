@@ -49,4 +49,4 @@ $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ pri
 
 ## Troubleshooting
 - You may need to increase your ulimits if cloning a large org
-- Other issues can most likely be resolved by adding a .ghorg to your home directory and setting the necessary values defined in the `.env-sample`
+- Other issues can most likely be resolved by adding a `.ghorg` to your users home directory and setting the necessary values defined in the `.env-sample`
