@@ -2,7 +2,7 @@ install:
 		touch ~/.ghorg
 		cp .env ~/.ghorg
 homebrew:
-		touch ~/.ghorg
-		cp .env-sample ~/.ghorg
+		touch ${HOME}/.ghorg
+		cp .env-sample ${HOME}/.ghorg
 uninstall:
 		rm ~/.ghorg
