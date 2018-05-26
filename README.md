@@ -6,6 +6,17 @@ GitHub search is terrible. The idea with ghorg is to quickly clone all org repos
 
 ## Setup
 
+### Homebrew
+
+```bash
+$ brew tap gabrie30/utils
+$ brew install ghorg
+```
+
+> If default values are causing issues copy the .env-sample to $HOME/.ghorg
+
+### Golang
+
 ```bash
 $ go get -u github.com/gabrie30/ghorg
 $ cd $HOME/go/src/github.com/gabrie30/ghorg
