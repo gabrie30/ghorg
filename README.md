@@ -39,7 +39,7 @@ $ ghorg org
 $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
 ```
 
-> If running this does not return the correct key you will need to generate a token via GithHub and add it to your .env
+> If running this does not return the correct key you will need to generate a token via GithHub and add it to your $HOME/.ghorg
 
 > To view all other default environment variables see .env-sample
 
