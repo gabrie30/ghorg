@@ -76,7 +76,7 @@ func getAllOrgCloneUrls() ([]string, error) {
 
 func createDirIfNotExist() {
 	if _, err := os.Stat(config.AbsolutePathToCloneTo + os.Args[1] + "_ghorg"); os.IsNotExist(err) {
-		err = os.MkdirAll(config.AbsolutePathToCloneTo, 0666)
+		err = os.MkdirAll(config.AbsolutePathToCloneTo, 0700)
 		if err != nil {
 			panic(err)
 		}
