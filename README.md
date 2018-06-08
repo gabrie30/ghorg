@@ -1,5 +1,7 @@
 # ghorg
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/gabrie30/ghorg)](https://goreportcard.com/report/github.com/gabrie30/ghorg)
+
 GitHub search is terrible. The idea with ghorg is to quickly clone all org repos into a single directory and use something like ack to search.
 
 > When running ghorg a second time, all local changes in your *_ghorg directory will be overwritten by whats on GitHub. If you are working out of this directory, make sure you rename it before running a second time.
