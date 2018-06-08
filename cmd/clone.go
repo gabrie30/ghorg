@@ -98,6 +98,28 @@ func getAppNameFromURL(url string) string {
 	return strings.Join(split[0:len(split)-1], ".")
 }
 
+func printRemainingMessages(infoMessages []error, errors []error) {
+	if len(infoMessages) > 0 {
+		fmt.Println()
+		colorlog.PrintInfo("============ Info ============")
+		fmt.Println()
+		for _, i := range infoMessages {
+			colorlog.PrintInfo(i)
+		}
+		fmt.Println()
+	}
+
+	if len(errors) > 0 {
+		fmt.Println()
+		colorlog.PrintError("============ Issues ============")
+		fmt.Println()
+		for _, e := range errors {
+			colorlog.PrintError(e)
+		}
+		fmt.Println()
+	}
+}
+
 // CloneAllReposByOrg clones all repos for a given org
 func CloneAllReposByOrg() {
 	resc, errc, infoc := make(chan string), make(chan error), make(chan error)
@@ -195,25 +217,7 @@ func CloneAllReposByOrg() {
 		}
 	}
 
-	if len(infoMessages) > 0 {
-		fmt.Println()
-		colorlog.PrintInfo("============ Info ============")
-		fmt.Println()
-		for _, i := range infoMessages {
-			colorlog.PrintInfo(i)
-		}
-		fmt.Println()
-	}
-
-	if len(errors) > 0 {
-		fmt.Println()
-		colorlog.PrintError("============ Issues ============")
-		fmt.Println()
-		for _, e := range errors {
-			colorlog.PrintError(e)
-		}
-		fmt.Println()
-	}
+	printRemainingMessages(infoMessages, errors)
 
 	colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg", config.AbsolutePathToCloneTo, os.Args[1]))
 }
