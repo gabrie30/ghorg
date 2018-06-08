@@ -1,3 +1,4 @@
+// Package colorlog has various Print functions that can be called to change the color of the text in standard out
 package colorlog
 
 import "github.com/fatih/color"

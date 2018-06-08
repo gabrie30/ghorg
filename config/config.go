@@ -1,3 +1,4 @@
+// Package config sets environment variables to vars for simplified sharing of environment variables between packages
 package config
 
 var (

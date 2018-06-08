@@ -1,3 +1,4 @@
+// Package cmd holds functions associated with cloning all of a given orgs repos
 package cmd
 
 import (
