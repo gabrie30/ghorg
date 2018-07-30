@@ -2,7 +2,12 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/gabrie30/ghorg)](https://goreportcard.com/report/github.com/gabrie30/ghorg) <a href="https://godoc.org/github.com/gabrie30/ghorg"><img src="https://godoc.org/github.com/gabrie30/ghorg?status.svg" alt="GoDoc"></a> [![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/avelino/awesome-go) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-GitHub search is terrible. The idea with ghorg is to quickly clone all org repos into a single directory and use something like ack to search.
+ghorg allows you to quickly clone all of an orgs repos into a single directory. This can be useful in many situations including
+
+1. Searching your orgs codebase with ack, silver searcher, grep etc..
+2. Bash scripting
+3. Creating backups
+4. Onboarding new teammates
 
 > When running ghorg a second time, all local changes in your *_ghorg directory will be overwritten by whats on GitHub. If you are working out of this directory, make sure you rename it before running a second time.
 
