@@ -140,7 +140,7 @@ func CloneAllReposByOrg() {
 	if err != nil {
 		colorlog.PrintError(err)
 	} else {
-		colorlog.PrintInfo(strconv.Itoa(len(cloneTargets)) + " repos")
+		colorlog.PrintInfo(strconv.Itoa(len(cloneTargets)) + " repos found in " + os.Args[1])
 		fmt.Println()
 	}
 
