@@ -8,7 +8,7 @@ ghorg allows you to quickly clone all of an orgs repos into a single directory. 
 2. Bash scripting
 3. Creating backups
 4. Onboarding new teammates
-5. Auditing
+5. Performing Audits
 
 > When running ghorg a second time, all local changes in your *_ghorg directory will be overwritten by whats on GitHub. If you are working out of this directory, make sure you rename it before running a second time.
 
