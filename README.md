@@ -22,6 +22,7 @@ ghorg allows you to quickly clone all of an orgs repos into a single directory. 
 $ brew update
 $ brew upgrade git
 ```
+> required
 
 ```bash
 $ brew install gabrie30/utils/ghorg
