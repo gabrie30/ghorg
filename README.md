@@ -44,7 +44,7 @@ $ go install
 ## Use
 
 ```bash
-$ ghorg org
+$ ghorg org-you-want-to-clone
 ```
 
 > ghorg defaults to master however, for gitflows you can run on develop by setting GHORG_BRANCH=develop or similar
