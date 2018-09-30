@@ -10,7 +10,7 @@ ghorg allows you to quickly clone all of an orgs repos into a single directory. 
 4. Onboarding new teammates
 5. Performing Audits
 
-> When running ghorg a second time, all local changes in your *_ghorg directory will be overwritten by whats on GitHub. If you are working out of this directory, make sure you rename it before running a second time.
+> When running ghorg a second time, all local changes in your *_ghorg directory will be overwritten by whats on GitHub. If you are working out of this directory, make sure you rename it before running a second time otherwise all of you changes will be lost.
 
 ## Setup
 
@@ -58,3 +58,4 @@ $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ pri
 ## Troubleshooting
 - You may need to increase your ulimits if cloning a large org
 - Other issues can most likely be resolved by adding a `.ghorg` to your users home directory and setting the necessary values defined in the `.env-sample`
+- Make sure your `$ git --version` is >= 2.19.0

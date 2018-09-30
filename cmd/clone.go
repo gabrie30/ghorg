@@ -160,11 +160,19 @@ func CloneAllReposByOrg() {
 					return
 				}
 
-				cmd = exec.Command("git", "fetch", "--all")
+				cmd = exec.Command("git", "clean", "-f", "-d")
 				cmd.Dir = repoDir
 				err = cmd.Run()
 				if err != nil {
-					errc <- fmt.Errorf("Problem trying to fetch all Repo: %s Error: %v", repoUrl, err)
+					errc <- fmt.Errorf("Problem running git clean: %s Error: %v", repoUrl, err)
+					return
+				}
+
+				cmd = exec.Command("git", "fetch", "-n", "origin", branch)
+				cmd.Dir = repoDir
+				err = cmd.Run()
+				if err != nil {
+					errc <- fmt.Errorf("Problem trying to fetch %v Repo: %s Error: %v", branch, repoUrl, err)
 					return
 				}
 
@@ -180,22 +188,6 @@ func CloneAllReposByOrg() {
 				err := cmd.Run()
 				if err != nil {
 					errc <- fmt.Errorf("Problem trying to clone Repo: %s Error: %v", repoUrl, err)
-					return
-				}
-
-				cmd = exec.Command("git", "fetch", "--all")
-				cmd.Dir = repoDir
-				err = cmd.Run()
-				if err != nil {
-					errc <- fmt.Errorf("Problem trying to fetch all Repo: %s Error: %v", repoUrl, err)
-					return
-				}
-
-				cmd = exec.Command("git", "checkout", branch)
-				cmd.Dir = repoDir
-				err = cmd.Run()
-				if err != nil {
-					infoc <- fmt.Errorf("Repo cloned but could not checkout %s Repo: %s Error: %v", branch, repoUrl, err)
 					return
 				}
 			}
