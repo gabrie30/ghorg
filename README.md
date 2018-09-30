@@ -59,3 +59,6 @@ $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ pri
 - You may need to increase your ulimits if cloning a large org
 - Other issues can most likely be resolved by adding a `.ghorg` to your users home directory and setting the necessary values defined in the `.env-sample`
 - Make sure your `$ git --version` is >= 2.19.0
+
+### Updating brew tap
+- [See Readme](https://github.com/gabrie30/homebrew-utils/blob/master/README.md)
