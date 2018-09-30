@@ -16,9 +16,16 @@ ghorg allows you to quickly clone all of an orgs repos into a single directory. 
 
 ### Homebrew
 
+> optional
+
 ```bash
-$ brew tap gabrie30/utils
-$ brew install ghorg
+$ brew update
+$ brew upgrade git
+```
+
+```bash
+$ brew install gabrie30/utils/ghorg
+$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/.env-sample > $HOME/.ghorg
 ```
 
 ### Golang
