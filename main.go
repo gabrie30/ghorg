@@ -31,6 +31,7 @@ func init() {
 	config.GitHubToken = os.Getenv("GHORG_GITHUB_TOKEN")
 	config.AbsolutePathToCloneTo = os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
 	config.GhorgBranch = os.Getenv("GHORG_BRANCH")
+	config.GhorgCloneProtocol = os.Getenv("GHORG_CLONE_PROTOCOL")
 
 	if config.GhorgBranch == "" {
 		config.GhorgBranch = "master"
@@ -38,6 +39,10 @@ func init() {
 
 	if config.AbsolutePathToCloneTo == "" {
 		config.AbsolutePathToCloneTo = home + "/Desktop/"
+	}
+
+	if config.GhorgCloneProtocol == "" {
+		config.GhorgCloneProtocol = "https"
 	}
 
 	withTrailingSlash := ensureTrailingSlash(config.AbsolutePathToCloneTo)

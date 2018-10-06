@@ -69,7 +69,11 @@ func getAllOrgCloneUrls() ([]string, error) {
 	cloneUrls := []string{}
 
 	for _, repo := range allRepos {
-		cloneUrls = append(cloneUrls, *repo.CloneURL)
+		if config.GhorgCloneProtocol == "https" {
+			cloneUrls = append(cloneUrls, *repo.CloneURL)
+		} else {
+			cloneUrls = append(cloneUrls, *repo.SSHURL)
+		}
 	}
 
 	return cloneUrls, nil
