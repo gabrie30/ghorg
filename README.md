@@ -51,7 +51,7 @@ $ ghorg org-you-want-to-clone
 
 ## Configuration
 
-All configuration will be done in the .ghorg file. This file will be created from the [.env-sample](https://github.com/gabrie30/ghorg/blob/master/.env-sample) repo and copied into ~/.ghorg. Make sure this file exists then configure to your needs.
+All configuration will be done in the .ghorg file. This file will be created from the [.env-sample](https://github.com/gabrie30/ghorg/blob/master/.env-sample) and copied into ~/.ghorg. Make sure this file exists then configure to your needs.
 
 ## Default GitHub Token Used
 
