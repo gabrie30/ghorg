@@ -49,6 +49,10 @@ $ ghorg org-you-want-to-clone
 
 > ghorg defaults to master however, for gitflows you can run on develop by setting GHORG_BRANCH=develop or similar
 
+## Configuration
+
+All configuration will be done in the .ghorg file. This file will be created from the [.env-sample](https://github.com/gabrie30/ghorg/blob/master/.env-sample) and copied into ~/.ghorg. Make sure this file exists then configure to your needs.
+
 ## Default GitHub Token Used
 
 ```bash

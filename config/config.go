@@ -8,4 +8,6 @@ var (
 	AbsolutePathToCloneTo string
 	// GhorgBranch branch that ghorg will checkout
 	GhorgBranch string
+	// GhorgCloneProtocol is the protocol to clone with
+	GhorgCloneProtocol string
 )
