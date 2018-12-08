@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased] - DATE
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+
+## [1.0.8] - 12/8/18
+### Added
 - changelog
 - when no org is found default to search for username instead
 - clone protocol to .ghorg to allow for https or ssh cloning
