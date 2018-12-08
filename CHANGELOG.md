@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [Unreleased] - DATE
 ### Added
 - changelog
+- when no org is found default to search for username instead
 - clone protocol to .ghorg to allow for https or ssh cloning
 ### Changed
 - readme
