@@ -65,7 +65,7 @@ All configuration will be done in the .ghorg file. This file will be created fro
 $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
 ```
 
-> If running this does not return the correct key you will need to generate a token via GithHub and add it to your $HOME/.ghorg
+> If running this does not return the correct key you will need to generate a token via GithHub and add it to your $HOME/.ghorg, or see Troubleshooting section below.
 
 > To view all other default environment variables see .env-sample
 
