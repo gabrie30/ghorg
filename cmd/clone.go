@@ -29,7 +29,7 @@ func getToken() string {
 		token := strings.TrimSuffix(string(out), "\n")
 
 		if len(token) != 40 {
-			log.Fatal("Could not find a GitHub token in keychain, create token, set GITHUB_TOKEN in your $HOME/.ghorg")
+			log.Fatal("Could not find a GitHub token in keychain. You should create a personal access token from GitHub, then set GITHUB_TOKEN in your $HOME/.ghorg...or swtich to cloning via SSH also done by updating your $HOME/.ghorg. Or read the troubleshooting section of Readme.md https://github.com/gabrie30/ghorg to store your token in your osx keychain.")
 		}
 
 		return token
