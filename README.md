@@ -78,7 +78,7 @@ $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ pri
 - Make sure your `$ git --version` is >= 2.19.0
 - You may need to increase your ulimits if cloning a large org
 - Other issues can most likely be resolved by adding a `.ghorg` to your users home directory and setting the necessary values defined in the `.env-sample`
-- If cloning via HTTPS make sure the osxkeychain has your github access token. This can be deterined by running the `security` command above.
+- If cloning via HTTPS make sure the osxkeychain has your github access token. This can be determined by running the `security` command above.
     - If this command does not return anything either switch to cloning via ssh (update your .ghorg) or set it up by following this [GitHub Documentation](https://help.github.com/en/articles/caching-your-github-password-in-git)
     - If your GitHub account is behind 2fa follow this [StackOverflow Post](https://stackoverflow.com/questions/31305945/git-clone-from-github-over-https-with-two-factor-authentication) or this [Github Documentation](https://github.blog/2013-09-03-two-factor-authentication/#how-does-it-work-for-command-line-git) as noted in comments be sure to use your token as your username and give a blank password.
 
