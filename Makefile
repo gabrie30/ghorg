@@ -1,8 +1,6 @@
 install:
-		touch ~/.ghorg
-		cp .env ~/.ghorg
+		mkdir -p ~/ghorg
+		cp sample-conf.yaml ~/ghorg/conf.yaml
 homebrew:
-		touch ${HOME}/.ghorg
-		cp .env-sample ${HOME}/.ghorg
-uninstall:
-		rm ~/.ghorg
+		mkdir -p ${HOME}/ghorg
+		cp sample-conf.yaml ${HOME}/ghorg/conf.yaml

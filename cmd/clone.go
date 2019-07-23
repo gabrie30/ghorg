@@ -4,7 +4,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -16,34 +15,12 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func getToken() string {
-	if len(config.GitHubToken) != 40 {
-		colorlog.PrintInfo("Note: GHORG_GITHUB_TOKEN not set in $HOME/.ghorg, defaulting to keychain")
-		fmt.Println()
-		cmd := `security find-internet-password -s github.com | grep "acct" | awk -F\" '{ print $4 }'`
-		out, err := exec.Command("bash", "-c", cmd).Output()
-		if err != nil {
-			colorlog.PrintError(fmt.Sprintf("Failed to execute command: %s", cmd))
-		}
-
-		token := strings.TrimSuffix(string(out), "\n")
-
-		if len(token) != 40 {
-			log.Fatal("Could not find a GitHub token in keychain. You should create a personal access token from GitHub, then set GITHUB_TOKEN in your $HOME/.ghorg...or swtich to cloning via SSH also done by updating your $HOME/.ghorg. Or read the troubleshooting section of Readme.md https://github.com/gabrie30/ghorg to store your token in your osx keychain.")
-		}
-
-		return token
-	}
-
-	return config.GitHubToken
-}
-
 // TODO: Figure out how to use go channels for this
 func getAllOrgCloneUrls() ([]string, error) {
 	ctx := context.Background()
 
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: getToken()},
+		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
@@ -85,7 +62,7 @@ func getAllUserCloneUrls() ([]string, error) {
 	ctx := context.Background()
 
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: getToken()},
+		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
