@@ -1,4 +1,3 @@
-// Package cmd holds functions associated with cloning all of a given orgs repos
 package cmd
 
 import (
@@ -9,16 +8,72 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/gabrie30/ghorg/colorlog"
-	"github.com/gabrie30/ghorg/config"
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )
 
+var (
+	protocol string
+	path     string
+	branch   string
+	token    string
+	args     []string
+)
+
+func init() {
+	rootCmd.AddCommand(cloneCmd)
+	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "protocol to clone with, ssh or https, (defaults to https)")
+	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "absolute path the ghorg_* directory will be created (defaults to Desktop)")
+	cloneCmd.Flags().StringVarP(&branch, "branch", "b", "", "branch left checked out for each repo cloned (defaults to master)")
+	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "github token to clone with")
+}
+
+var cloneCmd = &cobra.Command{
+	Use:   "clone",
+	Short: "Clone a user or org",
+	Long:  `Clone a user or org you can specify which you want to clone with flags, otherwise it will default to org first than user`,
+	Run: func(cmd *cobra.Command, argz []string) {
+
+		if len(argz) < 1 {
+			colorlog.PrintError("You must provide an org or user to clone")
+			os.Exit(1)
+		}
+
+		if cmd.Flags().Changed("path") {
+			absolutePath := ensureTrailingSlash(cmd.Flag("path").Value.String())
+			os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", absolutePath)
+		}
+
+		if cmd.Flags().Changed("protocol") {
+			path := cmd.Flag("protocol").Value.String()
+			if path != "ssh" && path != "https" {
+				colorlog.PrintError("Protocol must be one of https or ssh")
+				os.Exit(1)
+			}
+			os.Setenv("GHORG_CLONE_PROTOCOL", path)
+		}
+
+		if cmd.Flags().Changed("branch") {
+			os.Setenv("GHORG_BRANCH", cmd.Flag("branch").Value.String())
+		}
+
+		if cmd.Flags().Changed("token") {
+			os.Setenv("GHORG_GITHUB_TOKEN", cmd.Flag("token").Value.String())
+		}
+
+		args = argz
+
+		CloneAllReposByOrg()
+	},
+}
+
 // TODO: Figure out how to use go channels for this
 func getAllOrgCloneUrls() ([]string, error) {
+	asciiTime()
 	ctx := context.Background()
-
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
 	)
@@ -33,7 +88,7 @@ func getAllOrgCloneUrls() ([]string, error) {
 	// get all pages of results
 	var allRepos []*github.Repository
 	for {
-		repos, resp, err := client.Repositories.ListByOrg(context.Background(), os.Args[1], opt)
+		repos, resp, err := client.Repositories.ListByOrg(context.Background(), args[0], opt)
 
 		if err != nil {
 			return nil, err
@@ -47,7 +102,7 @@ func getAllOrgCloneUrls() ([]string, error) {
 	cloneUrls := []string{}
 
 	for _, repo := range allRepos {
-		if config.GhorgCloneProtocol == "https" {
+		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			cloneUrls = append(cloneUrls, *repo.CloneURL)
 		} else {
 			cloneUrls = append(cloneUrls, *repo.SSHURL)
@@ -75,7 +130,7 @@ func getAllUserCloneUrls() ([]string, error) {
 	// get all pages of results
 	var allRepos []*github.Repository
 	for {
-		repos, resp, err := client.Repositories.List(context.Background(), os.Args[1], opt)
+		repos, resp, err := client.Repositories.List(context.Background(), args[0], opt)
 
 		if err != nil {
 			return nil, err
@@ -89,7 +144,7 @@ func getAllUserCloneUrls() ([]string, error) {
 	cloneUrls := []string{}
 
 	for _, repo := range allRepos {
-		if config.GhorgCloneProtocol == "https" {
+		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			cloneUrls = append(cloneUrls, *repo.CloneURL)
 		} else {
 			cloneUrls = append(cloneUrls, *repo.SSHURL)
@@ -100,8 +155,8 @@ func getAllUserCloneUrls() ([]string, error) {
 }
 
 func createDirIfNotExist() {
-	if _, err := os.Stat(config.AbsolutePathToCloneTo + os.Args[1] + "_ghorg"); os.IsNotExist(err) {
-		err = os.MkdirAll(config.AbsolutePathToCloneTo, 0700)
+	if _, err := os.Stat(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + args[0] + "_ghorg"); os.IsNotExist(err) {
+		err = os.MkdirAll(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), 0700)
 		if err != nil {
 			panic(err)
 		}
@@ -151,10 +206,10 @@ func CloneAllReposByOrg() {
 
 	createDirIfNotExist()
 
-	if config.GhorgBranch != "master" {
+	if os.Getenv("GHORG_BRANCH") != "master" {
 		colorlog.PrintSubtleInfo("***********************************************************")
-		colorlog.PrintSubtleInfo("* Ghorg will be running on branch: " + config.GhorgBranch)
-		colorlog.PrintSubtleInfo("* To change back to master run $ export GHORG_BRANCH=master")
+		colorlog.PrintSubtleInfo("* Ghorg will be running on branch: " + os.Getenv("GHORG_BRANCH"))
+		colorlog.PrintSubtleInfo("* To change back to master update your $HOME/ghorg/conf.yaml or include -b=master flag")
 		colorlog.PrintSubtleInfo("***********************************************************")
 		fmt.Println()
 	}
@@ -162,7 +217,7 @@ func CloneAllReposByOrg() {
 	cloneTargets, err := getAllOrgCloneUrls()
 
 	if err != nil {
-		colorlog.PrintSubtleInfo("Change of Plans! Did not find GitHub Org " + os.Args[1] + " -- Looking instead for a GitHub User: " + os.Args[1])
+		colorlog.PrintSubtleInfo("Change of Plans! Did not find GitHub Org " + args[0] + " -- Looking instead for a GitHub User: " + args[0])
 		fmt.Println()
 		cloneTargets, err = getAllUserCloneUrls()
 	}
@@ -171,7 +226,7 @@ func CloneAllReposByOrg() {
 		colorlog.PrintError(err)
 		os.Exit(1)
 	} else {
-		colorlog.PrintInfo(strconv.Itoa(len(cloneTargets)) + " repos found in " + os.Args[1])
+		colorlog.PrintInfo(strconv.Itoa(len(cloneTargets)) + " repos found in " + args[0])
 		fmt.Println()
 	}
 
@@ -179,7 +234,7 @@ func CloneAllReposByOrg() {
 		appName := getAppNameFromURL(target)
 
 		go func(repoUrl string, branch string) {
-			repoDir := config.AbsolutePathToCloneTo + os.Args[1] + "_ghorg" + "/" + appName
+			repoDir := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + args[0] + "_ghorg" + "/" + appName
 
 			if repoExistsLocally(repoDir) == true {
 
@@ -224,7 +279,7 @@ func CloneAllReposByOrg() {
 			}
 
 			resc <- repoUrl
-		}(target, config.GhorgBranch)
+		}(target, os.Getenv("GHORG_BRANCH"))
 	}
 
 	errors := []error{}
@@ -243,5 +298,28 @@ func CloneAllReposByOrg() {
 
 	printRemainingMessages(infoMessages, errors)
 
-	colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg", config.AbsolutePathToCloneTo, os.Args[1]))
+	colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), args[0]))
+}
+
+func asciiTime() {
+	colorlog.PrintInfo(
+		`
+ +-+-+-+-+ +-+-+ +-+-+-+-+-+
+ |T|I|M|E| |T|O| |G|H|O|R|G|
+ +-+-+-+-+ +-+-+ +-+-+-+-+-+
+`)
+}
+
+func debug() {
+	fmt.Println(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
+	fmt.Println(os.Getenv("GHORG_CLONE_PROTOCOL"))
+	fmt.Println(os.Getenv("GHORG_BRANCH"))
+}
+
+func ensureTrailingSlash(path string) string {
+	if string(path[len(path)-1]) == "/" {
+		return path
+	}
+
+	return path + "/"
 }

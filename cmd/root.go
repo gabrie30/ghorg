@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// RootCmd represents the base command when called without any subcommands
+// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "ghorg",
 	Short: "Ghorg is a fast way to clone multiple repos into a single directory",

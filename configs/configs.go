@@ -47,6 +47,7 @@ func Load() {}
 // GetRequiredString verifies env is set
 func GetRequiredString(key string) string {
 	value := viper.GetString(key)
+
 	if isZero(value) {
 		log.Fatalf("Fatal: '%s' ENV VAR is required", key)
 	}
@@ -84,16 +85,15 @@ func HomeDir() string {
 }
 
 func getOrSetGitHubToken() {
-	if len(os.Getenv("GHORG_GITHUB_TOKEN")) != 40 {
-		colorlog.PrintInfo("Note: GHORG_GITHUB_TOKEN not set in $HOME/ghorg/conf.yaml, defaulting to keychain")
-		fmt.Println()
+	var token string
+	if isZero(os.Getenv("GHORG_GITHUB_TOKEN")) || len(os.Getenv("GHORG_GITHUB_TOKEN")) != 40 {
 		cmd := `security find-internet-password -s github.com | grep "acct" | awk -F\" '{ print $4 }'`
 		out, err := exec.Command("bash", "-c", cmd).Output()
 		if err != nil {
 			colorlog.PrintError(fmt.Sprintf("Failed to execute command: %s", cmd))
 		}
 
-		token := strings.TrimSuffix(string(out), "\n")
+		token = strings.TrimSuffix(string(out), "\n")
 
 		if len(token) != 40 {
 			log.Fatal("Could not find a GitHub token in keychain. You should create a personal access token from GitHub, then set GITHUB_TOKEN in your $HOME/ghorg/conf.yaml...or swtich to cloning via SSH also done by updating your $HOME/ghorg/conf.yaml. Or read the troubleshooting section of Readme.md https://github.com/gabrie30/ghorg to store your token in your osx keychain.")
@@ -102,7 +102,6 @@ func getOrSetGitHubToken() {
 		os.Setenv("GHORG_GITHUB_TOKEN", token)
 	}
 
-	token := GetRequiredString("GHORG_GITHUB_TOKEN")
 	if len(token) != 40 {
 		log.Fatal("Could not set GHORG_GITHUB_TOKEN")
 	}
