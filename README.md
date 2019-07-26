@@ -53,7 +53,7 @@ $ ghorg clone --help
 
 ## Configuration
 
-Configuration can be set in two ways. The first is in `$HOME/ghorg/conf.yaml`. This file will be created from the [.sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/.sample-conf.yaml) and copied into `$HOME/ghorg/conf.yaml`. The second is setting flags via the cli, run `$ ghorg clone --help` for a list of flags
+Configuration can be set in two ways. The first is in `$HOME/ghorg/conf.yaml`. This file will be created from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) and copied into `$HOME/ghorg/conf.yaml`. The second is setting flags via the cli, run `$ ghorg clone --help` for a list of flags
 
 ## Default GitHub Token Used
 
@@ -63,7 +63,7 @@ $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ pri
 
 > If running this does not return the correct key you will need to generate a token via GithHub and add it to your $HOME/ghorg/conf.yaml, or see Troubleshooting section below.
 
-> To view all other default environment variables see .sample-conf.yaml
+> To view all other default environment variables see sample-conf.yaml
 
 ## Auth through SSO
 
