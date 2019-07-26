@@ -26,7 +26,8 @@ $ brew upgrade git
 
 ```bash
 $ brew install gabrie30/utils/ghorg
-$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/.env-sample > $HOME/.ghorg
+$ mkdir -p $HOME/ghorg
+$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/ghorg/conf.yaml
 ```
 
 ### Golang
@@ -34,30 +35,25 @@ $ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/.env-sample > $HO
 ```bash
 $ go get -u github.com/gabrie30/ghorg
 $ cd $HOME/go/src/github.com/gabrie30/ghorg
-$ cp .env-sample .env
-# update your .env, if needed
-# If GHORG_GITHUB_TOKEN is not set in .ghorg, defaults to keychain, see below
 $ make install
+# Update conf if neeed
+$ vi ~/ghorg/conf.yaml
 $ go install
 ```
 
 ## Use
 
 ```bash
-$ ghorg org-you-want-to-clone
-```
-
-or
-
-```bash
-$ ghorg user-you-want-to-clone
+$ ghorg clone org-you-want-to-clone
+$ ghorg clone user-you-want-to-clone
+$ ghorg clone --help
 ```
 
 > ghorg defaults to master branch however, for gitflows you can run on develop by setting GHORG_BRANCH=develop or similar
 
 ## Configuration
 
-All configuration will be done in the .ghorg file. This file will be created from the [.env-sample](https://github.com/gabrie30/ghorg/blob/master/.env-sample) and copied into `~/.ghorg`. Make sure this file exists then configure to your needs.
+Configuration can be set in two ways. The first is in `$HOME/ghorg/conf.yaml`. This file will be created from the [.sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/.sample-conf.yaml) and copied into `$HOME/ghorg/conf.yaml`. The second is setting flags via the cli, run `$ ghorg clone --help` for a list of flags
 
 ## Default GitHub Token Used
 
@@ -65,9 +61,9 @@ All configuration will be done in the .ghorg file. This file will be created fro
 $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
 ```
 
-> If running this does not return the correct key you will need to generate a token via GithHub and add it to your $HOME/.ghorg, or see Troubleshooting section below.
+> If running this does not return the correct key you will need to generate a token via GithHub and add it to your $HOME/ghorg/conf.yaml, or see Troubleshooting section below.
 
-> To view all other default environment variables see .env-sample
+> To view all other default environment variables see .sample-conf.yaml
 
 ## Auth through SSO
 
@@ -77,9 +73,8 @@ $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ pri
 
 - Make sure your `$ git --version` is >= 2.19.0
 - You may need to increase your ulimits if cloning a large org
-- Other issues can most likely be resolved by adding a `.ghorg` to your users home directory and setting the necessary values defined in the `.env-sample`
 - If cloning via HTTPS make sure the osxkeychain has your github access token. This can be determined by running the `security` command above.
-    - If this command does not return anything either switch to cloning via ssh (update your .ghorg) or set it up by following this [GitHub Documentation](https://help.github.com/en/articles/caching-your-github-password-in-git)
+    - If this command does not return anything either switch to cloning via ssh (update your `$HOME/ghorg/conf.yaml`) or set it up by following this [GitHub Documentation](https://help.github.com/en/articles/caching-your-github-password-in-git)
     - If your GitHub account is behind 2fa follow this [StackOverflow Post](https://stackoverflow.com/questions/31305945/git-clone-from-github-over-https-with-two-factor-authentication) or this [Github Documentation](https://github.blog/2013-09-03-two-factor-authentication/#how-does-it-work-for-command-line-git) as noted in comments be sure to use your token as your username and give a blank password.
 
 ### Updating brew tap
