@@ -38,6 +38,8 @@ func initConfig() {
 	getOrSetDefaults("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
 	getOrSetDefaults("GHORG_BRANCH")
 	getOrSetDefaults("GHORG_CLONE_PROTOCOL")
+	getOrSetDefaults("GHORG_CLONE_TYPE")
+	getOrSetDefaults("GHORG_SCM_TYPE")
 
 }
 
@@ -67,6 +69,10 @@ func getOrSetDefaults(envVar string) {
 		os.Setenv(envVar, "master")
 	case "GHORG_CLONE_PROTOCOL":
 		os.Setenv(envVar, "https")
+	case "GHORG_CLONE_TYPE":
+		os.Setenv(envVar, "org")
+	case "GHORG_SCM_TYPE":
+		os.Setenv(envVar, "github")
 	}
 }
 

@@ -12,3 +12,11 @@ GHORG_BRANCH:
 
 # How you'd like to clone the repos (https or ssh), defaults to https
 GHORG_CLONE_PROTOCOL:
+
+## Experimental
+
+# Clone a user or an org, defaults to org
+GHORG_CLONE_TYPE:
+
+# Clone from github or gitlab, defaults to github
+GHORG_SCM_TYPE:
