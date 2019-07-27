@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/gabrie30/ghorg/colorlog"
+	"github.com/gabrie30/ghorg/configs"
 )
 
 var (
@@ -27,7 +28,7 @@ func init() {
 	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "protocol to clone with, ssh or https, (defaults to https)")
 	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "absolute path the ghorg_* directory will be created (defaults to Desktop)")
 	cloneCmd.Flags().StringVarP(&branch, "branch", "b", "", "branch left checked out for each repo cloned (defaults to master)")
-	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "github token to clone with")
+	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "scm token to clone with")
 
 	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "github", "type of scm used, github or gitlab")
 	// TODO: make gitlab terminology make sense https://about.gitlab.com/2016/01/27/comparing-terms-gitlab-github-bitbucket/
@@ -63,10 +64,6 @@ var cloneCmd = &cobra.Command{
 			os.Setenv("GHORG_BRANCH", cmd.Flag("branch").Value.String())
 		}
 
-		if cmd.Flags().Changed("token") {
-			os.Setenv("GHORG_GITHUB_TOKEN", cmd.Flag("token").Value.String())
-		}
-
 		if cmd.Flags().Changed("clone_type") {
 			cloneType := strings.ToLower(cmd.Flag("clone_type").Value.String())
 			if cloneType != "user" && cloneType != "org" {
@@ -78,13 +75,24 @@ var cloneCmd = &cobra.Command{
 
 		if cmd.Flags().Changed("scm") {
 			scmType := strings.ToLower(cmd.Flag("scm").Value.String())
-			fmt.Println(scmType)
 			if scmType != "github" && scmType != "gitlab" {
 				colorlog.PrintError("scm must be one of github or gitlab")
 				os.Exit(1)
 			}
 			os.Setenv("GHORG_SCM_TYPE", scmType)
 		}
+
+		configs.GetOrSetToken()
+
+		if cmd.Flags().Changed("token") {
+			if os.Getenv("GHORG_SCM_TYPE") == "github" {
+				os.Setenv("GHORG_GITHUB_TOKEN", cmd.Flag("token").Value.String())
+			} else if os.Getenv("GHORG_SCM_TYPE") == "gitlab" {
+				os.Setenv("GHORG_GITLAB_TOKEN", cmd.Flag("token").Value.String())
+			}
+		}
+
+		configs.VerifyTokenSet()
 
 		args = argz
 
@@ -178,8 +186,6 @@ func printRemainingMessages(infoMessages []error, errors []error) {
 func CloneAllRepos() {
 	resc, errc, infoc := make(chan string), make(chan error), make(chan error)
 
-	createDirIfNotExist()
-
 	if os.Getenv("GHORG_BRANCH") != "master" {
 		colorlog.PrintSubtleInfo("***********************************************************")
 		colorlog.PrintSubtleInfo("* Ghorg will be running on branch: " + os.Getenv("GHORG_BRANCH"))
@@ -202,12 +208,14 @@ func CloneAllRepos() {
 
 	if err != nil {
 		colorlog.PrintSubtleInfo("Did not find " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + args[0] + ", check spelling and try again.")
-		fmt.Println()
+		fmt.Println(err)
 		os.Exit(1)
 	} else {
 		colorlog.PrintInfo(strconv.Itoa(len(cloneTargets)) + " repos found in " + args[0])
 		fmt.Println()
 	}
+
+	createDirIfNotExist()
 
 	for _, target := range cloneTargets {
 		appName := getAppNameFromURL(target)

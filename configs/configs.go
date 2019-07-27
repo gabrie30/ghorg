@@ -34,7 +34,7 @@ func initConfig() {
 			fmt.Println("Something unexpected happened")
 		}
 	}
-	getOrSetGitHubToken()
+
 	getOrSetDefaults("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
 	getOrSetDefaults("GHORG_BRANCH")
 	getOrSetDefaults("GHORG_CLONE_PROTOCOL")
@@ -90,6 +90,16 @@ func HomeDir() string {
 	return home
 }
 
+// GetOrSetToken will set token based on scm
+func GetOrSetToken() {
+	switch os.Getenv("GHORG_SCM_TYPE") {
+	case "github":
+		getOrSetGitHubToken()
+	case "gitlab":
+		getOrSetGitLabToken()
+	}
+}
+
 func getOrSetGitHubToken() {
 	var token string
 	if isZero(os.Getenv("GHORG_GITHUB_TOKEN")) || len(os.Getenv("GHORG_GITHUB_TOKEN")) != 40 {
@@ -101,14 +111,44 @@ func getOrSetGitHubToken() {
 
 		token = strings.TrimSuffix(string(out), "\n")
 
-		if len(token) != 40 {
-			log.Fatal("Could not find a GitHub token in keychain. You should create a personal access token from GitHub, then set GITHUB_TOKEN in your $HOME/ghorg/conf.yaml...or swtich to cloning via SSH also done by updating your $HOME/ghorg/conf.yaml. Or read the troubleshooting section of Readme.md https://github.com/gabrie30/ghorg to store your token in your osx keychain.")
+		os.Setenv("GHORG_GITHUB_TOKEN", token)
+	}
+}
+
+func getOrSetGitLabToken() {
+	var token string
+	if isZero(os.Getenv("GHORG_GITLAB_TOKEN")) || len(os.Getenv("GHORG_GITLAB_TOKEN")) != 40 {
+		cmd := `security find-internet-password -s gitlab.com | grep "acct" | awk -F\" '{ print $4 }'`
+		out, err := exec.Command("bash", "-c", cmd).Output()
+		if err != nil {
+			colorlog.PrintError(fmt.Sprintf("Failed to execute command: %s", cmd))
 		}
 
-		os.Setenv("GHORG_GITHUB_TOKEN", token)
+		token = strings.TrimSuffix(string(out), "\n")
+
+		os.Setenv("GHORG_GITLAB_TOKEN", token)
+	}
+}
+
+// VerifyTokenSet checks to make sure env is set for the correct scm provider
+func VerifyTokenSet() {
+
+	if os.Getenv("GHORG_CLONE_PROTOCOL") != "https" {
+		return
+	}
+
+	var token string
+	scmProvider := os.Getenv("GHORG_SCM_TYPE")
+
+	if scmProvider == "github" {
+		token = os.Getenv("GHORG_GITHUB_TOKEN")
+	}
+
+	if scmProvider == "gitlab" {
+		token = os.Getenv("GHORG_GITLAB_TOKEN")
 	}
 
 	if len(token) != 40 {
-		log.Fatal("Could not set GHORG_GITHUB_TOKEN")
+		colorlog.PrintError("Could not find a " + scmProvider + " token in keychain. You should create a personal access token from " + scmProvider + " , then set the correct in your $HOME/ghorg/conf.yaml...or swtich to cloning via SSH also done by updating your $HOME/ghorg/conf.yaml. Or read the troubleshooting section of Readme.md https://github.com/gabrie30/ghorg to store your token in your osx keychain. Or set manually with -t flag")
 	}
 }

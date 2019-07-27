@@ -20,3 +20,8 @@ GHORG_CLONE_TYPE:
 
 # Clone from github or gitlab, defaults to github
 GHORG_SCM_TYPE:
+
+# Add your GitLab token
+# Defaults to using key returned by
+# $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ print $4 }'
+GHORG_GITLAB_TOKEN:
