@@ -207,7 +207,7 @@ func CloneAllRepos() {
 	}
 
 	if len(cloneTargets) == 0 {
-		colorlog.PrintInfo("Didn't find any repos, verify clone_type (user/org) is set correctly")
+		colorlog.PrintInfo("Didn't find any repos, verify clone_type (user/org) is set correctly e.g. -c=user")
 		os.Exit(0)
 	}
 
