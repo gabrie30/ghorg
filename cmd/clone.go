@@ -32,7 +32,7 @@ func init() {
 
 	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "github", "type of scm used, github or gitlab")
 	// TODO: make gitlab terminology make sense https://about.gitlab.com/2016/01/27/comparing-terms-gitlab-github-bitbucket/
-	cloneCmd.Flags().StringVarP(&cloneType, "clone_type", "c", "org", "clone target type, user or org")
+	cloneCmd.Flags().StringVarP(&cloneType, "clone_type", "c", "org", "clone target type, user or org, for gitlab groups use org flag")
 }
 
 var cloneCmd = &cobra.Command{
@@ -206,6 +206,11 @@ func CloneAllRepos() {
 		os.Exit(1)
 	}
 
+	if len(cloneTargets) == 0 {
+		colorlog.PrintInfo("Didn't find any repos, verify clone_type (user/org) is set correctly")
+		os.Exit(0)
+	}
+
 	if err != nil {
 		colorlog.PrintSubtleInfo("Did not find " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + args[0] + ", check spelling and try again.")
 		fmt.Println(err)
@@ -284,7 +289,6 @@ func CloneAllRepos() {
 	}
 
 	printRemainingMessages(infoMessages, errors)
-
 	colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), args[0]))
 }
 

@@ -132,7 +132,7 @@ func getOrSetGitLabToken() {
 
 // VerifyTokenSet checks to make sure env is set for the correct scm provider
 func VerifyTokenSet() {
-
+	var tokenLength int
 	if os.Getenv("GHORG_CLONE_PROTOCOL") != "https" {
 		return
 	}
@@ -141,14 +141,16 @@ func VerifyTokenSet() {
 	scmProvider := os.Getenv("GHORG_SCM_TYPE")
 
 	if scmProvider == "github" {
+		tokenLength = 40
 		token = os.Getenv("GHORG_GITHUB_TOKEN")
 	}
 
 	if scmProvider == "gitlab" {
+		tokenLength = 20
 		token = os.Getenv("GHORG_GITLAB_TOKEN")
 	}
 
-	if len(token) != 40 {
+	if len(token) != tokenLength {
 		colorlog.PrintError("Could not find a " + scmProvider + " token in keychain. You should create a personal access token from " + scmProvider + " , then set the correct in your $HOME/ghorg/conf.yaml...or swtich to cloning via SSH also done by updating your $HOME/ghorg/conf.yaml. Or read the troubleshooting section of Readme.md https://github.com/gabrie30/ghorg to store your token in your osx keychain. Or set manually with -t flag")
 		os.Exit(1)
 	}
