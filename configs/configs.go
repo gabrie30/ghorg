@@ -150,5 +150,6 @@ func VerifyTokenSet() {
 
 	if len(token) != 40 {
 		colorlog.PrintError("Could not find a " + scmProvider + " token in keychain. You should create a personal access token from " + scmProvider + " , then set the correct in your $HOME/ghorg/conf.yaml...or swtich to cloning via SSH also done by updating your $HOME/ghorg/conf.yaml. Or read the troubleshooting section of Readme.md https://github.com/gabrie30/ghorg to store your token in your osx keychain. Or set manually with -t flag")
+		os.Exit(1)
 	}
 }
