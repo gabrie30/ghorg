@@ -1,7 +1,9 @@
 // Package colorlog has various Print functions that can be called to change the color of the text in standard out
 package colorlog
 
-import "github.com/fatih/color"
+import (
+	"github.com/fatih/color"
+)
 
 // PrintInfo prints yellow colored text to standard out
 func PrintInfo(msg interface{}) {

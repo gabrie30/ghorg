@@ -1,14 +1,15 @@
 package main
 
 import (
+	"os"
 	"testing"
 
-	"github.com/gabrie30/ghorg/config"
+	"github.com/gabrie30/ghorg/configs"
 )
 
 func TestDefaultBranch(t *testing.T) {
-	branch := config.GhorgBranch
-	if branch != "master" {
+	configs.Load()
+	if os.Getenv("GHORG_BRANCH") != "master" {
 		t.Errorf("Default branch should be master")
 	}
 }
