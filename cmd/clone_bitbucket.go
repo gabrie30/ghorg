@@ -11,7 +11,7 @@ func getBitBucketOrgCloneUrls() ([]string, error) {
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
 	cloneUrls := []string{}
 
-	resp, err := client.Users.Repositories(args[0])
+	resp, err := client.Teams.Repositories(args[0])
 	if err != nil {
 		return []string{}, err
 	}
@@ -42,7 +42,7 @@ func getBitBucketUserCloneUrls() ([]string, error) {
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
 	cloneUrls := []string{}
 
-	resp, err := client.Teams.Repositories(args[0])
+	resp, err := client.Users.Repositories(args[0])
 	if err != nil {
 		return []string{}, err
 	}
