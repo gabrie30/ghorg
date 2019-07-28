@@ -14,13 +14,14 @@ import (
 )
 
 var (
-	protocol  string
-	path      string
-	branch    string
-	token     string
-	cloneType string
-	scmType   string
-	args      []string
+	protocol          string
+	path              string
+	branch            string
+	token             string
+	cloneType         string
+	scmType           string
+	bitbucketUsername string
+	args              []string
 )
 
 func init() {
@@ -29,7 +30,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "absolute path the ghorg_* directory will be created (defaults to Desktop)")
 	cloneCmd.Flags().StringVarP(&branch, "branch", "b", "", "branch left checked out for each repo cloned (defaults to master)")
 	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "scm token to clone with")
-
+	cloneCmd.Flags().StringVarP(&bitbucketUsername, "bitbucket_username", "", "", "when cloning with bitbucket this must be set or GHORG_BITBUKET_USERNAME in your $HOME/ghorg/conf.yaml")
 	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "github", "type of scm used, github or gitlab")
 	// TODO: make gitlab terminology make sense https://about.gitlab.com/2016/01/27/comparing-terms-gitlab-github-bitbucket/
 	cloneCmd.Flags().StringVarP(&cloneType, "clone_type", "c", "org", "clone target type, user or org, for gitlab groups use org flag")
@@ -64,6 +65,10 @@ var cloneCmd = &cobra.Command{
 			os.Setenv("GHORG_BRANCH", cmd.Flag("branch").Value.String())
 		}
 
+		if cmd.Flags().Changed("bitbucket_username") {
+			os.Setenv("GHORG_BITBUCKET_USERNAME", cmd.Flag("bitbucket_username").Value.String())
+		}
+
 		if cmd.Flags().Changed("clone_type") {
 			cloneType := strings.ToLower(cmd.Flag("clone_type").Value.String())
 			if cloneType != "user" && cloneType != "org" {
@@ -75,7 +80,7 @@ var cloneCmd = &cobra.Command{
 
 		if cmd.Flags().Changed("scm") {
 			scmType := strings.ToLower(cmd.Flag("scm").Value.String())
-			if scmType != "github" && scmType != "gitlab" {
+			if scmType != "github" && scmType != "gitlab" && scmType != "bitbucket" {
 				colorlog.PrintError("scm must be one of github or gitlab")
 				os.Exit(1)
 			}
@@ -89,6 +94,8 @@ var cloneCmd = &cobra.Command{
 				os.Setenv("GHORG_GITHUB_TOKEN", cmd.Flag("token").Value.String())
 			} else if os.Getenv("GHORG_SCM_TYPE") == "gitlab" {
 				os.Setenv("GHORG_GITLAB_TOKEN", cmd.Flag("token").Value.String())
+			} else if os.Getenv("GHORG_SCM_TYPE") == "bitbucket" {
+				os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
 			}
 		}
 
@@ -110,8 +117,10 @@ func getAllOrgCloneUrls() ([]string, error) {
 		urls, err = getGitHubOrgCloneUrls()
 	case "gitlab":
 		urls, err = getGitLabOrgCloneUrls()
+	case "bitbucket":
+		urls, err = getBitBucketOrgCloneUrls()
 	default:
-		colorlog.PrintError("GHORG_SCM_TYPE not set or unsupported")
+		colorlog.PrintError("GHORG_SCM_TYPE not set or unsupported, also make sure its all lowercase")
 		os.Exit(1)
 	}
 
@@ -128,8 +137,10 @@ func getAllUserCloneUrls() ([]string, error) {
 		urls, err = getGitHubUserCloneUrls()
 	case "gitlab":
 		urls, err = getGitLabUserCloneUrls()
+	case "bitbucket":
+		urls, err = getBitBucketUserCloneUrls()
 	default:
-		colorlog.PrintError("GHORG_SCM_TYPE not set or unsupported")
+		colorlog.PrintError("GHORG_SCM_TYPE not set or unsupported, also make sure its all lowercase")
 		os.Exit(1)
 	}
 

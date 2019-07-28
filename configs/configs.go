@@ -97,6 +97,8 @@ func GetOrSetToken() {
 		getOrSetGitHubToken()
 	case "gitlab":
 		getOrSetGitLabToken()
+	case "bitbucket":
+		getOrSetBitBucketToken()
 	}
 }
 
@@ -127,6 +129,21 @@ func getOrSetGitLabToken() {
 		token = strings.TrimSuffix(string(out), "\n")
 
 		os.Setenv("GHORG_GITLAB_TOKEN", token)
+	}
+}
+
+func getOrSetBitBucketToken() {
+	var token string
+	if isZero(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) || len(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) != 20 {
+		cmd := `security find-internet-password -s bitbucket.com | grep "acct" | awk -F\" '{ print $4 }'`
+		out, err := exec.Command("bash", "-c", cmd).Output()
+		if err != nil {
+			colorlog.PrintError(fmt.Sprintf("Failed to execute command: %s", cmd))
+		}
+
+		token = strings.TrimSuffix(string(out), "\n")
+
+		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", token)
 	}
 }
 

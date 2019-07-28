@@ -2,10 +2,6 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/gabrie30/ghorg)](https://goreportcard.com/report/github.com/gabrie30/ghorg) <a href="https://godoc.org/github.com/gabrie30/ghorg"><img src="https://godoc.org/github.com/gabrie30/ghorg?status.svg" alt="GoDoc"></a> [![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/avelino/awesome-go) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-#### Supported
-- github
-- gitlab
-
 ghorg allows you to quickly clone all of an orgs, or users repos into a single directory. This can be useful in many situations including
 
 1. Searching an orgs/users codebase with ack, silver searcher, grep etc..
@@ -15,6 +11,13 @@ ghorg allows you to quickly clone all of an orgs, or users repos into a single d
 5. Performing Audits
 
 > When running ghorg a second time, all local changes in your *_ghorg directory will be overwritten by whats on GitHub. If you are working out of this directory, make sure you rename it before running a second time otherwise all of you changes will be lost.
+
+## Supported Providers
+- github
+- gitlab
+- bitbucket (see bitbucket setup)
+
+> The terminology used in ghorg is that of GitHub, mainly orgs/repos. GitLab and BitBucket use different terminology. There is a handy chart thanks to GitLab that translates terminology [here](https://about.gitlab.com/images/blogimages/gitlab-terminology.png)
 
 ## Setup
 
@@ -76,6 +79,9 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 
 ## Known issues
 - When cloning if you see something like `Username for 'https://gitlab.com': ` the command won't finish. I haven't been able to identify the reason for this occuring. The fix for this is to make sure your token is in the osxkeychain. See the troubleshooting section for how to set this up.
+
+## BitBucket Setup
+To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/ghorg/conf.yaml` to use those values or set the command line args.
 
 ## Troubleshooting
 
