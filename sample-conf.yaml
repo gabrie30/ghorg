@@ -29,5 +29,4 @@ GHORG_GITLAB_TOKEN:
 # Add your Bitbucket app password
 # https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html
 GHORG_BITBUCKET_APP_PASSWORD:
-
 GHORG_BITBUCKET_USERNAME:
