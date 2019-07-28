@@ -207,13 +207,12 @@ func CloneAllRepos() {
 	}
 
 	if len(cloneTargets) == 0 {
-		colorlog.PrintInfo("Didn't find any repos, verify clone_type (user/org) is set correctly e.g. -c=user")
+		colorlog.PrintInfo("No repos found for " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + args[0] + ", check spelling and verify clone_type (user/org) is set correctly e.g. -c=user")
 		os.Exit(0)
 	}
 
 	if err != nil {
 		colorlog.PrintSubtleInfo("Did not find " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + args[0] + ", check spelling and try again.")
-		fmt.Println(err)
 		os.Exit(1)
 	} else {
 		colorlog.PrintInfo(strconv.Itoa(len(cloneTargets)) + " repos found in " + args[0])
