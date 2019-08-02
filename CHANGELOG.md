@@ -11,6 +11,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 ### Security
 
+## [1.0.10] - 07/28/19
+### Added
+- gitlab support
+- bitbucket support
+### Changed
+- readme
+### Deprecated
+### Removed
+### Fixed
+- ghorg conf file env's being overwritten
+### Security
+
 ## [1.0.9] - 07/25/19
 ### Added
 - viper/cobra for more robust cli commands and flags

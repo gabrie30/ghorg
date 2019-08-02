@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/gabrie30/ghorg/configs"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +14,7 @@ var rootCmd = &cobra.Command{
 	Short: "Ghorg is a fast way to clone multiple repos into a single directory",
 	Long:  `Ghorg is a fast way to clone multiple repos into a single directory`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Do Stuff Here
+		configs.Load()
 	},
 }
 

@@ -1,26 +1,27 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 
-	"github.com/spf13/cobra"
-
 	"github.com/gabrie30/ghorg/colorlog"
-	"github.com/google/go-github/github"
-	"golang.org/x/oauth2"
+	"github.com/gabrie30/ghorg/configs"
+	"github.com/spf13/cobra"
 )
 
 var (
-	protocol string
-	path     string
-	branch   string
-	token    string
-	args     []string
+	protocol          string
+	path              string
+	branch            string
+	token             string
+	cloneType         string
+	scmType           string
+	bitbucketUsername string
+	namespace         string
+	args              []string
 )
 
 func init() {
@@ -28,7 +29,12 @@ func init() {
 	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "protocol to clone with, ssh or https, (defaults to https)")
 	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "absolute path the ghorg_* directory will be created (defaults to Desktop)")
 	cloneCmd.Flags().StringVarP(&branch, "branch", "b", "", "branch left checked out for each repo cloned (defaults to master)")
-	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "github token to clone with")
+	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "scm token to clone with")
+	cloneCmd.Flags().StringVarP(&bitbucketUsername, "bitbucket_username", "", "", "when cloning with bitbucket this must be set or GHORG_BITBUKET_USERNAME in your $HOME/ghorg/conf.yaml")
+	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "github", "type of scm used, github or gitlab")
+	// TODO: make gitlab terminology make sense https://about.gitlab.com/2016/01/27/comparing-terms-gitlab-github-bitbucket/
+	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "org", "clone target type, user or org, for gitlab groups use org flag")
+	cloneCmd.Flags().StringVarP(&namespace, "namespace", "n", "namespace", "gitlab only: limits clone targets to a specific namespace e.g. --namespace=gitlab-org/security-products")
 }
 
 var cloneCmd = &cobra.Command{
@@ -48,110 +54,91 @@ var cloneCmd = &cobra.Command{
 		}
 
 		if cmd.Flags().Changed("protocol") {
-			path := cmd.Flag("protocol").Value.String()
-			if path != "ssh" && path != "https" {
-				colorlog.PrintError("Protocol must be one of https or ssh")
-				os.Exit(1)
-			}
-			os.Setenv("GHORG_CLONE_PROTOCOL", path)
+			protocol := cmd.Flag("protocol").Value.String()
+			os.Setenv("GHORG_CLONE_PROTOCOL", protocol)
 		}
 
 		if cmd.Flags().Changed("branch") {
 			os.Setenv("GHORG_BRANCH", cmd.Flag("branch").Value.String())
 		}
 
-		if cmd.Flags().Changed("token") {
-			os.Setenv("GHORG_GITHUB_TOKEN", cmd.Flag("token").Value.String())
+		if cmd.Flags().Changed("bitbucket_username") {
+			os.Setenv("GHORG_BITBUCKET_USERNAME", cmd.Flag("bitbucket_username").Value.String())
 		}
+
+		if cmd.Flags().Changed("namespace") {
+			os.Setenv("GHORG_GITLAB_DEFAULT_NAMESPACE", cmd.Flag("namespace").Value.String())
+		}
+
+		if cmd.Flags().Changed("clone-type") {
+			cloneType := strings.ToLower(cmd.Flag("clone-type").Value.String())
+			os.Setenv("GHORG_CLONE_TYPE", cloneType)
+		}
+
+		if cmd.Flags().Changed("scm") {
+			scmType := strings.ToLower(cmd.Flag("scm").Value.String())
+			os.Setenv("GHORG_SCM_TYPE", scmType)
+		}
+
+		configs.GetOrSetToken()
+
+		if cmd.Flags().Changed("token") {
+			if os.Getenv("GHORG_SCM_TYPE") == "github" {
+				os.Setenv("GHORG_GITHUB_TOKEN", cmd.Flag("token").Value.String())
+			} else if os.Getenv("GHORG_SCM_TYPE") == "gitlab" {
+				os.Setenv("GHORG_GITLAB_TOKEN", cmd.Flag("token").Value.String())
+			} else if os.Getenv("GHORG_SCM_TYPE") == "bitbucket" {
+				os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
+			}
+		}
+
+		configs.VerifyTokenSet()
+		configs.VerifyConfigsSetCorrectly()
 
 		args = argz
 
-		CloneAllReposByOrg()
+		CloneAllRepos()
 	},
 }
 
 // TODO: Figure out how to use go channels for this
 func getAllOrgCloneUrls() ([]string, error) {
 	asciiTime()
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
-
-	opt := &github.RepositoryListByOrgOptions{
-		Type:        "all",
-		ListOptions: github.ListOptions{PerPage: 100, Page: 0},
+	var urls []string
+	var err error
+	switch os.Getenv("GHORG_SCM_TYPE") {
+	case "github":
+		urls, err = getGitHubOrgCloneUrls()
+	case "gitlab":
+		urls, err = getGitLabOrgCloneUrls()
+	case "bitbucket":
+		urls, err = getBitBucketOrgCloneUrls()
+	default:
+		colorlog.PrintError("GHORG_SCM_TYPE not set or unsupported, also make sure its all lowercase")
+		os.Exit(1)
 	}
 
-	// get all pages of results
-	var allRepos []*github.Repository
-	for {
-		repos, resp, err := client.Repositories.ListByOrg(context.Background(), args[0], opt)
-
-		if err != nil {
-			return nil, err
-		}
-		allRepos = append(allRepos, repos...)
-		if resp.NextPage == 0 {
-			break
-		}
-		opt.Page = resp.NextPage
-	}
-	cloneUrls := []string{}
-
-	for _, repo := range allRepos {
-		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-			cloneUrls = append(cloneUrls, *repo.CloneURL)
-		} else {
-			cloneUrls = append(cloneUrls, *repo.SSHURL)
-		}
-	}
-
-	return cloneUrls, nil
+	return urls, err
 }
 
-// TODO: refactor with getAllOrgCloneUrls
+// TODO: Figure out how to use go channels for this
 func getAllUserCloneUrls() ([]string, error) {
-	ctx := context.Background()
-
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
-
-	opt := &github.RepositoryListOptions{
-		Type:        "all",
-		ListOptions: github.ListOptions{PerPage: 100, Page: 0},
+	asciiTime()
+	var urls []string
+	var err error
+	switch os.Getenv("GHORG_SCM_TYPE") {
+	case "github":
+		urls, err = getGitHubUserCloneUrls()
+	case "gitlab":
+		urls, err = getGitLabUserCloneUrls()
+	case "bitbucket":
+		urls, err = getBitBucketUserCloneUrls()
+	default:
+		colorlog.PrintError("GHORG_SCM_TYPE not set or unsupported, also make sure its all lowercase")
+		os.Exit(1)
 	}
 
-	// get all pages of results
-	var allRepos []*github.Repository
-	for {
-		repos, resp, err := client.Repositories.List(context.Background(), args[0], opt)
-
-		if err != nil {
-			return nil, err
-		}
-		allRepos = append(allRepos, repos...)
-		if resp.NextPage == 0 {
-			break
-		}
-		opt.Page = resp.NextPage
-	}
-	cloneUrls := []string{}
-
-	for _, repo := range allRepos {
-		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-			cloneUrls = append(cloneUrls, *repo.CloneURL)
-		} else {
-			cloneUrls = append(cloneUrls, *repo.SSHURL)
-		}
-	}
-
-	return cloneUrls, nil
+	return urls, err
 }
 
 func createDirIfNotExist() {
@@ -200,11 +187,9 @@ func printRemainingMessages(infoMessages []error, errors []error) {
 	}
 }
 
-// CloneAllReposByOrg clones all repos for a given org
-func CloneAllReposByOrg() {
+// CloneAllRepos clones all repos
+func CloneAllRepos() {
 	resc, errc, infoc := make(chan string), make(chan error), make(chan error)
-
-	createDirIfNotExist()
 
 	if os.Getenv("GHORG_BRANCH") != "master" {
 		colorlog.PrintSubtleInfo("***********************************************************")
@@ -214,21 +199,32 @@ func CloneAllReposByOrg() {
 		fmt.Println()
 	}
 
-	cloneTargets, err := getAllOrgCloneUrls()
+	var cloneTargets []string
+	var err error
 
-	if err != nil {
-		colorlog.PrintSubtleInfo("Change of Plans! Did not find GitHub Org " + args[0] + " -- Looking instead for a GitHub User: " + args[0])
-		fmt.Println()
+	if os.Getenv("GHORG_CLONE_TYPE") == "org" {
+		cloneTargets, err = getAllOrgCloneUrls()
+	} else if os.Getenv("GHORG_CLONE_TYPE") == "user" {
 		cloneTargets, err = getAllUserCloneUrls()
+	} else {
+		colorlog.PrintError("GHORG_CLONE_TYPE not set or unsupported")
+		os.Exit(1)
+	}
+
+	if len(cloneTargets) == 0 {
+		colorlog.PrintInfo("No repos found for " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + args[0] + ", check spelling and verify clone_type (user/org) is set correctly e.g. -c=user")
+		os.Exit(0)
 	}
 
 	if err != nil {
-		colorlog.PrintError(err)
+		colorlog.PrintSubtleInfo("Did not find " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + args[0] + ", check spelling and try again.")
 		os.Exit(1)
 	} else {
 		colorlog.PrintInfo(strconv.Itoa(len(cloneTargets)) + " repos found in " + args[0])
 		fmt.Println()
 	}
+
+	createDirIfNotExist()
 
 	for _, target := range cloneTargets {
 		appName := getAppNameFromURL(target)
@@ -297,7 +293,6 @@ func CloneAllReposByOrg() {
 	}
 
 	printRemainingMessages(infoMessages, errors)
-
 	colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), args[0]))
 }
 

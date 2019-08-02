@@ -12,3 +12,22 @@ GHORG_BRANCH:
 
 # How you'd like to clone the repos (https or ssh), defaults to https
 GHORG_CLONE_PROTOCOL:
+
+## Experimental
+
+# Clone a user or an org, defaults to org
+GHORG_CLONE_TYPE:
+
+# Clone from github or gitlab, defaults to github
+GHORG_SCM_TYPE:
+
+# Add your GitLab token
+# Defaults to using key returned by
+# $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ print $4 }'
+GHORG_GITLAB_TOKEN:
+GHORG_GITLAB_DEFAULT_NAMESPACE:
+
+# Add your Bitbucket app password
+# https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html
+GHORG_BITBUCKET_APP_PASSWORD:
+GHORG_BITBUCKET_USERNAME:
