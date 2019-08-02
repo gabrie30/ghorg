@@ -52,7 +52,8 @@ $ go install
 
 ```bash
 $ ghorg clone someorg
-$ ghorg clone someuser --clone_type=user --protocol=ssh --branch=develop
+$ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop
+$ ghorg clone gitlab-org --scm=gitlab --namespace=gitlab-org/security-products
 $ ghorg clone --help
 ```
 

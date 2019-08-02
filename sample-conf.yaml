@@ -25,6 +25,7 @@ GHORG_SCM_TYPE:
 # Defaults to using key returned by
 # $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ print $4 }'
 GHORG_GITLAB_TOKEN:
+GHORG_GITLAB_DEFAULT_NAMESPACE:
 
 # Add your Bitbucket app password
 # https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html

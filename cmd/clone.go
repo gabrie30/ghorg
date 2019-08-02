@@ -7,10 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/spf13/cobra"
-
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/configs"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -21,6 +20,7 @@ var (
 	cloneType         string
 	scmType           string
 	bitbucketUsername string
+	namespace         string
 	args              []string
 )
 
@@ -33,7 +33,8 @@ func init() {
 	cloneCmd.Flags().StringVarP(&bitbucketUsername, "bitbucket_username", "", "", "when cloning with bitbucket this must be set or GHORG_BITBUKET_USERNAME in your $HOME/ghorg/conf.yaml")
 	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "github", "type of scm used, github or gitlab")
 	// TODO: make gitlab terminology make sense https://about.gitlab.com/2016/01/27/comparing-terms-gitlab-github-bitbucket/
-	cloneCmd.Flags().StringVarP(&cloneType, "clone_type", "c", "org", "clone target type, user or org, for gitlab groups use org flag")
+	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "org", "clone target type, user or org, for gitlab groups use org flag")
+	cloneCmd.Flags().StringVarP(&namespace, "namespace", "n", "namespace", "gitlab only: limits clone targets to a specific namespace e.g. --namespace=gitlab-org/security-products")
 }
 
 var cloneCmd = &cobra.Command{
@@ -53,12 +54,8 @@ var cloneCmd = &cobra.Command{
 		}
 
 		if cmd.Flags().Changed("protocol") {
-			path := cmd.Flag("protocol").Value.String()
-			if path != "ssh" && path != "https" {
-				colorlog.PrintError("Protocol must be one of https or ssh")
-				os.Exit(1)
-			}
-			os.Setenv("GHORG_CLONE_PROTOCOL", path)
+			protocol := cmd.Flag("protocol").Value.String()
+			os.Setenv("GHORG_CLONE_PROTOCOL", protocol)
 		}
 
 		if cmd.Flags().Changed("branch") {
@@ -69,21 +66,17 @@ var cloneCmd = &cobra.Command{
 			os.Setenv("GHORG_BITBUCKET_USERNAME", cmd.Flag("bitbucket_username").Value.String())
 		}
 
-		if cmd.Flags().Changed("clone_type") {
-			cloneType := strings.ToLower(cmd.Flag("clone_type").Value.String())
-			if cloneType != "user" && cloneType != "org" {
-				colorlog.PrintError("clone_type must be one of org or user")
-				os.Exit(1)
-			}
+		if cmd.Flags().Changed("namespace") {
+			os.Setenv("GHORG_GITLAB_DEFAULT_NAMESPACE", cmd.Flag("namespace").Value.String())
+		}
+
+		if cmd.Flags().Changed("clone-type") {
+			cloneType := strings.ToLower(cmd.Flag("clone-type").Value.String())
 			os.Setenv("GHORG_CLONE_TYPE", cloneType)
 		}
 
 		if cmd.Flags().Changed("scm") {
 			scmType := strings.ToLower(cmd.Flag("scm").Value.String())
-			if scmType != "github" && scmType != "gitlab" && scmType != "bitbucket" {
-				colorlog.PrintError("scm must be one of github or gitlab")
-				os.Exit(1)
-			}
 			os.Setenv("GHORG_SCM_TYPE", scmType)
 		}
 
@@ -100,6 +93,7 @@ var cloneCmd = &cobra.Command{
 		}
 
 		configs.VerifyTokenSet()
+		configs.VerifyConfigsSetCorrectly()
 
 		args = argz
 
