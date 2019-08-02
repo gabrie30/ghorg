@@ -61,7 +61,7 @@ $ ghorg clone --help
 
 ## Configuration
 
-Configuration can be set in two ways. The first is in `$HOME/ghorg/conf.yaml`. This file will be created from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) and copied into `$HOME/ghorg/conf.yaml`. The second is setting flags via the cli, run `$ ghorg clone --help` for a list of flags
+Configuration can be set in two ways. The first is in `$HOME/ghorg/conf.yaml`. This file will be created from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) and copied into `$HOME/ghorg/conf.yaml`. The second is setting flags via the cli, run `$ ghorg clone --help` for a list of flags. Any flag set on the command line will overwrite anything in the conf.yaml
 
 ## Default GitHub/GitLab Token Used
 
