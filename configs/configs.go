@@ -178,14 +178,21 @@ func VerifyTokenSet() {
 		tokenLength = 20
 		token = os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
 		if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" {
-			colorlog.PrintError("GHORG_BITBUCKET_USERNAME or --bitbucket_username must be set to clone repos from bitbucket, see BitBucket Setup in Readme")
+			colorlog.PrintError("GHORG_BITBUCKET_USERNAME or --bitbucket-username must be set to clone repos from bitbucket, see BitBucket Setup in Readme")
 			os.Exit(1)
 		}
 	}
 
 	if len(token) != tokenLength {
-		colorlog.PrintError("Could not find a " + scmProvider + " token in keychain. You should create a personal access token from " + scmProvider + " , then set the correct in your $HOME/ghorg/conf.yaml...or swtich to cloning via SSH also done by updating your $HOME/ghorg/conf.yaml. Or read the troubleshooting section of Readme.md https://github.com/gabrie30/ghorg to store your token in your osx keychain. Or set manually with -t flag")
-		os.Exit(1)
+		if scmProvider == "github" || scmProvider == "gitlab" {
+			colorlog.PrintError("Could not find a set token for " + scmProvider + ". You should create a personal access token from " + scmProvider + " , then set the correct in your $HOME/ghorg/conf.yaml...or read the troubleshooting section of Readme.md https://github.com/gabrie30/ghorg to correctly store your token in your osx keychain. You can also manually set your token with (--token, -t) flag")
+			os.Exit(1)
+		}
+
+		if scmProvider == "bitbucket" {
+			colorlog.PrintError("Could not find a set user and or app password for " + scmProvider + ", please update your $HOME/ghorg/conf.yaml. You can also read the Bitbucket Setup section of Readme.md https://github.com/gabrie30/ghorg to correctly create and store these values. Or you can also manually set your token with (--token, -t) flag and username with (--bitbucket-username")
+		}
+
 	}
 }
 

@@ -30,7 +30,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "absolute path the ghorg_* directory will be created (defaults to Desktop)")
 	cloneCmd.Flags().StringVarP(&branch, "branch", "b", "", "branch left checked out for each repo cloned (defaults to master)")
 	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "scm token to clone with")
-	cloneCmd.Flags().StringVarP(&bitbucketUsername, "bitbucket_username", "", "", "when cloning with bitbucket this must be set or GHORG_BITBUKET_USERNAME in your $HOME/ghorg/conf.yaml")
+	cloneCmd.Flags().StringVarP(&bitbucketUsername, "bitbucket-username", "", "", "when cloning with bitbucket this must be set or GHORG_BITBUKET_USERNAME in your $HOME/ghorg/conf.yaml")
 	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "github", "type of scm used, github or gitlab")
 	// TODO: make gitlab terminology make sense https://about.gitlab.com/2016/01/27/comparing-terms-gitlab-github-bitbucket/
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "org", "clone target type, user or org, for gitlab groups use org flag")
@@ -62,8 +62,8 @@ var cloneCmd = &cobra.Command{
 			os.Setenv("GHORG_BRANCH", cmd.Flag("branch").Value.String())
 		}
 
-		if cmd.Flags().Changed("bitbucket_username") {
-			os.Setenv("GHORG_BITBUCKET_USERNAME", cmd.Flag("bitbucket_username").Value.String())
+		if cmd.Flags().Changed("bitbucket-username") {
+			os.Setenv("GHORG_BITBUCKET_USERNAME", cmd.Flag("bitbucket-username").Value.String())
 		}
 
 		if cmd.Flags().Changed("namespace") {

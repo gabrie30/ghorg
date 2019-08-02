@@ -39,5 +39,5 @@ GHORG_GITLAB_DEFAULT_NAMESPACE:
 # flag (--token, -t)
 GHORG_BITBUCKET_APP_PASSWORD:
 
-# flag (--bitbucket_username)
+# flag (--bitbucket-username)
 GHORG_BITBUCKET_USERNAME:
