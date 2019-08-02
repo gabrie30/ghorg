@@ -13,9 +13,9 @@ ghorg allows you to quickly clone all of an orgs, or users repos into a single d
 > When running ghorg a second time, all local changes in your *_ghorg directory will be overwritten by whats on GitHub. If you are working out of this directory, make sure you rename it before running a second time otherwise all of you changes will be lost.
 
 ## Supported Providers
-- github
-- gitlab
-- bitbucket (see bitbucket setup)
+- GitHub
+- GitLab
+- Bitbucket (see bitbucket setup)
 
 > The terminology used in ghorg is that of GitHub, mainly orgs/repos. GitLab and BitBucket use different terminology. There is a handy chart thanks to GitLab that translates terminology [here](https://about.gitlab.com/images/blogimages/gitlab-terminology.png)
 
@@ -35,6 +35,7 @@ $ brew upgrade git
 $ brew install gabrie30/utils/ghorg
 $ mkdir -p $HOME/ghorg
 $ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/ghorg/conf.yaml
+$ vi $HOME/ghorg/conf.yaml # (optional but recommended)
 ```
 
 ### Golang
@@ -43,8 +44,7 @@ $ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml 
 $ go get -u github.com/gabrie30/ghorg
 $ cd $HOME/go/src/github.com/gabrie30/ghorg
 $ make install
-# Update conf if neeed
-$ vi ~/ghorg/conf.yaml
+$ vi $HOME/ghorg/conf.yaml # (optional but recommended)
 $ go install
 ```
 
@@ -56,8 +56,6 @@ $ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop
 $ ghorg clone gitlab-org --scm=gitlab --namespace=gitlab-org/security-products
 $ ghorg clone --help
 ```
-
-> ghorg defaults to master branch however, for gitflows you can run on develop by setting GHORG_BRANCH=develop or similar
 
 ## Configuration
 
@@ -78,11 +76,11 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 
 - If org is behind SSO a normal token will not work. You will need to add SSO to the [Github token](https://help.github.com/articles/authorizing-a-personal-access-token-for-use-with-a-saml-single-sign-on-organization/)
 
-## Known issues
-- When cloning if you see something like `Username for 'https://gitlab.com': ` the command won't finish. I haven't been able to identify the reason for this occuring. The fix for this is to make sure your token is in the osxkeychain. See the troubleshooting section for how to set this up.
-
 ## BitBucket Setup
 To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/ghorg/conf.yaml` to use those values or set the command line args.
+
+## Known issues
+- When cloning if you see something like `Username for 'https://gitlab.com': ` the command won't finish. I haven't been able to identify the reason for this occuring. The fix for this is to make sure your token is in the osxkeychain. See the troubleshooting section for how to set this up.
 
 ## Troubleshooting
 

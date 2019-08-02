@@ -2,32 +2,42 @@
 # Add your GitHub token
 # Defaults to using key returned by
 # $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
+# flag (--token, -t)
 GHORG_GITHUB_TOKEN:
 
 # This is where your *_ghorg directory will be created, use absolute pathing, defaults to $HOME/Desktop/
+# flag (--path, -p)
 GHORG_ABSOLUTE_PATH_TO_CLONE_TO:
 
 # Branch ghorg resets and leaves checked out, defaults to master
+# flag (--branch, -b)
 GHORG_BRANCH:
 
 # How you'd like to clone the repos (https or ssh), defaults to https
+# flag (--protocol)
 GHORG_CLONE_PROTOCOL:
 
-## Experimental
-
 # Clone a user or an org, defaults to org
+# flag (--clone-type, -c)
 GHORG_CLONE_TYPE:
 
 # Clone from github or gitlab, defaults to github
+# flag (--scm, -s)
 GHORG_SCM_TYPE:
 
 # Add your GitLab token
 # Defaults to using key returned by
 # $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ print $4 }'
+# flag (--token, -t)
 GHORG_GITLAB_TOKEN:
+
+# flag (--namespace, -n)
 GHORG_GITLAB_DEFAULT_NAMESPACE:
 
 # Add your Bitbucket app password
 # https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html
+# flag (--token, -t)
 GHORG_BITBUCKET_APP_PASSWORD:
+
+# flag (--bitbucket_username)
 GHORG_BITBUCKET_USERNAME:
