@@ -39,8 +39,8 @@ func init() {
 
 var cloneCmd = &cobra.Command{
 	Use:   "clone",
-	Short: "Clone a user or org",
-	Long:  `Clone a user or org you can specify which you want to clone with flags, otherwise it will default to org first than user`,
+	Short: "Clone user or org repos from GitHub, GitLab, or Bitbucket",
+	Long:  `Clone user or org repos from GitHub, GitLab, or Bitbucket. See $HOME/ghorg/conf.yaml for defaults, its likely you will need to update some of these values of use the flags to overwrite them. Values are set first by a default value, then based off what is set in $HOME/ghorg/conf.yaml, finally the cli flags, which have the highest level of precedence.`,
 	Run: func(cmd *cobra.Command, argz []string) {
 
 		if len(argz) < 1 {
