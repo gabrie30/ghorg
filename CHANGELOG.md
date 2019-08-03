@@ -11,6 +11,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 ### Security
 
+## [1.1.2] - 08/03/19
+### Added
+### Changed
+- readme
+### Deprecated
+### Removed
+### Fixed
+- flag documentation
+### Security
+
 ## [1.1.1] - 08/02/19
 ### Added
 ### Changed
