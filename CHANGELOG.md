@@ -11,6 +11,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 ### Security
 
+## [1.1.1] - 08/02/19
+### Added
+### Changed
+- readme
+### Deprecated
+### Removed
+### Fixed
+- flags for certain commands
+### Security
+
 ## [1.0.10] - 07/28/19
 ### Added
 - gitlab support
