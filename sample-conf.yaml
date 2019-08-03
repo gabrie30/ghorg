@@ -1,10 +1,4 @@
 ---
-# Add your GitHub token
-# Defaults to using key returned by
-# $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
-# flag (--token, -t)
-GHORG_GITHUB_TOKEN:
-
 # This is where your *_ghorg directory will be created, use absolute pathing
 # default: $HOME/Desktop/
 # flag (--path, -p)
@@ -20,7 +14,7 @@ GHORG_BRANCH:
 # flag (--protocol)
 GHORG_CLONE_PROTOCOL:
 
-# Clone a user or an org
+# Type of entity to clone (user or org)
 # default: org
 # flag (--clone-type, -c)
 GHORG_CLONE_TYPE:
@@ -30,6 +24,16 @@ GHORG_CLONE_TYPE:
 # flag (--scm, -s)
 GHORG_SCM_TYPE:
 
+# --- GITHUB SPECIFIC ---
+
+# Add your GitHub token
+# Defaults to using key returned by
+# $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
+# flag (--token, -t)
+GHORG_GITHUB_TOKEN:
+
+# --- GITLAB SPECIFIC ---
+
 # Add your GitLab token
 # Defaults to using key returned by
 # $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ print $4 }'
@@ -38,6 +42,8 @@ GHORG_GITLAB_TOKEN:
 
 # flag (--namespace, -n)
 GHORG_GITLAB_DEFAULT_NAMESPACE:
+
+# --- BITBUCKET SPECIFIC ---
 
 # Add your Bitbucket app password
 # https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html
