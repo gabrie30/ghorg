@@ -5,23 +5,28 @@
 # flag (--token, -t)
 GHORG_GITHUB_TOKEN:
 
-# This is where your *_ghorg directory will be created, use absolute pathing, defaults to $HOME/Desktop/
+# This is where your *_ghorg directory will be created, use absolute pathing
+# default: $HOME/Desktop/
 # flag (--path, -p)
 GHORG_ABSOLUTE_PATH_TO_CLONE_TO:
 
-# Branch ghorg resets and leaves checked out, defaults to master
+# Branch ghorg resets and leaves checked out
+# default:  master
 # flag (--branch, -b)
 GHORG_BRANCH:
 
-# How you'd like to clone the repos (https or ssh), defaults to https
+# How you'd like to clone the repos (https or ssh)
+# default: https
 # flag (--protocol)
 GHORG_CLONE_PROTOCOL:
 
-# Clone a user or an org, defaults to org
+# Clone a user or an org
+# default: org
 # flag (--clone-type, -c)
 GHORG_CLONE_TYPE:
 
-# Clone from github or gitlab, defaults to github
+# Which provider to clone from (github, gitlab, or bitbucket)
+# default: github
 # flag (--scm, -s)
 GHORG_SCM_TYPE:
 
