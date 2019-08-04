@@ -157,10 +157,6 @@ func getOrSetBitBucketToken() {
 // VerifyTokenSet checks to make sure env is set for the correct scm provider
 func VerifyTokenSet() {
 	var tokenLength int
-	if os.Getenv("GHORG_CLONE_PROTOCOL") != "https" {
-		return
-	}
-
 	var token string
 	scmProvider := os.Getenv("GHORG_SCM_TYPE")
 
