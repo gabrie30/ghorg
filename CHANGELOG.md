@@ -11,6 +11,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 ### Security
 
+## [1.1.7] - 08/03/19
+### Added
+### Changed
+- version for homebrew
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.1.6] - 08/03/19
 ### Added
 ### Changed
