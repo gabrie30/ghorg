@@ -65,6 +65,11 @@ func initConfig() {
 	getOrSetDefaults("GHORG_CLONE_TYPE")
 	getOrSetDefaults("GHORG_SCM_TYPE")
 	getOrSetDefaults("GHORG_GITLAB_DEFAULT_NAMESPACE")
+	// Optionally set
+	getOrSetDefaults("GHORG_GITHUB_TOKEN")
+	getOrSetDefaults("GHORG_GITLAB_TOKEN")
+	getOrSetDefaults("GHORG_BITBUCKET_USERNAME")
+	getOrSetDefaults("GHORG_BITBUCKET_APP_PASSWORD")
 }
 
 // Load triggers the configs to load first, not sure if this is actually needed
@@ -87,6 +92,7 @@ func isZero(value interface{}) bool {
 
 func getOrSetDefaults(envVar string) {
 
+	// When a user does not set value in $HOME/ghorg/conf.yaml set the default values, else set env to what they have added to the file.
 	if viper.GetString(envVar) == "" {
 		switch envVar {
 		case "GHORG_ABSOLUTE_PATH_TO_CLONE_TO":

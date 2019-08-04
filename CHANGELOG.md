@@ -11,6 +11,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 ### Security
 
+## [1.1.6] - 08/03/19
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- setting all envs from conf
+### Security
+
 ## [1.1.5] - 08/03/19
 ### Added
 - Tests for configs
