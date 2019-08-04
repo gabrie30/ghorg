@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -11,6 +12,29 @@ import (
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
+)
+
+var (
+	// ErrNoGitHubToken error message when token is not found
+	ErrNoGitHubToken = errors.New("Could not find a valid github token. GHORG_GITHUB_TOKEN or (--token, -t) flag must be set. Create a personal access token, then set it in your $HOME/ghorg/conf.yaml or use the (--token, -t) flag...For best results read the troubleshooting section of README.md https://github.com/gabrie30/ghorg to properly store your token in the osx keychain")
+
+	// ErrNoGitLabToken error message when token is not found
+	ErrNoGitLabToken = errors.New("Could not find a valid gitlab token. GHORG_GITLAB_TOKEN or (--token, -t) flag must be set. Create a token from gitlab then set it in your $HOME/ghorg/conf.yaml or use the (--token, -t) flag...For best results read the troubleshooting section of README.md https://github.com/gabrie30/ghorg to properly store your token in the osx keychain")
+
+	// ErrNoBitbucketUsername error message when no username found
+	ErrNoBitbucketUsername = errors.New("Could not find bitbucket username. GHORG_BITBUCKET_USERNAME or (--bitbucket-username) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
+
+	// ErrNoBitbucketAppPassword error message when no app password found
+	ErrNoBitbucketAppPassword = errors.New("Could not find a valid bitbucket app password. GHORG_BITBUCKET_APP_PASSWORD or (--token, -t) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
+
+	// ErrIncorrectScmType indicates an unsupported scm type being used
+	ErrIncorrectScmType = errors.New("GHORG_SCM_TYPE or --scm must be one of github, gitlab, or bitbucket")
+
+	// ErrIncorrectCloneType indicates an unsupported clone type being used
+	ErrIncorrectCloneType = errors.New("GHORG_CLONE_TYPE or --clone-type must be one of org or user")
+
+	// ErrIncorrectProtocolType indicates an unsupported protocol type being used
+	ErrIncorrectProtocolType = errors.New("GHORG_CLONE_PROTOCOL or --protocol must be one of https or ssh")
 )
 
 func init() {
@@ -155,7 +179,7 @@ func getOrSetBitBucketToken() {
 }
 
 // VerifyTokenSet checks to make sure env is set for the correct scm provider
-func VerifyTokenSet() {
+func VerifyTokenSet() error {
 	var tokenLength int
 	var token string
 	scmProvider := os.Getenv("GHORG_SCM_TYPE")
@@ -174,42 +198,45 @@ func VerifyTokenSet() {
 		tokenLength = 20
 		token = os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
 		if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" {
-			colorlog.PrintError("GHORG_BITBUCKET_USERNAME or --bitbucket-username must be set to clone repos from bitbucket, see BitBucket Setup in Readme")
-			os.Exit(1)
+			return ErrNoBitbucketUsername
 		}
 	}
 
 	if len(token) != tokenLength {
-		if scmProvider == "github" || scmProvider == "gitlab" {
-			colorlog.PrintError("Could not find a set token for " + scmProvider + ". You should create a personal access token from " + scmProvider + " , then set the correct in your $HOME/ghorg/conf.yaml...or read the troubleshooting section of Readme.md https://github.com/gabrie30/ghorg to correctly store your token in your osx keychain. You can also manually set your token with (--token, -t) flag")
-			os.Exit(1)
+		if scmProvider == "github" {
+			return ErrNoGitHubToken
+		}
+
+		if scmProvider == "gitlab" {
+			return ErrNoGitLabToken
 		}
 
 		if scmProvider == "bitbucket" {
-			colorlog.PrintError("Could not find a set user and or app password for " + scmProvider + ", please update your $HOME/ghorg/conf.yaml. You can also read the Bitbucket Setup section of Readme.md https://github.com/gabrie30/ghorg to correctly create and store these values. Or you can also manually set your token with (--token, -t) flag and username with (--bitbucket-username")
+			return ErrNoBitbucketAppPassword
 		}
 
 	}
+
+	return nil
 }
 
 // VerifyConfigsSetCorrectly makes sure flags are set to appropriate values
-func VerifyConfigsSetCorrectly() {
+func VerifyConfigsSetCorrectly() error {
 	scmType := os.Getenv("GHORG_SCM_TYPE")
 	cloneType := os.Getenv("GHORG_CLONE_TYPE")
 	protocol := os.Getenv("GHORG_CLONE_PROTOCOL")
 
 	if scmType != "github" && scmType != "gitlab" && scmType != "bitbucket" {
-		colorlog.PrintError("GHORG_SCM_TYPE or --scm must be one of github, gitlab, or bitbucket")
-		os.Exit(1)
+		return ErrIncorrectScmType
 	}
 
 	if cloneType != "user" && cloneType != "org" {
-		colorlog.PrintError("GHORG_CLONE_TYPE or --clone-type must be one of org or user")
-		os.Exit(1)
+		return ErrIncorrectCloneType
 	}
 
 	if protocol != "ssh" && protocol != "https" {
-		colorlog.PrintError("GHORG_CLONE_PROTOCOL or --protocol must be one of https or ssh")
-		os.Exit(1)
+		return ErrIncorrectProtocolType
 	}
+
+	return nil
 }

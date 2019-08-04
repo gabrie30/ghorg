@@ -77,7 +77,7 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 - If org is behind SSO a normal token will not work. You will need to add SSO to the [Github token](https://help.github.com/articles/authorizing-a-personal-access-token-for-use-with-a-saml-single-sign-on-organization/)
 
 ## Bitbucket Setup
-To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/ghorg/conf.yaml` to use those values or set the command line args.
+To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/ghorg/conf.yaml` or use the (--token, -t) and (--bitbucket-username) flags.
 
 ## Known issues
 - When cloning if you see something like `Username for 'https://gitlab.com': ` the command won't finish. I haven't been able to identify the reason for this occuring. The fix for this is to make sure your token is in the osxkeychain. See the troubleshooting section for how to set this up.

@@ -92,8 +92,17 @@ var cloneCmd = &cobra.Command{
 			}
 		}
 
-		configs.VerifyTokenSet()
-		configs.VerifyConfigsSetCorrectly()
+		err := configs.VerifyTokenSet()
+		if err != nil {
+			colorlog.PrintError(err)
+			os.Exit(1)
+		}
+
+		err = configs.VerifyConfigsSetCorrectly()
+		if err != nil {
+			colorlog.PrintError(err)
+			os.Exit(1)
+		}
 
 		args = argz
 
