@@ -11,6 +11,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 ### Security
 
+## [1.1.4] - 08/03/19
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- token verification
+### Security
+
 ## [1.1.3] - 08/03/19
 ### Added
 ### Changed
