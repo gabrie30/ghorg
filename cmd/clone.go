@@ -311,13 +311,11 @@ func asciiTime() {
 // PrintConfigs shows the user what is set before cloning
 func PrintConfigs() {
 	colorlog.PrintInfo("*************************************")
-	// colorlog.PrintInfo("*")
 	colorlog.PrintInfo("* SCM      : " + os.Getenv("GHORG_SCM_TYPE"))
 	colorlog.PrintInfo("* Type     : " + os.Getenv("GHORG_CLONE_TYPE"))
 	colorlog.PrintInfo("* Protocol : " + os.Getenv("GHORG_CLONE_PROTOCOL"))
 	colorlog.PrintInfo("* Branch   : " + os.Getenv("GHORG_BRANCH"))
 	colorlog.PrintInfo("* Location : " + os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
-	// colorlog.PrintInfo("*")
 	colorlog.PrintInfo("*************************************")
 	fmt.Println("")
 }

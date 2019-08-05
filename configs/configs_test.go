@@ -8,7 +8,6 @@ import (
 )
 
 func TestDefaultSettings(t *testing.T) {
-	configs.Load()
 
 	branch := os.Getenv("GHORG_BRANCH")
 	protocol := os.Getenv("GHORG_CLONE_PROTOCOL")
@@ -46,6 +45,7 @@ func TestVerifyTokenSet(t *testing.T) {
 
 	t.Run("When cloning github", func(tt *testing.T) {
 		os.Setenv("GHORG_SCM_TYPE", "github")
+		os.Setenv("GHORG_GITHUB_TOKEN", "")
 
 		err := configs.VerifyTokenSet()
 		if err != configs.ErrNoGitHubToken {
@@ -56,6 +56,7 @@ func TestVerifyTokenSet(t *testing.T) {
 
 	t.Run("When cloning gitlab", func(tt *testing.T) {
 		os.Setenv("GHORG_SCM_TYPE", "gitlab")
+		os.Setenv("GHORG_GITLAB_TOKEN", "")
 
 		err := configs.VerifyTokenSet()
 		if err != configs.ErrNoGitLabToken {
@@ -66,7 +67,7 @@ func TestVerifyTokenSet(t *testing.T) {
 
 	t.Run("When cloning bitbucket with no username", func(tt *testing.T) {
 		os.Setenv("GHORG_SCM_TYPE", "bitbucket")
-
+		os.Setenv("GHORG_BITBUCKET_USERNAME", "")
 		err := configs.VerifyTokenSet()
 		if err != configs.ErrNoBitbucketUsername {
 			tt.Errorf("Expected ErrNoBitbucketUsername, got: %v", err)
@@ -76,7 +77,8 @@ func TestVerifyTokenSet(t *testing.T) {
 
 	t.Run("When cloning bitbucket with username but no app password", func(tt *testing.T) {
 		os.Setenv("GHORG_SCM_TYPE", "bitbucket")
-		os.Setenv("GHORG_BITBUCKET_USERNAME", "bitbucket")
+		os.Setenv("GHORG_BITBUCKET_USERNAME", "bitbucketuser")
+		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", "")
 		err := configs.VerifyTokenSet()
 		if err != configs.ErrNoBitbucketAppPassword {
 			tt.Errorf("Expected ErrNoBitbucketAppPassword, got: %v", err)
