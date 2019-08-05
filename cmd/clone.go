@@ -1,3 +1,4 @@
+// Package cmd encapsulates the logic for all cli commands
 package cmd
 
 import (
