@@ -83,9 +83,7 @@ To configure with bitbucket you will need to create a new [app password](https:/
 
 ## Troubleshooting
 
-- It's recommended to store github/gitlab tokens in the osxkeychain, however you can always add your token to the $HOME/ghorg/conf.yaml or use the (--token, -t) flags. To verify its setup correctly, run the `security` command in the 'Default GitHub/GitLab Token Used' section, it should return your token and not your username. If it returns your username edit your keychain so your token is the account.
-    - If this command does not return anything, follow this [GitHub Documentation](https://help.github.com/en/articles/caching-your-github-password-in-git). For GitHub tokens you will need to set your token as your username and set nothing as the password when prompted. For GitLab you will need to set your token for both the username and password when prompted. This will correctly store your credentials in the keychain.
-        - If you are still having problems see this [StackOverflow Post](https://stackoverflow.com/questions/31305945/git-clone-from-github-over-https-with-two-factor-authentication) as noted in comments be sure to use your token as your username and give a blank password. With a GitLab token add the token to both the username and password fields.
+- If the `security` command does not return your token, follow this [GitHub Documentation](https://help.github.com/en/articles/caching-your-github-password-in-git). For GitHub tokens you will need to set your token as your username and set nothing as the password when prompted. For GitLab you will need to set your token for both the username and password when prompted. This will correctly store your credentials in the keychain. If you are still having problems see this [StackOverflow Post](https://stackoverflow.com/questions/31305945/git-clone-from-github-over-https-with-two-factor-authentication)
 - If your GitHub account is behind 2fa follow this [Github Documentation](https://github.blog/2013-09-03-two-factor-authentication/#how-does-it-work-for-command-line-git)
 - Make sure your `$ git --version` is >= 2.19.0
 - You may need to increase your ulimits if cloning a large org
