@@ -68,7 +68,7 @@ $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ pri
 $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ print $4 }'
 ```
 
-> It's recommended to store github/gitlab tokens in the osxkeychain, however you can always add your token to the $HOME/ghorg/conf.yaml or use the (--token, -t) flags. If this command returns anything other than your token see Troubleshooting section below.
+> It's recommended to store github/gitlab tokens in the osxkeychain, if this command returns anything other than your token see Troubleshooting section below. However, you can always add your token to the $HOME/ghorg/conf.yaml or use the (--token, -t) flags.
 
 
 ## Auth through SSO
