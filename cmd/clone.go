@@ -113,6 +113,7 @@ var cloneCmd = &cobra.Command{
 // TODO: Figure out how to use go channels for this
 func getAllOrgCloneUrls() ([]string, error) {
 	asciiTime()
+	PrintConfigs()
 	var urls []string
 	var err error
 	switch os.Getenv("GHORG_SCM_TYPE") {
@@ -133,6 +134,7 @@ func getAllOrgCloneUrls() ([]string, error) {
 // TODO: Figure out how to use go channels for this
 func getAllUserCloneUrls() ([]string, error) {
 	asciiTime()
+	PrintConfigs()
 	var urls []string
 	var err error
 	switch os.Getenv("GHORG_SCM_TYPE") {
@@ -199,14 +201,6 @@ func printRemainingMessages(infoMessages []error, errors []error) {
 // CloneAllRepos clones all repos
 func CloneAllRepos() {
 	resc, errc, infoc := make(chan string), make(chan error), make(chan error)
-
-	if os.Getenv("GHORG_BRANCH") != "master" {
-		colorlog.PrintSubtleInfo("***********************************************************")
-		colorlog.PrintSubtleInfo("* Ghorg will be running on branch: " + os.Getenv("GHORG_BRANCH"))
-		colorlog.PrintSubtleInfo("* To change back to master update your $HOME/ghorg/conf.yaml or include -b=master flag")
-		colorlog.PrintSubtleInfo("***********************************************************")
-		fmt.Println()
-	}
 
 	var cloneTargets []string
 	var err error
@@ -314,10 +308,18 @@ func asciiTime() {
 `)
 }
 
-func debug() {
-	fmt.Println(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
-	fmt.Println(os.Getenv("GHORG_CLONE_PROTOCOL"))
-	fmt.Println(os.Getenv("GHORG_BRANCH"))
+// PrintConfigs shows the user what is set before cloning
+func PrintConfigs() {
+	colorlog.PrintInfo("*************************************")
+	// colorlog.PrintInfo("*")
+	colorlog.PrintInfo("* SCM      : " + os.Getenv("GHORG_SCM_TYPE"))
+	colorlog.PrintInfo("* Type     : " + os.Getenv("GHORG_CLONE_TYPE"))
+	colorlog.PrintInfo("* Protocol : " + os.Getenv("GHORG_CLONE_PROTOCOL"))
+	colorlog.PrintInfo("* Branch   : " + os.Getenv("GHORG_BRANCH"))
+	colorlog.PrintInfo("* Location : " + os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
+	// colorlog.PrintInfo("*")
+	colorlog.PrintInfo("*************************************")
+	fmt.Println("")
 }
 
 func ensureTrailingSlash(path string) string {

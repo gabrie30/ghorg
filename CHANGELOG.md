@@ -11,6 +11,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 ### Security
 
+## [1.1.8] - 08/03/19
+### Added
+- Config output for clone
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.1.7] - 08/03/19
 ### Added
 ### Changed
