@@ -14,7 +14,6 @@ func TestDefaultSettings(t *testing.T) {
 	scm := os.Getenv("GHORG_SCM_TYPE")
 	cloneType := os.Getenv("GHORG_CLONE_TYPE")
 	namespace := os.Getenv("GHORG_GITLAB_DEFAULT_NAMESPACE")
-	path := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
 
 	if branch != "master" {
 		t.Errorf("Default branch should be master, got: %v", branch)
@@ -36,9 +35,6 @@ func TestDefaultSettings(t *testing.T) {
 		t.Errorf("Default gitlab namespace type should be unset, got: %v", namespace)
 	}
 
-	if path != configs.HomeDir()+"/Desktop/" {
-		t.Errorf("Default ghorg path to clone to should be $HOME/Desktop/, got: %v", path)
-	}
 }
 
 func TestVerifyTokenSet(t *testing.T) {
