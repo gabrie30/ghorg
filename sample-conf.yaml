@@ -24,6 +24,11 @@ GHORG_CLONE_TYPE:
 # flag (--scm, -s)
 GHORG_SCM_TYPE:
 
+# Color output (on, off)
+# default: on
+# flag (--color)
+GHORG_COLOR:
+
 # --- GITHUB SPECIFIC ---
 
 # Add your GitHub token

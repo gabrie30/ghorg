@@ -2,25 +2,48 @@
 package colorlog
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/fatih/color"
 )
 
 // PrintInfo prints yellow colored text to standard out
 func PrintInfo(msg interface{}) {
-	color.New(color.FgYellow).Println(msg)
+	switch os.Getenv("GHORG_COLOR") {
+	case "on":
+		color.New(color.FgYellow).Println(msg)
+	default:
+		fmt.Println(msg)
+	}
 }
 
 // PrintSuccess prints green colored text to standard out
 func PrintSuccess(msg interface{}) {
-	color.New(color.FgGreen).Println(msg)
+	switch os.Getenv("GHORG_COLOR") {
+	case "on":
+		color.New(color.FgGreen).Println(msg)
+	default:
+		fmt.Println(msg)
+	}
 }
 
 // PrintError prints red colored text to standard out
 func PrintError(msg interface{}) {
-	color.New(color.FgRed).Println(msg)
+	switch os.Getenv("GHORG_COLOR") {
+	case "on":
+		color.New(color.FgRed).Println(msg)
+	default:
+		fmt.Println(msg)
+	}
 }
 
 // PrintSubtleInfo prints magenta colored text to standard out
 func PrintSubtleInfo(msg interface{}) {
-	color.New(color.FgHiMagenta).Println(msg)
+	switch os.Getenv("GHORG_COLOR") {
+	case "on":
+		color.New(color.FgHiMagenta).Println(msg)
+	default:
+		fmt.Println(msg)
+	}
 }

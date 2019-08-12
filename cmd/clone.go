@@ -22,10 +22,12 @@ var (
 	scmType           string
 	bitbucketUsername string
 	namespace         string
+	color             string
 	args              []string
 )
 
 func init() {
+	rootCmd.PersistentFlags().StringVarP(&color, "color", "", "", "GHORG_COLOR - toggles colorful output on/off (default on)")
 	rootCmd.AddCommand(cloneCmd)
 	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "GHORG_CLONE_PROTOCOL - protocol to clone with, ssh or https, (default https)")
 	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "GHORG_ABSOLUTE_PATH_TO_CLONE_TO - absolute path the ghorg_* directory will be created (default $HOME/Desktop)")
@@ -43,6 +45,16 @@ var cloneCmd = &cobra.Command{
 	Short: "Clone user or org repos from GitHub, GitLab, or Bitbucket",
 	Long:  `Clone user or org repos from GitHub, GitLab, or Bitbucket. See $HOME/ghorg/conf.yaml for defaults, its likely you will need to update some of these values of use the flags to overwrite them. Values are set first by a default value, then based off what is set in $HOME/ghorg/conf.yaml, finally the cli flags, which have the highest level of precedence.`,
 	Run: func(cmd *cobra.Command, argz []string) {
+
+		if cmd.Flags().Changed("color") {
+			colorToggle := cmd.Flag("color").Value.String()
+			if colorToggle == "on" {
+				os.Setenv("GHORG_COLOR", colorToggle)
+			} else {
+				os.Setenv("GHORG_COLOR", "off")
+			}
+
+		}
 
 		if len(argz) < 1 {
 			colorlog.PrintError("You must provide an org or user to clone")

@@ -66,6 +66,7 @@ func initConfig() {
 	getOrSetDefaults("GHORG_CLONE_TYPE")
 	getOrSetDefaults("GHORG_SCM_TYPE")
 	getOrSetDefaults("GHORG_GITLAB_DEFAULT_NAMESPACE")
+	getOrSetDefaults("GHORG_COLOR")
 	// Optionally set
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
 	getOrSetDefaults("GHORG_GITLAB_TOKEN")
@@ -108,6 +109,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "github")
 		case "GHORG_GITLAB_DEFAULT_NAMESPACE":
 			os.Setenv(envVar, "unset")
+		case "GHORG_COLOR":
+			os.Setenv(envVar, "on")
 		}
 	} else {
 		os.Setenv(envVar, viper.GetString(envVar))
