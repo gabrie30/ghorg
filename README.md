@@ -13,7 +13,8 @@ ghorg allows you to quickly clone all of an orgs, or users repos into a single d
 > When running ghorg a second time, all local changes in your *_ghorg directory will be overwritten by whats on GitHub. If you are working out of this directory, make sure you rename it before running a second time otherwise all of you changes will be lost.
 
 <p align="center">
-  <img width="650" alt="ghorg cli example on kubernetes org" src="https://user-images.githubusercontent.com/1512282/63229064-f62c1600-c1b0-11e9-967b-7caa8ed1456b.png">
+  <img width="574" alt="ghorg cli example" src="https://user-images.githubusercontent.com/1512282/63229192-ce3db200-c1b2-11e9-8ed5-65b6a40a1e90.png">
+
 </p>
 
 ## Supported Providers
