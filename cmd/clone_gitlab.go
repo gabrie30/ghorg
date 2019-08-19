@@ -12,6 +12,13 @@ import (
 func getGitLabOrgCloneUrls() ([]string, error) {
 	cloneUrls := []string{}
 	client := gitlab.NewClient(nil, os.Getenv("GHORG_GITLAB_TOKEN"))
+
+	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
+
+	if baseURL != "" {
+		client.SetBaseURL(baseURL)
+	}
+
 	namespace := os.Getenv("GHORG_GITLAB_DEFAULT_NAMESPACE")
 
 	opt := &gitlab.ListGroupProjectsOptions{
@@ -74,6 +81,12 @@ func getGitLabOrgCloneUrls() ([]string, error) {
 func getGitLabUserCloneUrls() ([]string, error) {
 	cloneUrls := []string{}
 	client := gitlab.NewClient(nil, os.Getenv("GHORG_GITLAB_TOKEN"))
+
+	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
+
+	if baseURL != "" {
+		client.SetBaseURL(baseURL)
+	}
 
 	opt := &gitlab.ListProjectsOptions{
 		ListOptions: gitlab.ListOptions{

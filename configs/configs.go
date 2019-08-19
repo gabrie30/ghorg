@@ -72,6 +72,7 @@ func initConfig() {
 	getOrSetDefaults("GHORG_GITLAB_TOKEN")
 	getOrSetDefaults("GHORG_BITBUCKET_USERNAME")
 	getOrSetDefaults("GHORG_BITBUCKET_APP_PASSWORD")
+	getOrSetDefaults("GHORG_SCM_BASE_URL")
 }
 
 // Load triggers the configs to load first, not sure if this is actually needed

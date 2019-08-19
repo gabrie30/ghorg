@@ -29,6 +29,11 @@ GHORG_SCM_TYPE:
 # flag (--color)
 GHORG_COLOR:
 
+# Change SCM base url (currently gitlab only)
+# default: gitlab.com
+# flag (--base-url)
+GHORG_SCM_BASE_URL:
+
 # --- GITHUB SPECIFIC ---
 
 # Add your GitHub token

@@ -23,6 +23,7 @@ var (
 	bitbucketUsername string
 	namespace         string
 	color             string
+	baseURL           string
 	args              []string
 )
 
@@ -38,6 +39,8 @@ func init() {
 	// TODO: make gitlab terminology make sense https://about.gitlab.com/2016/01/27/comparing-terms-gitlab-github-bitbucket/
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - clone target type, user or org (default org)")
 	cloneCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "GHORG_GITLAB_DEFAULT_NAMESPACE - gitlab only: limits clone targets to a specific namespace e.g. --namespace=gitlab-org/security-products")
+
+	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "change the base url to clone from (currently gitlab only)")
 }
 
 var cloneCmd = &cobra.Command{
@@ -91,6 +94,11 @@ var cloneCmd = &cobra.Command{
 		if cmd.Flags().Changed("scm") {
 			scmType := strings.ToLower(cmd.Flag("scm").Value.String())
 			os.Setenv("GHORG_SCM_TYPE", scmType)
+		}
+
+		if cmd.Flags().Changed("base-url") {
+			url := cmd.Flag("base-url").Value.String()
+			os.Setenv("GHORG_SCM_BASE_URL", url)
 		}
 
 		configs.GetOrSetToken()
@@ -329,6 +337,9 @@ func PrintConfigs() {
 	colorlog.PrintInfo("* Protocol : " + os.Getenv("GHORG_CLONE_PROTOCOL"))
 	colorlog.PrintInfo("* Branch   : " + os.Getenv("GHORG_BRANCH"))
 	colorlog.PrintInfo("* Location : " + os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
+	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
+		colorlog.PrintInfo("* Base URL : " + os.Getenv("GHORG_SCM_BASE_URL"))
+	}
 	colorlog.PrintInfo("*************************************")
 	fmt.Println("")
 }
