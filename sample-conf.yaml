@@ -29,8 +29,8 @@ GHORG_SCM_TYPE:
 # flag (--color)
 GHORG_COLOR:
 
-# Change SCM base url (currently gitlab only)
-# default: gitlab.com
+# Change SCM base url, for on self hosted instances (currently gitlab only, use format of https://git.mydomain.com/api/v3)
+# default: gitlab.com/api/v3
 # flag (--base-url)
 GHORG_SCM_BASE_URL:
 

@@ -40,7 +40,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - clone target type, user or org (default org)")
 	cloneCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "GHORG_GITLAB_DEFAULT_NAMESPACE - gitlab only: limits clone targets to a specific namespace e.g. --namespace=gitlab-org/security-products")
 
-	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "change the base url to clone from (currently gitlab only)")
+	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL change SCM base url, for on self hosted instances (currently gitlab only, use format of https://git.mydomain.com/api/v3)")
 }
 
 var cloneCmd = &cobra.Command{

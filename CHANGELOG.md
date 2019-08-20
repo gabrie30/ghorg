@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [Unreleased] - DATE
 ### Added
 - color flag to toggle colorful output
+- scm base url flag for gitlab
 ### Changed
 ### Deprecated
 ### Removed
