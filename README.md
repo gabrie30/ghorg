@@ -45,11 +45,11 @@ $ vi $HOME/ghorg/conf.yaml # (optional but recommended)
 ### Golang
 
 ```bash
+# ensure $HOME/go/bin is in your path ($ echo $PATH | grep $HOME/go/bin)
 $ go get -u github.com/gabrie30/ghorg
-$ cd $HOME/go/src/github.com/gabrie30/ghorg
-$ make install
+$ mkdir -p $HOME/ghorg
+$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/ghorg/conf.yaml
 $ vi $HOME/ghorg/conf.yaml # (optional but recommended)
-$ go install
 ```
 
 ## Use
