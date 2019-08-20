@@ -235,18 +235,19 @@ func CloneAllRepos() {
 		os.Exit(1)
 	}
 
+	if err != nil {
+		colorlog.PrintError("Encountered an error, aborting")
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	if len(cloneTargets) == 0 {
 		colorlog.PrintInfo("No repos found for " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + args[0] + ", check spelling and verify clone-type (user/org) is set correctly e.g. -c=user")
 		os.Exit(0)
 	}
 
-	if err != nil {
-		colorlog.PrintSubtleInfo("Did not find " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + args[0] + ", check spelling and try again.")
-		os.Exit(1)
-	} else {
-		colorlog.PrintInfo(strconv.Itoa(len(cloneTargets)) + " repos found in " + args[0])
-		fmt.Println()
-	}
+	colorlog.PrintInfo(strconv.Itoa(len(cloneTargets)) + " repos found in " + args[0])
+	fmt.Println()
 
 	createDirIfNotExist()
 
