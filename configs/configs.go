@@ -45,7 +45,7 @@ func init() {
 func initConfig() {
 
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(ghorgDir())
+	viper.AddConfigPath(GhorgDir())
 	viper.SetConfigName("conf")
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -67,6 +67,7 @@ func initConfig() {
 	getOrSetDefaults("GHORG_SCM_TYPE")
 	getOrSetDefaults("GHORG_GITLAB_DEFAULT_NAMESPACE")
 	getOrSetDefaults("GHORG_COLOR")
+	getOrSetDefaults("GHORG_SKIP_ARCHIVED")
 	// Optionally set
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
 	getOrSetDefaults("GHORG_GITLAB_TOKEN")
@@ -112,13 +113,21 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "unset")
 		case "GHORG_COLOR":
 			os.Setenv(envVar, "on")
+		case "GHORG_SKIP_ARCHIVED":
+			os.Setenv(envVar, "false")
 		}
 	} else {
 		os.Setenv(envVar, viper.GetString(envVar))
 	}
 }
 
-func ghorgDir() string {
+// GhorgIgnoreLocation returns the path of users ghorgignore
+func GhorgIgnoreLocation() string {
+	return GhorgDir() + "/ghorgignore"
+}
+
+// GhorgDir returns the ghorg directory path
+func GhorgDir() string {
 	return HomeDir() + "/ghorg"
 }
 

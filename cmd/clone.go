@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -24,6 +25,7 @@ var (
 	namespace         string
 	color             string
 	baseURL           string
+	skipArchived      bool
 	args              []string
 )
 
@@ -39,6 +41,8 @@ func init() {
 	// TODO: make gitlab terminology make sense https://about.gitlab.com/2016/01/27/comparing-terms-gitlab-github-bitbucket/
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - clone target type, user or org (default org)")
 	cloneCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "GHORG_GITLAB_DEFAULT_NAMESPACE - gitlab only: limits clone targets to a specific namespace e.g. --namespace=gitlab-org/security-products")
+
+	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED skips archived repos, github/gitlab only")
 
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL change SCM base url, for on self hosted instances (currently gitlab only, use format of https://git.mydomain.com/api/v3)")
 }
@@ -99,6 +103,10 @@ var cloneCmd = &cobra.Command{
 		if cmd.Flags().Changed("base-url") {
 			url := cmd.Flag("base-url").Value.String()
 			os.Setenv("GHORG_SCM_BASE_URL", url)
+		}
+
+		if cmd.Flags().Changed("skip-archived") {
+			os.Setenv("GHORG_SKIP_ARCHIVED", "true")
 		}
 
 		configs.GetOrSetToken()
@@ -219,6 +227,21 @@ func printRemainingMessages(infoMessages []error, errors []error) {
 	}
 }
 
+func readGhorgIgnore() ([]string, error) {
+	file, err := os.Open(configs.GhorgIgnoreLocation())
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines, scanner.Err()
+}
+
 // CloneAllRepos clones all repos
 func CloneAllRepos() {
 	resc, errc, infoc := make(chan string), make(chan error), make(chan error)
@@ -244,6 +267,38 @@ func CloneAllRepos() {
 	if len(cloneTargets) == 0 {
 		colorlog.PrintInfo("No repos found for " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + args[0] + ", check spelling and verify clone-type (user/org) is set correctly e.g. -c=user")
 		os.Exit(0)
+	}
+
+	// filter repos down based on ghorgignore if one exists
+	_, err = os.Stat(configs.GhorgIgnoreLocation())
+	if !os.IsNotExist(err) {
+		// Open the file parse each line and remove cloneTargets containing
+		toIgnore, err := readGhorgIgnore()
+		if err != nil {
+			colorlog.PrintError("Error parsing your ghorgignore, aborting")
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		colorlog.PrintInfo("Using ghorgignore, filtering repos down...")
+
+		filteredCloneTargets := []string{}
+		var flag bool
+		for _, cloned := range cloneTargets {
+			flag = false
+			for _, ignore := range toIgnore {
+				if strings.Contains(cloned, ignore) {
+					flag = true
+				}
+			}
+
+			if flag == false {
+				filteredCloneTargets = append(filteredCloneTargets, cloned)
+			}
+		}
+
+		cloneTargets = filteredCloneTargets
+
 	}
 
 	colorlog.PrintInfo(strconv.Itoa(len(cloneTargets)) + " repos found in " + args[0])
@@ -340,6 +395,9 @@ func PrintConfigs() {
 	colorlog.PrintInfo("* Location : " + os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		colorlog.PrintInfo("* Base URL : " + os.Getenv("GHORG_SCM_BASE_URL"))
+	}
+	if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
+		colorlog.PrintInfo("* Skip Archived : " + os.Getenv("GHORG_SKIP_ARCHIVED"))
 	}
 	colorlog.PrintInfo("*************************************")
 	fmt.Println("")

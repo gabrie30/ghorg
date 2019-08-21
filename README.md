@@ -83,6 +83,18 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 
 To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/ghorg/conf.yaml` or use the (--token, -t) and (--bitbucket-username) flags.
 
+## Ignoring Repos
+- To ignore any archived repos while cloning use the `--skip-archived` flag (github/gitlab only)
+- To ignore specific repos create a `ghorgignore` file inside `$HOME/ghorg`. Each line in this file is considered a substring and will be compared against each repos clone url fetched. If the clone url contains the substring it will be excluded from cloning. To prevent accidentally excluding a repo, you should make each line as specific as possible, eg. `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git` depending on how you clone.
+
+  ```bash
+  # Create ghorgignore
+  touch $HOME/ghorg/ghorgignore
+
+  # update file
+  vi $HOME/ghorg/ghorgignore
+  ```
+
 ## Known issues
 
 - When cloning if you see something like `Username for 'https://gitlab.com': ` the command won't finish. I haven't been able to identify the reason for this occuring. The fix for this is to make sure your token is in the osxkeychain. See the troubleshooting section for how to set this up.
@@ -92,7 +104,15 @@ To configure with bitbucket you will need to create a new [app password](https:/
 - If the `security` command does not return your token, follow this [GitHub Documentation](https://help.github.com/en/articles/caching-your-github-password-in-git). For GitHub tokens you will need to set your token as your username and set nothing as the password when prompted. For GitLab you will need to set your token for both the username and password when prompted. This will correctly store your credentials in the keychain. If you are still having problems see this [StackOverflow Post](https://stackoverflow.com/questions/31305945/git-clone-from-github-over-https-with-two-factor-authentication)
 - If your GitHub account is behind 2fa follow this [Github Documentation](https://github.blog/2013-09-03-two-factor-authentication/#how-does-it-work-for-command-line-git)
 - Make sure your `$ git --version` is >= 2.19.0
-- You may need to increase your ulimits if cloning a large org
+- You see (Error: open /dev/null: too many open files) you need to increase your ulimits, there are lots of docs online for this. For mac the quick and dirty is below
+
+  ```
+  # reset the soft and hard file limit boundaries
+  $ sudo launchctl limit maxfiles 65536 200000
+
+  # actually now set the ulimit boundary
+  $ ulimit -n 20000
+  ```
 
 ### Updating brew tap
 - [See Readme](https://github.com/gabrie30/homebrew-utils/blob/master/README.md)

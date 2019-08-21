@@ -34,6 +34,11 @@ GHORG_COLOR:
 # flag (--base-url)
 GHORG_SCM_BASE_URL:
 
+# Skip archived repos (true/false), currently github/gitlab only
+# default: false
+# flag (--skip-archived)
+GHORG_SKIP_ARCHIVED:
+
 # --- GITHUB SPECIFIC ---
 
 # Add your GitHub token

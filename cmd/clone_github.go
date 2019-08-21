@@ -39,6 +39,13 @@ func getGitHubOrgCloneUrls() ([]string, error) {
 	cloneUrls := []string{}
 
 	for _, repo := range allRepos {
+
+		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
+			if *repo.Archived == true {
+				continue
+			}
+		}
+
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			cloneUrls = append(cloneUrls, *repo.CloneURL)
 		} else {
@@ -81,6 +88,13 @@ func getGitHubUserCloneUrls() ([]string, error) {
 	cloneUrls := []string{}
 
 	for _, repo := range allRepos {
+
+		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
+			if *repo.Archived == true {
+				continue
+			}
+		}
+
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			cloneUrls = append(cloneUrls, *repo.CloneURL)
 		} else {

@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Added
 - color flag to toggle colorful output
 - scm base url flag for gitlab
+- ghorgignore to ignore specific repos
+- skip archived repos flag
+- how to fix ulmits in readme
 ### Changed
 ### Deprecated
 ### Removed

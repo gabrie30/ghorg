@@ -55,6 +55,12 @@ func getGitLabOrgCloneUrls() ([]string, error) {
 				}
 			}
 
+			if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
+				if p.Archived == true {
+					continue
+				}
+			}
+
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 				cloneUrls = append(cloneUrls, p.HTTPURLToRepo)
 			} else {
@@ -105,6 +111,13 @@ func getGitLabUserCloneUrls() ([]string, error) {
 
 		// List all the projects we've found so far.
 		for _, p := range ps {
+
+			if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
+				if p.Archived == true {
+					continue
+				}
+			}
+
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 				cloneUrls = append(cloneUrls, p.HTTPURLToRepo)
 			} else {
