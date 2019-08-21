@@ -85,7 +85,7 @@ To configure with bitbucket you will need to create a new [app password](https:/
 
 ## Ignoring Repos
 - To ignore any archived repos while cloning use the `--skip-archived` flag (github/gitlab only)
-- To ignore specific repos create a `ghorgignore` file inside `$HOME/ghorg`. Each line in this file is considered a substring and will be compared against each repos clone url fetched. If the clone url contains the substring it will be excluded from cloning. To prevent accidentally excluding a repo, you should make each line as specific as possible, eg. `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git` depending on how you clone.
+- To ignore specific repos create a `ghorgignore` file inside `$HOME/ghorg`. Each line in this file is considered a substring and will be compared against each repos clone url. If the clone url contains the substring in the `ghorgignore` it will be excluded from cloning. To prevent accidentally excluding a repo, you should make each line as specific as possible, eg. `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git` depending on how you clone.
 
   ```bash
   # Create ghorgignore
