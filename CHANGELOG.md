@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - ghorgignore to ignore specific repos
 - skip archived repos flag
 - how to fix ulmits in readme
+- dedicated backup flag
 ### Changed
 ### Deprecated
 ### Removed
