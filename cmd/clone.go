@@ -317,7 +317,12 @@ func CloneAllRepos() {
 		appName := getAppNameFromURL(target)
 
 		go func(repoUrl string, branch string) {
+
 			repoDir := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + args[0] + "_ghorg" + "/" + appName
+
+			if os.Getenv("GHORG_BACKUP") == "true" {
+				repoDir = os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + args[0] + "_ghorg_backup" + "/" + appName
+			}
 
 			if repoExistsLocally(repoDir) == true {
 				if os.Getenv("GHORG_BACKUP") == "true" {
@@ -393,7 +398,13 @@ func CloneAllRepos() {
 	}
 
 	printRemainingMessages(infoMessages, errors)
-	colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), args[0]))
+
+	// TODO: fix all these if else checks with ghorg_backups
+	if os.Getenv("GHORG_BACKUP") == "true" {
+		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg_backup", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), args[0]))
+	} else {
+		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), args[0]))
+	}
 }
 
 func asciiTime() {
