@@ -68,6 +68,7 @@ func initConfig() {
 	getOrSetDefaults("GHORG_GITLAB_DEFAULT_NAMESPACE")
 	getOrSetDefaults("GHORG_COLOR")
 	getOrSetDefaults("GHORG_SKIP_ARCHIVED")
+	getOrSetDefaults("GHORG_BACKUP")
 	// Optionally set
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
 	getOrSetDefaults("GHORG_GITLAB_TOKEN")
@@ -114,6 +115,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_COLOR":
 			os.Setenv(envVar, "on")
 		case "GHORG_SKIP_ARCHIVED":
+			os.Setenv(envVar, "false")
+		case "GHORG_BACKUP":
 			os.Setenv(envVar, "false")
 		}
 	} else {

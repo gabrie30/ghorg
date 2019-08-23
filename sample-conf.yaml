@@ -39,6 +39,11 @@ GHORG_SCM_BASE_URL:
 # flag (--skip-archived)
 GHORG_SKIP_ARCHIVED:
 
+# Uses the --mirror flag when cloning (true/false)
+# default: false
+# flag (--backup)
+GHORG_BACKUP:
+
 # --- GITHUB SPECIFIC ---
 
 # Add your GitHub token

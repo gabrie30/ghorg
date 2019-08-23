@@ -325,7 +325,7 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err := cmd.Run()
 					if err != nil {
-						infoc <- fmt.Errorf("Could not update remotes in Repo: %s Error: %v", branch, repoUrl, err)
+						infoc <- fmt.Errorf("Could not update remotes in Repo: %s Error: %v", repoUrl, err)
 						return
 					}
 				} else {
