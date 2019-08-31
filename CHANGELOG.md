@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased] - DATE
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## [1.1.9] - 08/30/19
+### Added
 - color flag to toggle colorful output
 - scm base url flag for gitlab
 - ghorgignore to ignore specific repos
