@@ -173,7 +173,7 @@ func getOrSetGitHubToken() {
 
 func getOrSetGitLabToken() {
 	var token string
-	if isZero(os.Getenv("GHORG_GITLAB_TOKEN")) || len(os.Getenv("GHORG_GITLAB_TOKEN")) != 40 {
+	if isZero(os.Getenv("GHORG_GITLAB_TOKEN")) || len(os.Getenv("GHORG_GITLAB_TOKEN")) != 20 {
 		cmd := `security find-internet-password -s gitlab.com | grep "acct" | awk -F\" '{ print $4 }'`
 		out, err := exec.Command("bash", "-c", cmd).Output()
 		if err != nil {
