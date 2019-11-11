@@ -67,6 +67,8 @@ Configuration can be set in two ways. The first is in `$HOME/ghorg/conf.yaml`. T
 
 ## Default GitHub/GitLab Token Used
 
+> NOTE: cloning via https rather than ssh is the ghorg default, if you generally clone via ssh and don't want to setup a token update your `$HOME/ghorg/conf.yaml` to use ssh or add the --protocol=ssh flag
+
 ```bash
 $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
 $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ print $4 }'
@@ -97,7 +99,7 @@ To configure with bitbucket you will need to create a new [app password](https:/
 
 ## Known issues
 
-- When cloning if you see something like `Username for 'https://gitlab.com': ` the command won't finish. I haven't been able to identify the reason for this occuring. The fix for this is to make sure your token is in the osxkeychain. See the troubleshooting section for how to set this up.
+- When cloning if you see something like `Username for 'https://gitlab.com': ` the command won't finish. I haven't been able to identify the reason for this occuring. The fix for this is to make sure your token is in the osxkeychain. See the troubleshooting section for how to set this up, or try cloning via ssh (--protocol=ssh).
 - If you are cloning a large org you may see `Error: open /dev/null: too many open files` which means you need to increase your ulimits, there are lots of docs online for this. For mac the quick and dirty is below
 
   ```
