@@ -30,7 +30,7 @@ jobs:
     - name: Upload to release
       uses: JasonEtco/upload-to-release@master
       with:
-        args: ghorg
+        args: ghorg application/octet-stream
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
