@@ -27,13 +27,15 @@ jobs:
     - name: Build
       run: go build -v -o ghorg .
       
-    - name: ls
-      run: ls
+    - name: Upload to release
+      uses: JasonEtco/upload-to-release@master
+      with:
+        args: ghorg
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
     - name: Upload artifact
       with:
         name: ghorg
         path: ghorg
       uses: actions/upload-artifact@v1.0.0
-      
-      
