@@ -34,7 +34,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&color, "color", "", "", "GHORG_COLOR - toggles colorful output on/off (default on)")
 	rootCmd.AddCommand(cloneCmd)
 	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "GHORG_CLONE_PROTOCOL - protocol to clone with, ssh or https, (default https)")
-	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "GHORG_ABSOLUTE_PATH_TO_CLONE_TO - absolute path the ghorg_* directory will be created (default $HOME/Desktop)")
+	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "GHORG_ABSOLUTE_PATH_TO_CLONE_TO - absolute path the ghorg_* directory will be created. Must end with / (default $HOME/Desktop/)")
 	cloneCmd.Flags().StringVarP(&branch, "branch", "b", "", "GHORG_BRANCH - branch left checked out for each repo cloned (default master)")
 	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "GHORG_GITHUB_TOKEN/GHORG_GITLAB_TOKEN/GHORG_BITBUCKET_APP_PASSWORD - scm token to clone with")
 	cloneCmd.Flags().StringVarP(&bitbucketUsername, "bitbucket-username", "", "", "GHORG_BITBUCKET_USERNAME - bitbucket only: username associated with the app password")
