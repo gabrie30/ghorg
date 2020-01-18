@@ -61,6 +61,7 @@ func getGitLabOrgCloneUrls() ([]Repo, error) {
 				}
 			}
 			r := Repo{}
+			r.Path = p.PathWithNamespace
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 				r.URL = p.HTTPURLToRepo
 				repoData = append(repoData, r)
@@ -120,6 +121,7 @@ func getGitLabUserCloneUrls() ([]Repo, error) {
 				}
 			}
 			r := Repo{}
+			r.Path = p.PathWithNamespace
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 				r.URL = p.HTTPURLToRepo
 				cloneData = append(cloneData, r)
