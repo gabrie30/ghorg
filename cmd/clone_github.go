@@ -8,7 +8,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func getGitHubOrgCloneUrls() ([]string, error) {
+func getGitHubOrgCloneUrls() ([]Repo, error) {
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
@@ -36,10 +36,10 @@ func getGitHubOrgCloneUrls() ([]string, error) {
 		}
 		opt.Page = resp.NextPage
 	}
-	cloneUrls := []string{}
+	cloneData := []Repo{}
 
 	for _, repo := range allRepos {
-
+		r := Repo{}
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
 			if *repo.Archived == true {
 				continue
@@ -47,17 +47,19 @@ func getGitHubOrgCloneUrls() ([]string, error) {
 		}
 
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-			cloneUrls = append(cloneUrls, *repo.CloneURL)
+			r.URL = *repo.CloneURL
+			cloneData = append(cloneData, r)
 		} else {
-			cloneUrls = append(cloneUrls, *repo.SSHURL)
+			r.URL = *repo.SSHURL
+			cloneData = append(cloneData, r)
 		}
 	}
 
-	return cloneUrls, nil
+	return cloneData, nil
 }
 
 // TODO: refactor with getAllOrgCloneUrls
-func getGitHubUserCloneUrls() ([]string, error) {
+func getGitHubUserCloneUrls() ([]Repo, error) {
 	ctx := context.Background()
 
 	ts := oauth2.StaticTokenSource(
@@ -85,7 +87,7 @@ func getGitHubUserCloneUrls() ([]string, error) {
 		}
 		opt.Page = resp.NextPage
 	}
-	cloneUrls := []string{}
+	repoData := []Repo{}
 
 	for _, repo := range allRepos {
 
@@ -94,13 +96,15 @@ func getGitHubUserCloneUrls() ([]string, error) {
 				continue
 			}
 		}
-
+		r := Repo{}
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-			cloneUrls = append(cloneUrls, *repo.CloneURL)
+			r.URL = *repo.CloneURL
+			repoData = append(repoData, r)
 		} else {
-			cloneUrls = append(cloneUrls, *repo.SSHURL)
+			r.URL = *repo.SSHURL
+			repoData = append(repoData, r)
 		}
 	}
 
-	return cloneUrls, nil
+	return repoData, nil
 }

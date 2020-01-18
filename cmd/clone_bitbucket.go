@@ -6,14 +6,14 @@ import (
 	"os"
 )
 
-func getBitBucketOrgCloneUrls() ([]string, error) {
+func getBitBucketOrgCloneUrls() ([]Repo, error) {
 
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
-	cloneUrls := []string{}
+	cloneData := []Repo{}
 
 	resp, err := client.Teams.Repositories(args[0])
 	if err != nil {
-		return []string{}, err
+		return []Repo{}, err
 	}
 	values := resp.(map[string]interface{})["values"].([]interface{})
 	if err != nil {
@@ -25,26 +25,28 @@ func getBitBucketOrgCloneUrls() ([]string, error) {
 		for _, l := range links {
 			link := l.(map[string]interface{})["href"]
 			linkType := l.(map[string]interface{})["name"]
-
+			r := Repo{}
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "ssh" && linkType == "ssh" {
-				cloneUrls = append(cloneUrls, link.(string))
+				r.URL = link.(string)
+				cloneData = append(cloneData, r)
 			} else if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" && linkType == "https" {
-				cloneUrls = append(cloneUrls, link.(string))
+				r.URL = link.(string)
+				cloneData = append(cloneData, r)
 			}
 		}
 	}
 
-	return cloneUrls, nil
+	return cloneData, nil
 }
 
-func getBitBucketUserCloneUrls() ([]string, error) {
+func getBitBucketUserCloneUrls() ([]Repo, error) {
 
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
-	cloneUrls := []string{}
+	cloneData := []Repo{}
 
 	resp, err := client.Users.Repositories(args[0])
 	if err != nil {
-		return []string{}, err
+		return []Repo{}, err
 	}
 	values := resp.(map[string]interface{})["values"].([]interface{})
 	if err != nil {
@@ -57,13 +59,16 @@ func getBitBucketUserCloneUrls() ([]string, error) {
 			link := l.(map[string]interface{})["href"]
 			linkType := l.(map[string]interface{})["name"]
 
+			r := Repo{}
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "ssh" && linkType == "ssh" {
-				cloneUrls = append(cloneUrls, link.(string))
+				r.URL = link.(string)
+				cloneData = append(cloneData, r)
 			} else if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" && linkType == "https" {
-				cloneUrls = append(cloneUrls, link.(string))
+				r.URL = link.(string)
+				cloneData = append(cloneData, r)
 			}
 		}
 	}
 
-	return cloneUrls, nil
+	return cloneData, nil
 }

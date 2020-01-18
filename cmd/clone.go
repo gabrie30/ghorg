@@ -50,6 +50,13 @@ func init() {
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL change SCM base url, for on self hosted instances (currently gitlab only, use format of https://git.mydomain.com/api/v3)")
 }
 
+// Repo represents an SCM repo
+type Repo struct {
+	Name string
+	Path string
+	URL  string
+}
+
 var cloneCmd = &cobra.Command{
 	Use:   "clone",
 	Short: "Clone user or org repos from GitHub, GitLab, or Bitbucket",
@@ -147,45 +154,45 @@ var cloneCmd = &cobra.Command{
 }
 
 // TODO: Figure out how to use go channels for this
-func getAllOrgCloneUrls() ([]string, error) {
+func getAllOrgCloneUrls() ([]Repo, error) {
 	asciiTime()
 	PrintConfigs()
-	var urls []string
+	var repos []Repo
 	var err error
 	switch os.Getenv("GHORG_SCM_TYPE") {
 	case "github":
-		urls, err = getGitHubOrgCloneUrls()
+		repos, err = getGitHubOrgCloneUrls()
 	case "gitlab":
-		urls, err = getGitLabOrgCloneUrls()
+		repos, err = getGitLabOrgCloneUrls()
 	case "bitbucket":
-		urls, err = getBitBucketOrgCloneUrls()
+		repos, err = getBitBucketOrgCloneUrls()
 	default:
 		colorlog.PrintError("GHORG_SCM_TYPE not set or unsupported, also make sure its all lowercase")
 		os.Exit(1)
 	}
 
-	return urls, err
+	return repos, err
 }
 
 // TODO: Figure out how to use go channels for this
-func getAllUserCloneUrls() ([]string, error) {
+func getAllUserCloneUrls() ([]Repo, error) {
 	asciiTime()
 	PrintConfigs()
-	var urls []string
+	var repos []Repo
 	var err error
 	switch os.Getenv("GHORG_SCM_TYPE") {
 	case "github":
-		urls, err = getGitHubUserCloneUrls()
+		repos, err = getGitHubUserCloneUrls()
 	case "gitlab":
-		urls, err = getGitLabUserCloneUrls()
+		repos, err = getGitLabUserCloneUrls()
 	case "bitbucket":
-		urls, err = getBitBucketUserCloneUrls()
+		repos, err = getBitBucketUserCloneUrls()
 	default:
 		colorlog.PrintError("GHORG_SCM_TYPE not set or unsupported, also make sure its all lowercase")
 		os.Exit(1)
 	}
 
-	return urls, err
+	return repos, err
 }
 
 func createDirIfNotExist() {
@@ -253,7 +260,7 @@ func readGhorgIgnore() ([]string, error) {
 func CloneAllRepos() {
 	resc, errc, infoc := make(chan string), make(chan error), make(chan error)
 
-	var cloneTargets []string
+	var cloneTargets []Repo
 	var err error
 
 	if os.Getenv("GHORG_CLONE_TYPE") == "org" {
@@ -289,12 +296,12 @@ func CloneAllRepos() {
 
 		colorlog.PrintInfo("Using ghorgignore, filtering repos down...")
 
-		filteredCloneTargets := []string{}
+		filteredCloneTargets := []Repo{}
 		var flag bool
 		for _, cloned := range cloneTargets {
 			flag = false
 			for _, ignore := range toIgnore {
-				if strings.Contains(cloned, ignore) {
+				if strings.Contains(cloned.URL, ignore) {
 					flag = true
 				}
 			}
@@ -314,7 +321,7 @@ func CloneAllRepos() {
 	createDirIfNotExist()
 
 	for _, target := range cloneTargets {
-		appName := getAppNameFromURL(target)
+		appName := getAppNameFromURL(target.URL)
 
 		go func(repoUrl string, branch string) {
 
@@ -380,7 +387,7 @@ func CloneAllRepos() {
 			}
 
 			resc <- repoUrl
-		}(target, os.Getenv("GHORG_BRANCH"))
+		}(target.URL, os.Getenv("GHORG_BRANCH"))
 	}
 
 	errors := []error{}

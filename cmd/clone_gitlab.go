@@ -9,8 +9,8 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
-func getGitLabOrgCloneUrls() ([]string, error) {
-	cloneUrls := []string{}
+func getGitLabOrgCloneUrls() ([]Repo, error) {
+	repoData := []Repo{}
 	client := gitlab.NewClient(nil, os.Getenv("GHORG_GITLAB_TOKEN"))
 
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
@@ -40,7 +40,7 @@ func getGitLabOrgCloneUrls() ([]string, error) {
 
 		if err != nil {
 			// TODO: check if 404, then we know group does not exist
-			return []string{}, err
+			return []Repo{}, err
 		}
 
 		// List all the projects we've found so far.
@@ -60,11 +60,13 @@ func getGitLabOrgCloneUrls() ([]string, error) {
 					continue
 				}
 			}
-
+			r := Repo{}
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-				cloneUrls = append(cloneUrls, p.HTTPURLToRepo)
+				r.URL = p.HTTPURLToRepo
+				repoData = append(repoData, r)
 			} else {
-				cloneUrls = append(cloneUrls, p.SSHURLToRepo)
+				r.URL = p.SSHURLToRepo
+				repoData = append(repoData, r)
 			}
 		}
 
@@ -77,15 +79,15 @@ func getGitLabOrgCloneUrls() ([]string, error) {
 		opt.Page = resp.NextPage
 	}
 
-	return cloneUrls, nil
+	return repoData, nil
 }
 
 // func getUsersUID(username string) int {
 
 // }
 
-func getGitLabUserCloneUrls() ([]string, error) {
-	cloneUrls := []string{}
+func getGitLabUserCloneUrls() ([]Repo, error) {
+	cloneData := []Repo{}
 	client := gitlab.NewClient(nil, os.Getenv("GHORG_GITLAB_TOKEN"))
 
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
@@ -106,7 +108,7 @@ func getGitLabUserCloneUrls() ([]string, error) {
 		ps, resp, err := client.Projects.ListUserProjects(args[0], opt)
 		if err != nil {
 			// TODO: check if 404, then we know user does not exist
-			return []string{}, err
+			return []Repo{}, err
 		}
 
 		// List all the projects we've found so far.
@@ -117,11 +119,13 @@ func getGitLabUserCloneUrls() ([]string, error) {
 					continue
 				}
 			}
-
+			r := Repo{}
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-				cloneUrls = append(cloneUrls, p.HTTPURLToRepo)
+				r.URL = p.HTTPURLToRepo
+				cloneData = append(cloneData, r)
 			} else {
-				cloneUrls = append(cloneUrls, p.SSHURLToRepo)
+				r.URL = p.SSHURLToRepo
+				cloneData = append(cloneData, r)
 			}
 		}
 
@@ -134,5 +138,5 @@ func getGitLabUserCloneUrls() ([]string, error) {
 		opt.Page = resp.NextPage
 	}
 
-	return cloneUrls, nil
+	return cloneData, nil
 }
