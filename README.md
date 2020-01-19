@@ -69,7 +69,7 @@ Configuration can be set in two ways. The first is in `$HOME/ghorg/conf.yaml`. T
 
 ## Default GitHub/GitLab Token Used
 
-> NOTE: cloning via https rather than ssh is the ghorg default, if you generally clone via ssh and don't want to setup a token update your `$HOME/ghorg/conf.yaml` to use ssh or add the --protocol=ssh flag
+> NOTE: cloning via https rather than ssh is the ghorg default, this is because a token must be present to retreive the list of repos. However, if you run into trouble cloning via https and genearlly clone via ssh, try switching `--protocol ssh`
 
 ```bash
 $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
