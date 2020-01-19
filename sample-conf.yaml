@@ -1,5 +1,5 @@
 ---
-# This is where your *_ghorg directory will be created, use absolute pathing. Must end with /
+# This is where your *_ghorg directory will be created, use absolute pathing. Must end with /, if not one will be added for you
 # default: $HOME/Desktop/
 # flag (--path, -p)
 GHORG_ABSOLUTE_PATH_TO_CLONE_TO:

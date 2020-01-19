@@ -123,7 +123,12 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		}
 	} else {
-		os.Setenv(envVar, viper.GetString(envVar))
+		// User forgot to put a / at the end of path, so we will add for them
+		if envVar == "GHORG_ABSOLUTE_PATH_TO_CLONE_TO" && !strings.HasSuffix(viper.GetString(envVar), "/") {
+			os.Setenv(envVar, viper.GetString(envVar)+"/")
+		} else {
+			os.Setenv(envVar, viper.GetString(envVar))
+		}
 	}
 }
 

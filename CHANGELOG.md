@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased] - DATE
 ### Added
+- auto add trailing slash to path to clone to if not supplied by user
 ### Changed
 ### Deprecated
 ### Removed
