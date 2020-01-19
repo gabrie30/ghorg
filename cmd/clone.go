@@ -44,7 +44,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "GHORG_GITLAB_DEFAULT_NAMESPACE - gitlab only: limits clone targets to a specific namespace e.g. --namespace=gitlab-org/security-products")
 
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED skips archived repos, github/gitlab only")
-
+	cloneCmd.Flags().BoolVar(&skipArchived, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into *_ghorg/unit/subunit/app, gitlab only")
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP backup mode, clone as mirror, no working copy (ignores branch parameter)")
 
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL change SCM base url, for on self hosted instances (currently gitlab only, use format of https://git.mydomain.com/api/v3)")
@@ -117,6 +117,10 @@ var cloneCmd = &cobra.Command{
 
 		if cmd.Flags().Changed("skip-archived") {
 			os.Setenv("GHORG_SKIP_ARCHIVED", "true")
+		}
+
+		if cmd.Flags().Changed("preserve-dir") {
+			os.Setenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE", "true")
 		}
 
 		if cmd.Flags().Changed("backup") {
@@ -323,12 +327,17 @@ func CloneAllRepos() {
 	for _, target := range cloneTargets {
 		appName := getAppNameFromURL(target.URL)
 
-		go func(repoUrl string, branch string) {
+		go func(repo Repo, branch string) {
 
-			repoDir := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + args[0] + "_ghorg" + "/" + appName
+			path := appName
+			if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
+				path = repo.Path
+			}
+
+			repoDir := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + args[0] + "_ghorg" + "/" + path
 
 			if os.Getenv("GHORG_BACKUP") == "true" {
-				repoDir = os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + args[0] + "_ghorg_backup" + "/" + appName
+				repoDir = os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + args[0] + "_ghorg_backup" + "/" + path
 			}
 
 			if repoExistsLocally(repoDir) == true {
@@ -337,7 +346,7 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err := cmd.Run()
 					if err != nil {
-						infoc <- fmt.Errorf("Could not update remotes in Repo: %s Error: %v", repoUrl, err)
+						infoc <- fmt.Errorf("Could not update remotes in Repo: %s Error: %v", repo.URL, err)
 						return
 					}
 				} else {
@@ -345,7 +354,7 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err := cmd.Run()
 					if err != nil {
-						infoc <- fmt.Errorf("Could not checkout out %s, no changes made Repo: %s Error: %v", branch, repoUrl, err)
+						infoc <- fmt.Errorf("Could not checkout out %s, no changes made Repo: %s Error: %v", branch, repo.URL, err)
 						return
 					}
 
@@ -353,7 +362,7 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err = cmd.Run()
 					if err != nil {
-						errc <- fmt.Errorf("Problem running git clean: %s Error: %v", repoUrl, err)
+						errc <- fmt.Errorf("Problem running git clean: %s Error: %v", repo.URL, err)
 						return
 					}
 
@@ -361,7 +370,7 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err = cmd.Run()
 					if err != nil {
-						errc <- fmt.Errorf("Problem trying to fetch %v Repo: %s Error: %v", branch, repoUrl, err)
+						errc <- fmt.Errorf("Problem trying to fetch %v Repo: %s Error: %v", branch, repo.URL, err)
 						return
 					}
 
@@ -369,25 +378,25 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err = cmd.Run()
 					if err != nil {
-						errc <- fmt.Errorf("Problem resetting %s Repo: %s Error: %v", branch, repoUrl, err)
+						errc <- fmt.Errorf("Problem resetting %s Repo: %s Error: %v", branch, repo.URL, err)
 						return
 					}
 				}
 			} else {
-				args := []string{"clone", repoUrl, repoDir}
+				args := []string{"clone", repo.URL, repoDir}
 				if os.Getenv("GHORG_BACKUP") == "true" {
 					args = append(args, "--mirror")
 				}
 				cmd := exec.Command("git", args...)
 				err := cmd.Run()
 				if err != nil {
-					errc <- fmt.Errorf("Problem trying to clone Repo: %s Error: %v", repoUrl, err)
+					errc <- fmt.Errorf("Problem trying to clone Repo: %s Error: %v", repo.URL, err)
 					return
 				}
 			}
 
-			resc <- repoUrl
-		}(target.URL, os.Getenv("GHORG_BRANCH"))
+			resc <- repo.URL
+		}(target, os.Getenv("GHORG_BRANCH"))
 	}
 
 	errors := []error{}

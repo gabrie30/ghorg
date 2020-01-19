@@ -15,6 +15,7 @@ var rootCmd = &cobra.Command{
 	Long:  `Ghorg is a fast way to clone multiple repos into a single directory`,
 	Run: func(cmd *cobra.Command, args []string) {
 		configs.Load()
+		fmt.Println("For help run: ghorg clone --help")
 	},
 }
 

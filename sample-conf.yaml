@@ -63,6 +63,11 @@ GHORG_GITLAB_TOKEN:
 # flag (--namespace, -n)
 GHORG_GITLAB_DEFAULT_NAMESPACE:
 
+# clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into *_ghorg/unit/subunit/app
+# default: false
+# flag (--preserve-dir)
+GHORG_PRESERVE_DIRECTORY_STRUCTURE:
+
 # --- BITBUCKET SPECIFIC ---
 
 # Add your Bitbucket app password

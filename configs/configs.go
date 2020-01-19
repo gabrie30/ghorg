@@ -75,6 +75,7 @@ func initConfig() {
 	getOrSetDefaults("GHORG_BITBUCKET_USERNAME")
 	getOrSetDefaults("GHORG_BITBUCKET_APP_PASSWORD")
 	getOrSetDefaults("GHORG_SCM_BASE_URL")
+	getOrSetDefaults("GHORG_PRESERVE_DIRECTORY_STRUCTURE")
 }
 
 // Load triggers the configs to load first, not sure if this is actually needed
@@ -117,6 +118,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_SKIP_ARCHIVED":
 			os.Setenv(envVar, "false")
 		case "GHORG_BACKUP":
+			os.Setenv(envVar, "false")
+		case "GHORG_PRESERVE_DIRECTORY_STRUCTURE":
 			os.Setenv(envVar, "false")
 		}
 	} else {

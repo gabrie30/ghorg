@@ -58,6 +58,7 @@ $ vi $HOME/ghorg/conf.yaml # (optional but recommended)
 $ ghorg clone someorg
 $ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop --color=off
 $ ghorg clone gitlab-org --scm=gitlab --namespace=gitlab-org/security-products
+$ ghorg clone gitlab-org --base-url=https://gitlab.internal.yourcompany.com --preserve-dir
 $ ghorg clone --help
 ```
 
