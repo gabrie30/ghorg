@@ -11,6 +11,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 ### Security
 
+## [1.1.10] - 01/19/20
+### Added
+- perserve dir flag for gitlab
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.1.9] - 08/30/19
 ### Added
 - color flag to toggle colorful output
