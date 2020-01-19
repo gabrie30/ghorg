@@ -55,6 +55,7 @@ $ vi $HOME/ghorg/conf.yaml # (optional but recommended)
 ## Use
 
 ```bash
+# note: to view all available flags see sample-conf.yaml
 $ ghorg clone someorg
 $ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop --color=off
 $ ghorg clone gitlab-org --scm=gitlab --namespace=gitlab-org/security-products
