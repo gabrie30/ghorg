@@ -12,6 +12,7 @@ import (
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/configs"
 	"github.com/spf13/cobra"
+	"gopkg.in/src-d/go-git.v4"
 )
 
 var (
@@ -388,8 +389,11 @@ func CloneAllRepos() {
 				if os.Getenv("GHORG_BACKUP") == "true" {
 					args = append(args, "--mirror")
 				}
-				cmd := exec.Command("git", args...)
-				err := cmd.Run()
+
+				_, err := git.PlainClone(repoDir, false, &git.CloneOptions{
+					URL: repo.URL,
+				})
+
 				if err != nil {
 					errc <- fmt.Errorf("Problem trying to clone Repo: %s Error: %v", repo.URL, err)
 					return
