@@ -350,6 +350,7 @@ func CloneAllRepos() {
 						return
 					}
 				} else {
+
 					cmd := exec.Command("git", "checkout", branch)
 					cmd.Dir = repoDir
 					err := cmd.Run()
@@ -366,19 +367,19 @@ func CloneAllRepos() {
 						return
 					}
 
-					cmd = exec.Command("git", "fetch", "-n", "origin", branch)
-					cmd.Dir = repoDir
-					err = cmd.Run()
-					if err != nil {
-						errc <- fmt.Errorf("Problem trying to fetch %v Repo: %s Error: %v", branch, repo.URL, err)
-						return
-					}
-
 					cmd = exec.Command("git", "reset", "--hard", "origin/"+branch)
 					cmd.Dir = repoDir
 					err = cmd.Run()
 					if err != nil {
 						errc <- fmt.Errorf("Problem resetting %s Repo: %s Error: %v", branch, repo.URL, err)
+						return
+					}
+
+					cmd = exec.Command("git", "pull", "origin", branch)
+					cmd.Dir = repoDir
+					err = cmd.Run()
+					if err != nil {
+						errc <- fmt.Errorf("Problem trying to pull %v Repo: %s Error: %v", branch, repo.URL, err)
 						return
 					}
 				}
