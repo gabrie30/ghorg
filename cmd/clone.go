@@ -359,7 +359,7 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err := cmd.Run()
 					if err != nil {
-						colorlog.PrintError(fmt.Sprintf("Could not checkout out %s, no changes made Repo: %s Error: %v", branch, repo.URL, err))
+						colorlog.PrintInfo(fmt.Sprintf("Could not checkout out %s, no changes made Repo: %s Error: %v", branch, repo.URL, err))
 						return
 					}
 
