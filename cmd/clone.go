@@ -11,6 +11,7 @@ import (
 
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/configs"
+	"github.com/korovkin/limiter"
 	"github.com/spf13/cobra"
 	"gopkg.in/src-d/go-git.v4"
 )
@@ -263,7 +264,7 @@ func readGhorgIgnore() ([]string, error) {
 
 // CloneAllRepos clones all repos
 func CloneAllRepos() {
-	resc, errc, infoc := make(chan string), make(chan error), make(chan error)
+	// resc, errc, infoc := make(chan string), make(chan error), make(chan error)
 
 	var cloneTargets []Repo
 	var err error
@@ -324,11 +325,13 @@ func CloneAllRepos() {
 	fmt.Println()
 
 	createDirIfNotExist()
-
+	limit := limiter.NewConcurrencyLimiter(10)
 	for _, target := range cloneTargets {
 		appName := getAppNameFromURL(target.URL)
+		branch := os.Getenv("GHORG_BRANCH")
+		repo := target
 
-		go func(repo Repo, branch string) {
+		limit.Execute(func() {
 
 			path := appName
 			if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
@@ -347,7 +350,7 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err := cmd.Run()
 					if err != nil {
-						infoc <- fmt.Errorf("Could not update remotes in Repo: %s Error: %v", repo.URL, err)
+						colorlog.PrintError(fmt.Sprintf("Could not update remotes in Repo: %s Error: %v", repo.URL, err))
 						return
 					}
 				} else {
@@ -356,7 +359,7 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err := cmd.Run()
 					if err != nil {
-						infoc <- fmt.Errorf("Could not checkout out %s, no changes made Repo: %s Error: %v", branch, repo.URL, err)
+						colorlog.PrintError(fmt.Sprintf("Could not checkout out %s, no changes made Repo: %s Error: %v", branch, repo.URL, err))
 						return
 					}
 
@@ -364,7 +367,7 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err = cmd.Run()
 					if err != nil {
-						errc <- fmt.Errorf("Problem running git clean: %s Error: %v", repo.URL, err)
+						colorlog.PrintError(fmt.Sprintf("Problem running git clean: %s Error: %v", repo.URL, err))
 						return
 					}
 
@@ -372,7 +375,7 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err = cmd.Run()
 					if err != nil {
-						errc <- fmt.Errorf("Problem resetting %s Repo: %s Error: %v", branch, repo.URL, err)
+						colorlog.PrintError(fmt.Sprintf("Problem resetting %s Repo: %s Error: %v", branch, repo.URL, err))
 						return
 					}
 
@@ -380,7 +383,7 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err = cmd.Run()
 					if err != nil {
-						errc <- fmt.Errorf("Problem trying to pull %v Repo: %s Error: %v", branch, repo.URL, err)
+						colorlog.PrintError(fmt.Sprintf("Problem trying to pull %v Repo: %s Error: %v", branch, repo.URL, err))
 						return
 					}
 				}
@@ -395,28 +398,33 @@ func CloneAllRepos() {
 				})
 
 				if err != nil {
-					errc <- fmt.Errorf("Problem trying to clone Repo: %s Error: %v", repo.URL, err)
+					colorlog.PrintError(fmt.Sprintf("Problem trying to clone Repo: %s Error: %v", repo.URL, err))
 					return
 				}
 			}
 
-			resc <- repo.URL
-		}(target, os.Getenv("GHORG_BRANCH"))
+			colorlog.PrintSuccess("Success " + repo.URL)
+		})
+
 	}
 
 	errors := []error{}
 	infoMessages := []error{}
 
-	for i := 0; i < len(cloneTargets); i++ {
-		select {
-		case res := <-resc:
-			colorlog.PrintSuccess("Success " + res)
-		case err := <-errc:
-			errors = append(errors, err)
-		case info := <-infoc:
-			infoMessages = append(infoMessages, info)
-		}
-	}
+	// for i := 0; i < len(cloneTargets); i++ {
+	// 	select {
+	// 	case res := <-resc:
+	// 		colorlog.PrintSuccess("Success " + res)
+
+	// 		colorlog.PrintError("Success " + res)
+	// 	case err := <-errc:
+	// 		errors = append(errors, err)
+	// 	case info := <-infoc:
+	// 		infoMessages = append(infoMessages, info)
+	// 	}
+	// }
+
+	limit.Wait()
 
 	printRemainingMessages(infoMessages, errors)
 
