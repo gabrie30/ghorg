@@ -4,6 +4,7 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -26,9 +27,12 @@ var (
 	namespace         string
 	color             string
 	baseURL           string
+	concurrency       string
 	skipArchived      bool
 	backup            bool
 	args              []string
+	cloneErrors       []string
+	cloneInfos        []string
 )
 
 func init() {
@@ -43,12 +47,12 @@ func init() {
 	// TODO: make gitlab terminology make sense https://about.gitlab.com/2016/01/27/comparing-terms-gitlab-github-bitbucket/
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - clone target type, user or org (default org)")
 	cloneCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "GHORG_GITLAB_DEFAULT_NAMESPACE - gitlab only: limits clone targets to a specific namespace e.g. --namespace=gitlab-org/security-products")
-
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED skips archived repos, github/gitlab only")
 	cloneCmd.Flags().BoolVar(&skipArchived, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into *_ghorg/unit/subunit/app, gitlab only")
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP backup mode, clone as mirror, no working copy (ignores branch parameter)")
-
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL change SCM base url, for on self hosted instances (currently gitlab only, use format of https://git.mydomain.com/api/v3)")
+	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY max goroutines to spin up while cloning (default 25")
+
 }
 
 // Repo represents an SCM repo
@@ -115,6 +119,11 @@ var cloneCmd = &cobra.Command{
 		if cmd.Flags().Changed("base-url") {
 			url := cmd.Flag("base-url").Value.String()
 			os.Setenv("GHORG_SCM_BASE_URL", url)
+		}
+
+		if cmd.Flags().Changed("concurrency") {
+			g := cmd.Flag("concurrency").Value.String()
+			os.Setenv("GHORG_CONCURRENCY", g)
 		}
 
 		if cmd.Flags().Changed("skip-archived") {
@@ -225,22 +234,22 @@ func getAppNameFromURL(url string) string {
 	return strings.Join(split[0:len(split)-1], ".")
 }
 
-func printRemainingMessages(infoMessages []error, errors []error) {
-	if len(infoMessages) > 0 {
+func printRemainingMessages() {
+	if len(cloneInfos) > 0 {
 		fmt.Println()
 		colorlog.PrintInfo("============ Info ============")
 		fmt.Println()
-		for _, i := range infoMessages {
+		for _, i := range cloneInfos {
 			colorlog.PrintInfo(i)
 		}
 		fmt.Println()
 	}
 
-	if len(errors) > 0 {
+	if len(cloneErrors) > 0 {
 		fmt.Println()
 		colorlog.PrintError("============ Issues ============")
 		fmt.Println()
-		for _, e := range errors {
+		for _, e := range cloneErrors {
 			colorlog.PrintError(e)
 		}
 		fmt.Println()
@@ -325,7 +334,14 @@ func CloneAllRepos() {
 	fmt.Println()
 
 	createDirIfNotExist()
-	limit := limiter.NewConcurrencyLimiter(10)
+
+	l, err := strconv.Atoi(os.Getenv("GHORG_CONCURRENCY"))
+
+	if err != nil {
+		log.Fatal("Could not determine GHORG_CONCURRENCY")
+	}
+
+	limit := limiter.NewConcurrencyLimiter(l)
 	for _, target := range cloneTargets {
 		appName := getAppNameFromURL(target.URL)
 		branch := os.Getenv("GHORG_BRANCH")
@@ -350,7 +366,8 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err := cmd.Run()
 					if err != nil {
-						colorlog.PrintError(fmt.Sprintf("Could not update remotes in Repo: %s Error: %v", repo.URL, err))
+						e := fmt.Sprintf("Could not update remotes in Repo: %s Error: %v", repo.URL, err)
+						cloneErrors = append(cloneErrors, e)
 						return
 					}
 				} else {
@@ -359,7 +376,8 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err := cmd.Run()
 					if err != nil {
-						colorlog.PrintInfo(fmt.Sprintf("Could not checkout out %s, no changes made Repo: %s Error: %v", branch, repo.URL, err))
+						e := fmt.Sprintf("Could not checkout out %s, branch may not exist, no changes made Repo: %s Error: %v", branch, repo.URL, err)
+						cloneInfos = append(cloneInfos, e)
 						return
 					}
 
@@ -367,7 +385,8 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err = cmd.Run()
 					if err != nil {
-						colorlog.PrintError(fmt.Sprintf("Problem running git clean: %s Error: %v", repo.URL, err))
+						e := fmt.Sprintf("Problem running git clean: %s Error: %v", repo.URL, err)
+						cloneErrors = append(cloneErrors, e)
 						return
 					}
 
@@ -375,7 +394,8 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err = cmd.Run()
 					if err != nil {
-						colorlog.PrintError(fmt.Sprintf("Problem resetting %s Repo: %s Error: %v", branch, repo.URL, err))
+						e := fmt.Sprintf("Problem resetting %s Repo: %s Error: %v", branch, repo.URL, err)
+						cloneErrors = append(cloneErrors, e)
 						return
 					}
 
@@ -383,7 +403,8 @@ func CloneAllRepos() {
 					cmd.Dir = repoDir
 					err = cmd.Run()
 					if err != nil {
-						colorlog.PrintError(fmt.Sprintf("Problem trying to pull %v Repo: %s Error: %v", branch, repo.URL, err))
+						e := fmt.Sprintf("Problem trying to pull %v Repo: %s Error: %v", branch, repo.URL, err)
+						cloneErrors = append(cloneErrors, e)
 						return
 					}
 				}
@@ -399,7 +420,8 @@ func CloneAllRepos() {
 				err := cmd.Run()
 
 				if err != nil {
-					colorlog.PrintError(fmt.Sprintf("Problem trying to clone Repo: %s Error: %v", repo.URL, err))
+					e := fmt.Sprintf("Problem trying to clone Repo: %s Error: %v", repo.URL, err)
+					cloneErrors = append(cloneErrors, e)
 					return
 				}
 			}
@@ -409,25 +431,9 @@ func CloneAllRepos() {
 
 	}
 
-	errors := []error{}
-	infoMessages := []error{}
-
-	// for i := 0; i < len(cloneTargets); i++ {
-	// 	select {
-	// 	case res := <-resc:
-	// 		colorlog.PrintSuccess("Success " + res)
-
-	// 		colorlog.PrintError("Success " + res)
-	// 	case err := <-errc:
-	// 		errors = append(errors, err)
-	// 	case info := <-infoc:
-	// 		infoMessages = append(infoMessages, info)
-	// 	}
-	// }
-
 	limit.Wait()
 
-	printRemainingMessages(infoMessages, errors)
+	printRemainingMessages()
 
 	// TODO: fix all these if else checks with ghorg_backups
 	if os.Getenv("GHORG_BACKUP") == "true" {
@@ -449,11 +455,12 @@ func asciiTime() {
 // PrintConfigs shows the user what is set before cloning
 func PrintConfigs() {
 	colorlog.PrintInfo("*************************************")
-	colorlog.PrintInfo("* SCM      : " + os.Getenv("GHORG_SCM_TYPE"))
-	colorlog.PrintInfo("* Type     : " + os.Getenv("GHORG_CLONE_TYPE"))
-	colorlog.PrintInfo("* Protocol : " + os.Getenv("GHORG_CLONE_PROTOCOL"))
-	colorlog.PrintInfo("* Branch   : " + os.Getenv("GHORG_BRANCH"))
-	colorlog.PrintInfo("* Location : " + os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
+	colorlog.PrintInfo("* SCM         : " + os.Getenv("GHORG_SCM_TYPE"))
+	colorlog.PrintInfo("* Type        : " + os.Getenv("GHORG_CLONE_TYPE"))
+	colorlog.PrintInfo("* Protocol    : " + os.Getenv("GHORG_CLONE_PROTOCOL"))
+	colorlog.PrintInfo("* Branch      : " + os.Getenv("GHORG_BRANCH"))
+	colorlog.PrintInfo("* Location    : " + os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
+	colorlog.PrintInfo("* Concurrency : " + os.Getenv("GHORG_CONCURRENCY"))
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		colorlog.PrintInfo("* Base URL : " + os.Getenv("GHORG_SCM_BASE_URL"))
 	}
