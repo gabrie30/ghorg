@@ -13,7 +13,6 @@ import (
 	"github.com/gabrie30/ghorg/configs"
 	"github.com/korovkin/limiter"
 	"github.com/spf13/cobra"
-	"gopkg.in/src-d/go-git.v4"
 )
 
 var (
@@ -54,9 +53,10 @@ func init() {
 
 // Repo represents an SCM repo
 type Repo struct {
-	Name string
-	Path string
-	URL  string
+	Name     string
+	Path     string
+	URL      string
+	CloneURL string
 }
 
 var cloneCmd = &cobra.Command{
@@ -388,14 +388,15 @@ func CloneAllRepos() {
 					}
 				}
 			} else {
-				args := []string{"clone", repo.URL, repoDir}
+				// if https clone and github/gitlab add personal access token to url
+
+				args := []string{"clone", repo.CloneURL, repoDir}
 				if os.Getenv("GHORG_BACKUP") == "true" {
 					args = append(args, "--mirror")
 				}
 
-				_, err := git.PlainClone(repoDir, false, &git.CloneOptions{
-					URL: repo.URL,
-				})
+				cmd := exec.Command("git", args...)
+				err := cmd.Run()
 
 				if err != nil {
 					colorlog.PrintError(fmt.Sprintf("Problem trying to clone Repo: %s Error: %v", repo.URL, err))
@@ -472,4 +473,9 @@ func ensureTrailingSlash(path string) string {
 	}
 
 	return path + "/"
+}
+
+func addTokenToHTTPSCloneURL(url string, token string) string {
+	splitURL := strings.Split(url, "https://")
+	return "https://" + token + "@" + splitURL[1]
 }

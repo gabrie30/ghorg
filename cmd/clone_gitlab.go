@@ -61,11 +61,14 @@ func getGitLabOrgCloneUrls() ([]Repo, error) {
 				}
 			}
 			r := Repo{}
+
 			r.Path = p.PathWithNamespace
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
+				r.CloneURL = addTokenToHTTPSCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))
 				r.URL = p.HTTPURLToRepo
 				repoData = append(repoData, r)
 			} else {
+				r.CloneURL = p.SSHURLToRepo
 				r.URL = p.SSHURLToRepo
 				repoData = append(repoData, r)
 			}
@@ -123,9 +126,11 @@ func getGitLabUserCloneUrls() ([]Repo, error) {
 			r := Repo{}
 			r.Path = p.PathWithNamespace
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
+				r.CloneURL = addTokenToHTTPSCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))
 				r.URL = p.HTTPURLToRepo
 				cloneData = append(cloneData, r)
 			} else {
+				r.CloneURL = p.SSHURLToRepo
 				r.URL = p.SSHURLToRepo
 				cloneData = append(cloneData, r)
 			}

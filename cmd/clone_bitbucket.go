@@ -28,9 +28,11 @@ func getBitBucketOrgCloneUrls() ([]Repo, error) {
 			r := Repo{}
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "ssh" && linkType == "ssh" {
 				r.URL = link.(string)
+				r.CloneURL = link.(string)
 				cloneData = append(cloneData, r)
 			} else if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" && linkType == "https" {
 				r.URL = link.(string)
+				r.CloneURL = link.(string)
 				cloneData = append(cloneData, r)
 			}
 		}
@@ -62,9 +64,11 @@ func getBitBucketUserCloneUrls() ([]Repo, error) {
 			r := Repo{}
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "ssh" && linkType == "ssh" {
 				r.URL = link.(string)
+				r.CloneURL = link.(string)
 				cloneData = append(cloneData, r)
 			} else if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" && linkType == "https" {
 				r.URL = link.(string)
+				r.CloneURL = link.(string)
 				cloneData = append(cloneData, r)
 			}
 		}
