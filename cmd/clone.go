@@ -455,20 +455,20 @@ func asciiTime() {
 // PrintConfigs shows the user what is set before cloning
 func PrintConfigs() {
 	colorlog.PrintInfo("*************************************")
-	colorlog.PrintInfo("* SCM         : " + os.Getenv("GHORG_SCM_TYPE"))
-	colorlog.PrintInfo("* Type        : " + os.Getenv("GHORG_CLONE_TYPE"))
-	colorlog.PrintInfo("* Protocol    : " + os.Getenv("GHORG_CLONE_PROTOCOL"))
-	colorlog.PrintInfo("* Branch      : " + os.Getenv("GHORG_BRANCH"))
-	colorlog.PrintInfo("* Location    : " + os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
-	colorlog.PrintInfo("* Concurrency : " + os.Getenv("GHORG_CONCURRENCY"))
+	colorlog.PrintInfo("* SCM           : " + os.Getenv("GHORG_SCM_TYPE"))
+	colorlog.PrintInfo("* Type          : " + os.Getenv("GHORG_CLONE_TYPE"))
+	colorlog.PrintInfo("* Protocol      : " + os.Getenv("GHORG_CLONE_PROTOCOL"))
+	colorlog.PrintInfo("* Branch        : " + os.Getenv("GHORG_BRANCH"))
+	colorlog.PrintInfo("* Location      : " + os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
+	colorlog.PrintInfo("* Concurrency   : " + os.Getenv("GHORG_CONCURRENCY"))
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
-		colorlog.PrintInfo("* Base URL : " + os.Getenv("GHORG_SCM_BASE_URL"))
+		colorlog.PrintInfo("* Base URL      : " + os.Getenv("GHORG_SCM_BASE_URL"))
 	}
 	if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
 		colorlog.PrintInfo("* Skip Archived : " + os.Getenv("GHORG_SKIP_ARCHIVED"))
 	}
 	if os.Getenv("GHORG_BACKUP") == "true" {
-		colorlog.PrintInfo("* Backup   : " + os.Getenv("GHORG_BACKUP"))
+		colorlog.PrintInfo("* Backup        : " + os.Getenv("GHORG_BACKUP"))
 	}
 	colorlog.PrintInfo("*************************************")
 	fmt.Println("")
