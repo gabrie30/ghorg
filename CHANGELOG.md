@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 ### Security
 
-## [1.1.11] - 02/29/20
+## [1.2.0] - 02/29/20
 ### Added
 - auto add trailing slash to path to clone to if not supplied by user
 - add token to https clone urls
