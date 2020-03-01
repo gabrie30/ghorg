@@ -57,6 +57,7 @@ $ vi $HOME/ghorg/conf.yaml # (optional but recommended)
 ```bash
 # note: to view all available flags/features see sample-conf.yaml
 $ ghorg clone someorg
+$ ghorg clone someorg --concurrency=50
 $ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop --color=off
 $ ghorg clone gitlab-org --scm=gitlab --namespace=gitlab-org/security-products
 $ ghorg clone gitlab-org --base-url=https://gitlab.internal.yourcompany.com --preserve-dir
@@ -111,6 +112,8 @@ To configure with bitbucket you will need to create a new [app password](https:/
   # actually now set the ulimit boundary
   $ ulimit -n 20000
   ```
+
+  Another solution is to decrease the number of concurrent clones. Use the `--concurrency` flag to set to lower than 25 (the default)
 
 ## Troubleshooting
 

@@ -47,9 +47,11 @@ func getGitHubOrgCloneUrls() ([]Repo, error) {
 		}
 
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
+			r.CloneURL = addTokenToHTTPSCloneURL(*repo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
 			r.URL = *repo.CloneURL
 			cloneData = append(cloneData, r)
 		} else {
+			r.CloneURL = *repo.SSHURL
 			r.URL = *repo.SSHURL
 			cloneData = append(cloneData, r)
 		}
@@ -98,9 +100,11 @@ func getGitHubUserCloneUrls() ([]Repo, error) {
 		}
 		r := Repo{}
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
+			r.CloneURL = addTokenToHTTPSCloneURL(*repo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
 			r.URL = *repo.CloneURL
 			repoData = append(repoData, r)
 		} else {
+			r.CloneURL = *repo.SSHURL
 			r.URL = *repo.SSHURL
 			repoData = append(repoData, r)
 		}

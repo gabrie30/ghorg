@@ -69,6 +69,7 @@ func initConfig() {
 	getOrSetDefaults("GHORG_COLOR")
 	getOrSetDefaults("GHORG_SKIP_ARCHIVED")
 	getOrSetDefaults("GHORG_BACKUP")
+	getOrSetDefaults("GHORG_CONCURRENCY")
 	// Optionally set
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
 	getOrSetDefaults("GHORG_GITLAB_TOKEN")
@@ -121,6 +122,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		case "GHORG_PRESERVE_DIRECTORY_STRUCTURE":
 			os.Setenv(envVar, "false")
+		case "GHORG_CONCURRENCY":
+			os.Setenv(envVar, "25")
 		}
 	} else {
 		// User forgot to put a / at the end of path, so we will add for them

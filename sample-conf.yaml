@@ -44,6 +44,11 @@ GHORG_SKIP_ARCHIVED:
 # flag (--backup)
 GHORG_BACKUP:
 
+# Max goroutines created while cloning
+# default: 25
+# flag (--concurrency)
+GHORG_CONCURRENCY:
+
 # --- GITHUB SPECIFIC ---
 
 # Add your GitHub token
