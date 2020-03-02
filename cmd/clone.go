@@ -484,5 +484,10 @@ func ensureTrailingSlash(path string) string {
 
 func addTokenToHTTPSCloneURL(url string, token string) string {
 	splitURL := strings.Split(url, "https://")
+
+	if os.Getenv("GHORG_SCM_TYPE") == "gitlab" {
+		return "https://oauth2:" + token + "@" + splitURL[1]
+	}
+
 	return "https://" + token + "@" + splitURL[1]
 }

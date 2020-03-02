@@ -11,6 +11,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 ### Security
 
+## [1.2.1] - 03/02/20
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Gitlab https clone url to include oauth2 https://stackoverflow.com/questions/25409700/using-gitlab-token-to-clone-without-authentication
+### Security
+
 ## [1.2.0] - 02/29/20
 ### Added
 - auto add trailing slash to path to clone to if not supplied by user
