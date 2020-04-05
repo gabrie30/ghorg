@@ -11,12 +11,10 @@ import (
 
 func getGitLabOrgCloneUrls() ([]Repo, error) {
 	repoData := []Repo{}
-	client := gitlab.NewClient(nil, os.Getenv("GHORG_GITLAB_TOKEN"))
+	client, err := determineClient()
 
-	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
-
-	if baseURL != "" {
-		client.SetBaseURL(baseURL)
+	if err != nil {
+		colorlog.PrintError(err)
 	}
 
 	namespace := os.Getenv("GHORG_GITLAB_DEFAULT_NAMESPACE")
@@ -86,18 +84,25 @@ func getGitLabOrgCloneUrls() ([]Repo, error) {
 	return repoData, nil
 }
 
-// func getUsersUID(username string) int {
+func determineClient() (*gitlab.Client, error) {
+	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
+	token := os.Getenv("GHORG_GITLAB_TOKEN")
 
-// }
+	if baseURL != "" {
+		client, err := gitlab.NewClient(token, gitlab.WithBaseURL(baseURL))
+		return client, err
+	}
+
+	return gitlab.NewClient(token)
+}
 
 func getGitLabUserCloneUrls() ([]Repo, error) {
 	cloneData := []Repo{}
-	client := gitlab.NewClient(nil, os.Getenv("GHORG_GITLAB_TOKEN"))
 
-	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
+	client, err := determineClient()
 
-	if baseURL != "" {
-		client.SetBaseURL(baseURL)
+	if err != nil {
+		colorlog.PrintError(err)
 	}
 
 	opt := &gitlab.ListProjectsOptions{

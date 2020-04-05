@@ -11,6 +11,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 ### Security
 
+## [1.2.2] - DATE
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- GitLab client; thanks @awesomebytes
+### Security
+
 ## [1.2.1] - 03/02/20
 ### Added
 ### Changed
