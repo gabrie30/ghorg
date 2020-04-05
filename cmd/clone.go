@@ -67,105 +67,107 @@ var cloneCmd = &cobra.Command{
 	Use:   "clone",
 	Short: "Clone user or org repos from GitHub, GitLab, or Bitbucket",
 	Long:  `Clone user or org repos from GitHub, GitLab, or Bitbucket. See $HOME/ghorg/conf.yaml for defaults, its likely you will need to update some of these values of use the flags to overwrite them. Values are set first by a default value, then based off what is set in $HOME/ghorg/conf.yaml, finally the cli flags, which have the highest level of precedence.`,
-	Run: func(cmd *cobra.Command, argz []string) {
+	Run:   cloneFunc,
+}
 
-		if cmd.Flags().Changed("color") {
-			colorToggle := cmd.Flag("color").Value.String()
-			if colorToggle == "on" {
-				os.Setenv("GHORG_COLOR", colorToggle)
-			} else {
-				os.Setenv("GHORG_COLOR", "off")
-			}
+func cloneFunc(cmd *cobra.Command, argz []string) {
 
+	if cmd.Flags().Changed("color") {
+		colorToggle := cmd.Flag("color").Value.String()
+		if colorToggle == "on" {
+			os.Setenv("GHORG_COLOR", colorToggle)
+		} else {
+			os.Setenv("GHORG_COLOR", "off")
 		}
 
-		if len(argz) < 1 {
-			colorlog.PrintError("You must provide an org or user to clone")
-			os.Exit(1)
+	}
+
+	if len(argz) < 1 {
+		colorlog.PrintError("You must provide an org or user to clone")
+		os.Exit(1)
+	}
+
+	if cmd.Flags().Changed("path") {
+		absolutePath := ensureTrailingSlash(cmd.Flag("path").Value.String())
+		os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", absolutePath)
+	}
+
+	if cmd.Flags().Changed("protocol") {
+		protocol := cmd.Flag("protocol").Value.String()
+		os.Setenv("GHORG_CLONE_PROTOCOL", protocol)
+	}
+
+	if cmd.Flags().Changed("branch") {
+		os.Setenv("GHORG_BRANCH", cmd.Flag("branch").Value.String())
+	}
+
+	if cmd.Flags().Changed("bitbucket-username") {
+		os.Setenv("GHORG_BITBUCKET_USERNAME", cmd.Flag("bitbucket-username").Value.String())
+	}
+
+	if cmd.Flags().Changed("namespace") {
+		os.Setenv("GHORG_GITLAB_DEFAULT_NAMESPACE", cmd.Flag("namespace").Value.String())
+	}
+
+	if cmd.Flags().Changed("clone-type") {
+		cloneType := strings.ToLower(cmd.Flag("clone-type").Value.String())
+		os.Setenv("GHORG_CLONE_TYPE", cloneType)
+	}
+
+	if cmd.Flags().Changed("scm") {
+		scmType := strings.ToLower(cmd.Flag("scm").Value.String())
+		os.Setenv("GHORG_SCM_TYPE", scmType)
+	}
+
+	if cmd.Flags().Changed("base-url") {
+		url := cmd.Flag("base-url").Value.String()
+		os.Setenv("GHORG_SCM_BASE_URL", url)
+	}
+
+	if cmd.Flags().Changed("concurrency") {
+		g := cmd.Flag("concurrency").Value.String()
+		os.Setenv("GHORG_CONCURRENCY", g)
+	}
+
+	if cmd.Flags().Changed("skip-archived") {
+		os.Setenv("GHORG_SKIP_ARCHIVED", "true")
+	}
+
+	if cmd.Flags().Changed("preserve-dir") {
+		os.Setenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE", "true")
+	}
+
+	if cmd.Flags().Changed("backup") {
+		os.Setenv("GHORG_BACKUP", "true")
+	}
+
+	configs.GetOrSetToken()
+
+	if cmd.Flags().Changed("token") {
+		if os.Getenv("GHORG_SCM_TYPE") == "github" {
+			os.Setenv("GHORG_GITHUB_TOKEN", cmd.Flag("token").Value.String())
+		} else if os.Getenv("GHORG_SCM_TYPE") == "gitlab" {
+			os.Setenv("GHORG_GITLAB_TOKEN", cmd.Flag("token").Value.String())
+		} else if os.Getenv("GHORG_SCM_TYPE") == "bitbucket" {
+			os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
 		}
+	}
 
-		if cmd.Flags().Changed("path") {
-			absolutePath := ensureTrailingSlash(cmd.Flag("path").Value.String())
-			os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", absolutePath)
-		}
+	err := configs.VerifyTokenSet()
+	if err != nil {
+		colorlog.PrintError(err)
+		os.Exit(1)
+	}
 
-		if cmd.Flags().Changed("protocol") {
-			protocol := cmd.Flag("protocol").Value.String()
-			os.Setenv("GHORG_CLONE_PROTOCOL", protocol)
-		}
+	err = configs.VerifyConfigsSetCorrectly()
+	if err != nil {
+		colorlog.PrintError(err)
+		os.Exit(1)
+	}
 
-		if cmd.Flags().Changed("branch") {
-			os.Setenv("GHORG_BRANCH", cmd.Flag("branch").Value.String())
-		}
+	args = argz
 
-		if cmd.Flags().Changed("bitbucket-username") {
-			os.Setenv("GHORG_BITBUCKET_USERNAME", cmd.Flag("bitbucket-username").Value.String())
-		}
-
-		if cmd.Flags().Changed("namespace") {
-			os.Setenv("GHORG_GITLAB_DEFAULT_NAMESPACE", cmd.Flag("namespace").Value.String())
-		}
-
-		if cmd.Flags().Changed("clone-type") {
-			cloneType := strings.ToLower(cmd.Flag("clone-type").Value.String())
-			os.Setenv("GHORG_CLONE_TYPE", cloneType)
-		}
-
-		if cmd.Flags().Changed("scm") {
-			scmType := strings.ToLower(cmd.Flag("scm").Value.String())
-			os.Setenv("GHORG_SCM_TYPE", scmType)
-		}
-
-		if cmd.Flags().Changed("base-url") {
-			url := cmd.Flag("base-url").Value.String()
-			os.Setenv("GHORG_SCM_BASE_URL", url)
-		}
-
-		if cmd.Flags().Changed("concurrency") {
-			g := cmd.Flag("concurrency").Value.String()
-			os.Setenv("GHORG_CONCURRENCY", g)
-		}
-
-		if cmd.Flags().Changed("skip-archived") {
-			os.Setenv("GHORG_SKIP_ARCHIVED", "true")
-		}
-
-		if cmd.Flags().Changed("preserve-dir") {
-			os.Setenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE", "true")
-		}
-
-		if cmd.Flags().Changed("backup") {
-			os.Setenv("GHORG_BACKUP", "true")
-		}
-
-		configs.GetOrSetToken()
-
-		if cmd.Flags().Changed("token") {
-			if os.Getenv("GHORG_SCM_TYPE") == "github" {
-				os.Setenv("GHORG_GITHUB_TOKEN", cmd.Flag("token").Value.String())
-			} else if os.Getenv("GHORG_SCM_TYPE") == "gitlab" {
-				os.Setenv("GHORG_GITLAB_TOKEN", cmd.Flag("token").Value.String())
-			} else if os.Getenv("GHORG_SCM_TYPE") == "bitbucket" {
-				os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
-			}
-		}
-
-		err := configs.VerifyTokenSet()
-		if err != nil {
-			colorlog.PrintError(err)
-			os.Exit(1)
-		}
-
-		err = configs.VerifyConfigsSetCorrectly()
-		if err != nil {
-			colorlog.PrintError(err)
-			os.Exit(1)
-		}
-
-		args = argz
-
-		CloneAllRepos()
-	},
+	CloneAllRepos()
 }
 
 // TODO: Figure out how to use go channels for this
