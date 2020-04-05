@@ -1,19 +1,21 @@
-package cmd
+package bitbucket
 
 import (
+	"github.com/gabrie30/ghorg/internal/repo"
 	bitbucket "github.com/ktrysmt/go-bitbucket"
 
 	"os"
 )
 
-func getBitBucketOrgCloneUrls() ([]Repo, error) {
+// GetOrgRepos gets org repos
+func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
-	cloneData := []Repo{}
+	cloneData := []repo.Data{}
 
-	resp, err := client.Teams.Repositories(args[0])
+	resp, err := client.Teams.Repositories(targetOrg)
 	if err != nil {
-		return []Repo{}, err
+		return []repo.Data{}, err
 	}
 	values := resp.(map[string]interface{})["values"].([]interface{})
 	if err != nil {
@@ -25,7 +27,7 @@ func getBitBucketOrgCloneUrls() ([]Repo, error) {
 		for _, l := range links {
 			link := l.(map[string]interface{})["href"]
 			linkType := l.(map[string]interface{})["name"]
-			r := Repo{}
+			r := repo.Data{}
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "ssh" && linkType == "ssh" {
 				r.URL = link.(string)
 				r.CloneURL = link.(string)
@@ -41,14 +43,15 @@ func getBitBucketOrgCloneUrls() ([]Repo, error) {
 	return cloneData, nil
 }
 
-func getBitBucketUserCloneUrls() ([]Repo, error) {
+// GetUserRepos gets user repos from bitbucket
+func GetUserRepos(targetUser string) ([]repo.Data, error) {
 
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
-	cloneData := []Repo{}
+	cloneData := []repo.Data{}
 
-	resp, err := client.Users.Repositories(args[0])
+	resp, err := client.Users.Repositories(targetUser)
 	if err != nil {
-		return []Repo{}, err
+		return []repo.Data{}, err
 	}
 	values := resp.(map[string]interface{})["values"].([]interface{})
 	if err != nil {
@@ -61,7 +64,7 @@ func getBitBucketUserCloneUrls() ([]Repo, error) {
 			link := l.(map[string]interface{})["href"]
 			linkType := l.(map[string]interface{})["name"]
 
-			r := Repo{}
+			r := repo.Data{}
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "ssh" && linkType == "ssh" {
 				r.URL = link.(string)
 				r.CloneURL = link.(string)
