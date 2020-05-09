@@ -399,6 +399,7 @@ func CloneAllRepos() {
 						return
 					}
 
+					// TODO: handle case where repo was removed, should not give user an error
 					cmd = exec.Command("git", "pull", "origin", branch)
 					cmd.Dir = repoDir
 					err = cmd.Run()
@@ -421,6 +422,19 @@ func CloneAllRepos() {
 
 				if err != nil {
 					e := fmt.Sprintf("Problem trying to clone Repo: %s Error: %v", repo.URL, err)
+					cloneErrors = append(cloneErrors, e)
+					return
+				}
+
+				// TODO: make configs around remote name
+				// we clone with api-key in clone url
+				args = []string{"remote", "set-url", "origin", repo.URL}
+				cmd = exec.Command("git", args...)
+				cmd.Dir = repoDir
+				err = cmd.Run()
+
+				if err != nil {
+					e := fmt.Sprintf("Problem trying to set remote on Repo: %s Error: %v", repo.URL, err)
 					cloneErrors = append(cloneErrors, e)
 					return
 				}

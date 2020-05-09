@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 ### Fixed
 ### Security
+- reset remote to not include apikey https://github.com/gabrie30/ghorg/issues/64; thanks @mcinerney
 
 ## [1.2.2] - 04/06/20
 ### Added
