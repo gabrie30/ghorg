@@ -1,4 +1,55 @@
 ---
+# +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+# |G|I|T|H|U|B| |S|P|E|C|I|F|I|C|
+# +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+
+
+# Add your GitHub token
+# Defaults to using key returned by
+# $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+GHORG_GITHUB_TOKEN:
+
+
+# +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+# |G|I|T|L|A|B| |S|P|E|C|I|F|I|C|
+# +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+# Add your GitLab token
+# Defaults to using key returned by
+# $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ print $4 }'
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+GHORG_GITLAB_TOKEN:
+
+# flag (--namespace, -n)
+GHORG_GITLAB_DEFAULT_NAMESPACE:
+
+# clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into *_ghorg/unit/subunit/app
+# default: false
+# flag (--preserve-dir)
+GHORG_PRESERVE_DIRECTORY_STRUCTURE:
+
+
+# +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+# |B|I|T|B|U|C|K|E|T| |S|P|E|C|I|F|I|C|
+# +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+
+
+# Add your Bitbucket app password
+# https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+GHORG_BITBUCKET_APP_PASSWORD:
+
+# flag (--bitbucket-username)
+GHORG_BITBUCKET_USERNAME:
+
+
+# +-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+
+# |G|E|N|E|R|A|L| |C|O|N|F|I|G|U|R|A|T|I|O|N|
+# +-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
 # This is where your *_ghorg directory will be created, use absolute pathing. Must end with /, if not one will be added for you
 # default: $HOME/Desktop/
 # flag (--path, -p)
@@ -49,36 +100,3 @@ GHORG_BACKUP:
 # flag (--concurrency)
 GHORG_CONCURRENCY:
 
-# --- GITHUB SPECIFIC ---
-
-# Add your GitHub token
-# Defaults to using key returned by
-# $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
-# flag (--token, -t)
-GHORG_GITHUB_TOKEN:
-
-# --- GITLAB SPECIFIC ---
-
-# Add your GitLab token
-# Defaults to using key returned by
-# $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ print $4 }'
-# flag (--token, -t)
-GHORG_GITLAB_TOKEN:
-
-# flag (--namespace, -n)
-GHORG_GITLAB_DEFAULT_NAMESPACE:
-
-# clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into *_ghorg/unit/subunit/app
-# default: false
-# flag (--preserve-dir)
-GHORG_PRESERVE_DIRECTORY_STRUCTURE:
-
-# --- BITBUCKET SPECIFIC ---
-
-# Add your Bitbucket app password
-# https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html
-# flag (--token, -t)
-GHORG_BITBUCKET_APP_PASSWORD:
-
-# flag (--bitbucket-username)
-GHORG_BITBUCKET_USERNAME:

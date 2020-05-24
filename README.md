@@ -37,9 +37,9 @@ $ brew upgrade git
 
 ```bash
 $ brew install gabrie30/utils/ghorg
-$ mkdir -p $HOME/ghorg
-$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/ghorg/conf.yaml
-$ vi $HOME/ghorg/conf.yaml # (optional but recommended)
+$ mkdir -p $HOME/.config/ghorg
+$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
+$ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 ```
 
 ### Golang
@@ -47,9 +47,9 @@ $ vi $HOME/ghorg/conf.yaml # (optional but recommended)
 ```bash
 # ensure $HOME/go/bin is in your path ($ echo $PATH | grep $HOME/go/bin)
 $ go get -u github.com/gabrie30/ghorg
-$ mkdir -p $HOME/ghorg
-$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/ghorg/conf.yaml
-$ vi $HOME/ghorg/conf.yaml # (optional but recommended)
+$ mkdir -p $HOME/.config/ghorg
+$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
+$ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 ```
 
 ## Use
@@ -66,7 +66,7 @@ $ ghorg clone --help
 
 ## Configuration
 
-Configuration can be set in two ways. The first is in `$HOME/ghorg/conf.yaml`. This file will be created from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) and copied into `$HOME/ghorg/conf.yaml`. The second is setting flags via the cli, run `$ ghorg clone --help` for a list of flags. Any flag set on the command line will overwrite anything in the conf.yaml
+Configuration can be set in two ways. The first is in `$HOME/.config/ghorg/conf.yaml`. This file will be created from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) and copied into `$HOME/.config/ghorg/conf.yaml`. The second is setting flags via the cli, run `$ ghorg clone --help` for a list of flags. Any flag set on the command line will overwrite anything in the conf.yaml
 
 ## Default GitHub/GitLab Token Used
 
@@ -77,7 +77,7 @@ $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ pri
 $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ print $4 }'
 ```
 
-> It's recommended to store github/gitlab tokens in the osxkeychain, if this command returns anything other than your token see Troubleshooting section below. However, you can always add your token to the $HOME/ghorg/conf.yaml or use the (--token, -t) flags.
+> It's recommended to store github/gitlab tokens in the osxkeychain, if this command returns anything other than your token see Troubleshooting section below. However, you can always add your token to the $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flags.
 
 
 ## Auth through SSO
@@ -90,14 +90,14 @@ To configure with bitbucket you will need to create a new [app password](https:/
 
 ## Ignoring Repos
 - To ignore any archived repos while cloning use the `--skip-archived` flag (github/gitlab only)
-- To ignore specific repos create a `ghorgignore` file inside `$HOME/ghorg`. Each line in this file is considered a substring and will be compared against each repos clone url. If the clone url contains a substring in the `ghorgignore` it will be excluded from cloning. To prevent accidentally excluding a repo, you should make each line as specific as possible, eg. `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git` depending on how you clone.
+- To ignore specific repos create a `ghorgignore` file inside `$HOME/.config/ghorg`. Each line in this file is considered a substring and will be compared against each repos clone url. If the clone url contains a substring in the `ghorgignore` it will be excluded from cloning. To prevent accidentally excluding a repo, you should make each line as specific as possible, eg. `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git` depending on how you clone.
 
   ```bash
   # Create ghorgignore
-  touch $HOME/ghorg/ghorgignore
+  touch $HOME/.config/ghorg/ghorgignore
 
   # update file
-  vi $HOME/ghorg/ghorgignore
+  vi $HOME/.config/ghorg/ghorgignore
   ```
 
 ## Known issues
