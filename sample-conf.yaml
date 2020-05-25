@@ -3,7 +3,6 @@
 # |G|I|T|H|U|B| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 
-
 # Add your GitHub token
 # Defaults to using key returned by
 # $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
@@ -15,6 +14,10 @@ GHORG_GITHUB_TOKEN:
 # |G|I|T|L|A|B| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+# Change SCM base url, for on self hosted instances (currently gitlab only, use format of https://git.mydomain.com/api/v3)
+# default: gitlab.com/api/v3
+# flag (--base-url)
+GHORG_SCM_BASE_URL:
 
 # Add your GitLab token
 # Defaults to using key returned by
@@ -35,7 +38,6 @@ GHORG_PRESERVE_DIRECTORY_STRUCTURE:
 # |B|I|T|B|U|C|K|E|T| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 
-
 # Add your Bitbucket app password
 # https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html
 # flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
@@ -49,6 +51,15 @@ GHORG_BITBUCKET_USERNAME:
 # |G|E|N|E|R|A|L| |C|O|N|F|I|G|U|R|A|T|I|O|N|
 # +-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+# Which provider to clone from (github, gitlab, or bitbucket)
+# default: github
+# flag (--scm, -s)
+GHORG_SCM_TYPE:
+
+# How you'd like to clone the repos (https or ssh)
+# default: https
+# flag (--protocol)
+GHORG_CLONE_PROTOCOL:
 
 # This is where your *_ghorg directory will be created, use absolute pathing. Must end with /, if not one will be added for you
 # default: $HOME/Desktop/
@@ -60,30 +71,15 @@ GHORG_ABSOLUTE_PATH_TO_CLONE_TO:
 # flag (--branch, -b)
 GHORG_BRANCH:
 
-# How you'd like to clone the repos (https or ssh)
-# default: https
-# flag (--protocol)
-GHORG_CLONE_PROTOCOL:
-
 # Type of entity to clone (user or org)
 # default: org
 # flag (--clone-type, -c)
 GHORG_CLONE_TYPE:
 
-# Which provider to clone from (github, gitlab, or bitbucket)
-# default: github
-# flag (--scm, -s)
-GHORG_SCM_TYPE:
-
 # Color output (on, off)
 # default: on
 # flag (--color)
 GHORG_COLOR:
-
-# Change SCM base url, for on self hosted instances (currently gitlab only, use format of https://git.mydomain.com/api/v3)
-# default: gitlab.com/api/v3
-# flag (--base-url)
-GHORG_SCM_BASE_URL:
 
 # Skip archived repos (true/false), currently github/gitlab only
 # default: false
