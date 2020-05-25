@@ -57,7 +57,7 @@ $ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 ```bash
 # note: to view all available flags/features see sample-conf.yaml
 $ ghorg clone someorg
-$ ghorg clone someorg --concurrency=50
+$ ghorg clone someorg --concurrency=50 --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 $ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop --color=off
 $ ghorg clone gitlab-org --scm=gitlab --namespace=gitlab-org/security-products
 $ ghorg clone gitlab-org --base-url=https://gitlab.internal.yourcompany.com --preserve-dir
@@ -83,6 +83,9 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 ## Auth through SSO
 
 - If org is behind SSO a normal token will not work. You will need to add SSO to the [Github token](https://help.github.com/articles/authorizing-a-personal-access-token-for-use-with-a-saml-single-sign-on-organization/)
+
+## GitLab Setup
+
 
 ## Bitbucket Setup
 
