@@ -55,12 +55,12 @@ $ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 ## Use
 
 ```bash
-# note: to view all available flags/features see sample-conf.yaml
+# note: to view/set all available flags/features see sample-conf.yaml
 $ ghorg clone someorg
 $ ghorg clone someorg --concurrency=50 --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 $ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop --color=off
 $ ghorg clone gitlab-org --scm=gitlab --namespace=gitlab-org/security-products
-$ ghorg clone gitlab-org --base-url=https://gitlab.internal.yourcompany.com --preserve-dir
+$ ghorg clone gitlab-org --scm=gitlab --base-url=https://gitlab.internal.yourcompany.com --preserve-dir
 $ ghorg clone --help
 ```
 
