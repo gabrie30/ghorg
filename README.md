@@ -79,17 +79,19 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 
 > It's recommended to store github/gitlab tokens in the osxkeychain, if this command returns anything other than your token see Troubleshooting section below. However, you can always add your token to the $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flags.
 
-
-## Auth through SSO
-
-- If org is behind SSO a normal token will not work. You will need to add SSO to the [Github token](https://help.github.com/articles/authorizing-a-personal-access-token-for-use-with-a-saml-single-sign-on-organization/)
+## GitHub Setup
+1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. This token can be [added here](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L6-L10) to your `ghorg/conf.yaml` as a cli flag, or your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
 
 ## GitLab Setup
 
+1. Create [Personal Access Token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) with `api` scopes. This token can be added to your `ghorg/conf.yaml` as a cli flag, or your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
+1. Update [GitLab specific](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L13-L34) config in your `ghorg/conf.yaml` or via cli flags
+1. Update [SCM type](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L54-L57) to `gitlab` in your `ghorg/conf.yaml` or via cli flags
 
-## Bitbucket Setup
+## BitBucket Setup
 
-To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/.config/ghorg/conf.yaml` or use the (--token, -t) and (--bitbucket-username) flags.
+1. To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/.config/ghorg/conf.yaml` [here](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L37-L47) or use the (--token, -t) and (--bitbucket-username) flags.
+1. Update [SCM type](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L54-L57) to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
 
 ## Ignoring Repos
 - To ignore any archived repos while cloning use the `--skip-archived` flag (github/gitlab only)
