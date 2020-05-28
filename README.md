@@ -19,11 +19,11 @@ ghorg allows you to quickly clone all of an orgs, or users repos into a single d
 ## Supported Providers
 - GitHub
 - GitLab
-- Bitbucket (see bitbucket setup)
+- Bitbucket
 
 > The terminology used in ghorg is that of GitHub, mainly orgs/repos. GitLab and BitBucket use different terminology. There is a handy chart thanks to GitLab that translates terminology [here](https://about.gitlab.com/images/blogimages/gitlab-terminology.png)
 
-## Setup
+## Install
 
 ### Homebrew
 
@@ -64,11 +64,25 @@ $ ghorg clone gitlab-org --scm=gitlab --base-url=https://gitlab.internal.yourcom
 $ ghorg clone --help
 ```
 
-## Configuration
+## Setup and Configuration
 
-Configuration can be set in two ways. The first is in `$HOME/.config/ghorg/conf.yaml`. This file will be created from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) and copied into `$HOME/.config/ghorg/conf.yaml`. The second is setting flags via the cli, run `$ ghorg clone --help` for a list of flags. Any flag set on the command line will overwrite anything in the conf.yaml
+Configuration can be set in two ways. The first is in `$HOME/.config/ghorg/conf.yaml`. This file will be created from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) and copied into `$HOME/.config/ghorg/conf.yaml`. The second is setting flags via the cli, run `$ ghorg clone --help` for a list of flags. A flag set on the command line will overwrite whats set in the conf.yaml
 
-## Default GitHub/GitLab Token Used
+### github setup
+1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. This token can be [added here](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L6-L10) to your `ghorg/conf.yaml` as a cli flag, or your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
+
+### gitlab setup
+
+1. Create [Personal Access Token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) with `api` scopes. This token can be added to your `ghorg/conf.yaml` as a cli flag, or your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
+1. Update [GitLab specific](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L13-L34) config in your `ghorg/conf.yaml` or via cli flags
+1. Update [SCM type](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L54-L57) to `gitlab` in your `ghorg/conf.yaml` or via cli flags
+
+### bitbucket setup
+
+1. To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/.config/ghorg/conf.yaml` [here](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L37-L47) or use the (--token, -t) and (--bitbucket-username) flags.
+1. Update [SCM type](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L54-L57) to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
+
+### osx default github/gitlab token used
 
 > NOTE: cloning via https rather than ssh is the ghorg default, this is because a token must be present to retreive the list of repos. However, if you run into trouble cloning via https and genearlly clone via ssh, try switching `--protocol ssh`
 
@@ -78,20 +92,6 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 ```
 
 > It's recommended to store github/gitlab tokens in the osxkeychain, if this command returns anything other than your token see Troubleshooting section below. However, you can always add your token to the $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flags.
-
-## GitHub Setup
-1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. This token can be [added here](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L6-L10) to your `ghorg/conf.yaml` as a cli flag, or your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
-
-## GitLab Setup
-
-1. Create [Personal Access Token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) with `api` scopes. This token can be added to your `ghorg/conf.yaml` as a cli flag, or your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
-1. Update [GitLab specific](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L13-L34) config in your `ghorg/conf.yaml` or via cli flags
-1. Update [SCM type](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L54-L57) to `gitlab` in your `ghorg/conf.yaml` or via cli flags
-
-## BitBucket Setup
-
-1. To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/.config/ghorg/conf.yaml` [here](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L37-L47) or use the (--token, -t) and (--bitbucket-username) flags.
-1. Update [SCM type](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L54-L57) to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
 
 ## Ignoring Repos
 - To ignore any archived repos while cloning use the `--skip-archived` flag (github/gitlab only)
