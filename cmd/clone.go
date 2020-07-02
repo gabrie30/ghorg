@@ -19,6 +19,7 @@ import (
 var (
 	protocol          string
 	path              string
+	parentFolder      string
 	branch            string
 	token             string
 	cloneType         string
@@ -162,6 +163,7 @@ var cloneCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		parseParentFolder(argz)
 		args = argz
 
 		CloneAllRepos()
@@ -211,7 +213,7 @@ func getAllUserCloneUrls() ([]Repo, error) {
 }
 
 func createDirIfNotExist() {
-	if _, err := os.Stat(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + args[0] + "_ghorg"); os.IsNotExist(err) {
+	if _, err := os.Stat(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + parentFolder + "_ghorg"); os.IsNotExist(err) {
 		err = os.MkdirAll(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), 0700)
 		if err != nil {
 			panic(err)
@@ -354,10 +356,10 @@ func CloneAllRepos() {
 				path = repo.Path
 			}
 
-			repoDir := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + args[0] + "_ghorg" + "/" + path
+			repoDir := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + parentFolder + "_ghorg" + "/" + path
 
 			if os.Getenv("GHORG_BACKUP") == "true" {
-				repoDir = os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + args[0] + "_ghorg_backup" + "/" + path
+				repoDir = os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + parentFolder + "_ghorg_backup" + "/" + path
 			}
 
 			if repoExistsLocally(repoDir) == true {
@@ -451,9 +453,9 @@ func CloneAllRepos() {
 
 	// TODO: fix all these if else checks with ghorg_backups
 	if os.Getenv("GHORG_BACKUP") == "true" {
-		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg_backup", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), args[0]))
+		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg_backup", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
 	} else {
-		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), args[0]))
+		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
 	}
 }
 
@@ -504,4 +506,8 @@ func addTokenToHTTPSCloneURL(url string, token string) string {
 	}
 
 	return "https://" + token + "@" + splitURL[1]
+}
+
+func parseParentFolder(argz []string) {
+	parentFolder = strings.ToLower(argz[0])
 }
