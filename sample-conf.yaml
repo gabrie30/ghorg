@@ -9,6 +9,10 @@
 # flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 GHORG_GITHUB_TOKEN:
 
+# A comma seperated list of topics to filter by
+# Defaults to ""
+# If any topics exist here, ghorg will only clone repos that match at least one of these topics
+GHORG_GITHUB_TOPICS:
 
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 # |G|I|T|L|A|B| |S|P|E|C|I|F|I|C|
@@ -33,7 +37,6 @@ GHORG_GITLAB_DEFAULT_NAMESPACE:
 # flag (--preserve-dir)
 GHORG_PRESERVE_DIRECTORY_STRUCTURE:
 
-
 # +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 # |B|I|T|B|U|C|K|E|T| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
@@ -45,7 +48,6 @@ GHORG_BITBUCKET_APP_PASSWORD:
 
 # flag (--bitbucket-username)
 GHORG_BITBUCKET_USERNAME:
-
 
 # +-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+
 # |G|E|N|E|R|A|L| |C|O|N|F|I|G|U|R|A|T|I|O|N|

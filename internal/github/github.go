@@ -25,6 +25,8 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 		ListOptions: github.ListOptions{PerPage: 100, Page: 0},
 	}
 
+	envTopics := strings.Split(os.Getenv("GHORG_GITHUB_TOPICS"), ",")
+
 	// get all pages of results
 	var allRepos []*github.Repository
 	for {
@@ -46,6 +48,22 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 		r := repo.Data{}
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
 			if *ghRepo.Archived == true {
+				continue
+			}
+		}
+
+		// If user defined a list of topics, check if any match with this repo
+		if os.Getenv("GHORG_GITHUB_TOPICS") != "" {
+			foundTopic := false
+			for _, topic := range repo.Topics {
+				for _, envTopic := range envTopics {
+					if topic == envTopic {
+						foundTopic = true
+						continue
+					}
+				}
+			}
+			if foundTopic == false {
 				continue
 			}
 		}
