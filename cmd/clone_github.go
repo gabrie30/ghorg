@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"os"
+	"strings"
 
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
@@ -21,6 +22,8 @@ func getGitHubOrgCloneUrls() ([]Repo, error) {
 		Type:        "all",
 		ListOptions: github.ListOptions{PerPage: 100, Page: 0},
 	}
+
+	envTopics := strings.Split(os.Getenv("GHORG_GITHUB_TOPICS"), ",")
 
 	// get all pages of results
 	var allRepos []*github.Repository
@@ -42,6 +45,22 @@ func getGitHubOrgCloneUrls() ([]Repo, error) {
 		r := Repo{}
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
 			if *repo.Archived == true {
+				continue
+			}
+		}
+
+		// If user defined a list of topics, check if any match with this repo
+		if os.Getenv("GHORG_GITHUB_TOPICS") != "" {
+			foundTopic := false
+			for _, topic := range repo.Topics {
+				for _, envTopic := range envTopics {
+					if topic == envTopic {
+						foundTopic = true
+						continue
+					}
+				}
+			}
+			if foundTopic == false {
 				continue
 			}
 		}
