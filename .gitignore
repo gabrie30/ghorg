@@ -1,3 +1,4 @@
 ghorg
 .env
 debug
+.DS_Store

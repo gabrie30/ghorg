@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/gabrie30/ghorg/internal/repo"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v32/github"
 	"golang.org/x/oauth2"
 )
 
@@ -37,6 +37,7 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 		if resp.NextPage == 0 {
 			break
 		}
+
 		opt.Page = resp.NextPage
 	}
 	cloneData := []repo.Data{}
@@ -77,10 +78,10 @@ func GetUserRepos(targetUser string) ([]repo.Data, error) {
 		Type:        "all",
 		ListOptions: github.ListOptions{PerPage: 100, Page: 0},
 	}
-
 	// get all pages of results
 	var allRepos []*github.Repository
 	for {
+
 		repos, resp, err := client.Repositories.List(context.Background(), targetUser, opt)
 
 		if err != nil {

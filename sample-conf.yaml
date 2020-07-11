@@ -96,3 +96,7 @@ GHORG_BACKUP:
 # flag (--concurrency)
 GHORG_CONCURRENCY:
 
+# Folder ghorg will clone all repos into, will force underscores and append _ghorg. Cloning will result in: GHORG_ABSOLUTE_PATH_TO_CLONE_TO/GHORG_OUTPUT_DIR/*
+# default: {org/user you are cloning}_ghorg
+# flag (--output-dir)
+GHORG_OUTPUT_DIR:
