@@ -17,10 +17,10 @@ import (
 
 var (
 	// ErrNoGitHubToken error message when token is not found
-	ErrNoGitHubToken = errors.New("Could not find a valid github token. GHORG_GITHUB_TOKEN or (--token, -t) flag must be set. Create a personal access token, then set it in your $HOME/ghorg/conf.yaml or use the (--token, -t) flag...For best results read the troubleshooting section of README.md https://github.com/gabrie30/ghorg to properly store your token in the osx keychain")
+	ErrNoGitHubToken = errors.New("Could not find a valid github token. GHORG_GITHUB_TOKEN or (--token, -t) flag must be set. Create a personal access token, then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag...For best results read the troubleshooting section of README.md https://github.com/gabrie30/ghorg to properly store your token in the osx keychain")
 
 	// ErrNoGitLabToken error message when token is not found
-	ErrNoGitLabToken = errors.New("Could not find a valid gitlab token. GHORG_GITLAB_TOKEN or (--token, -t) flag must be set. Create a token from gitlab then set it in your $HOME/ghorg/conf.yaml or use the (--token, -t) flag...For best results read the troubleshooting section of README.md https://github.com/gabrie30/ghorg to properly store your token in the osx keychain")
+	ErrNoGitLabToken = errors.New("Could not find a valid gitlab token. GHORG_GITLAB_TOKEN or (--token, -t) flag must be set. Create a token from gitlab then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag...For best results read the troubleshooting section of README.md https://github.com/gabrie30/ghorg to properly store your token in the osx keychain")
 
 	// ErrNoBitbucketUsername error message when no username found
 	ErrNoBitbucketUsername = errors.New("Could not find bitbucket username. GHORG_BITBUCKET_USERNAME or (--bitbucket-username) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
@@ -47,16 +47,26 @@ func initConfig() {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(GhorgDir())
 	viper.SetConfigName("conf")
+	ghorgDir := GhorgDir()
 
 	if err := viper.ReadInConfig(); err != nil {
+
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			// Config file not found; ignore error if desired
-			fmt.Println(err)
-			fmt.Println("Could not find $HOME/ghorg/conf.yaml file, please add one")
+
+			if XConfigHomeSet() {
+				colorlog.PrintError("Found XDG_CONFIG_HOME set")
+			}
+
+			fmt.Println("")
+			colorlog.PrintError(err)
+
+			colorlog.PrintError(fmt.Sprintf("Could not find %s/conf.yaml file, add one by running the following \n \n $ mkdir -p %s \n $ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > %s/conf.yaml \n", ghorgDir, ghorgDir, ghorgDir))
+			log.Fatal("Exiting due to improper configuration")
+
 		} else {
 			// Config file was found but another error was produced
-			fmt.Println(err)
-			fmt.Println("Something unexpected happened")
+			colorlog.PrintError(fmt.Sprintf("Something unexpected happened reading configuration file %s/conf.yaml, err: %s", ghorgDir, err))
 		}
 	}
 
@@ -99,7 +109,7 @@ func isZero(value interface{}) bool {
 
 func getOrSetDefaults(envVar string) {
 
-	// When a user does not set value in $HOME/ghorg/conf.yaml set the default values, else set env to what they have added to the file.
+	// When a user does not set value in $HOME/.config/ghorg/conf.yaml set the default values, else set env to what they have added to the file.
 	if viper.GetString(envVar) == "" {
 		switch envVar {
 		case "GHORG_ABSOLUTE_PATH_TO_CLONE_TO":
@@ -142,7 +152,20 @@ func GhorgIgnoreLocation() string {
 
 // GhorgDir returns the ghorg directory path
 func GhorgDir() string {
-	return HomeDir() + "/ghorg"
+	if XConfigHomeSet() {
+		return os.Getenv("XDG_CONFIG_HOME") + "/ghorg"
+	}
+
+	return HomeDir() + "/.config/ghorg"
+}
+
+// XConfigHomeSet checks for XDG_CONFIG_HOME env set
+func XConfigHomeSet() bool {
+	if os.Getenv("XDG_CONFIG_HOME") != "" {
+		return true
+	}
+
+	return false
 }
 
 // HomeDir finds the users home directory

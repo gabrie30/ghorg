@@ -1,6 +1,6 @@
 install:
-		mkdir -p ${HOME}/ghorg
-		cp sample-conf.yaml ${HOME}/ghorg/conf.yaml
+		mkdir -p ${HOME}/.config/ghorg
+		cp sample-conf.yaml ${HOME}/.config/ghorg/conf.yaml
 homebrew:
-		mkdir -p ${HOME}/ghorg
-		cp sample-conf.yaml ${HOME}/ghorg/conf.yaml
+		mkdir -p ${HOME}/.config/ghorg
+		cp sample-conf.yaml ${HOME}/.config/ghorg/conf.yaml

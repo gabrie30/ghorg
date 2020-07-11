@@ -3,15 +3,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased] - DATE
+## [1.3.2 - Unreleased] - DATE
 ### Added
+- auto downcase of ghorg clone folder name; thanks @zamariola
 ### Changed
+- ghorg configuration location to $HOME/.config/ghorg or $XDG_CONFIG_HOME https://github.com/gabrie30/ghorg/issues/65; thanks @liljenstolpe
 ### Deprecated
 ### Removed
 ### Fixed
 ### Security
+- reset remote to not include apikey https://github.com/gabrie30/ghorg/issues/64; thanks @mcinerney
 
-## [1.2.2] - DATE
+## [1.2.2] - 04/06/20
 ### Added
 ### Changed
 ### Deprecated
