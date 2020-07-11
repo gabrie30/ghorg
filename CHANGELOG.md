@@ -3,14 +3,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.3.2 - Unreleased] - DATE
+## [1.3.0] - 07/11/20
 ### Added
 - auto downcase of ghorg clone folder name; thanks @zamariola
+- auto underscore of ghorg clone folder name
+- vendoring of dependencies
+- go modules
+- easter egg
 ### Changed
 - ghorg configuration location to $HOME/.config/ghorg or $XDG_CONFIG_HOME https://github.com/gabrie30/ghorg/issues/65; thanks @liljenstolpe
 ### Deprecated
 ### Removed
 ### Fixed
+- version number to 1.3.0; thanks @alexcurtin
 ### Security
 - reset remote to not include apikey https://github.com/gabrie30/ghorg/issues/64; thanks @mcinerney
 

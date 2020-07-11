@@ -33,6 +33,7 @@ var (
 	color             string
 	baseURL           string
 	concurrency       string
+	outputDir         string
 	skipArchived      bool
 	backup            bool
 	args              []string
@@ -58,6 +59,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP backup mode, clone as mirror, no working copy (ignores branch parameter)")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL change SCM base url, for on self hosted instances (currently gitlab only, use format of https://git.mydomain.com/api/v3)")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY max goroutines to spin up while cloning (default 25)")
+	cloneCmd.Flags().StringVarP(&outputDir, "output-dir", "", "", "GHORG_OUTPUT_DIR name of directory repos will be cloned into, will force underscores and always append _ghorg (default {org/repo being cloned}_ghorg)")
 
 }
 
@@ -139,6 +141,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_BACKUP", "true")
 	}
 
+	if cmd.Flags().Changed("output-dir") {
+		d := cmd.Flag("output-dir").Value.String()
+		os.Setenv("GHORG_OUTPUT_DIR", d)
+	}
+
 	configs.GetOrSetToken()
 
 	if cmd.Flags().Changed("token") {
@@ -165,7 +172,7 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 
 	parseParentFolder(argz)
 	args = argz
-  targetCloneSource = argz[0]
+	targetCloneSource = argz[0]
 
 	CloneAllRepos()
 }
@@ -213,7 +220,7 @@ func getAllUserCloneUrls() ([]repo.Data, error) {
 }
 
 func createDirIfNotExist() {
-  if _, err := os.Stat(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + parentFolder + "_ghorg"); os.IsNotExist(err) {
+	if _, err := os.Stat(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + parentFolder + "_ghorg"); os.IsNotExist(err) {
 		err = os.MkdirAll(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), 0700)
 		if err != nil {
 			panic(err)
@@ -268,7 +275,9 @@ func readGhorgIgnore() ([]string, error) {
 	var lines []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+		if scanner.Text() != "" {
+			lines = append(lines, scanner.Text())
+		}
 	}
 	return lines, scanner.Err()
 }
@@ -312,6 +321,7 @@ func CloneAllRepos() {
 		}
 
 		colorlog.PrintInfo("Using ghorgignore, filtering repos down...")
+		fmt.Println("")
 
 		filteredCloneTargets := []repo.Data{}
 		var flag bool
@@ -509,5 +519,11 @@ func addTokenToHTTPSCloneURL(url string, token string) string {
 }
 
 func parseParentFolder(argz []string) {
-	parentFolder = strings.ToLower(argz[0])
+	if os.Getenv("GHORG_OUTPUT_DIR") != "" {
+		parentFolder = strings.ReplaceAll(os.Getenv("GHORG_OUTPUT_DIR"), "-", "_")
+		return
+	}
+
+	pf := strings.ReplaceAll(argz[0], "-", "_")
+	parentFolder = strings.ToLower(pf)
 }
