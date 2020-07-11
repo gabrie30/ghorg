@@ -2,3 +2,4 @@ ghorg
 .env
 debug
 .DS_Store
+coverage.out

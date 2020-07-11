@@ -114,7 +114,7 @@ func getOrSetDefaults(envVar string) {
 	if viper.GetString(envVar) == "" {
 		switch envVar {
 		case "GHORG_ABSOLUTE_PATH_TO_CLONE_TO":
-			os.Setenv(envVar, HomeDir()+"/Desktop/")
+			os.Setenv(envVar, HomeDir()+"/Desktop/ghorg/")
 		case "GHORG_BRANCH":
 			os.Setenv(envVar, "master")
 		case "GHORG_CLONE_PROTOCOL":
@@ -149,6 +149,15 @@ func getOrSetDefaults(envVar string) {
 // GhorgIgnoreLocation returns the path of users ghorgignore
 func GhorgIgnoreLocation() string {
 	return GhorgDir() + "/ghorgignore"
+}
+
+// GhorgIgnoreDetected identify if a ghorgignore file exists in users .config/ghorg directory
+func GhorgIgnoreDetected() bool {
+	_, err := os.Stat(GhorgIgnoreLocation())
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
 
 // GhorgDir returns the ghorg directory path

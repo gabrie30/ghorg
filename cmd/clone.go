@@ -46,7 +46,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&color, "color", "", "", "GHORG_COLOR - toggles colorful output on/off (default on)")
 	rootCmd.AddCommand(cloneCmd)
 	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "GHORG_CLONE_PROTOCOL - protocol to clone with, ssh or https, (default https)")
-	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "GHORG_ABSOLUTE_PATH_TO_CLONE_TO - absolute path the ghorg_* directory will be created. Must end with / (default $HOME/Desktop/)")
+	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "GHORG_ABSOLUTE_PATH_TO_CLONE_TO - absolute path the ghorg_* directory will be created. Must end with / (default $HOME/Desktop/ghorg)")
 	cloneCmd.Flags().StringVarP(&branch, "branch", "b", "", "GHORG_BRANCH - branch left checked out for each repo cloned (default master)")
 	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "GHORG_GITHUB_TOKEN/GHORG_GITLAB_TOKEN/GHORG_BITBUCKET_APP_PASSWORD - scm token to clone with")
 	cloneCmd.Flags().StringVarP(&bitbucketUsername, "bitbucket-username", "", "", "GHORG_BITBUCKET_USERNAME - bitbucket only: username associated with the app password")
@@ -487,6 +487,7 @@ func PrintConfigs() {
 	colorlog.PrintInfo("* Branch        : " + os.Getenv("GHORG_BRANCH"))
 	colorlog.PrintInfo("* Location      : " + os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
 	colorlog.PrintInfo("* Concurrency   : " + os.Getenv("GHORG_CONCURRENCY"))
+
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		colorlog.PrintInfo("* Base URL      : " + os.Getenv("GHORG_SCM_BASE_URL"))
 	}
@@ -496,6 +497,13 @@ func PrintConfigs() {
 	if os.Getenv("GHORG_BACKUP") == "true" {
 		colorlog.PrintInfo("* Backup        : " + os.Getenv("GHORG_BACKUP"))
 	}
+	if configs.GhorgIgnoreDetected() == true {
+		colorlog.PrintInfo("* Ghorgignore   : true")
+	}
+	if os.Getenv("GHORG_OUTPUT_DIR") != "" {
+		colorlog.PrintInfo("* Output Dir    : " + parentFolder + "_ghorg")
+	}
+
 	colorlog.PrintInfo("*************************************")
 	fmt.Println("")
 }

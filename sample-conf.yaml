@@ -62,7 +62,7 @@ GHORG_SCM_TYPE:
 GHORG_CLONE_PROTOCOL:
 
 # This is where your *_ghorg directory will be created, use absolute pathing. Must end with /, if not one will be added for you
-# default: $HOME/Desktop/
+# default: $HOME/Desktop/ghorg
 # flag (--path, -p)
 GHORG_ABSOLUTE_PATH_TO_CLONE_TO:
 
