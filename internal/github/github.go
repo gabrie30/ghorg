@@ -1,14 +1,17 @@
-package cmd
+package github
 
 import (
 	"context"
 	"os"
+	"strings"
 
+	"github.com/gabrie30/ghorg/internal/repo"
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )
 
-func getGitHubOrgCloneUrls() ([]Repo, error) {
+// GetOrgRepos gets org repos
+func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
@@ -25,7 +28,7 @@ func getGitHubOrgCloneUrls() ([]Repo, error) {
 	// get all pages of results
 	var allRepos []*github.Repository
 	for {
-		repos, resp, err := client.Repositories.ListByOrg(context.Background(), args[0], opt)
+		repos, resp, err := client.Repositories.ListByOrg(context.Background(), targetOrg, opt)
 
 		if err != nil {
 			return nil, err
@@ -36,23 +39,23 @@ func getGitHubOrgCloneUrls() ([]Repo, error) {
 		}
 		opt.Page = resp.NextPage
 	}
-	cloneData := []Repo{}
+	cloneData := []repo.Data{}
 
-	for _, repo := range allRepos {
-		r := Repo{}
+	for _, ghRepo := range allRepos {
+		r := repo.Data{}
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
-			if *repo.Archived == true {
+			if *ghRepo.Archived == true {
 				continue
 			}
 		}
 
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-			r.CloneURL = addTokenToHTTPSCloneURL(*repo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
-			r.URL = *repo.CloneURL
+			r.CloneURL = addTokenToHTTPSCloneURL(*ghRepo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
+			r.URL = *ghRepo.CloneURL
 			cloneData = append(cloneData, r)
 		} else {
-			r.CloneURL = *repo.SSHURL
-			r.URL = *repo.SSHURL
+			r.CloneURL = *ghRepo.SSHURL
+			r.URL = *ghRepo.SSHURL
 			cloneData = append(cloneData, r)
 		}
 	}
@@ -60,8 +63,8 @@ func getGitHubOrgCloneUrls() ([]Repo, error) {
 	return cloneData, nil
 }
 
-// TODO: refactor with getAllOrgCloneUrls
-func getGitHubUserCloneUrls() ([]Repo, error) {
+// GetUserRepos gets user repos
+func GetUserRepos(targetUser string) ([]repo.Data, error) {
 	ctx := context.Background()
 
 	ts := oauth2.StaticTokenSource(
@@ -78,7 +81,7 @@ func getGitHubUserCloneUrls() ([]Repo, error) {
 	// get all pages of results
 	var allRepos []*github.Repository
 	for {
-		repos, resp, err := client.Repositories.List(context.Background(), args[0], opt)
+		repos, resp, err := client.Repositories.List(context.Background(), targetUser, opt)
 
 		if err != nil {
 			return nil, err
@@ -89,26 +92,31 @@ func getGitHubUserCloneUrls() ([]Repo, error) {
 		}
 		opt.Page = resp.NextPage
 	}
-	repoData := []Repo{}
+	repoData := []repo.Data{}
 
-	for _, repo := range allRepos {
+	for _, ghRepo := range allRepos {
 
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
-			if *repo.Archived == true {
+			if *ghRepo.Archived == true {
 				continue
 			}
 		}
-		r := Repo{}
+		r := repo.Data{}
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-			r.CloneURL = addTokenToHTTPSCloneURL(*repo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
-			r.URL = *repo.CloneURL
+			r.CloneURL = addTokenToHTTPSCloneURL(*ghRepo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
+			r.URL = *ghRepo.CloneURL
 			repoData = append(repoData, r)
 		} else {
-			r.CloneURL = *repo.SSHURL
-			r.URL = *repo.SSHURL
+			r.CloneURL = *ghRepo.SSHURL
+			r.URL = *ghRepo.SSHURL
 			repoData = append(repoData, r)
 		}
 	}
 
 	return repoData, nil
+}
+
+func addTokenToHTTPSCloneURL(url string, token string) string {
+	splitURL := strings.Split(url, "https://")
+	return "https://" + token + "@" + splitURL[1]
 }

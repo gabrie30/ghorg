@@ -1,4 +1,4 @@
-package cmd
+package gitlab
 
 import (
 	"fmt"
@@ -6,11 +6,14 @@ import (
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
+	"github.com/gabrie30/ghorg/internal/repo"
+
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
-func getGitLabOrgCloneUrls() ([]Repo, error) {
-	repoData := []Repo{}
+// GetOrgRepos fetches repo data
+func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
+	repoData := []repo.Data{}
 	client, err := determineClient()
 
 	if err != nil {
@@ -34,11 +37,11 @@ func getGitLabOrgCloneUrls() ([]Repo, error) {
 
 	for {
 		// Get the first page with projects.
-		ps, resp, err := client.Groups.ListGroupProjects(args[0], opt)
+		ps, resp, err := client.Groups.ListGroupProjects(targetOrg, opt)
 
 		if err != nil {
 			// TODO: check if 404, then we know group does not exist
-			return []Repo{}, err
+			return []repo.Data{}, err
 		}
 
 		// List all the projects we've found so far.
@@ -58,7 +61,7 @@ func getGitLabOrgCloneUrls() ([]Repo, error) {
 					continue
 				}
 			}
-			r := Repo{}
+			r := repo.Data{}
 
 			r.Path = p.PathWithNamespace
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
@@ -96,8 +99,8 @@ func determineClient() (*gitlab.Client, error) {
 	return gitlab.NewClient(token)
 }
 
-func getGitLabUserCloneUrls() ([]Repo, error) {
-	cloneData := []Repo{}
+func GetUserRepos(targetUsername string) ([]repo.Data, error) {
+	cloneData := []repo.Data{}
 
 	client, err := determineClient()
 
@@ -114,10 +117,10 @@ func getGitLabUserCloneUrls() ([]Repo, error) {
 
 	for {
 		// Get the first page with projects.
-		ps, resp, err := client.Projects.ListUserProjects(args[0], opt)
+		ps, resp, err := client.Projects.ListUserProjects(targetUsername, opt)
 		if err != nil {
 			// TODO: check if 404, then we know user does not exist
-			return []Repo{}, err
+			return []repo.Data{}, err
 		}
 
 		// List all the projects we've found so far.
@@ -128,7 +131,7 @@ func getGitLabUserCloneUrls() ([]Repo, error) {
 					continue
 				}
 			}
-			r := Repo{}
+			r := repo.Data{}
 			r.Path = p.PathWithNamespace
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 				r.CloneURL = addTokenToHTTPSCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))
@@ -151,4 +154,9 @@ func getGitLabUserCloneUrls() ([]Repo, error) {
 	}
 
 	return cloneData, nil
+}
+
+func addTokenToHTTPSCloneURL(url string, token string) string {
+	splitURL := strings.Split(url, "https://")
+	return "https://oauth2:" + token + "@" + splitURL[1]
 }
