@@ -36,6 +36,8 @@ var (
 
 	// ErrIncorrectProtocolType indicates an unsupported protocol type being used
 	ErrIncorrectProtocolType = errors.New("GHORG_CLONE_PROTOCOL or --protocol must be one of https or ssh")
+
+	GhorgTestDir string
 )
 
 func init() {
@@ -46,7 +48,13 @@ func initConfig() {
 
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(GhorgDir())
-	viper.SetConfigName("conf")
+
+	if os.Getenv("GHORG_ENV") == "test" {
+		viper.SetConfigName("sample-conf")
+	} else {
+		viper.SetConfigName("conf")
+	}
+
 	ghorgDir := GhorgDir()
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -162,6 +170,9 @@ func GhorgIgnoreDetected() bool {
 
 // GhorgDir returns the ghorg directory path
 func GhorgDir() string {
+	if os.Getenv("GHORG_ENV") == "test" {
+		return "../"
+	}
 	if XConfigHomeSet() {
 		return os.Getenv("XDG_CONFIG_HOME") + "/ghorg"
 	}
