@@ -68,22 +68,6 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 			}
 		}
 
-		// If user defined a list of topics, check if any match with this repo
-		if os.Getenv("GHORG_GITHUB_TOPICS") != "" {
-			foundTopic := false
-			for _, topic := range repo.Topics {
-				for _, envTopic := range envTopics {
-					if topic == envTopic {
-						foundTopic = true
-						continue
-					}
-				}
-			}
-			if foundTopic == false {
-				continue
-			}
-		}
-
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			r.CloneURL = addTokenToHTTPSCloneURL(*ghRepo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
 			r.URL = *ghRepo.CloneURL
