@@ -55,7 +55,7 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 		// If user defined a list of topics, check if any match with this repo
 		if os.Getenv("GHORG_GITHUB_TOPICS") != "" {
 			foundTopic := false
-			for _, topic := range repo.Topics {
+			for _, topic := range ghRepo.Topics {
 				for _, envTopic := range envTopics {
 					if topic == envTopic {
 						foundTopic = true
