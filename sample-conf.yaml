@@ -9,6 +9,11 @@
 # flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 GHORG_GITHUB_TOKEN:
 
+# A comma seperated list of topics to filter by
+# Defaults to ""
+# If any topics exist here, ghorg will only clone repos that match at least one of these topics
+GHORG_GITHUB_TOPICS:
+
 
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 # |G|I|T|L|A|B| |S|P|E|C|I|F|I|C|
