@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.3.2] - unrealeased
 ### Added
+- GHORG_GITHUB_TOPICS to filter cloning repos matching specified topics; thanks @ryanaross
 ### Changed
 ### Deprecated
 ### Removed
