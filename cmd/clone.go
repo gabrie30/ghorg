@@ -156,8 +156,8 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	}
 
 	if cmd.Flags().Changed("filter") {
-		d := cmd.Flag("filter").Value.String()
-		os.Setenv("GHORG_FILTER", d)
+		filter := cmd.Flag("filter").Value.String()
+		os.Setenv("GHORG_FILTER", filter)
 	}
 
 	configs.GetOrSetToken()
