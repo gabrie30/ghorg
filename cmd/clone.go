@@ -443,7 +443,7 @@ func CloneAllRepos() {
 					args = append(args, "--mirror")
 				}
 				if os.Getenv("GHORG_FILTER") != "" {
-					args = append(args, "--filter=" + os.Getenv("GHORG_FILTER"))
+					args = append(args, "--filter="+os.Getenv("GHORG_FILTER"))
 				}
 
 				cmd := exec.Command("git", args...)
