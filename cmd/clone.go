@@ -34,6 +34,7 @@ var (
 	baseURL           string
 	concurrency       string
 	outputDir         string
+	filter            string
 	topics            string
 	skipArchived      bool
 	backup            bool
@@ -62,6 +63,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - max goroutines to spin up while cloning (default 25)")
 	cloneCmd.Flags().StringVarP(&topics, "topics", "", "", "GHORG_GITHUB_TOPICS - comma seperated list of github topics to filter for")
 	cloneCmd.Flags().StringVarP(&outputDir, "output-dir", "", "", "GHORG_OUTPUT_DIR - name of directory repos will be cloned into, will force underscores and always append _ghorg (default {org/repo being cloned}_ghorg)")
+	cloneCmd.Flags().StringVarP(&filter, "filter", "", "", "GHORG_FILTER - Partial clone filtering, such as blob:none")
 
 }
 
@@ -151,6 +153,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	if cmd.Flags().Changed("output-dir") {
 		d := cmd.Flag("output-dir").Value.String()
 		os.Setenv("GHORG_OUTPUT_DIR", d)
+	}
+
+	if cmd.Flags().Changed("filter") {
+		d := cmd.Flag("filter").Value.String()
+		os.Setenv("GHORG_FILTER", d)
 	}
 
 	configs.GetOrSetToken()
@@ -430,10 +437,13 @@ func CloneAllRepos() {
 				}
 			} else {
 				// if https clone and github/gitlab add personal access token to url
-
 				args := []string{"clone", repo.CloneURL, repoDir}
+				fmt.Printf("filter: %v",os.Getenv("GHORG_FILTER"))
 				if os.Getenv("GHORG_BACKUP") == "true" {
 					args = append(args, "--mirror")
+				}
+				if os.Getenv("GHORG_FILTER") != "" {
+					args = append(args, "--filter=" + os.Getenv("GHORG_FILTER"))
 				}
 
 				cmd := exec.Command("git", args...)

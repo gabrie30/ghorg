@@ -105,3 +105,12 @@ GHORG_CONCURRENCY:
 # default: {org/user you are cloning}_ghorg
 # flag (--output-dir)
 GHORG_OUTPUT_DIR:
+
+# Partial clone filter that will be used to grab a subset of reachable objects
+# https://git-scm.com/docs/git-clone#Documentation/git-clone.txt---filterltfilter-specgt
+# The most common use case would be "blob:none" to prevent binary objects from being downloaded
+# Multiple filters can be specified by "combine:<filter1>+<filter2>+…​<filterN>"
+# This can only be set during the initial clone!
+# default: ""
+# flag (--filter)
+GHORG_FILTER:
