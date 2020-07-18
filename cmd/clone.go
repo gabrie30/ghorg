@@ -438,7 +438,6 @@ func CloneAllRepos() {
 			} else {
 				// if https clone and github/gitlab add personal access token to url
 				args := []string{"clone", repo.CloneURL, repoDir}
-				fmt.Printf("filter: %v",os.Getenv("GHORG_FILTER"))
 				if os.Getenv("GHORG_BACKUP") == "true" {
 					args = append(args, "--mirror")
 				}
