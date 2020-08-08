@@ -46,6 +46,7 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 
 	for _, ghRepo := range allRepos {
 		r := repo.Data{}
+
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
 			if *ghRepo.Archived == true {
 				continue
@@ -64,6 +65,20 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 				}
 			}
 			if foundTopic == false {
+				continue
+			}
+		}
+
+		if os.Getenv("GHORG_MATCH_PREFIX") != "" {
+			repoName := strings.ToLower(*ghRepo.Name)
+			foundPrefix := false
+			pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
+			for _, p := range pfs {
+				if strings.HasPrefix(repoName, strings.ToLower(p)) {
+					foundPrefix = true
+				}
+			}
+			if foundPrefix == false {
 				continue
 			}
 		}
@@ -96,6 +111,9 @@ func GetUserRepos(targetUser string) ([]repo.Data, error) {
 		Type:        "all",
 		ListOptions: github.ListOptions{PerPage: 100, Page: 0},
 	}
+
+	envTopics := strings.Split(os.Getenv("GHORG_GITHUB_TOPICS"), ",")
+
 	// get all pages of results
 	var allRepos []*github.Repository
 	for {
@@ -114,13 +132,43 @@ func GetUserRepos(targetUser string) ([]repo.Data, error) {
 	repoData := []repo.Data{}
 
 	for _, ghRepo := range allRepos {
-
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
 			if *ghRepo.Archived == true {
 				continue
 			}
 		}
 		r := repo.Data{}
+
+		// If user defined a list of topics, check if any match with this repo
+		if os.Getenv("GHORG_GITHUB_TOPICS") != "" {
+			foundTopic := false
+			for _, topic := range ghRepo.Topics {
+				for _, envTopic := range envTopics {
+					if topic == envTopic {
+						foundTopic = true
+						continue
+					}
+				}
+			}
+			if foundTopic == false {
+				continue
+			}
+		}
+
+		if os.Getenv("GHORG_MATCH_PREFIX") != "" {
+			repoName := strings.ToLower(*ghRepo.Name)
+			foundPrefix := false
+			pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
+			for _, p := range pfs {
+				if strings.HasPrefix(repoName, strings.ToLower(p)) {
+					foundPrefix = true
+				}
+			}
+			if foundPrefix == false {
+				continue
+			}
+		}
+
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			r.CloneURL = addTokenToHTTPSCloneURL(*ghRepo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
 			r.URL = *ghRepo.CloneURL

@@ -1,6 +1,8 @@
 package bitbucket
 
 import (
+	"strings"
+
 	"github.com/gabrie30/ghorg/internal/repo"
 	bitbucket "github.com/ktrysmt/go-bitbucket"
 
@@ -28,6 +30,21 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 			link := l.(map[string]interface{})["href"]
 			linkType := l.(map[string]interface{})["name"]
 			r := repo.Data{}
+
+			if os.Getenv("GHORG_MATCH_PREFIX") != "" {
+				repoName := strings.ToLower(clone["name"].(string))
+				foundPrefix := false
+				pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
+				for _, p := range pfs {
+					if strings.HasPrefix(repoName, strings.ToLower(p)) {
+						foundPrefix = true
+					}
+				}
+				if foundPrefix == false {
+					continue
+				}
+			}
+
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "ssh" && linkType == "ssh" {
 				r.URL = link.(string)
 				r.CloneURL = link.(string)
@@ -64,6 +81,19 @@ func GetUserRepos(targetUser string) ([]repo.Data, error) {
 			link := l.(map[string]interface{})["href"]
 			linkType := l.(map[string]interface{})["name"]
 
+			if os.Getenv("GHORG_MATCH_PREFIX") != "" {
+				repoName := strings.ToLower(clone["name"].(string))
+				foundPrefix := false
+				pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
+				for _, p := range pfs {
+					if strings.HasPrefix(repoName, strings.ToLower(p)) {
+						foundPrefix = true
+					}
+				}
+				if foundPrefix == false {
+					continue
+				}
+			}
 			r := repo.Data{}
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "ssh" && linkType == "ssh" {
 				r.URL = link.(string)
