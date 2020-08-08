@@ -70,6 +70,7 @@ func initConfig() {
 		}
 	}
 
+	// Set With Default values
 	getOrSetDefaults("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
 	getOrSetDefaults("GHORG_BRANCH")
 	getOrSetDefaults("GHORG_CLONE_PROTOCOL")
@@ -80,6 +81,7 @@ func initConfig() {
 	getOrSetDefaults("GHORG_SKIP_ARCHIVED")
 	getOrSetDefaults("GHORG_BACKUP")
 	getOrSetDefaults("GHORG_CONCURRENCY")
+	getOrSetDefaults("GHORG_MATCH_PREFIX")
 	// Optionally set
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
 	getOrSetDefaults("GHORG_GITHUB_TOPICS")

@@ -61,6 +61,21 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 					continue
 				}
 			}
+
+			if os.Getenv("GHORG_MATCH_PREFIX") != "" {
+				repoName := strings.ToLower(p.Name)
+				foundPrefix := false
+				pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
+				for _, p := range pfs {
+					if strings.HasPrefix(repoName, strings.ToLower(p)) {
+						foundPrefix = true
+					}
+				}
+				if foundPrefix == false {
+					continue
+				}
+			}
+
 			r := repo.Data{}
 
 			r.Path = p.PathWithNamespace
@@ -125,12 +140,26 @@ func GetUserRepos(targetUsername string) ([]repo.Data, error) {
 
 		// List all the projects we've found so far.
 		for _, p := range ps {
-
 			if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
 				if p.Archived == true {
 					continue
 				}
 			}
+
+			if os.Getenv("GHORG_MATCH_PREFIX") != "" {
+				repoName := strings.ToLower(p.Name)
+				foundPrefix := false
+				pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
+				for _, p := range pfs {
+					if strings.HasPrefix(repoName, strings.ToLower(p)) {
+						foundPrefix = true
+					}
+				}
+				if foundPrefix == false {
+					continue
+				}
+			}
+
 			r := repo.Data{}
 			r.Path = p.PathWithNamespace
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
