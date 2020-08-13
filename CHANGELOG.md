@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.3.2] - unrealeased
+## [1.4.1] - unrealeased
 ### Added
 - GHORG_GITHUB_TOPICS to filter cloning repos matching specified topics; thanks @ryanaross
 - GHORG_MATCH_PREFIX to filter cloning repos by prefix
@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Changed
 ### Deprecated
 ### Removed
+- GHORG_GITLAB_DEFAULT_NAMESPACE
 ### Fixed
 ### Security
 

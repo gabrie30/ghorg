@@ -13,7 +13,6 @@ func TestDefaultSettings(t *testing.T) {
 	protocol := os.Getenv("GHORG_CLONE_PROTOCOL")
 	scm := os.Getenv("GHORG_SCM_TYPE")
 	cloneType := os.Getenv("GHORG_CLONE_TYPE")
-	namespace := os.Getenv("GHORG_GITLAB_DEFAULT_NAMESPACE")
 
 	if branch != "master" {
 		t.Errorf("Default branch should be master, got: %v", branch)
@@ -29,10 +28,6 @@ func TestDefaultSettings(t *testing.T) {
 
 	if cloneType != "org" {
 		t.Errorf("Default clone type should be org, got: %v", cloneType)
-	}
-
-	if namespace != "unset" {
-		t.Errorf("Default gitlab namespace type should be unset, got: %v", namespace)
 	}
 
 }

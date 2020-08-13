@@ -1,7 +1,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -11,7 +10,7 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
-// GetOrgRepos fetches repo data
+// GetOrgRepos fetches repo data from a specific group
 func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 	repoData := []repo.Data{}
 	client, err := determineClient()
@@ -20,19 +19,12 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 		colorlog.PrintError(err)
 	}
 
-	namespace := os.Getenv("GHORG_GITLAB_DEFAULT_NAMESPACE")
-
 	opt := &gitlab.ListGroupProjectsOptions{
 		ListOptions: gitlab.ListOptions{
-			PerPage: 50,
+			PerPage: 100,
 			Page:    1,
 		},
 		IncludeSubgroups: gitlab.Bool(true),
-	}
-
-	if namespace == "unset" {
-		colorlog.PrintInfo("No namespace set, to reduce results use namespace flag e.g. --namespace=gitlab-org/security-products")
-		fmt.Println("")
 	}
 
 	for {
@@ -46,15 +38,6 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 
 		// List all the projects we've found so far.
 		for _, p := range ps {
-
-			// If it is set, then filter only repos from the namespace
-			// if p.PathWithNamespace == "the namespace the user indicated" eg --namespace=org/namespace
-
-			if namespace != "unset" {
-				if strings.HasPrefix(p.PathWithNamespace, strings.ToLower(namespace)) == false {
-					continue
-				}
-			}
 
 			if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
 				if p.Archived == true {
@@ -114,6 +97,7 @@ func determineClient() (*gitlab.Client, error) {
 	return gitlab.NewClient(token)
 }
 
+// GetUserRepos gets all of a users gitlab repos
 func GetUserRepos(targetUsername string) ([]repo.Data, error) {
 	cloneData := []repo.Data{}
 
