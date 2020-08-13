@@ -76,7 +76,6 @@ func initConfig() {
 	getOrSetDefaults("GHORG_CLONE_PROTOCOL")
 	getOrSetDefaults("GHORG_CLONE_TYPE")
 	getOrSetDefaults("GHORG_SCM_TYPE")
-	getOrSetDefaults("GHORG_GITLAB_DEFAULT_NAMESPACE")
 	getOrSetDefaults("GHORG_COLOR")
 	getOrSetDefaults("GHORG_SKIP_ARCHIVED")
 	getOrSetDefaults("GHORG_BACKUP")
@@ -126,8 +125,6 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "org")
 		case "GHORG_SCM_TYPE":
 			os.Setenv(envVar, "github")
-		case "GHORG_GITLAB_DEFAULT_NAMESPACE":
-			os.Setenv(envVar, "unset")
 		case "GHORG_COLOR":
 			os.Setenv(envVar, "on")
 		case "GHORG_SKIP_ARCHIVED":

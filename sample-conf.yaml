@@ -30,9 +30,6 @@ GHORG_SCM_BASE_URL:
 # flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 GHORG_GITLAB_TOKEN:
 
-# flag (--namespace, -n)
-GHORG_GITLAB_DEFAULT_NAMESPACE:
-
 # clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into *_ghorg/unit/subunit/app
 # default: false
 # flag (--preserve-dir)

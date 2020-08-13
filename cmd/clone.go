@@ -55,7 +55,6 @@ func init() {
 	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "", "GHORG_SCM_TYPE - type of scm used, github, gitlab or bitbucket (default github)")
 	// TODO: make gitlab terminology make sense https://about.gitlab.com/2016/01/27/comparing-terms-gitlab-github-bitbucket/
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - clone target type, user or org (default org)")
-	cloneCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "GHORG_GITLAB_DEFAULT_NAMESPACE - gitlab only: limits clone targets to a specific namespace e.g. --namespace=gitlab-org/security-products")
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED - skips archived repos, github/gitlab only")
 	cloneCmd.Flags().BoolVar(&skipArchived, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into *_ghorg/unit/subunit/app, gitlab only")
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP - backup mode, clone as mirror, no working copy (ignores branch parameter)")
@@ -106,10 +105,6 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 
 	if cmd.Flags().Changed("bitbucket-username") {
 		os.Setenv("GHORG_BITBUCKET_USERNAME", cmd.Flag("bitbucket-username").Value.String())
-	}
-
-	if cmd.Flags().Changed("namespace") {
-		os.Setenv("GHORG_GITLAB_DEFAULT_NAMESPACE", cmd.Flag("namespace").Value.String())
 	}
 
 	if cmd.Flags().Changed("clone-type") {
