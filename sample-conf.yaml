@@ -19,11 +19,6 @@ GHORG_GITHUB_TOPICS:
 # |G|I|T|L|A|B| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-# Change SCM base url, for on self hosted instances (currently gitlab only, use format of https://git.mydomain.com/api/v3)
-# default: gitlab.com/api/v3
-# flag (--base-url)
-GHORG_SCM_BASE_URL:
-
 # Add your GitLab token
 # Defaults to using key returned by
 # $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ print $4 }'
@@ -52,6 +47,11 @@ GHORG_BITBUCKET_USERNAME:
 # +-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+
 # |G|E|N|E|R|A|L| |C|O|N|F|I|G|U|R|A|T|I|O|N|
 # +-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+# Change SCM base url, for on self hosted instances (currently gitlab only, use format of https://git.mydomain.com/api/v3)
+# default: uses github/gitlab public api
+# flag (--base-url)
+GHORG_SCM_BASE_URL:
 
 # Which provider to clone from (github, gitlab, or bitbucket)
 # default: github

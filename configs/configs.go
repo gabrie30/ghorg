@@ -137,13 +137,18 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "25")
 		}
 	} else {
-		// User forgot to put a / at the end of path, so we will add for them
-		if envVar == "GHORG_ABSOLUTE_PATH_TO_CLONE_TO" && !strings.HasSuffix(viper.GetString(envVar), "/") {
-			os.Setenv(envVar, viper.GetString(envVar)+"/")
-		} else {
-			os.Setenv(envVar, viper.GetString(envVar))
-		}
+		s := viper.GetString(envVar)
+		os.Setenv(envVar, EnsureTrailingSlash(s))
 	}
+}
+
+// EnsureTrailingSlash takes a string and ensures a single / is appened
+func EnsureTrailingSlash(s string) string {
+	if !strings.HasSuffix(s, "/") {
+		s = s + "/"
+	}
+
+	return s
 }
 
 // GhorgIgnoreLocation returns the path of users ghorgignore

@@ -2,9 +2,11 @@ package github
 
 import (
 	"context"
+	"net/url"
 	"os"
 	"strings"
 
+	"github.com/gabrie30/ghorg/configs"
 	"github.com/gabrie30/ghorg/internal/repo"
 	"github.com/google/go-github/v32/github"
 	"golang.org/x/oauth2"
@@ -20,6 +22,11 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
 
+	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
+		u := configs.EnsureTrailingSlash(os.Getenv("GHORG_SCM_BASE_URL"))
+		client.BaseURL, _ = url.Parse(u)
+	}
+
 	opt := &github.RepositoryListByOrgOptions{
 		Type:        "all",
 		ListOptions: github.ListOptions{PerPage: 100, Page: 0},
@@ -30,6 +37,7 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 	// get all pages of results
 	var allRepos []*github.Repository
 	for {
+
 		repos, resp, err := client.Repositories.ListByOrg(context.Background(), targetOrg, opt)
 
 		if err != nil {
@@ -106,6 +114,11 @@ func GetUserRepos(targetUser string) ([]repo.Data, error) {
 	)
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
+
+	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
+		u := configs.EnsureTrailingSlash(os.Getenv("GHORG_SCM_BASE_URL"))
+		client.BaseURL, _ = url.Parse(u)
+	}
 
 	opt := &github.RepositoryListOptions{
 		Type:        "all",

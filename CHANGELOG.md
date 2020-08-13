@@ -7,7 +7,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Added
 - GHORG_GITHUB_TOPICS to filter cloning repos matching specified topics; thanks @ryanaross
 - GHORG_MATCH_PREFIX to filter cloning repos by prefix
-- example commands
+- example commands directory
+- base-url to github for self hosted github instances
 ### Changed
 ### Deprecated
 ### Removed
