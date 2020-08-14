@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 - GHORG_GITLAB_DEFAULT_NAMESPACE
 ### Fixed
+- Bug with trailing slash env vars; thanks @ryanaross
 ### Security
 
 ## [1.3.1] - 07/11/20
