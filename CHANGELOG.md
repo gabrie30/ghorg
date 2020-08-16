@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - GHORG_MATCH_PREFIX to filter cloning repos by prefix
 - example commands directory
 - base-url to github for self hosted github instances
+- github client mocks
 ### Changed
 ### Deprecated
 ### Removed
