@@ -112,8 +112,7 @@ func TestGetOrgRepos(t *testing.T) {
 		if want != got {
 			tt.Errorf("Expected %v repo, got: %v", want, got)
 		}
-		os.Setenv("GHORG_SKIP_ARCHIVED", "")
-
+		os.Setenv("GHORG_GITHUB_TOPICS", "")
 	})
 
 	t.Run("Find all repos with specific prefix", func(tt *testing.T) {
@@ -128,7 +127,6 @@ func TestGetOrgRepos(t *testing.T) {
 		if want != got {
 			tt.Errorf("Expected %v repo, got: %v", want, got)
 		}
-		os.Setenv("GHORG_SKIP_ARCHIVED", "")
-
+		os.Setenv("GHORG_MATCH_PREFIX", "")
 	})
 }
