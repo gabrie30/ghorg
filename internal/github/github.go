@@ -13,14 +13,7 @@ import (
 )
 
 // GetOrgRepos gets org repos
-func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
-
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
+func GetOrgRepos(client *github.Client, targetOrg string) ([]repo.Data, error) {
 
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		u := configs.EnsureTrailingSlash(os.Getenv("GHORG_SCM_BASE_URL"))

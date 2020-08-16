@@ -193,7 +193,8 @@ func getAllOrgCloneUrls() ([]repo.Data, error) {
 	var err error
 	switch os.Getenv("GHORG_SCM_TYPE") {
 	case "github":
-		repos, err = github.GetOrgRepos(targetCloneSource)
+		ghc := github.NewGitHubClient()
+		repos, err = github.GetOrgRepos(ghc, targetCloneSource)
 	case "gitlab":
 		repos, err = gitlab.GetOrgRepos(targetCloneSource)
 	case "bitbucket":
