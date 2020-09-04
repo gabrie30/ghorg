@@ -74,7 +74,7 @@ Configuration for each clone can be set in two ways. The first is in `$HOME/.con
 ### gitlab setup
 
 1. Create [Personal Access Token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) with `api` scopes. This token can be added to your `ghorg/conf.yaml`, as a cli flag, or your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
-1. Update the `GitLab Specific`config in your `ghorg/conf.yaml` or via cli flags
+1. Update the `GitLab Specific` config in your `ghorg/conf.yaml` or via cli flags
 1. Update `GHORG_SCM_TYPE` to `gitlab` in your `ghorg/conf.yaml` or via cli flags
 1. See [examples/gitlab.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md) on how to run
 

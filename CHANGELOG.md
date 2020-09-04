@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.4.1] - unrealeased
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## [1.4.0] - 09/4/20
+### Added
 - GHORG_GITHUB_TOPICS to filter cloning repos matching specified topics; thanks @ryanaross
 - GHORG_MATCH_PREFIX to filter cloning repos by prefix
 - example commands directory
