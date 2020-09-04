@@ -55,7 +55,7 @@ $ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 ## Use
 
 ```bash
-# note: to view/set all available flags/features see sample-conf.yaml or ./examples
+# note: to view/set all available flags/features see sample-conf.yaml and for more examples see ./examples
 $ ghorg clone someorg
 $ ghorg clone someorg --concurrency=50 --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 $ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop --color=off
@@ -66,16 +66,17 @@ $ ghorg clone --help
 
 ## Setup and Configuration
 
-Configuration can be set in two ways. The first is in `$HOME/.config/ghorg/conf.yaml`. This file will be created from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) and copied into `$HOME/.config/ghorg/conf.yaml`. The second is setting flags via the cli, run `$ ghorg clone --help` for a list of flags. A flag set on the command line will overwrite whats set in the conf.yaml
+Configuration for each clone can be set in two ways. The first is in `$HOME/.config/ghorg/conf.yaml`. This file should be created from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) by copying into `$HOME/.config/ghorg/conf.yaml`. The second method of configuration is setting flags via the cli, run `$ ghorg clone --help` for a list of flags. A flag set on the command line will overwrite any setting in the conf.yaml
 
 ### github setup
-1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. This token can be [added here](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L6-L10) to your `ghorg/conf.yaml` as a cli flag, or your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
+1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. Update `GHORG_GITHUB_TOKEN` in your `ghorg/conf.yaml`, as a cli flag, or add to your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
 
 ### gitlab setup
 
-1. Create [Personal Access Token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) with `api` scopes. This token can be added to your `ghorg/conf.yaml` as a cli flag, or your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
-1. Update [GitLab specific](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L13-L34) config in your `ghorg/conf.yaml` or via cli flags
-1. Update [SCM type](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L54-L57) to `gitlab` in your `ghorg/conf.yaml` or via cli flags
+1. Create [Personal Access Token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) with `api` scopes. This token can be added to your `ghorg/conf.yaml`, as a cli flag, or your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
+1. Update the `GitLab Specific`config in your `ghorg/conf.yaml` or via cli flags
+1. Update `GHORG_SCM_TYPE` to `gitlab` in your `ghorg/conf.yaml` or via cli flags
+1. See [examples/gitlab.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md) on how to run
 
 ### bitbucket setup
 
