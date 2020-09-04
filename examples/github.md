@@ -10,7 +10,7 @@ clone an **org**
 $ ghorg clone <github_org>
 ```
 
-clone all repos that are **prefixed** with "frontend" **into a folder** called "design_only" from a **group** on a **hosted gitlab** instance
+clone all repos from a **github org** that are **prefixed** with "frontend" **into a folder** called "design_only"
 
 ```
 $ ghorg clone <github_org> --match-prefix=frontend --output-dir=design_only
