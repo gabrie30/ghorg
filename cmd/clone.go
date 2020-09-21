@@ -60,7 +60,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP - backup mode, clone as mirror, no working copy (ignores branch parameter)")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - change SCM base url, for on self hosted instances (currently gitlab/github only, use format of https://git.mydomain.com/api/v3)")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - max goroutines to spin up while cloning (default 25)")
-	cloneCmd.Flags().StringVarP(&topics, "topics", "", "", "GHORG_GITHUB_TOPICS - comma seperated list of github topics to filter for")
+	cloneCmd.Flags().StringVarP(&topics, "topics", "", "", "GHORG_TOPICS - comma seperated list of github topics to filter for")
 	cloneCmd.Flags().StringVarP(&outputDir, "output-dir", "", "", "GHORG_OUTPUT_DIR - name of directory repos will be cloned into, will force underscores and always append _ghorg (default {org/repo being cloned}_ghorg)")
 	cloneCmd.Flags().StringVarP(&matchPrefix, "match-prefix", "", "", "GHORG_MATCH_PREFIX - only clone repos with matching prefix, can be a comma separated list (default \"\")")
 }
@@ -129,7 +129,7 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 
 	if cmd.Flags().Changed("topics") {
 		topics := cmd.Flag("topics").Value.String()
-		os.Setenv("GHORG_GITHUB_TOPICS", topics)
+		os.Setenv("GHORG_TOPICS", topics)
 	}
 
 	if cmd.Flags().Changed("match-prefix") {

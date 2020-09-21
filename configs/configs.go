@@ -83,7 +83,7 @@ func initConfig() {
 	getOrSetDefaults("GHORG_MATCH_PREFIX")
 	// Optionally set
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
-	getOrSetDefaults("GHORG_GITHUB_TOPICS")
+	getOrSetDefaults("GHORG_TOPICS")
 	getOrSetDefaults("GHORG_GITLAB_TOKEN")
 	getOrSetDefaults("GHORG_BITBUCKET_USERNAME")
 	getOrSetDefaults("GHORG_BITBUCKET_APP_PASSWORD")

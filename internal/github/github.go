@@ -25,7 +25,7 @@ func GetOrgRepos(client *github.Client, targetOrg string) ([]repo.Data, error) {
 		ListOptions: github.ListOptions{PerPage: 100, Page: 0},
 	}
 
-	envTopics := strings.Split(os.Getenv("GHORG_GITHUB_TOPICS"), ",")
+	envTopics := strings.Split(os.Getenv("GHORG_TOPICS"), ",")
 
 	// get all pages of results
 	var allRepos []*github.Repository
@@ -55,7 +55,7 @@ func GetOrgRepos(client *github.Client, targetOrg string) ([]repo.Data, error) {
 		}
 
 		// If user defined a list of topics, check if any match with this repo
-		if os.Getenv("GHORG_GITHUB_TOPICS") != "" {
+		if os.Getenv("GHORG_TOPICS") != "" {
 			foundTopic := false
 			for _, topic := range ghRepo.Topics {
 				for _, envTopic := range envTopics {
@@ -118,7 +118,7 @@ func GetUserRepos(targetUser string) ([]repo.Data, error) {
 		ListOptions: github.ListOptions{PerPage: 100, Page: 0},
 	}
 
-	envTopics := strings.Split(os.Getenv("GHORG_GITHUB_TOPICS"), ",")
+	envTopics := strings.Split(os.Getenv("GHORG_TOPICS"), ",")
 
 	// get all pages of results
 	var allRepos []*github.Repository
@@ -146,7 +146,7 @@ func GetUserRepos(targetUser string) ([]repo.Data, error) {
 		r := repo.Data{}
 
 		// If user defined a list of topics, check if any match with this repo
-		if os.Getenv("GHORG_GITHUB_TOPICS") != "" {
+		if os.Getenv("GHORG_TOPICS") != "" {
 			foundTopic := false
 			for _, topic := range ghRepo.Topics {
 				for _, envTopic := range envTopics {
