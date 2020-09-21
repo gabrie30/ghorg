@@ -9,7 +9,7 @@ import (
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/internal/repo"
 
-	gitea "code.gitea.io/sdk/gitea"
+	"code.gitea.io/sdk/gitea"
 )
 
 // GetOrgRepos fetches repo data from a specific group
