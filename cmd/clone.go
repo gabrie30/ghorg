@@ -13,6 +13,7 @@ import (
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/configs"
 	"github.com/gabrie30/ghorg/internal/bitbucket"
+	"github.com/gabrie30/ghorg/internal/gitea"
 	"github.com/gabrie30/ghorg/internal/github"
 	"github.com/gabrie30/ghorg/internal/gitlab"
 	"github.com/gabrie30/ghorg/internal/repo"
@@ -199,6 +200,8 @@ func getAllOrgCloneUrls() ([]repo.Data, error) {
 		repos, err = github.GetOrgRepos(ghc, targetCloneSource)
 	case "gitlab":
 		repos, err = gitlab.GetOrgRepos(targetCloneSource)
+	case "gitea":
+		repos, err = gitea.GetOrgRepos(targetCloneSource)
 	case "bitbucket":
 		repos, err = bitbucket.GetOrgRepos(targetCloneSource)
 	default:
@@ -220,6 +223,8 @@ func getAllUserCloneUrls() ([]repo.Data, error) {
 		repos, err = github.GetUserRepos(targetCloneSource)
 	case "gitlab":
 		repos, err = gitlab.GetUserRepos(targetCloneSource)
+	case "gitea":
+		repos, err = gitea.GetUserRepos(targetCloneSource)
 	case "bitbucket":
 		repos, err = bitbucket.GetUserRepos(targetCloneSource)
 	default:
