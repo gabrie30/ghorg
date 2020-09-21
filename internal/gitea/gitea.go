@@ -157,13 +157,18 @@ func filter(client *gitea.Client, rps []*gitea.Repository) (repoData []repo.Data
 
 		r := repo.Data{}
 		r.Path = rp.FullName
+
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-			r.CloneURL = rp.CloneURL
-			r.URL = rp.HTMLURL
+			cloneURL := rp.CloneURL
+			if rp.Private {
+				cloneURL = "https://" + os.Getenv("GHORG_GITEA_TOKEN") + strings.TrimLeft(cloneURL, "https://")
+			}
+			r.CloneURL = cloneURL
+			r.URL = cloneURL
 			repoData = append(repoData, r)
 		} else {
 			r.CloneURL = rp.SSHURL
-			r.URL = rp.HTMLURL
+			r.URL = rp.SSHURL
 			repoData = append(repoData, r)
 		}
 	}
