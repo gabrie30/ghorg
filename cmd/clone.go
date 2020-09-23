@@ -13,6 +13,7 @@ import (
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/configs"
 	"github.com/gabrie30/ghorg/internal/bitbucket"
+	"github.com/gabrie30/ghorg/internal/gitea"
 	"github.com/gabrie30/ghorg/internal/github"
 	"github.com/gabrie30/ghorg/internal/gitlab"
 	"github.com/gabrie30/ghorg/internal/repo"
@@ -50,25 +51,25 @@ func init() {
 	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "GHORG_CLONE_PROTOCOL - protocol to clone with, ssh or https, (default https)")
 	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "GHORG_ABSOLUTE_PATH_TO_CLONE_TO - absolute path the ghorg_* directory will be created. Must end with / (default $HOME/Desktop/ghorg)")
 	cloneCmd.Flags().StringVarP(&branch, "branch", "b", "", "GHORG_BRANCH - branch left checked out for each repo cloned (default master)")
-	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "GHORG_GITHUB_TOKEN/GHORG_GITLAB_TOKEN/GHORG_BITBUCKET_APP_PASSWORD - scm token to clone with")
+	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "GHORG_GITHUB_TOKEN/GHORG_GITLAB_TOKEN/GHORG_GITEA_TOKEN/GHORG_BITBUCKET_APP_PASSWORD - scm token to clone with")
 	cloneCmd.Flags().StringVarP(&bitbucketUsername, "bitbucket-username", "", "", "GHORG_BITBUCKET_USERNAME - bitbucket only: username associated with the app password")
-	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "", "GHORG_SCM_TYPE - type of scm used, github, gitlab or bitbucket (default github)")
+	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "", "GHORG_SCM_TYPE - type of scm used, github, gitlab, gitea or bitbucket (default github)")
 	// TODO: make gitlab terminology make sense https://about.gitlab.com/2016/01/27/comparing-terms-gitlab-github-bitbucket/
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - clone target type, user or org (default org)")
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED - skips archived repos, github/gitlab only")
 	cloneCmd.Flags().BoolVar(&skipArchived, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into *_ghorg/unit/subunit/app, gitlab only")
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP - backup mode, clone as mirror, no working copy (ignores branch parameter)")
-	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - change SCM base url, for on self hosted instances (currently gitlab/github only, use format of https://git.mydomain.com/api/v3)")
+	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - change SCM base url, for on self hosted instances (currently gitlab, gitea and github (use format of https://git.mydomain.com/api/v3))")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - max goroutines to spin up while cloning (default 25)")
-	cloneCmd.Flags().StringVarP(&topics, "topics", "", "", "GHORG_GITHUB_TOPICS - comma seperated list of github topics to filter for")
+	cloneCmd.Flags().StringVarP(&topics, "topics", "", "", "GHORG_TOPICS - comma seperated list of github/gitea topics to filter for")
 	cloneCmd.Flags().StringVarP(&outputDir, "output-dir", "", "", "GHORG_OUTPUT_DIR - name of directory repos will be cloned into, will force underscores and always append _ghorg (default {org/repo being cloned}_ghorg)")
 	cloneCmd.Flags().StringVarP(&matchPrefix, "match-prefix", "", "", "GHORG_MATCH_PREFIX - only clone repos with matching prefix, can be a comma separated list (default \"\")")
 }
 
 var cloneCmd = &cobra.Command{
 	Use:   "clone",
-	Short: "Clone user or org repos from GitHub, GitLab, or Bitbucket",
-	Long:  `Clone user or org repos from GitHub, GitLab, or Bitbucket. See $HOME/ghorg/conf.yaml for defaults, its likely you will need to update some of these values of use the flags to overwrite them. Values are set first by a default value, then based off what is set in $HOME/ghorg/conf.yaml, finally the cli flags, which have the highest level of precedence.`,
+	Short: "Clone user or org repos from GitHub, GitLab, Gitea or Bitbucket",
+	Long:  `Clone user or org repos from GitHub, GitLab, Gitea or Bitbucket. See $HOME/ghorg/conf.yaml for defaults, its likely you will need to update some of these values of use the flags to overwrite them. Values are set first by a default value, then based off what is set in $HOME/ghorg/conf.yaml, finally the cli flags, which have the highest level of precedence.`,
 	Run:   cloneFunc,
 }
 
@@ -129,7 +130,7 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 
 	if cmd.Flags().Changed("topics") {
 		topics := cmd.Flag("topics").Value.String()
-		os.Setenv("GHORG_GITHUB_TOPICS", topics)
+		os.Setenv("GHORG_TOPICS", topics)
 	}
 
 	if cmd.Flags().Changed("match-prefix") {
@@ -163,6 +164,8 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 			os.Setenv("GHORG_GITLAB_TOKEN", cmd.Flag("token").Value.String())
 		} else if os.Getenv("GHORG_SCM_TYPE") == "bitbucket" {
 			os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
+		} else if os.Getenv("GHORG_SCM_TYPE") == "gitea" {
+			os.Setenv("GHORG_GITEA_TOKEN", cmd.Flag("token").Value.String())
 		}
 	}
 
@@ -197,6 +200,8 @@ func getAllOrgCloneUrls() ([]repo.Data, error) {
 		repos, err = github.GetOrgRepos(ghc, targetCloneSource)
 	case "gitlab":
 		repos, err = gitlab.GetOrgRepos(targetCloneSource)
+	case "gitea":
+		repos, err = gitea.GetOrgRepos(targetCloneSource)
 	case "bitbucket":
 		repos, err = bitbucket.GetOrgRepos(targetCloneSource)
 	default:
@@ -218,6 +223,8 @@ func getAllUserCloneUrls() ([]repo.Data, error) {
 		repos, err = github.GetUserRepos(targetCloneSource)
 	case "gitlab":
 		repos, err = gitlab.GetUserRepos(targetCloneSource)
+	case "gitea":
+		repos, err = gitea.GetUserRepos(targetCloneSource)
 	case "bitbucket":
 		repos, err = bitbucket.GetUserRepos(targetCloneSource)
 	default:

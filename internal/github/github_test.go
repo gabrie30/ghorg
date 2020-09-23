@@ -101,7 +101,7 @@ func TestGetOrgRepos(t *testing.T) {
 	})
 
 	t.Run("Find all repos with specific topic set", func(tt *testing.T) {
-		os.Setenv("GHORG_GITHUB_TOPICS", "test-topic")
+		os.Setenv("GHORG_TOPICS", "test-topic")
 		resp, err := github.GetOrgRepos(client, "testorg")
 
 		if err != nil {
@@ -112,7 +112,7 @@ func TestGetOrgRepos(t *testing.T) {
 		if want != got {
 			tt.Errorf("Expected %v repo, got: %v", want, got)
 		}
-		os.Setenv("GHORG_GITHUB_TOPICS", "")
+		os.Setenv("GHORG_TOPICS", "")
 	})
 
 	t.Run("Find all repos with specific prefix", func(tt *testing.T) {
