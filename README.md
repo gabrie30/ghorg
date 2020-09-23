@@ -20,6 +20,7 @@ ghorg allows you to quickly clone all of an orgs, or users repos into a single d
 - GitHub
 - GitLab
 - Bitbucket
+- Gitea
 
 > The terminology used in ghorg is that of GitHub, mainly orgs/repos. GitLab and BitBucket use different terminology. There is a handy chart thanks to GitLab that translates terminology [here](https://about.gitlab.com/images/blogimages/gitlab-terminology.png)
 

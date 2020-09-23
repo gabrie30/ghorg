@@ -3,8 +3,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.4.1] - unrealeased
+## [1.5.0] - unrealeased
 ### Added
+- gitea support; thanks @6543
 ### Changed
 ### Deprecated
 ### Removed
