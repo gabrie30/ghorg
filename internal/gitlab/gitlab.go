@@ -45,6 +45,12 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 				}
 			}
 
+			if os.Getenv("GHORG_SKIP_FORKS") == "true" {
+				if p.ForkedFromProject != nil {
+					continue
+				}
+			}
+
 			if os.Getenv("GHORG_MATCH_PREFIX") != "" {
 				repoName := strings.ToLower(p.Name)
 				foundPrefix := false

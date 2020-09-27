@@ -118,6 +118,12 @@ func filter(client *gitea.Client, rps []*gitea.Repository) (repoData []repo.Data
 			}
 		}
 
+		if os.Getenv("GHORG_SKIP_FORKS") == "true" {
+			if rp.Fork == true {
+				continue
+			}
+		}
+
 		// If user defined a list of topics, check if any match with this repo
 		if os.Getenv("GHORG_TOPICS") != "" {
 			rpTopics, _, err := client.ListRepoTopics(rp.Owner.UserName, rp.Name, gitea.ListRepoTopicsOptions{})

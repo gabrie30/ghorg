@@ -78,6 +78,7 @@ func initConfig() {
 	getOrSetDefaults("GHORG_SCM_TYPE")
 	getOrSetDefaults("GHORG_COLOR")
 	getOrSetDefaults("GHORG_SKIP_ARCHIVED")
+	getOrSetDefaults("GHORG_SKIP_FORKS")
 	getOrSetDefaults("GHORG_BACKUP")
 	getOrSetDefaults("GHORG_CONCURRENCY")
 	getOrSetDefaults("GHORG_MATCH_PREFIX")
@@ -128,6 +129,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_COLOR":
 			os.Setenv(envVar, "on")
 		case "GHORG_SKIP_ARCHIVED":
+			os.Setenv(envVar, "false")
+		case "GHORG_SKIP_FORKS":
 			os.Setenv(envVar, "false")
 		case "GHORG_BACKUP":
 			os.Setenv(envVar, "false")

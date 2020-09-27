@@ -56,16 +56,16 @@ func TestGetOrgRepos(t *testing.T) {
 
 	mux.HandleFunc("/orgs/testorg/repos", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, `[
-			{"id":1, "clone_url": "https://example.com", "name": "foobar1", "archived": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
-			{"id":2, "clone_url": "https://example.com", "name": "foobar2", "archived": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
-			{"id":3, "clone_url": "https://example.com", "name": "foobar3", "archived": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
-			{"id":4, "clone_url": "https://example.com", "name": "foobar4", "archived": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
-			{"id":5, "clone_url": "https://example.com", "name": "foobar5", "archived": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
-			{"id":6, "clone_url": "https://example.com", "name": "foobar6", "archived": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
-			{"id":7, "clone_url": "https://example.com", "name": "foobar7", "archived": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
-			{"id":8, "clone_url": "https://example.com", "name": "tp-foobar8", "archived": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
-			{"id":9, "clone_url": "https://example.com", "name": "tp-foobar9", "archived": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
-			{"id":10, "clone_url": "https://example.com", "name": "tp-foobar10", "archived": true, "topics": ["test-topic"], "ssh_url": "httgitps://example.com"}
+			{"id":1, "clone_url": "https://example.com", "name": "foobar1", "archived": false, "fork": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
+			{"id":2, "clone_url": "https://example.com", "name": "foobar2", "archived": false, "fork": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
+			{"id":3, "clone_url": "https://example.com", "name": "foobar3", "archived": false, "fork": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
+			{"id":4, "clone_url": "https://example.com", "name": "foobar4", "archived": false, "fork": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
+			{"id":5, "clone_url": "https://example.com", "name": "foobar5", "archived": false, "fork": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
+			{"id":6, "clone_url": "https://example.com", "name": "foobar6", "archived": false, "fork": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
+			{"id":7, "clone_url": "https://example.com", "name": "foobar7", "archived": false, "fork": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
+			{"id":8, "clone_url": "https://example.com", "name": "tp-foobar8", "archived": false, "fork": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
+			{"id":9, "clone_url": "https://example.com", "name": "tp-foobar9", "archived": false, "fork": true, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
+			{"id":10, "clone_url": "https://example.com", "name": "tp-foobar10", "archived": true, "fork": false, "topics": ["test-topic"], "ssh_url": "httgitps://example.com"}
 			]`)
 	})
 
@@ -97,6 +97,22 @@ func TestGetOrgRepos(t *testing.T) {
 			tt.Errorf("Expected %v repo, got: %v", want, got)
 		}
 		os.Setenv("GHORG_SKIP_ARCHIVED", "")
+
+	})
+
+	t.Run("Should skip forked repos when env is set", func(tt *testing.T) {
+		os.Setenv("GHORG_SKIP_FORKS", "true")
+		resp, err := github.GetOrgRepos(client, "testorg")
+
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := 9
+		got := len(resp)
+		if want != got {
+			tt.Errorf("Expected %v repo, got: %v", want, got)
+		}
+		os.Setenv("GHORG_SKIP_FORKS", "")
 
 	})
 
