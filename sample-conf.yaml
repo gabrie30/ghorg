@@ -82,10 +82,15 @@ GHORG_COLOR:
 # If any topics exist here, ghorg will only clone repos that match at least one of these topics
 GHORG_TOPICS:
 
-# Skip archived repos (true/false), currently github/gitlab only
+# Skip archived repos (true/false), currently github/gitlab/gitea only
 # default: false
 # flag (--skip-archived)
 GHORG_SKIP_ARCHIVED:
+
+# Skip repos that are forks (true/false), currently github/gitlab/gitea only
+# default: false
+# flag (--skip-forks)
+GHORG_SKIP_FORKS:
 
 # Backup mode, clone as mirror, no working copy (ignores branch parameter) (true/false)
 # default: false

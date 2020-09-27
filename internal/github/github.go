@@ -54,6 +54,12 @@ func GetOrgRepos(client *github.Client, targetOrg string) ([]repo.Data, error) {
 			}
 		}
 
+		if os.Getenv("GHORG_SKIP_FORKS") == "true" {
+			if *ghRepo.Fork == true {
+				continue
+			}
+		}
+
 		// If user defined a list of topics, check if any match with this repo
 		if os.Getenv("GHORG_TOPICS") != "" {
 			foundTopic := false

@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.5.0] - unrealeased
 ### Added
 - gitea support; thanks @6543
+- skip forks flag; thanks @6543
 ### Changed
 ### Deprecated
 ### Removed
