@@ -1,7 +1,9 @@
-clone a **user** on a **hosted gitlab** instance
+> Note: all flags can be permanently set in your $HOME/.config/ghorg/conf.yaml
+
+clone a **user** on a **hosted gitlab** instance using a **token** for auth
 
 ```
-$ ghorg clone <gitlab_username> --clone-type=user --base-url=https://<your.instance.gitlab.com> --scm=gitlab
+$ ghorg clone <gitlab_username> --clone-type=user --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXXXXXXXXX
 ```
 
 clone a **group** on a **hosted gitlab** instance **preserving** the directory structure of subgroups
