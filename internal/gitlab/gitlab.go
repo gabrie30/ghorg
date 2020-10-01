@@ -1,6 +1,7 @@
 package gitlab
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -8,6 +9,10 @@ import (
 	"github.com/gabrie30/ghorg/internal/repo"
 
 	gitlab "github.com/xanzy/go-gitlab"
+)
+
+var (
+	perPage = 50
 )
 
 // GetOrgRepos fetches repo data from a specific group
@@ -21,7 +26,7 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 
 	opt := &gitlab.ListGroupProjectsOptions{
 		ListOptions: gitlab.ListOptions{
-			PerPage: 100,
+			PerPage: perPage,
 			Page:    1,
 		},
 		IncludeSubgroups: gitlab.Bool(true),
@@ -32,7 +37,10 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 		ps, resp, err := client.Groups.ListGroupProjects(targetOrg, opt)
 
 		if err != nil {
-			// TODO: check if 404, then we know group does not exist
+			if resp != nil && resp.StatusCode == 404 {
+				colorlog.PrintError(fmt.Sprintf("group '%s' does not exist", targetOrg))
+				return []repo.Data{}, nil
+			}
 			return []repo.Data{}, err
 		}
 
@@ -75,7 +83,7 @@ func GetUserRepos(targetUsername string) ([]repo.Data, error) {
 
 	opt := &gitlab.ListProjectsOptions{
 		ListOptions: gitlab.ListOptions{
-			PerPage: 50,
+			PerPage: perPage,
 			Page:    1,
 		},
 	}
@@ -84,7 +92,10 @@ func GetUserRepos(targetUsername string) ([]repo.Data, error) {
 		// Get the first page with projects.
 		ps, resp, err := client.Projects.ListUserProjects(targetUsername, opt)
 		if err != nil {
-			// TODO: check if 404, then we know user does not exist
+			if resp != nil && resp.StatusCode == 404 {
+				colorlog.PrintError(fmt.Sprintf("user '%s' does not exist", targetUsername))
+				return []repo.Data{}, nil
+			}
 			return []repo.Data{}, err
 		}
 
