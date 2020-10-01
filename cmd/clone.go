@@ -12,11 +12,8 @@ import (
 
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/configs"
+	"github.com/gabrie30/ghorg/internal"
 	"github.com/gabrie30/ghorg/internal/base"
-	"github.com/gabrie30/ghorg/internal/bitbucket"
-	"github.com/gabrie30/ghorg/internal/gitea"
-	"github.com/gabrie30/ghorg/internal/github"
-	"github.com/gabrie30/ghorg/internal/gitlab"
 	"github.com/korovkin/limiter"
 	"github.com/spf13/cobra"
 )
@@ -196,49 +193,26 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 
 // TODO: Figure out how to use go channels for this
 func getAllOrgCloneUrls() ([]base.Repo, error) {
-	asciiTime()
-	PrintConfigs()
-	var repos []base.Repo
-	var err error
-	switch os.Getenv("GHORG_SCM_TYPE") {
-	case "github":
-		ghc := github.NewGitHubClient()
-		repos, err = github.GetOrgRepos(ghc, targetCloneSource)
-	case "gitlab":
-		repos, err = gitlab.GetOrgRepos(targetCloneSource)
-	case "gitea":
-		repos, err = gitea.GetOrgRepos(targetCloneSource)
-	case "bitbucket":
-		repos, err = bitbucket.GetOrgRepos(targetCloneSource)
-	default:
-		colorlog.PrintError("GHORG_SCM_TYPE not set or unsupported, also make sure its all lowercase")
-		os.Exit(1)
-	}
-
-	return repos, err
+	return getCloneUrls(true)
 }
 
 // TODO: Figure out how to use go channels for this
 func getAllUserCloneUrls() ([]base.Repo, error) {
+	return getCloneUrls(false)
+}
+
+func getCloneUrls(isOrg bool) ([]base.Repo, error) {
 	asciiTime()
 	PrintConfigs()
-	var repos []base.Repo
-	var err error
-	switch os.Getenv("GHORG_SCM_TYPE") {
-	case "github":
-		repos, err = github.GetUserRepos(targetCloneSource)
-	case "gitlab":
-		repos, err = gitlab.GetUserRepos(targetCloneSource)
-	case "gitea":
-		repos, err = gitea.GetUserRepos(targetCloneSource)
-	case "bitbucket":
-		repos, err = bitbucket.GetUserRepos(targetCloneSource)
-	default:
-		colorlog.PrintError("GHORG_SCM_TYPE not set or unsupported, also make sure its all lowercase")
+	client := internal.GetClient(strings.ToLower(os.Getenv("GHORG_SCM_TYPE")))
+	if client == nil {
+		colorlog.PrintError("GHORG_SCM_TYPE not set or unsupported")
 		os.Exit(1)
 	}
-
-	return repos, err
+	if isOrg {
+		return client.GetOrgRepos(targetCloneSource)
+	}
+	return client.GetUserRepos(targetCloneSource)
 }
 
 func createDirIfNotExist() {

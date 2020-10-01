@@ -1,4 +1,3 @@
-// Package repo holds data for a repo
 package base
 
 // Repo represents an SCM repo

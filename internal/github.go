@@ -1,4 +1,4 @@
-package github
+package internal
 
 import (
 	"context"
@@ -12,8 +12,25 @@ import (
 	"golang.org/x/oauth2"
 )
 
+var (
+	_ base.Client = GithubClient{}
+)
+
+func init() {
+	RegisterClient(GithubClient{})
+}
+
+type GithubClient struct {
+	client *github.Client
+}
+
+func (_ GithubClient) GetType() string {
+	return "github"
+}
+
 // GetOrgRepos gets org repos
-func GetOrgRepos(client *github.Client, targetOrg string) ([]base.Repo, error) {
+func (c GithubClient) GetOrgRepos(targetOrg string) ([]base.Repo, error) {
+	client := c.newGitHubClient()
 
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		u := configs.EnsureTrailingSlash(os.Getenv("GHORG_SCM_BASE_URL"))
@@ -44,22 +61,18 @@ func GetOrgRepos(client *github.Client, targetOrg string) ([]base.Repo, error) {
 		opt.Page = resp.NextPage
 	}
 
-	return filter(allRepos, envTopics), nil
+	return c.filter(allRepos, envTopics), nil
 }
 
 // GetUserRepos gets user repos
-func GetUserRepos(targetUser string) ([]base.Repo, error) {
-	ctx := context.Background()
-
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
+func (c GithubClient) GetUserRepos(targetUser string) ([]base.Repo, error) {
+	if c.client == nil {
+		c.client = c.newGitHubClient()
+	}
 
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		u := configs.EnsureTrailingSlash(os.Getenv("GHORG_SCM_BASE_URL"))
-		client.BaseURL, _ = url.Parse(u)
+		c.client.BaseURL, _ = url.Parse(u)
 	}
 
 	opt := &github.RepositoryListOptions{
@@ -73,7 +86,7 @@ func GetUserRepos(targetUser string) ([]base.Repo, error) {
 	var allRepos []*github.Repository
 	for {
 
-		repos, resp, err := client.Repositories.List(context.Background(), targetUser, opt)
+		repos, resp, err := c.client.Repositories.List(context.Background(), targetUser, opt)
 
 		if err != nil {
 			return nil, err
@@ -85,15 +98,15 @@ func GetUserRepos(targetUser string) ([]base.Repo, error) {
 		opt.Page = resp.NextPage
 	}
 
-	return filter(allRepos, envTopics), nil
+	return c.filter(allRepos, envTopics), nil
 }
 
-func addTokenToHTTPSCloneURL(url string, token string) string {
+func (_ GithubClient) addTokenToHTTPSCloneURL(url string, token string) string {
 	splitURL := strings.Split(url, "https://")
 	return "https://" + token + "@" + splitURL[1]
 }
 
-func filter(allRepos []*github.Repository, envTopics []string) []base.Repo {
+func (c GithubClient) filter(allRepos []*github.Repository, envTopics []string) []base.Repo {
 	var repoData []base.Repo
 
 	for _, ghRepo := range allRepos {
@@ -142,7 +155,7 @@ func filter(allRepos []*github.Repository, envTopics []string) []base.Repo {
 
 		r := base.Repo{}
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-			r.CloneURL = addTokenToHTTPSCloneURL(*ghRepo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
+			r.CloneURL = c.addTokenToHTTPSCloneURL(*ghRepo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
 			r.URL = *ghRepo.CloneURL
 			repoData = append(repoData, r)
 		} else {
@@ -153,4 +166,15 @@ func filter(allRepos []*github.Repository, envTopics []string) []base.Repo {
 	}
 
 	return repoData
+}
+
+// newGitHubClient creates a github client
+func (_ GithubClient) newGitHubClient() *github.Client {
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
+	)
+	tc := oauth2.NewClient(ctx, ts)
+	client := github.NewClient(tc)
+	return client
 }

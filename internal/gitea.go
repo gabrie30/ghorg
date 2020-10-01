@@ -1,4 +1,4 @@
-package gitea
+package internal
 
 import (
 	"fmt"
@@ -12,10 +12,24 @@ import (
 	"code.gitea.io/sdk/gitea"
 )
 
+var (
+	_ base.Client = GiteaClient{}
+)
+
+func init() {
+	RegisterClient(GiteaClient{})
+}
+
+type GiteaClient struct{}
+
+func (_ GiteaClient) GetType() string {
+	return "gitea"
+}
+
 // GetOrgRepos fetches repo data from a specific group
-func GetOrgRepos(targetOrg string) ([]base.Repo, error) {
+func (c GiteaClient) GetOrgRepos(targetOrg string) ([]base.Repo, error) {
 	repoData := []base.Repo{}
-	client, err := determineClient()
+	client, err := c.determineClient()
 
 	if err != nil {
 		colorlog.PrintError(err)
@@ -39,7 +53,7 @@ func GetOrgRepos(targetOrg string) ([]base.Repo, error) {
 			return []base.Repo{}, err
 		}
 
-		repoDataFiltered, err := filter(client, rps)
+		repoDataFiltered, err := c.filter(client, rps)
 		if err != nil {
 			return nil, err
 		}
@@ -55,9 +69,9 @@ func GetOrgRepos(targetOrg string) ([]base.Repo, error) {
 }
 
 // GetUserRepos gets all of a users gitlab repos
-func GetUserRepos(targetUsername string) ([]base.Repo, error) {
+func (c GiteaClient) GetUserRepos(targetUsername string) ([]base.Repo, error) {
 	repoData := []base.Repo{}
-	client, err := determineClient()
+	client, err := c.determineClient()
 
 	if err != nil {
 		colorlog.PrintError(err)
@@ -81,7 +95,7 @@ func GetUserRepos(targetUsername string) ([]base.Repo, error) {
 			return []base.Repo{}, err
 		}
 
-		repoDataFiltered, err := filter(client, rps)
+		repoDataFiltered, err := c.filter(client, rps)
 		if err != nil {
 			return nil, err
 		}
@@ -96,7 +110,7 @@ func GetUserRepos(targetUsername string) ([]base.Repo, error) {
 	return repoData, nil
 }
 
-func determineClient() (*gitea.Client, error) {
+func (c GiteaClient) determineClient() (*gitea.Client, error) {
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
 	token := os.Getenv("GHORG_GITEA_TOKEN")
 
@@ -107,7 +121,7 @@ func determineClient() (*gitea.Client, error) {
 	return gitea.NewClient(baseURL, gitea.SetToken(token))
 }
 
-func filter(client *gitea.Client, rps []*gitea.Repository) (repoData []base.Repo, err error) {
+func (c GiteaClient) filter(client *gitea.Client, rps []*gitea.Repository) (repoData []base.Repo, err error) {
 	envTopics := strings.Split(os.Getenv("GHORG_TOPICS"), ",")
 
 	for _, rp := range rps {

@@ -1,16 +1,30 @@
-package bitbucket
+package internal
 
 import (
+	"os"
 	"strings"
 
 	"github.com/gabrie30/ghorg/internal/base"
-	bitbucket "github.com/ktrysmt/go-bitbucket"
 
-	"os"
+	"github.com/ktrysmt/go-bitbucket"
 )
 
+var (
+	_ base.Client = BitbucketClient{}
+)
+
+func init() {
+	RegisterClient(BitbucketClient{})
+}
+
+type BitbucketClient struct{}
+
+func (_ BitbucketClient) GetType() string {
+	return "bitbucket"
+}
+
 // GetOrgRepos gets org repos
-func GetOrgRepos(targetOrg string) ([]base.Repo, error) {
+func (c BitbucketClient) GetOrgRepos(targetOrg string) ([]base.Repo, error) {
 
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
 
@@ -19,11 +33,11 @@ func GetOrgRepos(targetOrg string) ([]base.Repo, error) {
 		return []base.Repo{}, err
 	}
 
-	return filter(resp)
+	return c.filter(resp)
 }
 
 // GetUserRepos gets user repos from bitbucket
-func GetUserRepos(targetUser string) ([]base.Repo, error) {
+func (c BitbucketClient) GetUserRepos(targetUser string) ([]base.Repo, error) {
 
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
 
@@ -32,10 +46,10 @@ func GetUserRepos(targetUser string) ([]base.Repo, error) {
 		return []base.Repo{}, err
 	}
 
-	return filter(resp)
+	return c.filter(resp)
 }
 
-func filter(resp interface{}) (repoData []base.Repo, err error) {
+func (_ BitbucketClient) filter(resp interface{}) (repoData []base.Repo, err error) {
 	cloneData := []base.Repo{}
 	values := resp.(map[string]interface{})["values"].([]interface{})
 

@@ -1,4 +1,4 @@
-package github_test
+package internal
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gabrie30/ghorg/internal/github"
 	ghpkg "github.com/google/go-github/v32/github"
 )
 
@@ -52,6 +51,10 @@ func setup() (client *ghpkg.Client, mux *http.ServeMux, serverURL string, teardo
 
 func TestGetOrgRepos(t *testing.T) {
 	client, mux, _, teardown := setup()
+
+	github := GithubClient{}
+	github.client = client
+
 	defer teardown()
 
 	mux.HandleFunc("/orgs/testorg/repos", func(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +73,8 @@ func TestGetOrgRepos(t *testing.T) {
 	})
 
 	t.Run("Should return all repos", func(tt *testing.T) {
-		resp, err := github.GetOrgRepos(client, "testorg")
+
+		resp, err := github.GetOrgRepos("testorg")
 
 		if err != nil {
 			t.Fatal(err)
@@ -86,7 +90,7 @@ func TestGetOrgRepos(t *testing.T) {
 
 	t.Run("Should skip archived repos when env is set", func(tt *testing.T) {
 		os.Setenv("GHORG_SKIP_ARCHIVED", "true")
-		resp, err := github.GetOrgRepos(client, "testorg")
+		resp, err := github.GetOrgRepos("testorg")
 
 		if err != nil {
 			t.Fatal(err)
@@ -102,7 +106,7 @@ func TestGetOrgRepos(t *testing.T) {
 
 	t.Run("Should skip forked repos when env is set", func(tt *testing.T) {
 		os.Setenv("GHORG_SKIP_FORKS", "true")
-		resp, err := github.GetOrgRepos(client, "testorg")
+		resp, err := github.GetOrgRepos("testorg")
 
 		if err != nil {
 			t.Fatal(err)
@@ -118,7 +122,7 @@ func TestGetOrgRepos(t *testing.T) {
 
 	t.Run("Find all repos with specific topic set", func(tt *testing.T) {
 		os.Setenv("GHORG_TOPICS", "test-topic")
-		resp, err := github.GetOrgRepos(client, "testorg")
+		resp, err := github.GetOrgRepos("testorg")
 
 		if err != nil {
 			t.Fatal(err)
@@ -133,7 +137,7 @@ func TestGetOrgRepos(t *testing.T) {
 
 	t.Run("Find all repos with specific prefix", func(tt *testing.T) {
 		os.Setenv("GHORG_MATCH_PREFIX", "tp-")
-		resp, err := github.GetOrgRepos(client, "testorg")
+		resp, err := github.GetOrgRepos("testorg")
 
 		if err != nil {
 			t.Fatal(err)

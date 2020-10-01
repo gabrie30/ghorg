@@ -1,4 +1,4 @@
-package gitlab
+package internal
 
 import (
 	"fmt"
@@ -12,13 +12,25 @@ import (
 )
 
 var (
-	perPage = 50
+	_       base.Client = GitlabClient{}
+	perPage             = 50
 )
 
+func init() {
+	RegisterClient(GitlabClient{})
+}
+
+type GitlabClient struct {
+}
+
+func (_ GitlabClient) GetType() string {
+	return "gitlab"
+}
+
 // GetOrgRepos fetches repo data from a specific group
-func GetOrgRepos(targetOrg string) ([]base.Repo, error) {
+func (c GitlabClient) GetOrgRepos(targetOrg string) ([]base.Repo, error) {
 	repoData := []base.Repo{}
-	client, err := determineClient()
+	client, err := c.determineClient()
 
 	if err != nil {
 		colorlog.PrintError(err)
@@ -45,7 +57,7 @@ func GetOrgRepos(targetOrg string) ([]base.Repo, error) {
 		}
 
 		// filter from all the projects we've found so far.
-		repoData = append(repoData, filter(ps)...)
+		repoData = append(repoData, c.filter(ps)...)
 
 		// Exit the loop when we've seen all pages.
 		if resp.CurrentPage >= resp.TotalPages {
@@ -59,7 +71,7 @@ func GetOrgRepos(targetOrg string) ([]base.Repo, error) {
 	return repoData, nil
 }
 
-func determineClient() (*gitlab.Client, error) {
+func (_ GitlabClient) determineClient() (*gitlab.Client, error) {
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
 	token := os.Getenv("GHORG_GITLAB_TOKEN")
 
@@ -72,10 +84,10 @@ func determineClient() (*gitlab.Client, error) {
 }
 
 // GetUserRepos gets all of a users gitlab repos
-func GetUserRepos(targetUsername string) ([]base.Repo, error) {
+func (c GitlabClient) GetUserRepos(targetUsername string) ([]base.Repo, error) {
 	cloneData := []base.Repo{}
 
-	client, err := determineClient()
+	client, err := c.determineClient()
 
 	if err != nil {
 		colorlog.PrintError(err)
@@ -100,7 +112,7 @@ func GetUserRepos(targetUsername string) ([]base.Repo, error) {
 		}
 
 		// filter from all the projects we've found so far.
-		cloneData = append(cloneData, filter(ps)...)
+		cloneData = append(cloneData, c.filter(ps)...)
 
 		// Exit the loop when we've seen all pages.
 		if resp.CurrentPage >= resp.TotalPages {
@@ -114,12 +126,12 @@ func GetUserRepos(targetUsername string) ([]base.Repo, error) {
 	return cloneData, nil
 }
 
-func addTokenToHTTPSCloneURL(url string, token string) string {
+func (_ GitlabClient) addTokenToHTTPSCloneURL(url string, token string) string {
 	splitURL := strings.Split(url, "https://")
 	return "https://oauth2:" + token + "@" + splitURL[1]
 }
 
-func filter(ps []*gitlab.Project) []base.Repo {
+func (c GitlabClient) filter(ps []*gitlab.Project) []base.Repo {
 	var repoData []base.Repo
 	for _, p := range ps {
 
@@ -153,7 +165,7 @@ func filter(ps []*gitlab.Project) []base.Repo {
 
 		r.Path = p.PathWithNamespace
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-			r.CloneURL = addTokenToHTTPSCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))
+			r.CloneURL = c.addTokenToHTTPSCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))
 			r.URL = p.HTTPURLToRepo
 			repoData = append(repoData, r)
 		} else {
