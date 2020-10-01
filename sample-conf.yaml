@@ -25,6 +25,16 @@ GHORG_GITLAB_TOKEN:
 GHORG_PRESERVE_DIRECTORY_STRUCTURE:
 
 
+# +-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+# |G|I|T|E|A| |S|P|E|C|I|F|I|C|
+# +-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+
+# Add your Gitea token
+# Settings -> Applications -> Generate Token
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+GHORG_GITEA_TOKEN:
+
+
 # +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 # |B|I|T|B|U|C|K|E|T| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
@@ -42,12 +52,12 @@ GHORG_BITBUCKET_USERNAME:
 # |G|E|N|E|R|A|L| |C|O|N|F|I|G|U|R|A|T|I|O|N|
 # +-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-# Change SCM base url, for on self hosted instances (currently gitlab only, use format of https://git.mydomain.com/api/v3)
+# Change SCM base url, for on self hosted instances (for gitlab, use format of https://git.mydomain.com/api/v3), gitea require this
 # default: uses github/gitlab public api
 # flag (--base-url)
 GHORG_SCM_BASE_URL:
 
-# Which provider to clone from (github, gitlab, or bitbucket)
+# Which provider to clone from (github, gitlab, gitea or bitbucket)
 # default: github
 # flag (--scm, -s)
 GHORG_SCM_TYPE:

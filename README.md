@@ -79,6 +79,12 @@ Configuration for each clone can be set in two ways. The first is in `$HOME/.con
 1. Update `GHORG_SCM_TYPE` to `gitlab` in your `ghorg/conf.yaml` or via cli flags
 1. See [examples/gitlab.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md) on how to run
 
+### gitea setup
+
+1. Create [Access Token](https://docs.gitea.io/en-us/api-usage/) (Settings -> Applications -> Generate Token)
+1. Update `GHORG_GITEA_TOKEN` in your `ghorg/conf.yaml` or use the (--token, -t) flag.
+1. Update `GHORG_SCM_TYPE` to `gitea` in your `ghorg/conf.yaml` or via cli flags
+
 ### bitbucket setup
 
 1. To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/.config/ghorg/conf.yaml` [here](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L37-L47) or use the (--token, -t) and (--bitbucket-username) flags.
@@ -96,7 +102,7 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 > It's recommended to store github/gitlab tokens in the osxkeychain, if this command returns anything other than your token see Troubleshooting section below. However, you can always add your token to the $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flags.
 
 ## Ignoring Repos
-- To ignore any archived repos while cloning use the `--skip-archived` flag (github/gitlab only)
+- To ignore any archived repos while cloning use the `--skip-archived` flag (not bitbucket)
 - To ignore specific repos create a `ghorgignore` file inside `$HOME/.config/ghorg`. Each line in this file is considered a substring and will be compared against each repos clone url. If the clone url contains a substring in the `ghorgignore` it will be excluded from cloning. To prevent accidentally excluding a repo, you should make each line as specific as possible, eg. `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git` depending on how you clone.
 
   ```bash
