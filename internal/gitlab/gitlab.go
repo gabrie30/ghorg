@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
-	"github.com/gabrie30/ghorg/internal/repo"
+	"github.com/gabrie30/ghorg/internal/base"
 
 	gitlab "github.com/xanzy/go-gitlab"
 )
@@ -16,8 +16,8 @@ var (
 )
 
 // GetOrgRepos fetches repo data from a specific group
-func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
-	repoData := []repo.Data{}
+func GetOrgRepos(targetOrg string) ([]base.Repo, error) {
+	repoData := []base.Repo{}
 	client, err := determineClient()
 
 	if err != nil {
@@ -39,9 +39,9 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				colorlog.PrintError(fmt.Sprintf("group '%s' does not exist", targetOrg))
-				return []repo.Data{}, nil
+				return []base.Repo{}, nil
 			}
-			return []repo.Data{}, err
+			return []base.Repo{}, err
 		}
 
 		// filter from all the projects we've found so far.
@@ -72,8 +72,8 @@ func determineClient() (*gitlab.Client, error) {
 }
 
 // GetUserRepos gets all of a users gitlab repos
-func GetUserRepos(targetUsername string) ([]repo.Data, error) {
-	cloneData := []repo.Data{}
+func GetUserRepos(targetUsername string) ([]base.Repo, error) {
+	cloneData := []base.Repo{}
 
 	client, err := determineClient()
 
@@ -94,9 +94,9 @@ func GetUserRepos(targetUsername string) ([]repo.Data, error) {
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				colorlog.PrintError(fmt.Sprintf("user '%s' does not exist", targetUsername))
-				return []repo.Data{}, nil
+				return []base.Repo{}, nil
 			}
-			return []repo.Data{}, err
+			return []base.Repo{}, err
 		}
 
 		// filter from all the projects we've found so far.
@@ -119,8 +119,8 @@ func addTokenToHTTPSCloneURL(url string, token string) string {
 	return "https://oauth2:" + token + "@" + splitURL[1]
 }
 
-func filter(ps []*gitlab.Project) []repo.Data {
-	var repoData []repo.Data
+func filter(ps []*gitlab.Project) []base.Repo {
+	var repoData []base.Repo
 	for _, p := range ps {
 
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
@@ -149,7 +149,7 @@ func filter(ps []*gitlab.Project) []repo.Data {
 			}
 		}
 
-		r := repo.Data{}
+		r := base.Repo{}
 
 		r.Path = p.PathWithNamespace
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {

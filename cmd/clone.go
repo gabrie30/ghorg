@@ -12,11 +12,11 @@ import (
 
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/configs"
+	"github.com/gabrie30/ghorg/internal/base"
 	"github.com/gabrie30/ghorg/internal/bitbucket"
 	"github.com/gabrie30/ghorg/internal/gitea"
 	"github.com/gabrie30/ghorg/internal/github"
 	"github.com/gabrie30/ghorg/internal/gitlab"
-	"github.com/gabrie30/ghorg/internal/repo"
 	"github.com/korovkin/limiter"
 	"github.com/spf13/cobra"
 )
@@ -195,10 +195,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 }
 
 // TODO: Figure out how to use go channels for this
-func getAllOrgCloneUrls() ([]repo.Data, error) {
+func getAllOrgCloneUrls() ([]base.Repo, error) {
 	asciiTime()
 	PrintConfigs()
-	var repos []repo.Data
+	var repos []base.Repo
 	var err error
 	switch os.Getenv("GHORG_SCM_TYPE") {
 	case "github":
@@ -219,10 +219,10 @@ func getAllOrgCloneUrls() ([]repo.Data, error) {
 }
 
 // TODO: Figure out how to use go channels for this
-func getAllUserCloneUrls() ([]repo.Data, error) {
+func getAllUserCloneUrls() ([]base.Repo, error) {
 	asciiTime()
 	PrintConfigs()
-	var repos []repo.Data
+	var repos []base.Repo
 	var err error
 	switch os.Getenv("GHORG_SCM_TYPE") {
 	case "github":
@@ -308,7 +308,7 @@ func readGhorgIgnore() ([]string, error) {
 func CloneAllRepos() {
 	// resc, errc, infoc := make(chan string), make(chan error), make(chan error)
 
-	var cloneTargets []repo.Data
+	var cloneTargets []base.Repo
 	var err error
 
 	if os.Getenv("GHORG_CLONE_TYPE") == "org" {
@@ -345,7 +345,7 @@ func CloneAllRepos() {
 		colorlog.PrintInfo("Using ghorgignore, filtering repos down...")
 		fmt.Println("")
 
-		filteredCloneTargets := []repo.Data{}
+		filteredCloneTargets := []base.Repo{}
 		var flag bool
 		for _, cloned := range cloneTargets {
 			flag = false

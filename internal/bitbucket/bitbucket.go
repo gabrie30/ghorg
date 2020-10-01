@@ -3,40 +3,40 @@ package bitbucket
 import (
 	"strings"
 
-	"github.com/gabrie30/ghorg/internal/repo"
+	"github.com/gabrie30/ghorg/internal/base"
 	bitbucket "github.com/ktrysmt/go-bitbucket"
 
 	"os"
 )
 
 // GetOrgRepos gets org repos
-func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
+func GetOrgRepos(targetOrg string) ([]base.Repo, error) {
 
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
 
 	resp, err := client.Teams.Repositories(targetOrg)
 	if err != nil {
-		return []repo.Data{}, err
+		return []base.Repo{}, err
 	}
 
 	return filter(resp)
 }
 
 // GetUserRepos gets user repos from bitbucket
-func GetUserRepos(targetUser string) ([]repo.Data, error) {
+func GetUserRepos(targetUser string) ([]base.Repo, error) {
 
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
 
 	resp, err := client.Users.Repositories(targetUser)
 	if err != nil {
-		return []repo.Data{}, err
+		return []base.Repo{}, err
 	}
 
 	return filter(resp)
 }
 
-func filter(resp interface{}) (repoData []repo.Data, err error) {
-	cloneData := []repo.Data{}
+func filter(resp interface{}) (repoData []base.Repo, err error) {
+	cloneData := []base.Repo{}
 	values := resp.(map[string]interface{})["values"].([]interface{})
 
 	for _, a := range values {
@@ -60,7 +60,7 @@ func filter(resp interface{}) (repoData []repo.Data, err error) {
 				}
 			}
 
-			r := repo.Data{}
+			r := base.Repo{}
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "ssh" && linkType == "ssh" {
 				r.URL = link.(string)
 				r.CloneURL = link.(string)

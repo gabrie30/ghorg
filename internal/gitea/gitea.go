@@ -7,14 +7,14 @@ import (
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
-	"github.com/gabrie30/ghorg/internal/repo"
+	"github.com/gabrie30/ghorg/internal/base"
 
 	"code.gitea.io/sdk/gitea"
 )
 
 // GetOrgRepos fetches repo data from a specific group
-func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
-	repoData := []repo.Data{}
+func GetOrgRepos(targetOrg string) ([]base.Repo, error) {
+	repoData := []base.Repo{}
 	client, err := determineClient()
 
 	if err != nil {
@@ -36,7 +36,7 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				colorlog.PrintError(fmt.Errorf("org \"%s\" not found", targetOrg))
 			}
-			return []repo.Data{}, err
+			return []base.Repo{}, err
 		}
 
 		repoDataFiltered, err := filter(client, rps)
@@ -55,8 +55,8 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 }
 
 // GetUserRepos gets all of a users gitlab repos
-func GetUserRepos(targetUsername string) ([]repo.Data, error) {
-	repoData := []repo.Data{}
+func GetUserRepos(targetUsername string) ([]base.Repo, error) {
+	repoData := []base.Repo{}
 	client, err := determineClient()
 
 	if err != nil {
@@ -78,7 +78,7 @@ func GetUserRepos(targetUsername string) ([]repo.Data, error) {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				colorlog.PrintError(fmt.Errorf("org \"%s\" not found", targetUsername))
 			}
-			return []repo.Data{}, err
+			return []base.Repo{}, err
 		}
 
 		repoDataFiltered, err := filter(client, rps)
@@ -107,7 +107,7 @@ func determineClient() (*gitea.Client, error) {
 	return gitea.NewClient(baseURL, gitea.SetToken(token))
 }
 
-func filter(client *gitea.Client, rps []*gitea.Repository) (repoData []repo.Data, err error) {
+func filter(client *gitea.Client, rps []*gitea.Repository) (repoData []base.Repo, err error) {
 	envTopics := strings.Split(os.Getenv("GHORG_TOPICS"), ",")
 
 	for _, rp := range rps {
@@ -128,7 +128,7 @@ func filter(client *gitea.Client, rps []*gitea.Repository) (repoData []repo.Data
 		if os.Getenv("GHORG_TOPICS") != "" {
 			rpTopics, _, err := client.ListRepoTopics(rp.Owner.UserName, rp.Name, gitea.ListRepoTopicsOptions{})
 			if err != nil {
-				return []repo.Data{}, err
+				return []base.Repo{}, err
 			}
 			foundTopic := false
 			for _, topic := range rpTopics {
@@ -161,7 +161,7 @@ func filter(client *gitea.Client, rps []*gitea.Repository) (repoData []repo.Data
 			}
 		}
 
-		r := repo.Data{}
+		r := base.Repo{}
 		r.Path = rp.FullName
 
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {

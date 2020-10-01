@@ -1,8 +1,8 @@
 // Package repo holds data for a repo
-package repo
+package base
 
-// Data represents an SCM repo
-type Data struct {
+// Repo represents an SCM repo
+type Repo struct {
 	Name     string
 	Path     string
 	URL      string

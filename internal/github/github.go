@@ -7,13 +7,13 @@ import (
 	"strings"
 
 	"github.com/gabrie30/ghorg/configs"
-	"github.com/gabrie30/ghorg/internal/repo"
+	"github.com/gabrie30/ghorg/internal/base"
 	"github.com/google/go-github/v32/github"
 	"golang.org/x/oauth2"
 )
 
 // GetOrgRepos gets org repos
-func GetOrgRepos(client *github.Client, targetOrg string) ([]repo.Data, error) {
+func GetOrgRepos(client *github.Client, targetOrg string) ([]base.Repo, error) {
 
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		u := configs.EnsureTrailingSlash(os.Getenv("GHORG_SCM_BASE_URL"))
@@ -48,7 +48,7 @@ func GetOrgRepos(client *github.Client, targetOrg string) ([]repo.Data, error) {
 }
 
 // GetUserRepos gets user repos
-func GetUserRepos(targetUser string) ([]repo.Data, error) {
+func GetUserRepos(targetUser string) ([]base.Repo, error) {
 	ctx := context.Background()
 
 	ts := oauth2.StaticTokenSource(
@@ -93,8 +93,8 @@ func addTokenToHTTPSCloneURL(url string, token string) string {
 	return "https://" + token + "@" + splitURL[1]
 }
 
-func filter(allRepos []*github.Repository, envTopics []string) []repo.Data {
-	var repoData []repo.Data
+func filter(allRepos []*github.Repository, envTopics []string) []base.Repo {
+	var repoData []base.Repo
 
 	for _, ghRepo := range allRepos {
 
@@ -140,7 +140,7 @@ func filter(allRepos []*github.Repository, envTopics []string) []repo.Data {
 			}
 		}
 
-		r := repo.Data{}
+		r := base.Repo{}
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			r.CloneURL = addTokenToHTTPSCloneURL(*ghRepo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
 			r.URL = *ghRepo.CloneURL
