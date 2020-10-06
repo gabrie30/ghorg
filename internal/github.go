@@ -30,11 +30,13 @@ func (_ GithubClient) GetType() string {
 
 // GetOrgRepos gets org repos
 func (c GithubClient) GetOrgRepos(targetOrg string) ([]base.Repo, error) {
-	client := c.newGitHubClient()
+	if c.client == nil {
+		c.client = c.newGitHubClient()
+	}
 
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		u := configs.EnsureTrailingSlash(os.Getenv("GHORG_SCM_BASE_URL"))
-		client.BaseURL, _ = url.Parse(u)
+		c.client.BaseURL, _ = url.Parse(u)
 	}
 
 	opt := &github.RepositoryListByOrgOptions{
@@ -48,7 +50,7 @@ func (c GithubClient) GetOrgRepos(targetOrg string) ([]base.Repo, error) {
 	var allRepos []*github.Repository
 	for {
 
-		repos, resp, err := client.Repositories.ListByOrg(context.Background(), targetOrg, opt)
+		repos, resp, err := c.client.Repositories.ListByOrg(context.Background(), targetOrg, opt)
 
 		if err != nil {
 			return nil, err
