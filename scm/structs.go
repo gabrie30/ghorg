@@ -1,4 +1,4 @@
-package base
+package scm
 
 // Repo represents an SCM repo
 type Repo struct {

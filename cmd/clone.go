@@ -12,8 +12,7 @@ import (
 
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/configs"
-	"github.com/gabrie30/ghorg/internal"
-	"github.com/gabrie30/ghorg/internal/base"
+	"github.com/gabrie30/ghorg/scm"
 	"github.com/korovkin/limiter"
 	"github.com/spf13/cobra"
 )
@@ -192,19 +191,19 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 }
 
 // TODO: Figure out how to use go channels for this
-func getAllOrgCloneUrls() ([]base.Repo, error) {
+func getAllOrgCloneUrls() ([]scm.Repo, error) {
 	return getCloneUrls(true)
 }
 
 // TODO: Figure out how to use go channels for this
-func getAllUserCloneUrls() ([]base.Repo, error) {
+func getAllUserCloneUrls() ([]scm.Repo, error) {
 	return getCloneUrls(false)
 }
 
-func getCloneUrls(isOrg bool) ([]base.Repo, error) {
+func getCloneUrls(isOrg bool) ([]scm.Repo, error) {
 	asciiTime()
 	PrintConfigs()
-	client := internal.GetClient(strings.ToLower(os.Getenv("GHORG_SCM_TYPE")))
+	client := scm.GetClient(strings.ToLower(os.Getenv("GHORG_SCM_TYPE")))
 	if client == nil {
 		colorlog.PrintError("GHORG_SCM_TYPE not set or unsupported")
 		os.Exit(1)
@@ -282,7 +281,7 @@ func readGhorgIgnore() ([]string, error) {
 func CloneAllRepos() {
 	// resc, errc, infoc := make(chan string), make(chan error), make(chan error)
 
-	var cloneTargets []base.Repo
+	var cloneTargets []scm.Repo
 	var err error
 
 	if os.Getenv("GHORG_CLONE_TYPE") == "org" {
@@ -319,7 +318,7 @@ func CloneAllRepos() {
 		colorlog.PrintInfo("Using ghorgignore, filtering repos down...")
 		fmt.Println("")
 
-		filteredCloneTargets := []base.Repo{}
+		filteredCloneTargets := []scm.Repo{}
 		var flag bool
 		for _, cloned := range cloneTargets {
 			flag = false

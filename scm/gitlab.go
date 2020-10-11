@@ -1,4 +1,4 @@
-package internal
+package scm
 
 import (
 	"fmt"
@@ -6,18 +6,16 @@ import (
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
-	"github.com/gabrie30/ghorg/internal/base"
-
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
 var (
-	_       base.Client = GitlabClient{}
-	perPage             = 50
+	_       Client = GitlabClient{}
+	perPage        = 50
 )
 
 func init() {
-	RegisterClient(GitlabClient{})
+	registerClient(GitlabClient{})
 }
 
 type GitlabClient struct {
@@ -28,8 +26,8 @@ func (_ GitlabClient) GetType() string {
 }
 
 // GetOrgRepos fetches repo data from a specific group
-func (c GitlabClient) GetOrgRepos(targetOrg string) ([]base.Repo, error) {
-	repoData := []base.Repo{}
+func (c GitlabClient) GetOrgRepos(targetOrg string) ([]Repo, error) {
+	repoData := []Repo{}
 	client, err := c.determineClient()
 
 	if err != nil {
@@ -51,9 +49,9 @@ func (c GitlabClient) GetOrgRepos(targetOrg string) ([]base.Repo, error) {
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				colorlog.PrintError(fmt.Sprintf("group '%s' does not exist", targetOrg))
-				return []base.Repo{}, nil
+				return []Repo{}, nil
 			}
-			return []base.Repo{}, err
+			return []Repo{}, err
 		}
 
 		// filter from all the projects we've found so far.
@@ -84,8 +82,8 @@ func (_ GitlabClient) determineClient() (*gitlab.Client, error) {
 }
 
 // GetUserRepos gets all of a users gitlab repos
-func (c GitlabClient) GetUserRepos(targetUsername string) ([]base.Repo, error) {
-	cloneData := []base.Repo{}
+func (c GitlabClient) GetUserRepos(targetUsername string) ([]Repo, error) {
+	cloneData := []Repo{}
 
 	client, err := c.determineClient()
 
@@ -106,9 +104,9 @@ func (c GitlabClient) GetUserRepos(targetUsername string) ([]base.Repo, error) {
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				colorlog.PrintError(fmt.Sprintf("user '%s' does not exist", targetUsername))
-				return []base.Repo{}, nil
+				return []Repo{}, nil
 			}
-			return []base.Repo{}, err
+			return []Repo{}, err
 		}
 
 		// filter from all the projects we've found so far.
@@ -131,8 +129,8 @@ func (_ GitlabClient) addTokenToHTTPSCloneURL(url string, token string) string {
 	return "https://oauth2:" + token + "@" + splitURL[1]
 }
 
-func (c GitlabClient) filter(ps []*gitlab.Project) []base.Repo {
-	var repoData []base.Repo
+func (c GitlabClient) filter(ps []*gitlab.Project) []Repo {
+	var repoData []Repo
 	for _, p := range ps {
 
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
@@ -161,7 +159,7 @@ func (c GitlabClient) filter(ps []*gitlab.Project) []base.Repo {
 			}
 		}
 
-		r := base.Repo{}
+		r := Repo{}
 
 		r.Path = p.PathWithNamespace
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {

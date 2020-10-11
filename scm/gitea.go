@@ -1,4 +1,4 @@
-package internal
+package scm
 
 import (
 	"fmt"
@@ -6,18 +6,16 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gabrie30/ghorg/colorlog"
-	"github.com/gabrie30/ghorg/internal/base"
-
 	"code.gitea.io/sdk/gitea"
+	"github.com/gabrie30/ghorg/colorlog"
 )
 
 var (
-	_ base.Client = GiteaClient{}
+	_ Client = GiteaClient{}
 )
 
 func init() {
-	RegisterClient(GiteaClient{})
+	registerClient(GiteaClient{})
 }
 
 type GiteaClient struct{}
@@ -27,8 +25,8 @@ func (_ GiteaClient) GetType() string {
 }
 
 // GetOrgRepos fetches repo data from a specific group
-func (c GiteaClient) GetOrgRepos(targetOrg string) ([]base.Repo, error) {
-	repoData := []base.Repo{}
+func (c GiteaClient) GetOrgRepos(targetOrg string) ([]Repo, error) {
+	repoData := []Repo{}
 	client, err := c.determineClient()
 
 	if err != nil {
@@ -50,7 +48,7 @@ func (c GiteaClient) GetOrgRepos(targetOrg string) ([]base.Repo, error) {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				colorlog.PrintError(fmt.Errorf("org \"%s\" not found", targetOrg))
 			}
-			return []base.Repo{}, err
+			return []Repo{}, err
 		}
 
 		repoDataFiltered, err := c.filter(client, rps)
@@ -69,8 +67,8 @@ func (c GiteaClient) GetOrgRepos(targetOrg string) ([]base.Repo, error) {
 }
 
 // GetUserRepos gets all of a users gitlab repos
-func (c GiteaClient) GetUserRepos(targetUsername string) ([]base.Repo, error) {
-	repoData := []base.Repo{}
+func (c GiteaClient) GetUserRepos(targetUsername string) ([]Repo, error) {
+	repoData := []Repo{}
 	client, err := c.determineClient()
 
 	if err != nil {
@@ -92,7 +90,7 @@ func (c GiteaClient) GetUserRepos(targetUsername string) ([]base.Repo, error) {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				colorlog.PrintError(fmt.Errorf("org \"%s\" not found", targetUsername))
 			}
-			return []base.Repo{}, err
+			return []Repo{}, err
 		}
 
 		repoDataFiltered, err := c.filter(client, rps)
@@ -121,7 +119,7 @@ func (c GiteaClient) determineClient() (*gitea.Client, error) {
 	return gitea.NewClient(baseURL, gitea.SetToken(token))
 }
 
-func (c GiteaClient) filter(client *gitea.Client, rps []*gitea.Repository) (repoData []base.Repo, err error) {
+func (c GiteaClient) filter(client *gitea.Client, rps []*gitea.Repository) (repoData []Repo, err error) {
 	envTopics := strings.Split(os.Getenv("GHORG_TOPICS"), ",")
 
 	for _, rp := range rps {
@@ -142,7 +140,7 @@ func (c GiteaClient) filter(client *gitea.Client, rps []*gitea.Repository) (repo
 		if os.Getenv("GHORG_TOPICS") != "" {
 			rpTopics, _, err := client.ListRepoTopics(rp.Owner.UserName, rp.Name, gitea.ListRepoTopicsOptions{})
 			if err != nil {
-				return []base.Repo{}, err
+				return []Repo{}, err
 			}
 			foundTopic := false
 			for _, topic := range rpTopics {
@@ -175,7 +173,7 @@ func (c GiteaClient) filter(client *gitea.Client, rps []*gitea.Repository) (repo
 			}
 		}
 
-		r := base.Repo{}
+		r := Repo{}
 		r.Path = rp.FullName
 
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {

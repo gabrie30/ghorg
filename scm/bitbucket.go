@@ -1,20 +1,18 @@
-package internal
+package scm
 
 import (
 	"os"
 	"strings"
 
-	"github.com/gabrie30/ghorg/internal/base"
-
 	"github.com/ktrysmt/go-bitbucket"
 )
 
 var (
-	_ base.Client = BitbucketClient{}
+	_ Client = BitbucketClient{}
 )
 
 func init() {
-	RegisterClient(BitbucketClient{})
+	registerClient(BitbucketClient{})
 }
 
 type BitbucketClient struct{}
@@ -24,33 +22,33 @@ func (_ BitbucketClient) GetType() string {
 }
 
 // GetOrgRepos gets org repos
-func (c BitbucketClient) GetOrgRepos(targetOrg string) ([]base.Repo, error) {
+func (c BitbucketClient) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
 
 	resp, err := client.Teams.Repositories(targetOrg)
 	if err != nil {
-		return []base.Repo{}, err
+		return []Repo{}, err
 	}
 
 	return c.filter(resp)
 }
 
 // GetUserRepos gets user repos from bitbucket
-func (c BitbucketClient) GetUserRepos(targetUser string) ([]base.Repo, error) {
+func (c BitbucketClient) GetUserRepos(targetUser string) ([]Repo, error) {
 
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
 
 	resp, err := client.Users.Repositories(targetUser)
 	if err != nil {
-		return []base.Repo{}, err
+		return []Repo{}, err
 	}
 
 	return c.filter(resp)
 }
 
-func (_ BitbucketClient) filter(resp interface{}) (repoData []base.Repo, err error) {
-	cloneData := []base.Repo{}
+func (_ BitbucketClient) filter(resp interface{}) (repoData []Repo, err error) {
+	cloneData := []Repo{}
 	values := resp.(map[string]interface{})["values"].([]interface{})
 
 	for _, a := range values {
@@ -74,7 +72,7 @@ func (_ BitbucketClient) filter(resp interface{}) (repoData []base.Repo, err err
 				}
 			}
 
-			r := base.Repo{}
+			r := Repo{}
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "ssh" && linkType == "ssh" {
 				r.URL = link.(string)
 				r.CloneURL = link.(string)
