@@ -1,4 +1,4 @@
-package gitlab
+package scm
 
 import (
 	"fmt"
@@ -6,19 +6,28 @@ import (
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
-	"github.com/gabrie30/ghorg/internal/repo"
-
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
 var (
-	perPage = 50
+	_       Client = Gitlab{}
+	perPage        = 50
 )
 
+func init() {
+	registerClient(Gitlab{})
+}
+
+type Gitlab struct{}
+
+func (_ Gitlab) GetType() string {
+	return "gitlab"
+}
+
 // GetOrgRepos fetches repo data from a specific group
-func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
-	repoData := []repo.Data{}
-	client, err := determineClient()
+func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
+	repoData := []Repo{}
+	client, err := c.determineClient()
 
 	if err != nil {
 		colorlog.PrintError(err)
@@ -39,13 +48,13 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				colorlog.PrintError(fmt.Sprintf("group '%s' does not exist", targetOrg))
-				return []repo.Data{}, nil
+				return []Repo{}, nil
 			}
-			return []repo.Data{}, err
+			return []Repo{}, err
 		}
 
 		// filter from all the projects we've found so far.
-		repoData = append(repoData, filter(ps)...)
+		repoData = append(repoData, c.filter(ps)...)
 
 		// Exit the loop when we've seen all pages.
 		if resp.CurrentPage >= resp.TotalPages {
@@ -59,7 +68,7 @@ func GetOrgRepos(targetOrg string) ([]repo.Data, error) {
 	return repoData, nil
 }
 
-func determineClient() (*gitlab.Client, error) {
+func (_ Gitlab) determineClient() (*gitlab.Client, error) {
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
 	token := os.Getenv("GHORG_GITLAB_TOKEN")
 
@@ -72,10 +81,10 @@ func determineClient() (*gitlab.Client, error) {
 }
 
 // GetUserRepos gets all of a users gitlab repos
-func GetUserRepos(targetUsername string) ([]repo.Data, error) {
-	cloneData := []repo.Data{}
+func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
+	cloneData := []Repo{}
 
-	client, err := determineClient()
+	client, err := c.determineClient()
 
 	if err != nil {
 		colorlog.PrintError(err)
@@ -94,13 +103,13 @@ func GetUserRepos(targetUsername string) ([]repo.Data, error) {
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				colorlog.PrintError(fmt.Sprintf("user '%s' does not exist", targetUsername))
-				return []repo.Data{}, nil
+				return []Repo{}, nil
 			}
-			return []repo.Data{}, err
+			return []Repo{}, err
 		}
 
 		// filter from all the projects we've found so far.
-		cloneData = append(cloneData, filter(ps)...)
+		cloneData = append(cloneData, c.filter(ps)...)
 
 		// Exit the loop when we've seen all pages.
 		if resp.CurrentPage >= resp.TotalPages {
@@ -114,13 +123,13 @@ func GetUserRepos(targetUsername string) ([]repo.Data, error) {
 	return cloneData, nil
 }
 
-func addTokenToHTTPSCloneURL(url string, token string) string {
+func (_ Gitlab) addTokenToHTTPSCloneURL(url string, token string) string {
 	splitURL := strings.Split(url, "https://")
 	return "https://oauth2:" + token + "@" + splitURL[1]
 }
 
-func filter(ps []*gitlab.Project) []repo.Data {
-	var repoData []repo.Data
+func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
+	var repoData []Repo
 	for _, p := range ps {
 
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
@@ -149,11 +158,11 @@ func filter(ps []*gitlab.Project) []repo.Data {
 			}
 		}
 
-		r := repo.Data{}
+		r := Repo{}
 
 		r.Path = p.PathWithNamespace
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-			r.CloneURL = addTokenToHTTPSCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))
+			r.CloneURL = c.addTokenToHTTPSCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))
 			r.URL = p.HTTPURLToRepo
 			repoData = append(repoData, r)
 		} else {

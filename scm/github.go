@@ -1,4 +1,4 @@
-package github
+package scm
 
 import (
 	"context"
@@ -7,17 +7,35 @@ import (
 	"strings"
 
 	"github.com/gabrie30/ghorg/configs"
-	"github.com/gabrie30/ghorg/internal/repo"
 	"github.com/google/go-github/v32/github"
 	"golang.org/x/oauth2"
 )
 
+var (
+	_ Client = Github{}
+)
+
+func init() {
+	registerClient(Github{})
+}
+
+type Github struct {
+	client *github.Client
+}
+
+func (_ Github) GetType() string {
+	return "github"
+}
+
 // GetOrgRepos gets org repos
-func GetOrgRepos(client *github.Client, targetOrg string) ([]repo.Data, error) {
+func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
+	if c.client == nil {
+		c.client = c.newGitHubClient()
+	}
 
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		u := configs.EnsureTrailingSlash(os.Getenv("GHORG_SCM_BASE_URL"))
-		client.BaseURL, _ = url.Parse(u)
+		c.client.BaseURL, _ = url.Parse(u)
 	}
 
 	opt := &github.RepositoryListByOrgOptions{
@@ -31,7 +49,7 @@ func GetOrgRepos(client *github.Client, targetOrg string) ([]repo.Data, error) {
 	var allRepos []*github.Repository
 	for {
 
-		repos, resp, err := client.Repositories.ListByOrg(context.Background(), targetOrg, opt)
+		repos, resp, err := c.client.Repositories.ListByOrg(context.Background(), targetOrg, opt)
 
 		if err != nil {
 			return nil, err
@@ -44,22 +62,18 @@ func GetOrgRepos(client *github.Client, targetOrg string) ([]repo.Data, error) {
 		opt.Page = resp.NextPage
 	}
 
-	return filter(allRepos, envTopics), nil
+	return c.filter(allRepos, envTopics), nil
 }
 
 // GetUserRepos gets user repos
-func GetUserRepos(targetUser string) ([]repo.Data, error) {
-	ctx := context.Background()
-
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
+func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
+	if c.client == nil {
+		c.client = c.newGitHubClient()
+	}
 
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		u := configs.EnsureTrailingSlash(os.Getenv("GHORG_SCM_BASE_URL"))
-		client.BaseURL, _ = url.Parse(u)
+		c.client.BaseURL, _ = url.Parse(u)
 	}
 
 	opt := &github.RepositoryListOptions{
@@ -73,7 +87,7 @@ func GetUserRepos(targetUser string) ([]repo.Data, error) {
 	var allRepos []*github.Repository
 	for {
 
-		repos, resp, err := client.Repositories.List(context.Background(), targetUser, opt)
+		repos, resp, err := c.client.Repositories.List(context.Background(), targetUser, opt)
 
 		if err != nil {
 			return nil, err
@@ -85,16 +99,16 @@ func GetUserRepos(targetUser string) ([]repo.Data, error) {
 		opt.Page = resp.NextPage
 	}
 
-	return filter(allRepos, envTopics), nil
+	return c.filter(allRepos, envTopics), nil
 }
 
-func addTokenToHTTPSCloneURL(url string, token string) string {
+func (_ Github) addTokenToHTTPSCloneURL(url string, token string) string {
 	splitURL := strings.Split(url, "https://")
 	return "https://" + token + "@" + splitURL[1]
 }
 
-func filter(allRepos []*github.Repository, envTopics []string) []repo.Data {
-	var repoData []repo.Data
+func (c Github) filter(allRepos []*github.Repository, envTopics []string) []Repo {
+	var repoData []Repo
 
 	for _, ghRepo := range allRepos {
 
@@ -140,9 +154,9 @@ func filter(allRepos []*github.Repository, envTopics []string) []repo.Data {
 			}
 		}
 
-		r := repo.Data{}
+		r := Repo{}
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-			r.CloneURL = addTokenToHTTPSCloneURL(*ghRepo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
+			r.CloneURL = c.addTokenToHTTPSCloneURL(*ghRepo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
 			r.URL = *ghRepo.CloneURL
 			repoData = append(repoData, r)
 		} else {
@@ -153,4 +167,15 @@ func filter(allRepos []*github.Repository, envTopics []string) []repo.Data {
 	}
 
 	return repoData
+}
+
+// newGitHubClient creates a github client
+func (_ Github) newGitHubClient() *github.Client {
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
+	)
+	tc := oauth2.NewClient(ctx, ts)
+	client := github.NewClient(tc)
+	return client
 }
