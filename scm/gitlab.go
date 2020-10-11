@@ -10,23 +10,22 @@ import (
 )
 
 var (
-	_       Client = GitlabClient{}
+	_       Client = Gitlab{}
 	perPage        = 50
 )
 
 func init() {
-	registerClient(GitlabClient{})
+	registerClient(Gitlab{})
 }
 
-type GitlabClient struct {
-}
+type Gitlab struct{}
 
-func (_ GitlabClient) GetType() string {
+func (_ Gitlab) GetType() string {
 	return "gitlab"
 }
 
 // GetOrgRepos fetches repo data from a specific group
-func (c GitlabClient) GetOrgRepos(targetOrg string) ([]Repo, error) {
+func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	repoData := []Repo{}
 	client, err := c.determineClient()
 
@@ -69,7 +68,7 @@ func (c GitlabClient) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	return repoData, nil
 }
 
-func (_ GitlabClient) determineClient() (*gitlab.Client, error) {
+func (_ Gitlab) determineClient() (*gitlab.Client, error) {
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
 	token := os.Getenv("GHORG_GITLAB_TOKEN")
 
@@ -82,7 +81,7 @@ func (_ GitlabClient) determineClient() (*gitlab.Client, error) {
 }
 
 // GetUserRepos gets all of a users gitlab repos
-func (c GitlabClient) GetUserRepos(targetUsername string) ([]Repo, error) {
+func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 	cloneData := []Repo{}
 
 	client, err := c.determineClient()
@@ -124,12 +123,12 @@ func (c GitlabClient) GetUserRepos(targetUsername string) ([]Repo, error) {
 	return cloneData, nil
 }
 
-func (_ GitlabClient) addTokenToHTTPSCloneURL(url string, token string) string {
+func (_ Gitlab) addTokenToHTTPSCloneURL(url string, token string) string {
 	splitURL := strings.Split(url, "https://")
 	return "https://oauth2:" + token + "@" + splitURL[1]
 }
 
-func (c GitlabClient) filter(ps []*gitlab.Project) []Repo {
+func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
 	var repoData []Repo
 	for _, p := range ps {
 

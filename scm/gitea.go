@@ -11,21 +11,21 @@ import (
 )
 
 var (
-	_ Client = GiteaClient{}
+	_ Client = Gitea{}
 )
 
 func init() {
-	registerClient(GiteaClient{})
+	registerClient(Gitea{})
 }
 
-type GiteaClient struct{}
+type Gitea struct{}
 
-func (_ GiteaClient) GetType() string {
+func (_ Gitea) GetType() string {
 	return "gitea"
 }
 
 // GetOrgRepos fetches repo data from a specific group
-func (c GiteaClient) GetOrgRepos(targetOrg string) ([]Repo, error) {
+func (c Gitea) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	repoData := []Repo{}
 	client, err := c.determineClient()
 
@@ -67,7 +67,7 @@ func (c GiteaClient) GetOrgRepos(targetOrg string) ([]Repo, error) {
 }
 
 // GetUserRepos gets all of a users gitlab repos
-func (c GiteaClient) GetUserRepos(targetUsername string) ([]Repo, error) {
+func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
 	repoData := []Repo{}
 	client, err := c.determineClient()
 
@@ -108,7 +108,7 @@ func (c GiteaClient) GetUserRepos(targetUsername string) ([]Repo, error) {
 	return repoData, nil
 }
 
-func (c GiteaClient) determineClient() (*gitea.Client, error) {
+func (c Gitea) determineClient() (*gitea.Client, error) {
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
 	token := os.Getenv("GHORG_GITEA_TOKEN")
 
@@ -119,7 +119,7 @@ func (c GiteaClient) determineClient() (*gitea.Client, error) {
 	return gitea.NewClient(baseURL, gitea.SetToken(token))
 }
 
-func (c GiteaClient) filter(client *gitea.Client, rps []*gitea.Repository) (repoData []Repo, err error) {
+func (c Gitea) filter(client *gitea.Client, rps []*gitea.Repository) (repoData []Repo, err error) {
 	envTopics := strings.Split(os.Getenv("GHORG_TOPICS"), ",")
 
 	for _, rp := range rps {

@@ -12,23 +12,23 @@ import (
 )
 
 var (
-	_ Client = GithubClient{}
+	_ Client = Github{}
 )
 
 func init() {
-	registerClient(GithubClient{})
+	registerClient(Github{})
 }
 
-type GithubClient struct {
+type Github struct {
 	client *github.Client
 }
 
-func (_ GithubClient) GetType() string {
+func (_ Github) GetType() string {
 	return "github"
 }
 
 // GetOrgRepos gets org repos
-func (c GithubClient) GetOrgRepos(targetOrg string) ([]Repo, error) {
+func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	if c.client == nil {
 		c.client = c.newGitHubClient()
 	}
@@ -66,7 +66,7 @@ func (c GithubClient) GetOrgRepos(targetOrg string) ([]Repo, error) {
 }
 
 // GetUserRepos gets user repos
-func (c GithubClient) GetUserRepos(targetUser string) ([]Repo, error) {
+func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 	if c.client == nil {
 		c.client = c.newGitHubClient()
 	}
@@ -102,12 +102,12 @@ func (c GithubClient) GetUserRepos(targetUser string) ([]Repo, error) {
 	return c.filter(allRepos, envTopics), nil
 }
 
-func (_ GithubClient) addTokenToHTTPSCloneURL(url string, token string) string {
+func (_ Github) addTokenToHTTPSCloneURL(url string, token string) string {
 	splitURL := strings.Split(url, "https://")
 	return "https://" + token + "@" + splitURL[1]
 }
 
-func (c GithubClient) filter(allRepos []*github.Repository, envTopics []string) []Repo {
+func (c Github) filter(allRepos []*github.Repository, envTopics []string) []Repo {
 	var repoData []Repo
 
 	for _, ghRepo := range allRepos {
@@ -170,7 +170,7 @@ func (c GithubClient) filter(allRepos []*github.Repository, envTopics []string) 
 }
 
 // newGitHubClient creates a github client
-func (_ GithubClient) newGitHubClient() *github.Client {
+func (_ Github) newGitHubClient() *github.Client {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},

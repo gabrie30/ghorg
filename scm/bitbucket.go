@@ -8,21 +8,21 @@ import (
 )
 
 var (
-	_ Client = BitbucketClient{}
+	_ Client = Bitbucket{}
 )
 
 func init() {
-	registerClient(BitbucketClient{})
+	registerClient(Bitbucket{})
 }
 
-type BitbucketClient struct{}
+type Bitbucket struct{}
 
-func (_ BitbucketClient) GetType() string {
+func (_ Bitbucket) GetType() string {
 	return "bitbucket"
 }
 
 // GetOrgRepos gets org repos
-func (c BitbucketClient) GetOrgRepos(targetOrg string) ([]Repo, error) {
+func (c Bitbucket) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
 
@@ -35,7 +35,7 @@ func (c BitbucketClient) GetOrgRepos(targetOrg string) ([]Repo, error) {
 }
 
 // GetUserRepos gets user repos from bitbucket
-func (c BitbucketClient) GetUserRepos(targetUser string) ([]Repo, error) {
+func (c Bitbucket) GetUserRepos(targetUser string) ([]Repo, error) {
 
 	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
 
@@ -47,7 +47,7 @@ func (c BitbucketClient) GetUserRepos(targetUser string) ([]Repo, error) {
 	return c.filter(resp)
 }
 
-func (_ BitbucketClient) filter(resp interface{}) (repoData []Repo, err error) {
+func (_ Bitbucket) filter(resp interface{}) (repoData []Repo, err error) {
 	cloneData := []Repo{}
 	values := resp.(map[string]interface{})["values"].([]interface{})
 
