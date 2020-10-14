@@ -1,0 +1,8 @@
+ # from any git url
+ ./gitcolombo.py -u https://github.com/Kalanchyovskaia16/newlps
+
+ # from directory, recursively
+ ./gitcolombo.py -d ./newlps -r
+
+ # from all GitHub personal/org repos by nickname
+ ./gitcolombo.py --nickname LubyRuffy
