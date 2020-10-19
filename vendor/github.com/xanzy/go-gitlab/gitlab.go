@@ -80,7 +80,7 @@ type Client struct {
 	configureLimiterOnce sync.Once
 
 	// Limiter is used to limit API calls and prevent 429 responses.
-	limiter *rate.Limiter
+	limiter RateLimiter
 
 	// Token type used to make authenticated API calls.
 	authType authType
@@ -126,8 +126,11 @@ type Client struct {
 	GroupMilestones       *GroupMilestonesService
 	GroupVariables        *GroupVariablesService
 	Groups                *GroupsService
+	InstanceCluster       *InstanceClustersService
+	InstanceVariables     *InstanceVariablesService
 	IssueLinks            *IssueLinksService
 	Issues                *IssuesService
+	IssuesStatistics      *IssuesStatisticsService
 	Jobs                  *JobsService
 	Keys                  *KeysService
 	Labels                *LabelsService
@@ -181,6 +184,11 @@ type ListOptions struct {
 
 	// For paginated result sets, the number of results to include per page.
 	PerPage int `url:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
+// RateLimiter describes the interface that all (custom) rate limiters must implement.
+type RateLimiter interface {
+	Wait(context.Context) error
 }
 
 // NewClient returns a new GitLab API client. To use API methods which require
@@ -281,8 +289,10 @@ func newClient(options ...ClientOptionFunc) (*Client, error) {
 	c.GroupMilestones = &GroupMilestonesService{client: c}
 	c.GroupVariables = &GroupVariablesService{client: c}
 	c.Groups = &GroupsService{client: c}
+	c.InstanceCluster = &InstanceClustersService{client: c}
 	c.IssueLinks = &IssueLinksService{client: c}
 	c.Issues = &IssuesService{client: c, timeStats: timeStats}
+	c.IssuesStatistics = &IssuesStatisticsService{client: c}
 	c.Jobs = &JobsService{client: c}
 	c.Keys = &KeysService{client: c}
 	c.Labels = &LabelsService{client: c}
@@ -622,15 +632,16 @@ func (c *Client) Do(req *retryablehttp.Request, v interface{}) (*Response, error
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized && c.authType == basicAuth {
+		resp.Body.Close()
 		// The token most likely expired, so we need to request a new one and try again.
 		if _, err := c.requestOAuthToken(req.Context(), basicAuthToken); err != nil {
 			return nil, err
 		}
 		return c.Do(req, v)
 	}
+	defer resp.Body.Close()
 
 	response := newResponse(resp)
 
@@ -663,8 +674,8 @@ func (c *Client) requestOAuthToken(ctx context.Context, token string) (string, e
 
 	config := &oauth2.Config{
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  fmt.Sprintf("%s://%s/oauth/authorize", c.BaseURL().Scheme, c.BaseURL().Host),
-			TokenURL: fmt.Sprintf("%s://%s/oauth/token", c.BaseURL().Scheme, c.BaseURL().Host),
+			AuthURL:  strings.TrimSuffix(c.baseURL.String(), apiVersionPath) + "oauth/authorize",
+			TokenURL: strings.TrimSuffix(c.baseURL.String(), apiVersionPath) + "oauth/token",
 		},
 	}
 

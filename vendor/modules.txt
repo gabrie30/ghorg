@@ -7,7 +7,7 @@ github.com/fatih/color
 # github.com/fsnotify/fsnotify v1.4.9
 ## explicit
 github.com/fsnotify/fsnotify
-# github.com/golang/protobuf v1.4.2
+# github.com/golang/protobuf v1.4.3
 ## explicit
 github.com/golang/protobuf/proto
 # github.com/google/go-github/v32 v32.0.0
@@ -17,7 +17,7 @@ github.com/google/go-github/v32/github
 github.com/google/go-querystring/query
 # github.com/hashicorp/go-cleanhttp v0.5.1
 github.com/hashicorp/go-cleanhttp
-# github.com/hashicorp/go-retryablehttp v0.6.6
+# github.com/hashicorp/go-retryablehttp v0.6.7
 ## explicit
 github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-version v1.2.0
@@ -81,7 +81,7 @@ github.com/spf13/pflag
 github.com/spf13/viper
 # github.com/subosito/gotenv v1.2.0
 github.com/subosito/gotenv
-# github.com/xanzy/go-gitlab v0.33.0
+# github.com/xanzy/go-gitlab v0.38.2
 ## explicit
 github.com/xanzy/go-gitlab
 # golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
@@ -92,28 +92,26 @@ golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
-# golang.org/x/net v0.0.0-20200707034311-ab3426394381
+# golang.org/x/net v0.0.0-20201016165138-7b1cca2348c0
 ## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
-# golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+# golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 ## explicit
 golang.org/x/oauth2
 golang.org/x/oauth2/bitbucket
 golang.org/x/oauth2/clientcredentials
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae
-## explicit
+# golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.3
-## explicit
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
 # golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
 ## explicit
 golang.org/x/time/rate
-# google.golang.org/appengine v1.6.6
+# google.golang.org/appengine v1.6.7
 ## explicit
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/base
@@ -123,7 +121,6 @@ google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
 # google.golang.org/protobuf v1.25.0
-## explicit
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
 google.golang.org/protobuf/internal/descfmt
