@@ -18,7 +18,12 @@ func init() {
 	registerClient(Gitea{})
 }
 
-type Gitea struct{}
+type Gitea struct {
+	// client contain the gitea client
+	client *gitea.Client
+	// perPage contain the pagination item limit
+	perPage int
+}
 
 func (_ Gitea) GetType() string {
 	return "gitea"
@@ -27,21 +32,16 @@ func (_ Gitea) GetType() string {
 // GetOrgRepos fetches repo data from a specific group
 func (c Gitea) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	repoData := []Repo{}
-	client, err := c.determineClient()
-
-	if err != nil {
-		colorlog.PrintError(err)
-	}
-
-	perPage := 10
-	if conf, _, err := client.GetGlobalAPISettings(); err == nil && conf != nil {
-		perPage = conf.MaxResponseItems
+	if c.client == nil {
+		if err := c.determineClient(); err != nil {
+			colorlog.PrintError(err)
+		}
 	}
 
 	for i := 1; ; i++ {
-		rps, resp, err := client.ListOrgRepos(targetOrg, gitea.ListOrgReposOptions{ListOptions: gitea.ListOptions{
+		rps, resp, err := c.client.ListOrgRepos(targetOrg, gitea.ListOrgReposOptions{ListOptions: gitea.ListOptions{
 			Page:     i,
-			PageSize: perPage,
+			PageSize: c.perPage,
 		}})
 
 		if err != nil {
@@ -51,7 +51,7 @@ func (c Gitea) GetOrgRepos(targetOrg string) ([]Repo, error) {
 			return []Repo{}, err
 		}
 
-		repoDataFiltered, err := c.filter(client, rps)
+		repoDataFiltered, err := c.filter(rps)
 		if err != nil {
 			return nil, err
 		}
@@ -69,21 +69,16 @@ func (c Gitea) GetOrgRepos(targetOrg string) ([]Repo, error) {
 // GetUserRepos gets all of a users gitlab repos
 func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
 	repoData := []Repo{}
-	client, err := c.determineClient()
-
-	if err != nil {
-		colorlog.PrintError(err)
-	}
-
-	perPage := 10
-	if conf, _, err := client.GetGlobalAPISettings(); err == nil && conf != nil {
-		perPage = conf.MaxResponseItems
+	if c.client == nil {
+		if err := c.determineClient(); err != nil {
+			colorlog.PrintError(err)
+		}
 	}
 
 	for i := 1; ; i++ {
-		rps, resp, err := client.ListUserRepos(targetUsername, gitea.ListReposOptions{ListOptions: gitea.ListOptions{
+		rps, resp, err := c.client.ListUserRepos(targetUsername, gitea.ListReposOptions{ListOptions: gitea.ListOptions{
 			Page:     i,
-			PageSize: perPage,
+			PageSize: c.perPage,
 		}})
 
 		if err != nil {
@@ -93,7 +88,7 @@ func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
 			return []Repo{}, err
 		}
 
-		repoDataFiltered, err := c.filter(client, rps)
+		repoDataFiltered, err := c.filter(rps)
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +103,7 @@ func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
 	return repoData, nil
 }
 
-func (c Gitea) determineClient() (*gitea.Client, error) {
+func (c Gitea) determineClient() error {
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
 	token := os.Getenv("GHORG_GITEA_TOKEN")
 
@@ -116,10 +111,23 @@ func (c Gitea) determineClient() (*gitea.Client, error) {
 		baseURL = "https://gitea.com"
 	}
 
-	return gitea.NewClient(baseURL, gitea.SetToken(token))
+	client, err := gitea.NewClient(baseURL, gitea.SetToken(token))
+	if err != nil {
+		return err
+	}
+	c.client = client
+
+	//set small limit so gitea most likely will have a bigger one
+	c.perPage = 10
+	if conf, _, err := client.GetGlobalAPISettings(); err == nil && conf != nil {
+		// gitea >= 1.13 will tell us the limit it has
+		c.perPage = conf.MaxResponseItems
+	}
+
+	return nil
 }
 
-func (c Gitea) filter(client *gitea.Client, rps []*gitea.Repository) (repoData []Repo, err error) {
+func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 	envTopics := strings.Split(os.Getenv("GHORG_TOPICS"), ",")
 
 	for _, rp := range rps {
@@ -137,8 +145,8 @@ func (c Gitea) filter(client *gitea.Client, rps []*gitea.Repository) (repoData [
 		}
 
 		// If user defined a list of topics, check if any match with this repo
-		if os.Getenv("GHORG_TOPICS") != "" {
-			rpTopics, _, err := client.ListRepoTopics(rp.Owner.UserName, rp.Name, gitea.ListRepoTopicsOptions{})
+		if os.Getenv("GHORG_TOPICS") != "" && c.client != nil {
+			rpTopics, _, err := c.client.ListRepoTopics(rp.Owner.UserName, rp.Name, gitea.ListRepoTopicsOptions{})
 			if err != nil {
 				return []Repo{}, err
 			}
