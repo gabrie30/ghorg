@@ -38,67 +38,80 @@ type ProjectsService struct {
 //
 // GitLab API docs: https://docs.gitlab.com/ce/api/projects.html
 type Project struct {
-	ID                                        int               `json:"id"`
-	Description                               string            `json:"description"`
-	DefaultBranch                             string            `json:"default_branch"`
-	Public                                    bool              `json:"public"`
-	Visibility                                VisibilityValue   `json:"visibility"`
-	SSHURLToRepo                              string            `json:"ssh_url_to_repo"`
-	HTTPURLToRepo                             string            `json:"http_url_to_repo"`
-	WebURL                                    string            `json:"web_url"`
-	ReadmeURL                                 string            `json:"readme_url"`
-	TagList                                   []string          `json:"tag_list"`
-	Owner                                     *User             `json:"owner"`
-	Name                                      string            `json:"name"`
-	NameWithNamespace                         string            `json:"name_with_namespace"`
-	Path                                      string            `json:"path"`
-	PathWithNamespace                         string            `json:"path_with_namespace"`
-	IssuesEnabled                             bool              `json:"issues_enabled"`
-	OpenIssuesCount                           int               `json:"open_issues_count"`
-	MergeRequestsEnabled                      bool              `json:"merge_requests_enabled"`
-	ApprovalsBeforeMerge                      int               `json:"approvals_before_merge"`
-	JobsEnabled                               bool              `json:"jobs_enabled"`
-	WikiEnabled                               bool              `json:"wiki_enabled"`
-	SnippetsEnabled                           bool              `json:"snippets_enabled"`
-	ResolveOutdatedDiffDiscussions            bool              `json:"resolve_outdated_diff_discussions"`
-	ContainerRegistryEnabled                  bool              `json:"container_registry_enabled"`
-	CreatedAt                                 *time.Time        `json:"created_at,omitempty"`
-	LastActivityAt                            *time.Time        `json:"last_activity_at,omitempty"`
-	CreatorID                                 int               `json:"creator_id"`
-	Namespace                                 *ProjectNamespace `json:"namespace"`
-	ImportStatus                              string            `json:"import_status"`
-	ImportError                               string            `json:"import_error"`
-	Permissions                               *Permissions      `json:"permissions"`
-	MarkedForDeletionAt                       *ISOTime          `json:"marked_for_deletion_at"`
-	Archived                                  bool              `json:"archived"`
-	AvatarURL                                 string            `json:"avatar_url"`
-	SharedRunnersEnabled                      bool              `json:"shared_runners_enabled"`
-	ForksCount                                int               `json:"forks_count"`
-	StarCount                                 int               `json:"star_count"`
-	RunnersToken                              string            `json:"runners_token"`
-	PublicBuilds                              bool              `json:"public_builds"`
-	OnlyAllowMergeIfPipelineSucceeds          bool              `json:"only_allow_merge_if_pipeline_succeeds"`
-	OnlyAllowMergeIfAllDiscussionsAreResolved bool              `json:"only_allow_merge_if_all_discussions_are_resolved"`
-	RemoveSourceBranchAfterMerge              bool              `json:"remove_source_branch_after_merge"`
-	LFSEnabled                                bool              `json:"lfs_enabled"`
-	RequestAccessEnabled                      bool              `json:"request_access_enabled"`
-	MergeMethod                               MergeMethodValue  `json:"merge_method"`
-	ForkedFromProject                         *ForkParent       `json:"forked_from_project"`
-	Mirror                                    bool              `json:"mirror"`
-	MirrorUserID                              int               `json:"mirror_user_id"`
-	MirrorTriggerBuilds                       bool              `json:"mirror_trigger_builds"`
-	OnlyMirrorProtectedBranches               bool              `json:"only_mirror_protected_branches"`
-	MirrorOverwritesDivergedBranches          bool              `json:"mirror_overwrites_diverged_branches"`
+	ID                                        int                `json:"id"`
+	Description                               string             `json:"description"`
+	DefaultBranch                             string             `json:"default_branch"`
+	Public                                    bool               `json:"public"`
+	Visibility                                VisibilityValue    `json:"visibility"`
+	SSHURLToRepo                              string             `json:"ssh_url_to_repo"`
+	HTTPURLToRepo                             string             `json:"http_url_to_repo"`
+	WebURL                                    string             `json:"web_url"`
+	ReadmeURL                                 string             `json:"readme_url"`
+	TagList                                   []string           `json:"tag_list"`
+	Owner                                     *User              `json:"owner"`
+	Name                                      string             `json:"name"`
+	NameWithNamespace                         string             `json:"name_with_namespace"`
+	Path                                      string             `json:"path"`
+	PathWithNamespace                         string             `json:"path_with_namespace"`
+	IssuesEnabled                             bool               `json:"issues_enabled"`
+	OpenIssuesCount                           int                `json:"open_issues_count"`
+	MergeRequestsEnabled                      bool               `json:"merge_requests_enabled"`
+	ApprovalsBeforeMerge                      int                `json:"approvals_before_merge"`
+	JobsEnabled                               bool               `json:"jobs_enabled"`
+	WikiEnabled                               bool               `json:"wiki_enabled"`
+	SnippetsEnabled                           bool               `json:"snippets_enabled"`
+	ResolveOutdatedDiffDiscussions            bool               `json:"resolve_outdated_diff_discussions"`
+	ContainerRegistryEnabled                  bool               `json:"container_registry_enabled"`
+	CreatedAt                                 *time.Time         `json:"created_at,omitempty"`
+	LastActivityAt                            *time.Time         `json:"last_activity_at,omitempty"`
+	CreatorID                                 int                `json:"creator_id"`
+	Namespace                                 *ProjectNamespace  `json:"namespace"`
+	ImportStatus                              string             `json:"import_status"`
+	ImportError                               string             `json:"import_error"`
+	Permissions                               *Permissions       `json:"permissions"`
+	MarkedForDeletionAt                       *ISOTime           `json:"marked_for_deletion_at"`
+	Archived                                  bool               `json:"archived"`
+	AvatarURL                                 string             `json:"avatar_url"`
+	SharedRunnersEnabled                      bool               `json:"shared_runners_enabled"`
+	ForksCount                                int                `json:"forks_count"`
+	StarCount                                 int                `json:"star_count"`
+	RunnersToken                              string             `json:"runners_token"`
+	PublicBuilds                              bool               `json:"public_builds"`
+	OnlyAllowMergeIfPipelineSucceeds          bool               `json:"only_allow_merge_if_pipeline_succeeds"`
+	OnlyAllowMergeIfAllDiscussionsAreResolved bool               `json:"only_allow_merge_if_all_discussions_are_resolved"`
+	RemoveSourceBranchAfterMerge              bool               `json:"remove_source_branch_after_merge"`
+	LFSEnabled                                bool               `json:"lfs_enabled"`
+	RequestAccessEnabled                      bool               `json:"request_access_enabled"`
+	MergeMethod                               MergeMethodValue   `json:"merge_method"`
+	ForkedFromProject                         *ForkParent        `json:"forked_from_project"`
+	Mirror                                    bool               `json:"mirror"`
+	MirrorUserID                              int                `json:"mirror_user_id"`
+	MirrorTriggerBuilds                       bool               `json:"mirror_trigger_builds"`
+	OnlyMirrorProtectedBranches               bool               `json:"only_mirror_protected_branches"`
+	MirrorOverwritesDivergedBranches          bool               `json:"mirror_overwrites_diverged_branches"`
+	PackagesEnabled                           bool               `json:"packages_enabled"`
+	ServiceDeskEnabled                        bool               `json:"service_desk_enabled"`
+	ServiceDeskAddress                        string             `json:"service_desk_address"`
+	IssuesAccessLevel                         AccessControlValue `json:"issues_access_level"`
+	RepositoryAccessLevel                     AccessControlValue `json:"repository_access_level"`
+	MergeRequestsAccessLevel                  AccessControlValue `json:"merge_requests_access_level"`
+	ForkingAccessLevel                        AccessControlValue `json:"forking_access_level"`
+	WikiAccessLevel                           AccessControlValue `json:"wiki_access_level"`
+	BuildsAccessLevel                         AccessControlValue `json:"builds_access_level"`
+	SnippetsAccessLevel                       AccessControlValue `json:"snippets_access_level"`
+	PagesAccessLevel                          AccessControlValue `json:"pages_access_level"`
+	AutocloseReferencedIssues                 bool               `json:"autoclose_referenced_issues"`
 	SharedWithGroups                          []struct {
 		GroupID          int    `json:"group_id"`
 		GroupName        string `json:"group_name"`
 		GroupAccessLevel int    `json:"group_access_level"`
 	} `json:"shared_with_groups"`
-	Statistics        *ProjectStatistics `json:"statistics"`
-	Links             *Links             `json:"_links,omitempty"`
-	CIConfigPath      string             `json:"ci_config_path"`
-	CIDefaultGitDepth int                `json:"ci_default_git_depth"`
-	CustomAttributes  []*CustomAttribute `json:"custom_attributes"`
+	Statistics           *ProjectStatistics `json:"statistics"`
+	Links                *Links             `json:"_links,omitempty"`
+	CIConfigPath         string             `json:"ci_config_path"`
+	CIDefaultGitDepth    int                `json:"ci_default_git_depth"`
+	CustomAttributes     []*CustomAttribute `json:"custom_attributes"`
+	ComplianceFrameworks []string           `json:"compliance_frameworks"`
 }
 
 // Repository represents a repository.
@@ -492,9 +505,12 @@ type CreateProjectOptions struct {
 	MirrorTriggerBuilds                       *bool               `url:"mirror_trigger_builds,omitempty" json:"mirror_trigger_builds,omitempty"`
 	InitializeWithReadme                      *bool               `url:"initialize_with_readme,omitempty" json:"initialize_with_readme,omitempty"`
 	TemplateName                              *string             `url:"template_name,omitempty" json:"template_name,omitempty"`
+	TemplateProjectID                         *int                `url:"template_project_id,omitempty" json:"template_project_id,omitempty"`
 	UseCustomTemplate                         *bool               `url:"use_custom_template,omitempty" json:"use_custom_template,omitempty"`
 	GroupWithProjectTemplatesID               *int                `url:"group_with_project_templates_id,omitempty" json:"group_with_project_templates_id,omitempty"`
 	PackagesEnabled                           *bool               `url:"packages_enabled,omitempty" json:"packages_enabled,omitempty"`
+	ServiceDeskEnabled                        *bool               `url:"service_desk_enabled,omitempty" json:"service_desk_enabled,omitempty"`
+	AutocloseReferencedIssues                 *bool               `url:"autoclose_referenced_issues,omitempty" json:"autoclose_referenced_issues,omitempty"`
 
 	// Deprecated members
 	IssuesEnabled        *bool `url:"issues_enabled,omitempty" json:"issues_enabled,omitempty"`
@@ -597,6 +613,8 @@ type EditProjectOptions struct {
 	OnlyMirrorProtectedBranches               *bool               `url:"only_mirror_protected_branches,omitempty" json:"only_mirror_protected_branches,omitempty"`
 	MirrorOverwritesDivergedBranches          *bool               `url:"mirror_overwrites_diverged_branches,omitempty" json:"mirror_overwrites_diverged_branches,omitempty"`
 	PackagesEnabled                           *bool               `url:"packages_enabled,omitempty" json:"packages_enabled,omitempty"`
+	ServiceDeskEnabled                        *bool               `url:"service_desk_enabled,omitempty" json:"service_desk_enabled,omitempty"`
+	AutocloseReferencedIssues                 *bool               `url:"autoclose_referenced_issues,omitempty" json:"autoclose_referenced_issues,omitempty"`
 
 	// Deprecated members
 	IssuesEnabled        *bool `url:"issues_enabled,omitempty" json:"issues_enabled,omitempty"`
@@ -1174,19 +1192,20 @@ func (s *ProjectsService) ListProjectForks(pid interface{}, opt *ListProjectsOpt
 // GitLab API docs:
 // https://docs.gitlab.com/ee/api/projects.html#push-rules
 type ProjectPushRules struct {
-	ID                    int        `json:"id"`
-	ProjectID             int        `json:"project_id"`
-	CommitMessageRegex    string     `json:"commit_message_regex"`
-	BranchNameRegex       string     `json:"branch_name_regex"`
-	DenyDeleteTag         bool       `json:"deny_delete_tag"`
-	CreatedAt             *time.Time `json:"created_at"`
-	MemberCheck           bool       `json:"member_check"`
-	PreventSecrets        bool       `json:"prevent_secrets"`
-	AuthorEmailRegex      string     `json:"author_email_regex"`
-	FileNameRegex         string     `json:"file_name_regex"`
-	MaxFileSize           int        `json:"max_file_size"`
-	CommitCommitterCheck  bool       `json:"commit_committer_check"`
-	RejectUnsignedCommits bool       `json:"reject_unsigned_commits"`
+	ID                         int        `json:"id"`
+	ProjectID                  int        `json:"project_id"`
+	CommitMessageRegex         string     `json:"commit_message_regex"`
+	CommitMessageNegativeRegex string     `json:"commit_message_negative_regex"`
+	BranchNameRegex            string     `json:"branch_name_regex"`
+	DenyDeleteTag              bool       `json:"deny_delete_tag"`
+	CreatedAt                  *time.Time `json:"created_at"`
+	MemberCheck                bool       `json:"member_check"`
+	PreventSecrets             bool       `json:"prevent_secrets"`
+	AuthorEmailRegex           string     `json:"author_email_regex"`
+	FileNameRegex              string     `json:"file_name_regex"`
+	MaxFileSize                int        `json:"max_file_size"`
+	CommitCommitterCheck       bool       `json:"commit_committer_check"`
+	RejectUnsignedCommits      bool       `json:"reject_unsigned_commits"`
 }
 
 // GetProjectPushRules gets the push rules of a project.
@@ -1220,14 +1239,17 @@ func (s *ProjectsService) GetProjectPushRules(pid interface{}, options ...Reques
 // GitLab API docs:
 // https://docs.gitlab.com/ee/api/projects.html#add-project-push-rule
 type AddProjectPushRuleOptions struct {
-	DenyDeleteTag      *bool   `url:"deny_delete_tag,omitempty" json:"deny_delete_tag,omitempty"`
-	MemberCheck        *bool   `url:"member_check,omitempty" json:"member_check,omitempty"`
-	PreventSecrets     *bool   `url:"prevent_secrets,omitempty" json:"prevent_secrets,omitempty"`
-	CommitMessageRegex *string `url:"commit_message_regex,omitempty" json:"commit_message_regex,omitempty"`
-	BranchNameRegex    *string `url:"branch_name_regex,omitempty" json:"branch_name_regex,omitempty"`
-	AuthorEmailRegex   *string `url:"author_email_regex,omitempty" json:"author_email_regex,omitempty"`
-	FileNameRegex      *string `url:"file_name_regex,omitempty" json:"file_name_regex,omitempty"`
-	MaxFileSize        *int    `url:"max_file_size,omitempty" json:"max_file_size,omitempty"`
+	DenyDeleteTag              *bool   `url:"deny_delete_tag,omitempty" json:"deny_delete_tag,omitempty"`
+	MemberCheck                *bool   `url:"member_check,omitempty" json:"member_check,omitempty"`
+	PreventSecrets             *bool   `url:"prevent_secrets,omitempty" json:"prevent_secrets,omitempty"`
+	CommitMessageRegex         *string `url:"commit_message_regex,omitempty" json:"commit_message_regex,omitempty"`
+	CommitMessageNegativeRegex *string `url:"commit_message_negative_regex,omitempty" json:"commit_message_negative_regex,omitempty"`
+	BranchNameRegex            *string `url:"branch_name_regex,omitempty" json:"branch_name_regex,omitempty"`
+	AuthorEmailRegex           *string `url:"author_email_regex,omitempty" json:"author_email_regex,omitempty"`
+	FileNameRegex              *string `url:"file_name_regex,omitempty" json:"file_name_regex,omitempty"`
+	MaxFileSize                *int    `url:"max_file_size,omitempty" json:"max_file_size,omitempty"`
+	CommitCommitterCheck       *bool   `url:"commit_committer_check,omitempty" json:"commit_committer_check,omitempty"`
+	RejectUnsignedCommits      *bool   `url:"reject_unsigned_commits,omitempty" json:"reject_unsigned_commits,omitempty"`
 }
 
 // AddProjectPushRule adds a push rule to a specified project.
@@ -1261,16 +1283,17 @@ func (s *ProjectsService) AddProjectPushRule(pid interface{}, opt *AddProjectPus
 // GitLab API docs:
 // https://docs.gitlab.com/ee/api/projects.html#edit-project-push-rule
 type EditProjectPushRuleOptions struct {
-	AuthorEmailRegex      *string `url:"author_email_regex,omitempty" json:"author_email_regex,omitempty"`
-	BranchNameRegex       *string `url:"branch_name_regex,omitempty" json:"branch_name_regex,omitempty"`
-	CommitMessageRegex    *string `url:"commit_message_regex,omitempty" json:"commit_message_regex,omitempty"`
-	FileNameRegex         *string `url:"file_name_regex,omitempty" json:"file_name_regex,omitempty"`
-	DenyDeleteTag         *bool   `url:"deny_delete_tag,omitempty" json:"deny_delete_tag,omitempty"`
-	MemberCheck           *bool   `url:"member_check,omitempty" json:"member_check,omitempty"`
-	PreventSecrets        *bool   `url:"prevent_secrets,omitempty" json:"prevent_secrets,omitempty"`
-	MaxFileSize           *int    `url:"max_file_size,omitempty" json:"max_file_size,omitempty"`
-	CommitCommitterCheck  *bool   `url:"commit_committer_check,omitempty" json:"commit_committer_check,omitempty"`
-	RejectUnsignedCommits *bool   `url:"reject_unsigned_commits,omitempty" json:"reject_unsigned_commits,omitempty"`
+	AuthorEmailRegex           *string `url:"author_email_regex,omitempty" json:"author_email_regex,omitempty"`
+	BranchNameRegex            *string `url:"branch_name_regex,omitempty" json:"branch_name_regex,omitempty"`
+	CommitMessageRegex         *string `url:"commit_message_regex,omitempty" json:"commit_message_regex,omitempty"`
+	CommitMessageNegativeRegex *string `url:"commit_message_negative_regex,omitempty" json:"commit_message_negative_regex,omitempty"`
+	FileNameRegex              *string `url:"file_name_regex,omitempty" json:"file_name_regex,omitempty"`
+	DenyDeleteTag              *bool   `url:"deny_delete_tag,omitempty" json:"deny_delete_tag,omitempty"`
+	MemberCheck                *bool   `url:"member_check,omitempty" json:"member_check,omitempty"`
+	PreventSecrets             *bool   `url:"prevent_secrets,omitempty" json:"prevent_secrets,omitempty"`
+	MaxFileSize                *int    `url:"max_file_size,omitempty" json:"max_file_size,omitempty"`
+	CommitCommitterCheck       *bool   `url:"commit_committer_check,omitempty" json:"commit_committer_check,omitempty"`
+	RejectUnsignedCommits      *bool   `url:"reject_unsigned_commits,omitempty" json:"reject_unsigned_commits,omitempty"`
 }
 
 // EditProjectPushRule edits a push rule for a specified project.
