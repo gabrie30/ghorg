@@ -85,6 +85,7 @@ type TagEvent struct {
 	UserID      int    `json:"user_id"`
 	UserName    string `json:"user_name"`
 	UserAvatar  string `json:"user_avatar"`
+	UserEmail   string `json:"user_email"`
 	ProjectID   int    `json:"project_id"`
 	Message     string `json:"message"`
 	Project     struct {
@@ -593,6 +594,10 @@ type MergeEvent struct {
 			Previous int `json:"previous"`
 			Current  int `json:"current"`
 		} `json:"source_project_id"`
+		StateID struct {
+			Previous int `json:"previous"`
+			Current  int `json:"current"`
+		} `json:"state_id"`
 		TargetBranch struct {
 			Previous string `json:"previous"`
 			Current  string `json:"current"`
