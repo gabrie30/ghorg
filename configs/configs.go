@@ -11,6 +11,9 @@ import (
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
+	"github.com/gabrie30/ghorg/scm"
+	"github.com/gabrie30/ghorg/utils"
+
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
@@ -29,7 +32,7 @@ var (
 	ErrNoBitbucketAppPassword = errors.New("Could not find a valid bitbucket app password. GHORG_BITBUCKET_APP_PASSWORD or (--token, -t) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
 
 	// ErrIncorrectScmType indicates an unsupported scm type being used
-	ErrIncorrectScmType = errors.New("GHORG_SCM_TYPE or --scm must be one of github, gitlab, gitea or bitbucket")
+	ErrIncorrectScmType = errors.New("GHORG_SCM_TYPE or --scm must be one of " + strings.Join(scm.SupportedClients(), ", "))
 
 	// ErrIncorrectCloneType indicates an unsupported clone type being used
 	ErrIncorrectCloneType = errors.New("GHORG_CLONE_TYPE or --clone-type must be one of org or user")
@@ -307,7 +310,7 @@ func VerifyConfigsSetCorrectly() error {
 	cloneType := os.Getenv("GHORG_CLONE_TYPE")
 	protocol := os.Getenv("GHORG_CLONE_PROTOCOL")
 
-	if scmType != "github" && scmType != "gitlab" && scmType != "bitbucket" && scmType != "gitea" {
+	if !utils.IsStringInSlice(scmType, scm.SupportedClients()) {
 		return ErrIncorrectScmType
 	}
 
