@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"code.gitea.io/sdk/gitea"
-	"github.com/gabrie30/ghorg/colorlog"
 )
 
 var (
@@ -30,7 +29,7 @@ func (c Gitea) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	client, err := c.determineClient()
 
 	if err != nil {
-		colorlog.PrintError(err)
+		return nil, err
 	}
 
 	perPage := 10
@@ -46,9 +45,9 @@ func (c Gitea) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				colorlog.PrintError(fmt.Errorf("org \"%s\" not found", targetOrg))
+				err = fmt.Errorf("org \"%s\" not found", targetOrg)
 			}
-			return []Repo{}, err
+			return nil, err
 		}
 
 		repoDataFiltered, err := c.filter(client, rps)
@@ -72,7 +71,7 @@ func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
 	client, err := c.determineClient()
 
 	if err != nil {
-		colorlog.PrintError(err)
+		return nil, err
 	}
 
 	perPage := 10
@@ -88,9 +87,9 @@ func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
 
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				colorlog.PrintError(fmt.Errorf("org \"%s\" not found", targetUsername))
+				err = fmt.Errorf("org \"%s\" not found", targetUsername)
 			}
-			return []Repo{}, err
+			return nil, err
 		}
 
 		repoDataFiltered, err := c.filter(client, rps)
