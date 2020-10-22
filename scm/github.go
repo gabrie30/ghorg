@@ -20,7 +20,7 @@ func init() {
 }
 
 type Github struct {
-	// contain the github client
+	// extend the github client
 	*github.Client
 	// perPage contain the pagination item limit
 	perPage int

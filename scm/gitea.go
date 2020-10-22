@@ -19,7 +19,7 @@ func init() {
 }
 
 type Gitea struct {
-	// contain the gitea client
+	// extend the gitea client
 	*gitea.Client
 	// perPage contain the pagination item limit
 	perPage int
