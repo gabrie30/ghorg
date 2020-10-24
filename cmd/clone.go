@@ -203,17 +203,11 @@ func getAllUserCloneUrls() ([]scm.Repo, error) {
 func getCloneUrls(isOrg bool) ([]scm.Repo, error) {
 	asciiTime()
 	PrintConfigs()
-	scmType := strings.ToLower(os.Getenv("GHORG_SCM_TYPE"))
-	if len(scmType) == 0 {
-		colorlog.PrintError("GHORG_SCM_TYPE not set")
+	client := scm.GetClient(strings.ToLower(os.Getenv("GHORG_SCM_TYPE")))
+	if client == nil {
+		colorlog.PrintError("GHORG_SCM_TYPE not set or unsupported")
 		os.Exit(1)
 	}
-	client, err := scm.GetClient(scmType)
-	if err != nil {
-		colorlog.PrintError(err)
-		os.Exit(1)
-	}
-
 	if isOrg {
 		return client.GetOrgRepos(targetCloneSource)
 	}
