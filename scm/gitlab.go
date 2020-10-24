@@ -18,7 +18,10 @@ func init() {
 	registerClient(Gitlab{})
 }
 
-type Gitlab struct{}
+type Gitlab struct {
+	// extend the gitlab client
+	*gitlab.Client
+}
 
 func (_ Gitlab) GetType() string {
 	return "gitlab"
@@ -27,11 +30,6 @@ func (_ Gitlab) GetType() string {
 // GetOrgRepos fetches repo data from a specific group
 func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	repoData := []Repo{}
-	client, err := c.determineClient()
-
-	if err != nil {
-		colorlog.PrintError(err)
-	}
 
 	opt := &gitlab.ListGroupProjectsOptions{
 		ListOptions: gitlab.ListOptions{
@@ -43,7 +41,7 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 	for {
 		// Get the first page with projects.
-		ps, resp, err := client.Groups.ListGroupProjects(targetOrg, opt)
+		ps, resp, err := c.Groups.ListGroupProjects(targetOrg, opt)
 
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
@@ -68,27 +66,9 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	return repoData, nil
 }
 
-func (_ Gitlab) determineClient() (*gitlab.Client, error) {
-	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
-	token := os.Getenv("GHORG_GITLAB_TOKEN")
-
-	if baseURL != "" {
-		client, err := gitlab.NewClient(token, gitlab.WithBaseURL(baseURL))
-		return client, err
-	}
-
-	return gitlab.NewClient(token)
-}
-
 // GetUserRepos gets all of a users gitlab repos
 func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 	cloneData := []Repo{}
-
-	client, err := c.determineClient()
-
-	if err != nil {
-		colorlog.PrintError(err)
-	}
 
 	opt := &gitlab.ListProjectsOptions{
 		ListOptions: gitlab.ListOptions{
@@ -99,7 +79,7 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 
 	for {
 		// Get the first page with projects.
-		ps, resp, err := client.Projects.ListUserProjects(targetUsername, opt)
+		ps, resp, err := c.Projects.ListUserProjects(targetUsername, opt)
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				colorlog.PrintError(fmt.Sprintf("user '%s' does not exist", targetUsername))
@@ -121,6 +101,21 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 	}
 
 	return cloneData, nil
+}
+
+// NewClient create new gitlab scm client
+func (_ Gitlab) NewClient() (Client, error) {
+	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
+	token := os.Getenv("GHORG_GITLAB_TOKEN")
+
+	var err error
+	var c *gitlab.Client
+	if baseURL != "" {
+		c, err = gitlab.NewClient(token, gitlab.WithBaseURL(baseURL))
+	} else {
+		c, err = gitlab.NewClient(token)
+	}
+	return Gitlab{c}, err
 }
 
 func (_ Gitlab) addTokenToHTTPSCloneURL(url string, token string) string {

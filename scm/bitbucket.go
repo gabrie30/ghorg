@@ -15,7 +15,10 @@ func init() {
 	registerClient(Bitbucket{})
 }
 
-type Bitbucket struct{}
+type Bitbucket struct {
+	// extend the bitbucket client
+	*bitbucket.Client
+}
 
 func (_ Bitbucket) GetType() string {
 	return "bitbucket"
@@ -23,10 +26,7 @@ func (_ Bitbucket) GetType() string {
 
 // GetOrgRepos gets org repos
 func (c Bitbucket) GetOrgRepos(targetOrg string) ([]Repo, error) {
-
-	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
-
-	resp, err := client.Teams.Repositories(targetOrg)
+	resp, err := c.Teams.Repositories(targetOrg)
 	if err != nil {
 		return []Repo{}, err
 	}
@@ -36,15 +36,20 @@ func (c Bitbucket) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 // GetUserRepos gets user repos from bitbucket
 func (c Bitbucket) GetUserRepos(targetUser string) ([]Repo, error) {
-
-	client := bitbucket.NewBasicAuth(os.Getenv("GHORG_BITBUCKET_USERNAME"), os.Getenv("GHORG_BITBUCKET_APP_PASSWORD"))
-
-	resp, err := client.Users.Repositories(targetUser)
+	resp, err := c.Users.Repositories(targetUser)
 	if err != nil {
 		return []Repo{}, err
 	}
 
 	return c.filter(resp)
+}
+
+// NewClient create new bitbucket scm client
+func (_ Bitbucket) NewClient() (Client, error) {
+	user := os.Getenv("GHORG_BITBUCKET_USERNAME")
+	password := os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
+	c := bitbucket.NewBasicAuth(user, password)
+	return Bitbucket{c}, nil
 }
 
 func (_ Bitbucket) filter(resp interface{}) (repoData []Repo, err error) {

@@ -20,7 +20,10 @@ func init() {
 }
 
 type Github struct {
-	client *github.Client
+	// extend the github client
+	*github.Client
+	// perPage contain the pagination item limit
+	perPage int
 }
 
 func (_ Github) GetType() string {
@@ -29,18 +32,14 @@ func (_ Github) GetType() string {
 
 // GetOrgRepos gets org repos
 func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
-	if c.client == nil {
-		c.client = c.newGitHubClient()
-	}
-
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		u := configs.EnsureTrailingSlash(os.Getenv("GHORG_SCM_BASE_URL"))
-		c.client.BaseURL, _ = url.Parse(u)
+		c.BaseURL, _ = url.Parse(u)
 	}
 
 	opt := &github.RepositoryListByOrgOptions{
 		Type:        "all",
-		ListOptions: github.ListOptions{PerPage: 100, Page: 0},
+		ListOptions: github.ListOptions{PerPage: c.perPage},
 	}
 
 	envTopics := strings.Split(os.Getenv("GHORG_TOPICS"), ",")
@@ -49,7 +48,7 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	var allRepos []*github.Repository
 	for {
 
-		repos, resp, err := c.client.Repositories.ListByOrg(context.Background(), targetOrg, opt)
+		repos, resp, err := c.Repositories.ListByOrg(context.Background(), targetOrg, opt)
 
 		if err != nil {
 			return nil, err
@@ -67,18 +66,14 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 // GetUserRepos gets user repos
 func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
-	if c.client == nil {
-		c.client = c.newGitHubClient()
-	}
-
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		u := configs.EnsureTrailingSlash(os.Getenv("GHORG_SCM_BASE_URL"))
-		c.client.BaseURL, _ = url.Parse(u)
+		c.BaseURL, _ = url.Parse(u)
 	}
 
 	opt := &github.RepositoryListOptions{
 		Type:        "all",
-		ListOptions: github.ListOptions{PerPage: 100, Page: 0},
+		ListOptions: github.ListOptions{PerPage: c.perPage},
 	}
 
 	envTopics := strings.Split(os.Getenv("GHORG_TOPICS"), ",")
@@ -87,7 +82,7 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 	var allRepos []*github.Repository
 	for {
 
-		repos, resp, err := c.client.Repositories.List(context.Background(), targetUser, opt)
+		repos, resp, err := c.Repositories.List(context.Background(), targetUser, opt)
 
 		if err != nil {
 			return nil, err
@@ -100,6 +95,20 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 	}
 
 	return c.filter(allRepos, envTopics), nil
+}
+
+// NewClient create new github scm client
+func (_ Github) NewClient() (Client, error) {
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
+	)
+	tc := oauth2.NewClient(ctx, ts)
+	c := github.NewClient(tc)
+
+	client := Github{Client: c, perPage: 100}
+
+	return client, nil
 }
 
 func (_ Github) addTokenToHTTPSCloneURL(url string, token string) string {
@@ -167,15 +176,4 @@ func (c Github) filter(allRepos []*github.Repository, envTopics []string) []Repo
 	}
 
 	return repoData
-}
-
-// newGitHubClient creates a github client
-func (_ Github) newGitHubClient() *github.Client {
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
-	return client
 }

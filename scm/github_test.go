@@ -52,8 +52,7 @@ func setup() (client *ghpkg.Client, mux *http.ServeMux, serverURL string, teardo
 func TestGetOrgRepos(t *testing.T) {
 	client, mux, _, teardown := setup()
 
-	github := Github{}
-	github.client = client
+	github := Github{Client: client}
 
 	defer teardown()
 
