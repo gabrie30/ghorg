@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gabrie30/ghorg/colorlog"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
@@ -45,8 +44,7 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
-				colorlog.PrintError(fmt.Sprintf("group '%s' does not exist", targetOrg))
-				return []Repo{}, nil
+				return nil, fmt.Errorf("group '%s' does not exist", targetOrg)
 			}
 			return []Repo{}, err
 		}
@@ -82,8 +80,7 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 		ps, resp, err := c.Projects.ListUserProjects(targetUsername, opt)
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
-				colorlog.PrintError(fmt.Sprintf("user '%s' does not exist", targetUsername))
-				return []Repo{}, nil
+				return nil, fmt.Errorf("user '%s' does not exist", targetUsername)
 			}
 			return []Repo{}, err
 		}
