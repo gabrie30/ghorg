@@ -1,7 +1,11 @@
 package scm
 
+import "fmt"
+
 // Client define the interface a scm client has to have
 type Client interface {
+	NewClient() (Client, error)
+
 	GetUserRepos(targetUsername string) ([]Repo, error)
 	GetOrgRepos(targetOrg string) ([]Repo, error)
 
@@ -17,13 +21,13 @@ func registerClient(c Client) {
 	clients = append(clients, c)
 }
 
-func GetClient(cType string) Client {
+func GetClient(cType string) (Client, error) {
 	for i := range clients {
 		if clients[i].GetType() == cType {
-			return clients[i]
+			return clients[i].NewClient()
 		}
 	}
-	return nil
+	return nil, fmt.Errorf("client type '%s' unsupported", cType)
 }
 
 // SupportedClients return list of all supported clients
