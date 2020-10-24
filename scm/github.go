@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gabrie30/ghorg/configs"
 	"github.com/google/go-github/v32/github"
 	"golang.org/x/oauth2"
 )
@@ -34,8 +33,7 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	}
 
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
-		u := configs.EnsureTrailingSlash(os.Getenv("GHORG_SCM_BASE_URL"))
-		c.client.BaseURL, _ = url.Parse(u)
+		c.client.BaseURL, _ = url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
 	}
 
 	opt := &github.RepositoryListByOrgOptions{
@@ -72,8 +70,7 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 	}
 
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
-		u := configs.EnsureTrailingSlash(os.Getenv("GHORG_SCM_BASE_URL"))
-		c.client.BaseURL, _ = url.Parse(u)
+		c.client.BaseURL, _ = url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
 	}
 
 	opt := &github.RepositoryListOptions{
