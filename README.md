@@ -63,6 +63,9 @@ $ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop --color
 $ ghorg clone gitlab-group --scm=gitlab --base-url=https://gitlab.internal.yourcompany.com --preserve-dir
 $ ghorg clone gitlab-group/gitlab-subgroup --scm=gitlab --base-url=https://gitlab.internal.yourcompany.com
 $ ghorg clone --help
+# view cloned resources
+$ ghorg ls
+$ ghorg ls someorg
 ```
 
 ## Setup and Configuration
