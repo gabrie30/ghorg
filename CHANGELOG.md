@@ -7,7 +7,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Added
 - gitea support; thanks @6543
 - skip forks flag; thanks @6543
+- ls command
+- scm package
 ### Changed
+- go-gitlab version 0.33.0 -> 0.38.2
 ### Deprecated
 ### Removed
 ### Fixed
