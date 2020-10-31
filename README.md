@@ -47,7 +47,7 @@ $ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 
 ```bash
 # ensure $HOME/go/bin is in your path ($ echo $PATH | grep $HOME/go/bin)
-$ go get -u github.com/gabrie30/ghorg
+$ go get github.com/gabrie30/ghorg
 $ mkdir -p $HOME/.config/ghorg
 $ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
 $ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
