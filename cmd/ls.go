@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 
@@ -49,7 +48,7 @@ func listGhorgHome() {
 	ghorgDir := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
 	files, err := ioutil.ReadDir(ghorgDir)
 	if err != nil {
-		log.Fatal(err)
+		colorlog.PrintError("No clones found. Please clone some and try again.")
 	}
 
 	for _, f := range files {
@@ -65,11 +64,13 @@ func listGhorgDir(arg string) {
 		arg = arg + "_ghorg"
 	}
 
+	arg = strings.ReplaceAll(arg, "-", "_")
+
 	ghorgDir := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + arg
 
 	files, err := ioutil.ReadDir(ghorgDir)
 	if err != nil {
-		log.Fatal(err)
+		colorlog.PrintError("No clone found with that name. Please check spelling or reclone.")
 	}
 
 	for _, f := range files {
