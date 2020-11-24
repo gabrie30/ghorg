@@ -75,7 +75,7 @@ func listGhorgDir(arg string) {
 
 	for _, f := range files {
 		if f.IsDir() {
-			colorlog.PrintInfo(ghorgDir + "/" + f.Name())
+			colorlog.PrintSubtleInfo(ghorgDir + "/" + f.Name())
 		}
 	}
 }
