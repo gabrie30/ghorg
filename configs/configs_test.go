@@ -9,14 +9,9 @@ import (
 
 func TestDefaultSettings(t *testing.T) {
 
-	branch := os.Getenv("GHORG_BRANCH")
 	protocol := os.Getenv("GHORG_CLONE_PROTOCOL")
 	scm := os.Getenv("GHORG_SCM_TYPE")
 	cloneType := os.Getenv("GHORG_CLONE_TYPE")
-
-	if branch != "master" {
-		t.Errorf("Default branch should be master, got: %v", branch)
-	}
 
 	if protocol != "https" {
 		t.Errorf("Default protocol should be https, got: %v", protocol)

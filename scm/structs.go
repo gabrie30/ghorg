@@ -2,8 +2,9 @@ package scm
 
 // Repo represents an SCM repo
 type Repo struct {
-	Name     string
-	Path     string
-	URL      string
-	CloneURL string
+	Name        string
+	Path        string
+	URL         string
+	CloneURL    string
+	CloneBranch string
 }

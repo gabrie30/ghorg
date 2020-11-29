@@ -161,6 +161,17 @@ func (c Github) filter(allRepos []*github.Repository, envTopics []string) []Repo
 		}
 
 		r := Repo{}
+
+		if os.Getenv("GHORG_BRANCH") == "" {
+			defaultBranch := ghRepo.GetDefaultBranch()
+			if defaultBranch == "" {
+				defaultBranch = "master"
+			}
+			r.CloneBranch = defaultBranch
+		} else {
+			r.CloneBranch = os.Getenv("GHORG_BRANCH")
+		}
+
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			r.CloneURL = c.addTokenToHTTPSCloneURL(*ghRepo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
 			r.URL = *ghRepo.CloneURL
