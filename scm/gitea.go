@@ -174,6 +174,16 @@ func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 		r := Repo{}
 		r.Path = rp.FullName
 
+		if os.Getenv("GHORG_BRANCH") == "" {
+			defaultBranch := rp.DefaultBranch
+			if defaultBranch == "" {
+				defaultBranch = "master"
+			}
+			r.CloneBranch = defaultBranch
+		} else {
+			r.CloneBranch = os.Getenv("GHORG_BRANCH")
+		}
+
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			cloneURL := rp.CloneURL
 			if rp.Private {

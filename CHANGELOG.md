@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Added
 ### Changed
 - error messages for ls command
+- GHORG_BRANCH if not set, will first look for the repos default branch, if no default branch is found on repo will fall back to using master as default
 ### Deprecated
 ### Removed
 ### Fixed

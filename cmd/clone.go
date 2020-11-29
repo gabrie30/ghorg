@@ -356,7 +356,7 @@ func CloneAllRepos() {
 	limit := limiter.NewConcurrencyLimiter(l)
 	for _, target := range cloneTargets {
 		appName := getAppNameFromURL(target.URL)
-		branch := os.Getenv("GHORG_BRANCH")
+		branch := target.CloneBranch
 		repo := target
 
 		limit.Execute(func() {
@@ -452,7 +452,7 @@ func CloneAllRepos() {
 				}
 			}
 
-			colorlog.PrintSuccess("Success " + repo.URL)
+			colorlog.PrintSuccess("Success cloning repo: " + repo.URL + " -> branch: " + branch)
 		})
 
 	}
@@ -484,9 +484,12 @@ func PrintConfigs() {
 	colorlog.PrintInfo("* SCM           : " + os.Getenv("GHORG_SCM_TYPE"))
 	colorlog.PrintInfo("* Type          : " + os.Getenv("GHORG_CLONE_TYPE"))
 	colorlog.PrintInfo("* Protocol      : " + os.Getenv("GHORG_CLONE_PROTOCOL"))
-	colorlog.PrintInfo("* Branch        : " + os.Getenv("GHORG_BRANCH"))
 	colorlog.PrintInfo("* Location      : " + os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
 	colorlog.PrintInfo("* Concurrency   : " + os.Getenv("GHORG_CONCURRENCY"))
+
+	if os.Getenv("GHORG_BRANCH") != "" {
+		colorlog.PrintInfo("* Branch        : " + getGhorgBranch())
+	}
 
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		colorlog.PrintInfo("* Base URL      : " + os.Getenv("GHORG_SCM_BASE_URL"))
@@ -509,6 +512,14 @@ func PrintConfigs() {
 
 	colorlog.PrintInfo("*************************************")
 	fmt.Println("")
+}
+
+func getGhorgBranch() string {
+	if os.Getenv("GHORG_BRANCH") == "" {
+		return "default branch"
+	}
+
+	return os.Getenv("GHORG_BRANCH")
 }
 
 func ensureTrailingSlash(path string) string {

@@ -121,8 +121,6 @@ func getOrSetDefaults(envVar string) {
 		switch envVar {
 		case "GHORG_ABSOLUTE_PATH_TO_CLONE_TO":
 			os.Setenv(envVar, HomeDir()+"/Desktop/ghorg/")
-		case "GHORG_BRANCH":
-			os.Setenv(envVar, "master")
 		case "GHORG_CLONE_PROTOCOL":
 			os.Setenv(envVar, "https")
 		case "GHORG_CLONE_TYPE":

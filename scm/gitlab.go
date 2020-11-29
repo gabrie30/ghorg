@@ -152,6 +152,16 @@ func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
 
 		r := Repo{}
 
+		if os.Getenv("GHORG_BRANCH") == "" {
+			defaultBranch := p.DefaultBranch
+			if defaultBranch == "" {
+				defaultBranch = "master"
+			}
+			r.CloneBranch = defaultBranch
+		} else {
+			r.CloneBranch = os.Getenv("GHORG_BRANCH")
+		}
+
 		r.Path = p.PathWithNamespace
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			r.CloneURL = c.addTokenToHTTPSCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))

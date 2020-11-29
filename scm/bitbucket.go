@@ -78,6 +78,26 @@ func (_ Bitbucket) filter(resp interface{}) (repoData []Repo, err error) {
 			}
 
 			r := Repo{}
+
+			if os.Getenv("GHORG_BRANCH") == "" {
+				var defaultBranch string
+				if clone["mainbranch"] == nil {
+					defaultBranch = "master"
+				} else {
+					defaultBranch = clone["mainbranch"].(map[string]interface{})["name"].(string)
+				}
+
+				r.CloneBranch = defaultBranch
+			} else {
+				r.CloneBranch = os.Getenv("GHORG_BRANCH")
+			}
+
+			if os.Getenv("GHORG_BRANCH") == "" {
+				r.CloneBranch = "master"
+			} else {
+				r.CloneBranch = os.Getenv("GHORG_BRANCH")
+			}
+
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "ssh" && linkType == "ssh" {
 				r.URL = link.(string)
 				r.CloneURL = link.(string)
