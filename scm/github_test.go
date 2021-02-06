@@ -2,6 +2,7 @@ package scm
 
 import (
 	"fmt"
+	"github.com/gabrie30/ghorg/configs"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -53,6 +54,7 @@ func TestGetOrgRepos(t *testing.T) {
 	client, mux, _, teardown := setup()
 
 	github := Github{Client: client}
+	config := &configs.Config{}
 
 	defer teardown()
 
@@ -72,8 +74,7 @@ func TestGetOrgRepos(t *testing.T) {
 	})
 
 	t.Run("Should return all repos", func(tt *testing.T) {
-
-		resp, err := github.GetOrgRepos("testorg")
+		resp, err := github.GetOrgRepos(config, "testorg")
 
 		if err != nil {
 			t.Fatal(err)
@@ -84,12 +85,11 @@ func TestGetOrgRepos(t *testing.T) {
 		if want != got {
 			tt.Errorf("Expected %v repo, got: %v", want, got)
 		}
-
 	})
 
 	t.Run("Should skip archived repos when env is set", func(tt *testing.T) {
-		os.Setenv("GHORG_SKIP_ARCHIVED", "true")
-		resp, err := github.GetOrgRepos("testorg")
+		config.SkipArchived = true
+		resp, err := github.GetOrgRepos(config, "testorg")
 
 		if err != nil {
 			t.Fatal(err)
@@ -99,13 +99,12 @@ func TestGetOrgRepos(t *testing.T) {
 		if want != got {
 			tt.Errorf("Expected %v repo, got: %v", want, got)
 		}
-		os.Setenv("GHORG_SKIP_ARCHIVED", "")
-
+		config.SkipArchived = false
 	})
 
 	t.Run("Should skip forked repos when env is set", func(tt *testing.T) {
-		os.Setenv("GHORG_SKIP_FORKS", "true")
-		resp, err := github.GetOrgRepos("testorg")
+		config.SkipForks = true
+		resp, err := github.GetOrgRepos(config, "testorg")
 
 		if err != nil {
 			t.Fatal(err)
@@ -115,13 +114,12 @@ func TestGetOrgRepos(t *testing.T) {
 		if want != got {
 			tt.Errorf("Expected %v repo, got: %v", want, got)
 		}
-		os.Setenv("GHORG_SKIP_FORKS", "")
-
+		config.SkipForks = false
 	})
 
 	t.Run("Find all repos with specific topic set", func(tt *testing.T) {
-		os.Setenv("GHORG_TOPICS", "test-topic")
-		resp, err := github.GetOrgRepos("testorg")
+		config.Topics = []string{"test-topic"}
+		resp, err := github.GetOrgRepos(config, "testorg")
 
 		if err != nil {
 			t.Fatal(err)
@@ -131,12 +129,12 @@ func TestGetOrgRepos(t *testing.T) {
 		if want != got {
 			tt.Errorf("Expected %v repo, got: %v", want, got)
 		}
-		os.Setenv("GHORG_TOPICS", "")
+		config.Topics = nil
 	})
 
 	t.Run("Find all repos with specific prefix", func(tt *testing.T) {
-		os.Setenv("GHORG_MATCH_PREFIX", "tp-")
-		resp, err := github.GetOrgRepos("testorg")
+		config.MatchPrefix = "tp-"
+		resp, err := github.GetOrgRepos(config, "testorg")
 
 		if err != nil {
 			t.Fatal(err)
@@ -146,6 +144,6 @@ func TestGetOrgRepos(t *testing.T) {
 		if want != got {
 			tt.Errorf("Expected %v repo, got: %v", want, got)
 		}
-		os.Setenv("GHORG_MATCH_PREFIX", "")
+		config.MatchPrefix = ""
 	})
 }

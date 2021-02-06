@@ -1,13 +1,22 @@
 package scm
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/gabrie30/ghorg/configs"
+)
+
+// ErrIncorrectScmType indicates an unsupported scm type being used
+var ErrIncorrectScmType = errors.New("GHORG_SCM or --scm must be one of " + strings.Join(SupportedClients(), ", "))
 
 // Client define the interface a scm client has to have
 type Client interface {
-	NewClient() (Client, error)
+	NewClient(config *configs.Config) (Client, error)
 
-	GetUserRepos(targetUsername string) ([]Repo, error)
-	GetOrgRepos(targetOrg string) ([]Repo, error)
+	GetUserRepos(config *configs.Config, targetUsername string) ([]Repo, error)
+	GetOrgRepos(config *configs.Config, targetOrg string) ([]Repo, error)
 
 	GetType() string
 }
@@ -21,10 +30,10 @@ func registerClient(c Client) {
 	clients = append(clients, c)
 }
 
-func GetClient(cType string) (Client, error) {
+func GetClient(config *configs.Config, cType string) (Client, error) {
 	for i := range clients {
 		if clients[i].GetType() == cType {
-			return clients[i].NewClient()
+			return clients[i].NewClient(config)
 		}
 	}
 	return nil, fmt.Errorf("client type '%s' unsupported", cType)
@@ -37,4 +46,23 @@ func SupportedClients() []string {
 		types = append(types, clients[i].GetType())
 	}
 	return types
+}
+
+// VerifyScmType makes sure flags are set to appropriate values
+func VerifyScmType(config *configs.Config) error {
+	if !isStringInSlice(config.ScmType, SupportedClients()) {
+		return ErrIncorrectScmType
+	}
+
+	return nil
+}
+
+// isStringInSlice check if a string is in a given slice
+func isStringInSlice(s string, sl []string) bool {
+	for i := range sl {
+		if sl[i] == s {
+			return true
+		}
+	}
+	return false
 }

@@ -13,7 +13,6 @@ require (
 	github.com/korovkin/limiter v0.0.0-20190919045942-dac5a6b2a536
 	github.com/ktrysmt/go-bitbucket v0.6.1
 	github.com/mattn/go-colorable v0.1.7 // indirect
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.2 // indirect
 	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/spf13/afero v1.3.1 // indirect

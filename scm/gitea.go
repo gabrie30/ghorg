@@ -3,10 +3,10 @@ package scm
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	"code.gitea.io/sdk/gitea"
+	"github.com/gabrie30/ghorg/configs"
 )
 
 var (
@@ -29,8 +29,8 @@ func (_ Gitea) GetType() string {
 }
 
 // GetOrgRepos fetches repo data from a specific group
-func (c Gitea) GetOrgRepos(targetOrg string) ([]Repo, error) {
-	repoData := []Repo{}
+func (c Gitea) GetOrgRepos(config *configs.Config, targetOrg string) ([]Repo, error) {
+	var repoData []Repo
 
 	for i := 1; ; i++ {
 		rps, resp, err := c.ListOrgRepos(targetOrg, gitea.ListOrgReposOptions{ListOptions: gitea.ListOptions{
@@ -45,7 +45,7 @@ func (c Gitea) GetOrgRepos(targetOrg string) ([]Repo, error) {
 			return nil, err
 		}
 
-		repoDataFiltered, err := c.filter(rps)
+		repoDataFiltered, err := c.filter(config, rps)
 		if err != nil {
 			return nil, err
 		}
@@ -61,8 +61,8 @@ func (c Gitea) GetOrgRepos(targetOrg string) ([]Repo, error) {
 }
 
 // GetUserRepos gets all of a users gitlab repos
-func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
-	repoData := []Repo{}
+func (c Gitea) GetUserRepos(config *configs.Config, targetUsername string) ([]Repo, error) {
+	var repoData []Repo
 
 	for i := 1; ; i++ {
 		rps, resp, err := c.ListUserRepos(targetUsername, gitea.ListReposOptions{ListOptions: gitea.ListOptions{
@@ -77,7 +77,7 @@ func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
 			return nil, err
 		}
 
-		repoDataFiltered, err := c.filter(rps)
+		repoDataFiltered, err := c.filter(config, rps)
 		if err != nil {
 			return nil, err
 		}
@@ -93,15 +93,12 @@ func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
 }
 
 // NewClient create new gitea scm client
-func (_ Gitea) NewClient() (Client, error) {
-	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
-	token := os.Getenv("GHORG_GITEA_TOKEN")
-
-	if baseURL == "" {
-		baseURL = "https://gitea.com"
+func (_ Gitea) NewClient(config *configs.Config) (Client, error) {
+	if config.ScmBaseUrl == "/" {
+		config.ScmBaseUrl = "https://gitea.com"
 	}
 
-	c, err := gitea.NewClient(baseURL, gitea.SetToken(token))
+	c, err := gitea.NewClient(config.ScmBaseUrl, gitea.SetToken(config.Token))
 	if err != nil {
 		return nil, err
 	}
@@ -117,56 +114,49 @@ func (_ Gitea) NewClient() (Client, error) {
 	return client, nil
 }
 
-func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
-	envTopics := strings.Split(os.Getenv("GHORG_TOPICS"), ",")
-
+func (c Gitea) filter(config *configs.Config, rps []*gitea.Repository) (repoData []Repo, err error) {
 	for _, rp := range rps {
-
-		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
-			if rp.Archived == true {
-				continue
-			}
+		if config.SkipArchived && rp.Archived {
+			continue
 		}
 
-		if os.Getenv("GHORG_SKIP_FORKS") == "true" {
-			if rp.Fork == true {
-				continue
-			}
+		if config.SkipForks && rp.Fork {
+			continue
 		}
 
 		// If user defined a list of topics, check if any match with this repo
-		if os.Getenv("GHORG_TOPICS") != "" {
+		if len(config.Topics) > 0 {
 			rpTopics, _, err := c.ListRepoTopics(rp.Owner.UserName, rp.Name, gitea.ListRepoTopicsOptions{})
 			if err != nil {
 				return []Repo{}, err
 			}
 			foundTopic := false
 			for _, topic := range rpTopics {
-				for _, envTopic := range envTopics {
+				for _, envTopic := range config.Topics {
 					if topic == envTopic {
 						foundTopic = true
 						break
 					}
 				}
-				if foundTopic == true {
+				if foundTopic {
 					break
 				}
 			}
-			if foundTopic == false {
+			if !foundTopic {
 				continue
 			}
 		}
 
-		if os.Getenv("GHORG_MATCH_PREFIX") != "" {
+		if config.MatchPrefix != "" {
 			repoName := strings.ToLower(rp.Name)
 			foundPrefix := false
-			pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
+			pfs := strings.Split(config.MatchPrefix, ",")
 			for _, p := range pfs {
 				if strings.HasPrefix(repoName, strings.ToLower(p)) {
 					foundPrefix = true
 				}
 			}
-			if foundPrefix == false {
+			if !foundPrefix {
 				continue
 			}
 		}
@@ -174,20 +164,20 @@ func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 		r := Repo{}
 		r.Path = rp.FullName
 
-		if os.Getenv("GHORG_BRANCH") == "" {
+		if config.Branch == "" {
 			defaultBranch := rp.DefaultBranch
 			if defaultBranch == "" {
 				defaultBranch = "master"
 			}
 			r.CloneBranch = defaultBranch
 		} else {
-			r.CloneBranch = os.Getenv("GHORG_BRANCH")
+			r.CloneBranch = config.Branch
 		}
 
-		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
+		if config.CloneProtocol == "https" {
 			cloneURL := rp.CloneURL
 			if rp.Private {
-				cloneURL = "https://" + os.Getenv("GHORG_GITEA_TOKEN") + strings.TrimLeft(cloneURL, "https://")
+				cloneURL = "https://" + config.Token + strings.Replace(cloneURL, "https://", "", 1)
 			}
 			r.CloneURL = cloneURL
 			r.URL = cloneURL
