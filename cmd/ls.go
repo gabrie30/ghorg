@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/gabrie30/ghorg/configs"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -9,64 +10,54 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	rootCmd.AddCommand(lsCmd)
+func lsCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "ls [dir]",
+		Short: "List contents of your ghorg home or ghorg directories",
+		Long:  `If no dir is specified it will list contents of GHORG_PATH. When specifying a dir you can omit _ghorg`,
+		Run:   lsFunc,
+	}
 }
 
-var lsCmd = &cobra.Command{
-	Use:   "ls [dir]",
-	Short: "List contents of your ghorg home or ghorg directories",
-	Long:  `If no dir is specified it will list contents of GHORG_ABSOLUTE_PATH_TO_CLONE_TO. When specifying a dir you can omit _ghorg`,
-	Run:   lsFunc,
-}
-
-func lsFunc(cmd *cobra.Command, argz []string) {
-
-	if cmd.Flags().Changed("color") {
-		colorToggle := cmd.Flag("color").Value.String()
-		if colorToggle == "on" {
-			os.Setenv("GHORG_COLOR", colorToggle)
-		} else {
-			os.Setenv("GHORG_COLOR", "off")
-		}
-
+func lsFunc(_ *cobra.Command, argz []string) {
+	config, err := configs.Load(argz)
+	if err != nil {
+		colorlog.PrintError("Loading config failed")
+		os.Exit(1)
 	}
 
 	if len(argz) == 0 {
-		listGhorgHome()
+		listGhorgHome(config)
 	}
 
 	if len(argz) >= 1 {
 		for _, arg := range argz {
-			listGhorgDir(arg)
+			listGhorgDir(config, arg)
 		}
 	}
-
 }
 
-func listGhorgHome() {
-	ghorgDir := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
-	files, err := ioutil.ReadDir(ghorgDir)
+func listGhorgHome(config *configs.Config) {
+	files, err := ioutil.ReadDir(config.Path)
 	if err != nil {
 		colorlog.PrintError("No clones found. Please clone some and try again.")
 	}
 
 	for _, f := range files {
 		if f.IsDir() {
-			colorlog.PrintInfo(ghorgDir + f.Name())
+			colorlog.PrintInfo(config.Path + f.Name())
 		}
 	}
 }
 
-func listGhorgDir(arg string) {
-
+func listGhorgDir(config *configs.Config, arg string) {
 	if !strings.HasSuffix(arg, "_ghorg") {
 		arg = arg + "_ghorg"
 	}
 
 	arg = strings.ReplaceAll(arg, "-", "_")
 
-	ghorgDir := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + arg
+	ghorgDir := config.Path + arg
 
 	files, err := ioutil.ReadDir(ghorgDir)
 	if err != nil {

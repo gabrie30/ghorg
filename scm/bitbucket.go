@@ -1,9 +1,9 @@
 package scm
 
 import (
-	"os"
 	"strings"
 
+	"github.com/gabrie30/ghorg/configs"
 	"github.com/ktrysmt/go-bitbucket"
 )
 
@@ -25,35 +25,33 @@ func (_ Bitbucket) GetType() string {
 }
 
 // GetOrgRepos gets org repos
-func (c Bitbucket) GetOrgRepos(targetOrg string) ([]Repo, error) {
+func (c Bitbucket) GetOrgRepos(config *configs.Config, targetOrg string) ([]Repo, error) {
 	resp, err := c.Teams.Repositories(targetOrg)
 	if err != nil {
 		return []Repo{}, err
 	}
 
-	return c.filter(resp)
+	return c.filter(config, resp)
 }
 
 // GetUserRepos gets user repos from bitbucket
-func (c Bitbucket) GetUserRepos(targetUser string) ([]Repo, error) {
+func (c Bitbucket) GetUserRepos(config *configs.Config, targetUser string) ([]Repo, error) {
 	resp, err := c.Users.Repositories(targetUser)
 	if err != nil {
 		return []Repo{}, err
 	}
 
-	return c.filter(resp)
+	return c.filter(config, resp)
 }
 
 // NewClient create new bitbucket scm client
-func (_ Bitbucket) NewClient() (Client, error) {
-	user := os.Getenv("GHORG_BITBUCKET_USERNAME")
-	password := os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
-	c := bitbucket.NewBasicAuth(user, password)
+func (_ Bitbucket) NewClient(config *configs.Config) (Client, error) {
+	c := bitbucket.NewBasicAuth(config.BitbucketUsername, config.Token)
 	return Bitbucket{c}, nil
 }
 
-func (_ Bitbucket) filter(resp interface{}) (repoData []Repo, err error) {
-	cloneData := []Repo{}
+func (_ Bitbucket) filter(config *configs.Config, resp interface{}) (repoData []Repo, err error) {
+	var cloneData []Repo
 	values := resp.(map[string]interface{})["values"].([]interface{})
 
 	for _, a := range values {
@@ -63,23 +61,23 @@ func (_ Bitbucket) filter(resp interface{}) (repoData []Repo, err error) {
 			link := l.(map[string]interface{})["href"]
 			linkType := l.(map[string]interface{})["name"]
 
-			if os.Getenv("GHORG_MATCH_PREFIX") != "" {
+			if config.MatchPrefix != "" {
 				repoName := strings.ToLower(clone["name"].(string))
 				foundPrefix := false
-				pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
+				pfs := strings.Split(config.MatchPrefix, ",")
 				for _, p := range pfs {
 					if strings.HasPrefix(repoName, strings.ToLower(p)) {
 						foundPrefix = true
 					}
 				}
-				if foundPrefix == false {
+				if !foundPrefix {
 					continue
 				}
 			}
 
 			r := Repo{}
 
-			if os.Getenv("GHORG_BRANCH") == "" {
+			if config.Branch == "" {
 				var defaultBranch string
 				if clone["mainbranch"] == nil {
 					defaultBranch = "master"
@@ -89,20 +87,20 @@ func (_ Bitbucket) filter(resp interface{}) (repoData []Repo, err error) {
 
 				r.CloneBranch = defaultBranch
 			} else {
-				r.CloneBranch = os.Getenv("GHORG_BRANCH")
+				r.CloneBranch = config.Branch
 			}
 
-			if os.Getenv("GHORG_BRANCH") == "" {
+			if config.Branch == "" {
 				r.CloneBranch = "master"
 			} else {
-				r.CloneBranch = os.Getenv("GHORG_BRANCH")
+				r.CloneBranch = config.Branch
 			}
 
-			if os.Getenv("GHORG_CLONE_PROTOCOL") == "ssh" && linkType == "ssh" {
+			if config.CloneProtocol == "ssh" && linkType == "ssh" {
 				r.URL = link.(string)
 				r.CloneURL = link.(string)
 				cloneData = append(cloneData, r)
-			} else if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" && linkType == "https" {
+			} else if config.CloneProtocol == "https" && linkType == "https" {
 				r.URL = link.(string)
 				r.CloneURL = link.(string)
 				cloneData = append(cloneData, r)

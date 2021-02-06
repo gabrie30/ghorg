@@ -2,10 +2,10 @@ package scm
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
-	gitlab "github.com/xanzy/go-gitlab"
+	"github.com/gabrie30/ghorg/configs"
+	"github.com/xanzy/go-gitlab"
 )
 
 var (
@@ -27,8 +27,8 @@ func (_ Gitlab) GetType() string {
 }
 
 // GetOrgRepos fetches repo data from a specific group
-func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
-	repoData := []Repo{}
+func (c Gitlab) GetOrgRepos(config *configs.Config, targetOrg string) ([]Repo, error) {
+	var repoData []Repo
 
 	opt := &gitlab.ListGroupProjectsOptions{
 		ListOptions: gitlab.ListOptions{
@@ -50,7 +50,7 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		}
 
 		// filter from all the projects we've found so far.
-		repoData = append(repoData, c.filter(ps)...)
+		repoData = append(repoData, c.filter(config, ps)...)
 
 		// Exit the loop when we've seen all pages.
 		if resp.CurrentPage >= resp.TotalPages {
@@ -65,8 +65,8 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 }
 
 // GetUserRepos gets all of a users gitlab repos
-func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
-	cloneData := []Repo{}
+func (c Gitlab) GetUserRepos(config *configs.Config, targetUsername string) ([]Repo, error) {
+	var cloneData []Repo
 
 	opt := &gitlab.ListProjectsOptions{
 		ListOptions: gitlab.ListOptions{
@@ -86,7 +86,7 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 		}
 
 		// filter from all the projects we've found so far.
-		cloneData = append(cloneData, c.filter(ps)...)
+		cloneData = append(cloneData, c.filter(config, ps)...)
 
 		// Exit the loop when we've seen all pages.
 		if resp.CurrentPage >= resp.TotalPages {
@@ -101,16 +101,13 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 }
 
 // NewClient create new gitlab scm client
-func (_ Gitlab) NewClient() (Client, error) {
-	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
-	token := os.Getenv("GHORG_GITLAB_TOKEN")
-
+func (_ Gitlab) NewClient(config *configs.Config) (Client, error) {
 	var err error
 	var c *gitlab.Client
-	if baseURL != "" {
-		c, err = gitlab.NewClient(token, gitlab.WithBaseURL(baseURL))
+	if config.ScmBaseUrl != "/" {
+		c, err = gitlab.NewClient(config.Token, gitlab.WithBaseURL(config.ScmBaseUrl))
 	} else {
-		c, err = gitlab.NewClient(token)
+		c, err = gitlab.NewClient(config.Token)
 	}
 	return Gitlab{c}, err
 }
@@ -120,51 +117,47 @@ func (_ Gitlab) addTokenToHTTPSCloneURL(url string, token string) string {
 	return "https://oauth2:" + token + "@" + splitURL[1]
 }
 
-func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
+func (c Gitlab) filter(config *configs.Config, ps []*gitlab.Project) []Repo {
 	var repoData []Repo
 	for _, p := range ps {
 
-		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
-			if p.Archived == true {
-				continue
-			}
+		if config.SkipArchived && p.Archived {
+			continue
 		}
 
-		if os.Getenv("GHORG_SKIP_FORKS") == "true" {
-			if p.ForkedFromProject != nil {
-				continue
-			}
+		if config.SkipForks && p.ForkedFromProject != nil {
+			continue
 		}
 
-		if os.Getenv("GHORG_MATCH_PREFIX") != "" {
+		if config.MatchPrefix != "" {
 			repoName := strings.ToLower(p.Name)
 			foundPrefix := false
-			pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
+			pfs := strings.Split(config.MatchPrefix, ",")
 			for _, p := range pfs {
 				if strings.HasPrefix(repoName, strings.ToLower(p)) {
 					foundPrefix = true
 				}
 			}
-			if foundPrefix == false {
+			if !foundPrefix {
 				continue
 			}
 		}
 
 		r := Repo{}
 
-		if os.Getenv("GHORG_BRANCH") == "" {
+		if config.Branch == "" {
 			defaultBranch := p.DefaultBranch
 			if defaultBranch == "" {
 				defaultBranch = "master"
 			}
 			r.CloneBranch = defaultBranch
 		} else {
-			r.CloneBranch = os.Getenv("GHORG_BRANCH")
+			r.CloneBranch = config.Branch
 		}
 
 		r.Path = p.PathWithNamespace
-		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-			r.CloneURL = c.addTokenToHTTPSCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))
+		if config.CloneProtocol == "https" {
+			r.CloneURL = c.addTokenToHTTPSCloneURL(p.HTTPURLToRepo, config.Token)
 			r.URL = p.HTTPURLToRepo
 			repoData = append(repoData, r)
 		} else {

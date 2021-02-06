@@ -1,71 +1,79 @@
 package configs_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/gabrie30/ghorg/configs"
 )
 
 func TestDefaultSettings(t *testing.T) {
-
-	protocol := os.Getenv("GHORG_CLONE_PROTOCOL")
-	scm := os.Getenv("GHORG_SCM_TYPE")
-	cloneType := os.Getenv("GHORG_CLONE_TYPE")
-
-	if protocol != "https" {
-		t.Errorf("Default protocol should be https, got: %v", protocol)
+	config, err := configs.Load(nil)
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	if scm != "github" {
-		t.Errorf("Default scm should be github, got: %v", scm)
+	if config.CloneProtocol != "https" {
+		t.Errorf("Default protocol should be https, got: %v", config.CloneProtocol)
 	}
 
-	if cloneType != "org" {
-		t.Errorf("Default clone type should be org, got: %v", cloneType)
+	if config.ScmType != "github" {
+		t.Errorf("Default scm should be github, got: %v", config.ScmType)
+	}
+
+	if config.CloneType != "org" {
+		t.Errorf("Default clone type should be org, got: %v", config.CloneType)
 	}
 
 }
 
 func TestVerifyTokenSet(t *testing.T) {
+	config := &configs.Config{
+		ScmType:     "github",
+		Token: "",
+	}
 
 	t.Run("When cloning github", func(tt *testing.T) {
-		os.Setenv("GHORG_SCM_TYPE", "github")
-		os.Setenv("GHORG_GITHUB_TOKEN", "")
-
-		err := configs.VerifyTokenSet()
+		err := config.VerifyToken()
 		if err != configs.ErrNoGitHubToken {
 			tt.Errorf("Expected ErrNoGitHubTokenError, got: %v", err)
 		}
 
 	})
 
-	t.Run("When cloning gitlab", func(tt *testing.T) {
-		os.Setenv("GHORG_SCM_TYPE", "gitlab")
-		os.Setenv("GHORG_GITLAB_TOKEN", "")
+	config = &configs.Config{
+		ScmType:     "gitlab",
+		Token: "",
+	}
 
-		err := configs.VerifyTokenSet()
+	t.Run("When cloning gitlab", func(tt *testing.T) {
+		err := config.VerifyToken()
 		if err != configs.ErrNoGitLabToken {
 			tt.Errorf("Expected ErrNoGitHubTokenError, got: %v", err)
 		}
 
 	})
 
+	config = &configs.Config{
+		ScmType:           "bitbucket",
+		Token: "",
+	}
+
 	t.Run("When cloning bitbucket with no username", func(tt *testing.T) {
-		os.Setenv("GHORG_SCM_TYPE", "bitbucket")
-		os.Setenv("GHORG_BITBUCKET_USERNAME", "")
-		err := configs.VerifyTokenSet()
+		err := config.VerifyToken()
 		if err != configs.ErrNoBitbucketUsername {
 			tt.Errorf("Expected ErrNoBitbucketUsername, got: %v", err)
 		}
 
 	})
 
+	config = &configs.Config{
+		ScmType:              "bitbucket",
+		BitbucketUsername:    "bitbucketuser",
+		Token: "",
+	}
+
 	t.Run("When cloning bitbucket with username but no app password", func(tt *testing.T) {
-		os.Setenv("GHORG_SCM_TYPE", "bitbucket")
-		os.Setenv("GHORG_BITBUCKET_USERNAME", "bitbucketuser")
-		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", "")
-		err := configs.VerifyTokenSet()
+		err := config.VerifyToken()
 		if err != configs.ErrNoBitbucketAppPassword {
 			tt.Errorf("Expected ErrNoBitbucketAppPassword, got: %v", err)
 		}
@@ -74,40 +82,28 @@ func TestVerifyTokenSet(t *testing.T) {
 }
 
 func TestVerifyConfigsSetCorrectly(t *testing.T) {
-
-	t.Run("When unsupported scm", func(tt *testing.T) {
-		os.Setenv("GHORG_CLONE_TYPE", "org")
-		os.Setenv("GHORG_CLONE_PROTOCOL", "ssh")
-
-		os.Setenv("GHORG_SCM_TYPE", "githubz")
-
-		err := configs.VerifyConfigsSetCorrectly()
-		if err != configs.ErrIncorrectScmType {
-			tt.Errorf("Expected ErrIncorrectScmType, got: %v", err)
-		}
-
-	})
+	config := &configs.Config{
+		CloneType:     "bot",
+		CloneProtocol: "ssh",
+		ScmType:       "github",
+	}
 
 	t.Run("When unsupported clone type", func(tt *testing.T) {
-		os.Setenv("GHORG_SCM_TYPE", "github")
-		os.Setenv("GHORG_CLONE_PROTOCOL", "ssh")
-
-		os.Setenv("GHORG_CLONE_TYPE", "bot")
-
-		err := configs.VerifyConfigsSetCorrectly()
+		err := config.VerifyClone()
 		if err != configs.ErrIncorrectCloneType {
 			tt.Errorf("Expected ErrIncorrectCloneType, got: %v", err)
 		}
 
 	})
 
+	config = &configs.Config{
+		CloneType:     "org",
+		CloneProtocol: "ftp",
+		ScmType:       "githubz",
+	}
+
 	t.Run("When unsupported protocol", func(tt *testing.T) {
-		os.Setenv("GHORG_SCM_TYPE", "github")
-		os.Setenv("GHORG_CLONE_TYPE", "org")
-
-		os.Setenv("GHORG_CLONE_PROTOCOL", "ftp")
-
-		err := configs.VerifyConfigsSetCorrectly()
+		err := config.VerifyClone()
 		if err != configs.ErrIncorrectProtocolType {
 			tt.Errorf("Expected ErrIncorrectProtocolType, got: %v", err)
 		}

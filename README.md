@@ -73,20 +73,20 @@ $ ghorg ls someorg
 Configuration for each clone can be set in two ways. The first is in `$HOME/.config/ghorg/conf.yaml`. This file should be created from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) by copying into `$HOME/.config/ghorg/conf.yaml`. The second method of configuration is setting flags via the cli, run `$ ghorg clone --help` for a list of flags. A flag set on the command line will overwrite any setting in the conf.yaml
 
 ### github setup
-1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. Update `GHORG_GITHUB_TOKEN` in your `ghorg/conf.yaml`, as a cli flag, or add to your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
+1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. Update `GHORG_TOKEN` in your `ghorg/conf.yaml`, as a cli flag, or add to your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
 
 ### gitlab setup
 
 1. Create [Personal Access Token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) with the `read_api` scope (or `api` for self-managed GitLab older than 12.10). This token can be added to your `ghorg/conf.yaml`, as a cli flag, or your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
 1. Update the `GitLab Specific` config in your `ghorg/conf.yaml` or via cli flags
-1. Update `GHORG_SCM_TYPE` to `gitlab` in your `ghorg/conf.yaml` or via cli flags
+1. Update `GHORG_SCM` to `gitlab` in your `ghorg/conf.yaml` or via cli flags
 1. See [examples/gitlab.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md) on how to run
 
 ### gitea setup
 
 1. Create [Access Token](https://docs.gitea.io/en-us/api-usage/) (Settings -> Applications -> Generate Token)
-1. Update `GHORG_GITEA_TOKEN` in your `ghorg/conf.yaml` or use the (--token, -t) flag.
-1. Update `GHORG_SCM_TYPE` to `gitea` in your `ghorg/conf.yaml` or via cli flags
+1. Update `GHORG_TOKEN` in your `ghorg/conf.yaml` or use the (--token, -t) flag.
+1. Update `GHORG_SCM` to `gitea` in your `ghorg/conf.yaml` or via cli flags
 
 ### bitbucket setup
 
