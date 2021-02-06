@@ -30,7 +30,7 @@ func (_ Gitea) GetType() string {
 
 // GetOrgRepos fetches repo data from a specific group
 func (c Gitea) GetOrgRepos(config *configs.Config, targetOrg string) ([]Repo, error) {
-	repoData := []Repo{}
+	var repoData []Repo
 
 	for i := 1; ; i++ {
 		rps, resp, err := c.ListOrgRepos(targetOrg, gitea.ListOrgReposOptions{ListOptions: gitea.ListOptions{
@@ -62,7 +62,7 @@ func (c Gitea) GetOrgRepos(config *configs.Config, targetOrg string) ([]Repo, er
 
 // GetUserRepos gets all of a users gitlab repos
 func (c Gitea) GetUserRepos(config *configs.Config, targetUsername string) ([]Repo, error) {
-	repoData := []Repo{}
+	var repoData []Repo
 
 	for i := 1; ; i++ {
 		rps, resp, err := c.ListUserRepos(targetUsername, gitea.ListReposOptions{ListOptions: gitea.ListOptions{
@@ -94,14 +94,11 @@ func (c Gitea) GetUserRepos(config *configs.Config, targetUsername string) ([]Re
 
 // NewClient create new gitea scm client
 func (_ Gitea) NewClient(config *configs.Config) (Client, error) {
-	baseURL := config.ScmBaseUrl
-	token := config.Token
-
-	if baseURL == "" {
-		baseURL = "https://gitea.com"
+	if config.ScmBaseUrl == "/" {
+		config.ScmBaseUrl = "https://gitea.com"
 	}
 
-	c, err := gitea.NewClient(baseURL, gitea.SetToken(token))
+	c, err := gitea.NewClient(config.ScmBaseUrl, gitea.SetToken(config.Token))
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +116,6 @@ func (_ Gitea) NewClient(config *configs.Config) (Client, error) {
 
 func (c Gitea) filter(config *configs.Config, rps []*gitea.Repository) (repoData []Repo, err error) {
 	for _, rp := range rps {
-
 		if config.SkipArchived && rp.Archived {
 			continue
 		}

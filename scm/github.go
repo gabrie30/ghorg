@@ -2,7 +2,6 @@ package scm
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"strings"
 
@@ -106,7 +105,6 @@ func (_ Github) NewClient(config *configs.Config) (Client, error) {
 }
 
 func (_ Github) addTokenToHTTPSCloneURL(url string, token string) string {
-	fmt.Println(url, token)
 	splitURL := strings.Split(url, "https://")
 	return "https://" + token + "@" + splitURL[1]
 }
@@ -115,7 +113,6 @@ func (c Github) filter(config *configs.Config, allRepos []*github.Repository) []
 	var repoData []Repo
 
 	for _, ghRepo := range allRepos {
-
 		if config.SkipArchived && *ghRepo.Archived {
 			continue
 		}
