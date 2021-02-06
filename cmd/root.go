@@ -13,8 +13,10 @@ var rootCmd = &cobra.Command{
 	Use:   "ghorg",
 	Short: "Ghorg is a fast way to clone multiple repos into a single directory",
 	Long:  `Ghorg is a fast way to clone multiple repos into a single directory`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		configs.Load(cmd.Flag("config").Value.String())
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		configs.Load()
 		fmt.Println("For help run: ghorg clone --help")
 	},
 }

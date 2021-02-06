@@ -41,15 +41,16 @@ var (
 	ErrIncorrectProtocolType = errors.New("GHORG_CLONE_PROTOCOL or --protocol must be one of https or ssh")
 )
 
-func init() {
-	initConfig()
-}
+// Load triggers the configs to load first
+func Load(config string) {
+	if config != "" {
+		viper.SetConfigFile(config)
+	} else {
+		viper.SetConfigType("yaml")
+		viper.AddConfigPath(GhorgDir())
+		viper.SetConfigName("conf")
+	}
 
-func initConfig() {
-
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(GhorgDir())
-	viper.SetConfigName("conf")
 	ghorgDir := GhorgDir()
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -96,9 +97,6 @@ func initConfig() {
 	getOrSetDefaults("GHORG_OUTPUT_DIR")
 }
 
-// Load triggers the configs to load first, not sure if this is actually needed
-func Load() {}
-
 // GetRequiredString verifies env is set
 func GetRequiredString(key string) string {
 	value := viper.GetString(key)
@@ -115,7 +113,7 @@ func isZero(value interface{}) bool {
 }
 
 func getOrSetDefaults(envVar string) {
-
+	fmt.Println("getOrSetDefaults", envVar)
 	// When a user does not set value in $HOME/.config/ghorg/conf.yaml set the default values, else set env to what they have added to the file.
 	if viper.GetString(envVar) == "" {
 		switch envVar {

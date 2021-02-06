@@ -44,6 +44,7 @@ var (
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&color, "color", "", "", "GHORG_COLOR - toggles colorful output on/off (default on)")
+	rootCmd.PersistentFlags().StringVarP(&color, "config", "", "", "Set the path of the conf.yml file (default $HOME/ghorg/conf.yaml)")
 	rootCmd.AddCommand(cloneCmd)
 	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "GHORG_CLONE_PROTOCOL - protocol to clone with, ssh or https, (default https)")
 	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "GHORG_ABSOLUTE_PATH_TO_CLONE_TO - absolute path the ghorg_* directory will be created. Must end with / (default $HOME/Desktop/ghorg)")
