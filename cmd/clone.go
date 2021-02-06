@@ -60,7 +60,7 @@ func cloneCmd() *cobra.Command {
 	return cloneCmd
 }
 
-func cloneFunc(_ *cobra.Command, argz []string) {
+func cloneFunc(cmd *cobra.Command, argz []string) {
 	config, err := configs.Load(argz)
 	if err != nil {
 		colorlog.PrintError(fmt.Sprintf("Loading config failed: %s", err))

@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/gabrie30/ghorg/configs"
 	"github.com/spf13/viper"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
-
-
 
 // Execute adds all child commands to the root command sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
@@ -21,15 +21,16 @@ func Execute() {
 			fmt.Println("For help run: ghorg clone --help")
 		},
 	}
-	rootCmd.PersistentFlags().Bool("color", true, "GHORG_COLOR - toggles colorful output on/off (default on)")
-	rootCmd.PersistentFlags().String("config", "", "Set the path of the conf.yml file (default $HOME/ghorg/conf.yaml)")
+	rootCmd.PersistentFlags().Bool("color", true, "GHORG_COLOR - toggles colorful output (default true)")
+	rootCmd.PersistentFlags().String("config", filepath.Join(configs.GhorgDir(), "conf.yaml"), "GHORG_CONFIG Set the path of the conf.yml file (default $HOME/ghorg/conf.yaml)")
 
 	_ = viper.BindPFlag("color", rootCmd.PersistentFlags().Lookup("color"))
 	_ = viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
 
 	rootCmd.AddCommand(lsCmd(), versionCmd(), cloneCmd())
 
-	if err := rootCmd.Execute(); err != nil {
+	err := rootCmd.Execute()
+	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

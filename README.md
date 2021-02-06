@@ -38,8 +38,8 @@ $ brew upgrade git
 
 ```bash
 $ brew install gabrie30/utils/ghorg
-$ mkdir -p $HOME/.config/ghorg
-$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
+$ mkdir -p $HOME/.config/ghorg # (optional but recommended)
+$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 $ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 ```
 
@@ -48,8 +48,8 @@ $ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 ```bash
 # ensure $HOME/go/bin is in your path ($ echo $PATH | grep $HOME/go/bin)
 $ go get github.com/gabrie30/ghorg
-$ mkdir -p $HOME/.config/ghorg
-$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
+$ mkdir -p $HOME/.config/ghorg # (optional but recommended)
+$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 $ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 ```
 

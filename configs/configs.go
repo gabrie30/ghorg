@@ -29,7 +29,7 @@ var (
 	ErrIncorrectCloneType = errors.New("GHORG_CLONE_TYPE or --clone-type must be one of org or user")
 
 	// ErrIncorrectProtocolType indicates an unsupported protocol type being used
-	ErrIncorrectProtocolType = errors.New("GHORG_CLONE_PROTOCOL or --protocol must be one of https or ssh")
+	ErrIncorrectProtocolType = errors.New("GHORG_PROTOCOL or --protocol must be one of https or ssh")
 )
 
 type Config struct {
@@ -53,18 +53,16 @@ type Config struct {
 
 // Load triggers the configs to load first
 func Load(argz []string) (*Config, error) {
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(GhorgDir())
-	viper.SetConfigName("conf")
-
+	viper.SetConfigFile(viper.GetString("config"))
 	viper.SetEnvPrefix("GHORG")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.AutomaticEnv()
 
+
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			// Config file was found but another error was produced
-			colorlog.PrintError(fmt.Sprintf("Something unexpected happened reading configuration file %s/conf.yaml, err: %s", GhorgDir(), err))
+			colorlog.PrintError(fmt.Sprintf("Error reading configuration file, err: %s", err))
 		}
 	}
 
