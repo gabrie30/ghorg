@@ -56,7 +56,8 @@ $ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 ## Use
 
 ```bash
-# note: to view/set all available flags/features see sample-conf.yaml and for more examples see ./examples
+# note: to view/set all available flags/features see sample-conf.yaml
+# note: for examples see ./examples
 $ ghorg clone someorg
 $ ghorg clone someorg --concurrency=50 --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 $ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop --color=off
