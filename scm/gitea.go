@@ -187,7 +187,7 @@ func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			cloneURL := rp.CloneURL
 			if rp.Private {
-				cloneURL = "https://" + os.Getenv("GHORG_GITEA_TOKEN") + strings.TrimLeft(cloneURL, "https://")
+				cloneURL = "https://" + os.Getenv("GHORG_GITEA_TOKEN") + strings.TrimPrefix(cloneURL, "https://")
 			}
 			r.CloneURL = cloneURL
 			r.URL = cloneURL
