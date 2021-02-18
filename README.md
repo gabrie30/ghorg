@@ -71,6 +71,8 @@ $ ghorg ls someorg
 
 ## Setup and Configuration
 
+> Note: if you are running into issues, read the troubleshooting section below
+
 Configuration for each clone can be set in two ways. The first is in `$HOME/.config/ghorg/conf.yaml`. This file should be created from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) by copying into `$HOME/.config/ghorg/conf.yaml`. The second method of configuration is setting flags via the cli, run `$ ghorg clone --help` for a list of flags. A flag set on the command line will overwrite any setting in the conf.yaml
 
 ### github setup
@@ -82,7 +84,6 @@ Configuration for each clone can be set in two ways. The first is in `$HOME/.con
 1. Update the `GitLab Specific` config in your `ghorg/conf.yaml` or via cli flags
 1. Update `GHORG_SCM_TYPE` to `gitlab` in your `ghorg/conf.yaml` or via cli flags
 1. See [examples/gitlab.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md) on how to run
-1. if you are running into issues see troubleshooting section below
 
 ### gitea setup
 
