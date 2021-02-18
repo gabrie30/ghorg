@@ -119,7 +119,13 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 
 ## Known issues
 
-- When cloning if you see something like `Username for 'https://gitlab.com': ` the command won't finish. I haven't been able to identify the reason for this occuring. The fix for this is to make sure your token is in the osxkeychain. See the troubleshooting section for how to set this up, or try cloning via ssh (--protocol=ssh).
+- When cloning if you see something like `Username for 'https://gitlab.com': ` and the run won't finish. Make sure your token is in the osxkeychain, see the troubleshooting section for how to set this up. If this does not work or you are not on mac try cloning via ssh (--protocol=ssh). If this still does not resolve your issue you will need to update your git configs to match below, be sure to update the `gitlab.mydomain.com` portion
+
+  ```
+  git config --global url."git@gitlab.mydomain.com:".insteadOf http://gitlab.mydomain.com/
+  git config --global url."git://".insteadOf https://
+  ```
+
 - If you are cloning a large org you may see `Error: open /dev/null: too many open files` which means you need to increase your ulimits, there are lots of docs online for this. For mac the quick and dirty is below
 
   ```
