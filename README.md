@@ -82,6 +82,7 @@ Configuration for each clone can be set in two ways. The first is in `$HOME/.con
 1. Update the `GitLab Specific` config in your `ghorg/conf.yaml` or via cli flags
 1. Update `GHORG_SCM_TYPE` to `gitlab` in your `ghorg/conf.yaml` or via cli flags
 1. See [examples/gitlab.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md) on how to run
+1. if you are running into issues see troubleshooting section below
 
 ### gitea setup
 
