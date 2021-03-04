@@ -49,7 +49,7 @@ $ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 # ensure $HOME/go/bin is in your path ($ echo $PATH | grep $HOME/go/bin)
 
 # for go 1.16+ -- check releases for latest version
-go install github.com/gabrie30/ghorg@1.5.0
+go install github.com/gabrie30/ghorg@1.5.1
 
 # older go versions can run
 $ go get github.com/gabrie30/ghorg

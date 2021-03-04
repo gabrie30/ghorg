@@ -2,8 +2,15 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+## [] - unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
 
-## [1.5.1] - unrealeased
+## [1.5.1] - 3/4/21
 ### Added
 ### Changed
 - error messages for ls command
