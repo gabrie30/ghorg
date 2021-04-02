@@ -77,6 +77,7 @@ GHORG_BRANCH:
 
 # Type of entity to clone (user or org)
 # default: org
+# to clone all of your own repos from github use "ghorg clone me --clone-type=user"
 # flag (--clone-type, -c)
 GHORG_CLONE_TYPE:
 
