@@ -90,6 +90,19 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		if targetUser == "" {
+			userRepos := []*github.Repository{}
+
+			for _, repo := range repos {
+				if *repo.Owner.Type == "User" {
+					userRepos = append(userRepos, repo)
+				}
+			}
+
+			repos = userRepos
+		}
+
 		allRepos = append(allRepos, repos...)
 		if resp.NextPage == 0 {
 			break
