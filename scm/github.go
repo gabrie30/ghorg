@@ -69,7 +69,7 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 	}
 
 	opt := &github.RepositoryListOptions{
-		Type:        "all",
+		Visibility:  "all",
 		ListOptions: github.ListOptions{PerPage: c.perPage},
 	}
 
@@ -77,8 +77,14 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 
 	// get all pages of results
 	var allRepos []*github.Repository
+
 	for {
 
+		if targetUser == "me" {
+			targetUser = ""
+		}
+
+		// List the repositories for a user. Passing the empty string will list repositories for the authenticated user.
 		repos, resp, err := c.Repositories.List(context.Background(), targetUser, opt)
 
 		if err != nil {
