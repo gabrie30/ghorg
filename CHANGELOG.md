@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+
+## [1.6.0] - 4/9/21
+### Added
+### Changed
+- how github users clone their own repos thanks @dword-design
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.5.2] - 4/5/21
 ### Added
 - ghorg clone me to clone all of your own private repos from github

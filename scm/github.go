@@ -80,10 +80,6 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 
 	for {
 
-		if targetUser == "me" {
-			targetUser = ""
-		}
-
 		// List the repositories for a user. Passing the empty string will list repositories for the authenticated user.
 		repos, resp, err := c.Repositories.List(context.Background(), targetUser, opt)
 

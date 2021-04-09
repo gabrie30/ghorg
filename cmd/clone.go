@@ -82,11 +82,6 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 
 	}
 
-	if len(argz) < 1 {
-		colorlog.PrintError("You must provide an org or user to clone")
-		os.Exit(1)
-	}
-
 	if cmd.Flags().Changed("path") {
 		absolutePath := ensureTrailingSlash(cmd.Flag("path").Value.String())
 		os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", absolutePath)
@@ -154,6 +149,15 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	if cmd.Flags().Changed("output-dir") {
 		d := cmd.Flag("output-dir").Value.String()
 		os.Setenv("GHORG_OUTPUT_DIR", d)
+	}
+
+	if len(argz) < 1 {
+		if os.Getenv("GHORG_SCM_TYPE") == "github" && os.Getenv("GHORG_CLONE_TYPE") == "user" {
+			argz = append(argz, "")
+		} else {
+			colorlog.PrintError("You must provide an org or user to clone")
+			os.Exit(1)
+		}
 	}
 
 	configs.GetOrSetToken()
