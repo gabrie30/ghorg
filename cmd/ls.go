@@ -3,9 +3,11 @@ package cmd
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
+	"github.com/gabrie30/ghorg/configs"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +18,7 @@ func init() {
 var lsCmd = &cobra.Command{
 	Use:   "ls [dir]",
 	Short: "List contents of your ghorg home or ghorg directories",
-	Long:  `If no dir is specified it will list contents of GHORG_ABSOLUTE_PATH_TO_CLONE_TO. When specifying a dir you can omit _ghorg`,
+	Long:  `If no dir is specified it will list contents of GHORG_ABSOLUTE_PATH_TO_CLONE_TO`,
 	Run:   lsFunc,
 }
 
@@ -60,10 +62,6 @@ func listGhorgHome() {
 
 func listGhorgDir(arg string) {
 
-	if !strings.HasSuffix(arg, "_ghorg") {
-		arg = arg + "_ghorg"
-	}
-
 	arg = strings.ReplaceAll(arg, "-", "_")
 
 	ghorgDir := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + arg
@@ -75,7 +73,8 @@ func listGhorgDir(arg string) {
 
 	for _, f := range files {
 		if f.IsDir() {
-			colorlog.PrintSubtleInfo(ghorgDir + "/" + f.Name())
+			str := filepath.Join(ghorgDir, configs.GetCorrectFilePathSeparator(), f.Name())
+			colorlog.PrintSubtleInfo(str)
 		}
 	}
 }

@@ -3,13 +3,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.6.1] - not released
+## [1.7.0] - not released
 ### Added
+- integration tests on windows, ubuntu, and mac for github
 ### Changed
 - initial clone will try to checkout a branch if specified thanks @dword-design
+- default clone directory to $HOME/ghorg
+- users/orgs directory no longer appends "\_ghorg" or forces underscores
 ### Deprecated
 ### Removed
 ### Fixed
+- file pathing to be windows compatible
 ### Security
 ## [1.6.0] - 4/9/21
 ### Added
