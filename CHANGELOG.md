@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.7.0] - not released
 ### Added
+- integration tests on windows, ubuntu, and mac for github
 ### Changed
 - initial clone will try to checkout a branch if specified thanks @dword-design
 - default clone directory to $HOME/ghorg
