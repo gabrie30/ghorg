@@ -24,11 +24,12 @@ func TestShouldNotChangeLowerCasedRegularString(t *testing.T) {
 
 func TestReplaceDashWithUnderscore(t *testing.T) {
 
+	want := "repo-name"
 	lowerName := "repo-name"
 	parseParentFolder([]string{lowerName})
 
-	if parentFolder != "repo_name" {
-		t.Errorf("Wrong folder name, expected: %s, got: %s", lowerName, parentFolder)
+	if parentFolder != want {
+		t.Errorf("Wrong folder name, expected: %s, got: %s", want, parentFolder)
 	}
 }
 

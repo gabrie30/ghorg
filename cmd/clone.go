@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -54,12 +55,12 @@ func init() {
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - clone target type, user or org (default org)")
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED - skips archived repos, github/gitlab/gitea only")
 	cloneCmd.Flags().BoolVar(&skipForks, "skip-forks", false, "GHORG_SKIP_FORKS - skips repo if its a fork, github/gitlab/gitea only")
-	cloneCmd.Flags().BoolVar(&skipArchived, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into *_ghorg/unit/subunit/app, gitlab only")
+	cloneCmd.Flags().BoolVar(&skipArchived, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/unit/subunit/app, gitlab only")
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP - backup mode, clone as mirror, no working copy (ignores branch parameter)")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - change SCM base url, for on self hosted instances (currently gitlab, gitea and github (use format of https://git.mydomain.com/api/v3))")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - max goroutines to spin up while cloning (default 25)")
 	cloneCmd.Flags().StringVarP(&topics, "topics", "", "", "GHORG_TOPICS - comma separated list of github/gitea topics to filter for")
-	cloneCmd.Flags().StringVarP(&outputDir, "output-dir", "", "", "GHORG_OUTPUT_DIR - name of directory repos will be cloned into, will force underscores and always append _ghorg (default {org/repo being cloned}_ghorg)")
+	cloneCmd.Flags().StringVarP(&outputDir, "output-dir", "", "", "GHORG_OUTPUT_DIR - name of directory repos will be cloned into (default name of org/repo being cloned")
 	cloneCmd.Flags().StringVarP(&matchPrefix, "match-prefix", "", "", "GHORG_MATCH_PREFIX - only clone repos with matching prefix, can be a comma separated list (default \"\")")
 }
 
@@ -83,7 +84,7 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	}
 
 	if cmd.Flags().Changed("path") {
-		absolutePath := ensureTrailingSlash(cmd.Flag("path").Value.String())
+		absolutePath := configs.EnsureTrailingSlash((cmd.Flag("path").Value.String()))
 		os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", absolutePath)
 	}
 
@@ -193,12 +194,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	CloneAllRepos()
 }
 
-// TODO: Figure out how to use go channels for this
 func getAllOrgCloneUrls() ([]scm.Repo, error) {
 	return getCloneUrls(true)
 }
 
-// TODO: Figure out how to use go channels for this
 func getAllUserCloneUrls() ([]scm.Repo, error) {
 	return getCloneUrls(false)
 }
@@ -224,7 +223,7 @@ func getCloneUrls(isOrg bool) ([]scm.Repo, error) {
 }
 
 func createDirIfNotExist() {
-	if _, err := os.Stat(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + parentFolder + "_ghorg"); os.IsNotExist(err) {
+	if _, err := os.Stat(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + parentFolder); os.IsNotExist(err) {
 		err = os.MkdirAll(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), 0700)
 		if err != nil {
 			panic(err)
@@ -370,11 +369,13 @@ func CloneAllRepos() {
 				path = repo.Path
 			}
 
-			repoDir := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + parentFolder + "_ghorg" + "/" + path
+			repoDir := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder, configs.GetCorrectFilePathSeparator(), path)
 
 			if os.Getenv("GHORG_BACKUP") == "true" {
-				repoDir = os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + parentFolder + "_ghorg_backup" + "/" + path
+				repoDir = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder+"_backup", configs.GetCorrectFilePathSeparator(), path)
 			}
+
+			action := "cloning"
 
 			if repoExistsLocally(repoDir) == true {
 				if os.Getenv("GHORG_BACKUP") == "true" {
@@ -424,6 +425,8 @@ func CloneAllRepos() {
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
+
+					action = "updating"
 				}
 			} else {
 				// if https clone and github/gitlab add personal access token to url
@@ -467,7 +470,7 @@ func CloneAllRepos() {
 				}
 			}
 
-			colorlog.PrintSuccess("Success cloning repo: " + repo.URL + " -> branch: " + branch)
+			colorlog.PrintSuccess("Success " + action + " repo: " + repo.URL + " -> branch: " + branch)
 		})
 
 	}
@@ -478,9 +481,9 @@ func CloneAllRepos() {
 
 	// TODO: fix all these if else checks with ghorg_backups
 	if os.Getenv("GHORG_BACKUP") == "true" {
-		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg_backup", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
+		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_backup", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
 	} else {
-		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_ghorg", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
+		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
 	}
 }
 
@@ -522,7 +525,7 @@ func PrintConfigs() {
 		colorlog.PrintInfo("* Ghorgignore   : true")
 	}
 	if os.Getenv("GHORG_OUTPUT_DIR") != "" {
-		colorlog.PrintInfo("* Output Dir    : " + parentFolder + "_ghorg")
+		colorlog.PrintInfo("* Output Dir    : " + parentFolder)
 	}
 
 	colorlog.PrintInfo("*************************************")
@@ -537,14 +540,6 @@ func getGhorgBranch() string {
 	return os.Getenv("GHORG_BRANCH")
 }
 
-func ensureTrailingSlash(path string) string {
-	if string(path[len(path)-1]) == "/" {
-		return path
-	}
-
-	return path + "/"
-}
-
 func addTokenToHTTPSCloneURL(url string, token string) string {
 	splitURL := strings.Split(url, "https://")
 
@@ -557,10 +552,9 @@ func addTokenToHTTPSCloneURL(url string, token string) string {
 
 func parseParentFolder(argz []string) {
 	if os.Getenv("GHORG_OUTPUT_DIR") != "" {
-		parentFolder = strings.ReplaceAll(os.Getenv("GHORG_OUTPUT_DIR"), "-", "_")
+		parentFolder = os.Getenv("GHORG_OUTPUT_DIR")
 		return
 	}
 
-	pf := strings.ReplaceAll(argz[0], "-", "_")
-	parentFolder = strings.ToLower(pf)
+	parentFolder = strings.ToLower(argz[0])
 }

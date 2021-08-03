@@ -7,7 +7,9 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
@@ -58,7 +60,7 @@ func initConfig() {
 			// Config file not found; ignore error if desired
 
 			if XConfigHomeSet() {
-				colorlog.PrintError("Found XDG_CONFIG_HOME set")
+				colorlog.PrintError("Found XDG_CONFIG_HOME set to: " + os.Getenv("XDG_CONFIG_HOME"))
 			}
 
 			fmt.Println("")
@@ -114,13 +116,19 @@ func isZero(value interface{}) bool {
 	return value == reflect.Zero(reflect.TypeOf(value)).Interface()
 }
 
+func getAbsolutePathToCloneTo() string {
+	path := HomeDir()
+	path = filepath.Join(path, "ghorg")
+	return EnsureTrailingSlash(path)
+}
+
 func getOrSetDefaults(envVar string) {
 
 	// When a user does not set value in $HOME/.config/ghorg/conf.yaml set the default values, else set env to what they have added to the file.
 	if viper.GetString(envVar) == "" {
 		switch envVar {
 		case "GHORG_ABSOLUTE_PATH_TO_CLONE_TO":
-			os.Setenv(envVar, HomeDir()+"/Desktop/ghorg/")
+			os.Setenv(envVar, getAbsolutePathToCloneTo())
 		case "GHORG_CLONE_PROTOCOL":
 			os.Setenv(envVar, "https")
 		case "GHORG_CLONE_TYPE":
@@ -154,16 +162,33 @@ func getOrSetDefaults(envVar string) {
 
 // EnsureTrailingSlash takes a string and ensures a single / is appened
 func EnsureTrailingSlash(s string) string {
-	if !strings.HasSuffix(s, "/") {
-		s = s + "/"
+	trailing := "/"
+
+	if runtime.GOOS == "windows" {
+		trailing = "\\"
+	}
+
+	if !strings.HasSuffix(s, trailing) {
+		s = s + trailing
 	}
 
 	return s
 }
 
+// GetCorrectFilePathSeparator returns the correct trailing slash based on os
+func GetCorrectFilePathSeparator() string {
+	trailing := "/"
+
+	if runtime.GOOS == "windows" {
+		trailing = "\\"
+	}
+
+	return trailing
+}
+
 // GhorgIgnoreLocation returns the path of users ghorgignore
 func GhorgIgnoreLocation() string {
-	return GhorgDir() + "/ghorgignore"
+	return filepath.Join(GhorgDir(), "ghorgignore")
 }
 
 // GhorgIgnoreDetected identify if a ghorgignore file exists in users .config/ghorg directory
@@ -178,10 +203,11 @@ func GhorgIgnoreDetected() bool {
 // GhorgDir returns the ghorg directory path
 func GhorgDir() string {
 	if XConfigHomeSet() {
-		return os.Getenv("XDG_CONFIG_HOME") + "/ghorg"
+		xdg := os.Getenv("XDG_CONFIG_HOME")
+		return filepath.Join(xdg, "ghorg")
 	}
 
-	return HomeDir() + "/.config/ghorg"
+	return filepath.Join(HomeDir(), ".config", "ghorg")
 }
 
 // XConfigHomeSet checks for XDG_CONFIG_HOME env set
@@ -218,6 +244,9 @@ func GetOrSetToken() {
 func getOrSetGitHubToken() {
 	var token string
 	if isZero(os.Getenv("GHORG_GITHUB_TOKEN")) || len(os.Getenv("GHORG_GITHUB_TOKEN")) != 40 {
+		if runtime.GOOS == "windows" {
+			return
+		}
 		cmd := `security find-internet-password -s github.com | grep "acct" | awk -F\" '{ print $4 }'`
 		out, err := exec.Command("bash", "-c", cmd).Output()
 		if err != nil {
@@ -233,6 +262,9 @@ func getOrSetGitHubToken() {
 func getOrSetGitLabToken() {
 	var token string
 	if isZero(os.Getenv("GHORG_GITLAB_TOKEN")) || len(os.Getenv("GHORG_GITLAB_TOKEN")) != 20 {
+		if runtime.GOOS == "windows" {
+			return
+		}
 		cmd := `security find-internet-password -s gitlab.com | grep "acct" | awk -F\" '{ print $4 }'`
 		out, err := exec.Command("bash", "-c", cmd).Output()
 		if err != nil {
@@ -248,6 +280,9 @@ func getOrSetGitLabToken() {
 func getOrSetBitBucketToken() {
 	var token string
 	if isZero(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) || len(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) != 20 {
+		if runtime.GOOS == "windows" {
+			return
+		}
 		cmd := `security find-internet-password -s bitbucket.com | grep "acct" | awk -F\" '{ print $4 }'`
 		out, err := exec.Command("bash", "-c", cmd).Output()
 		if err != nil {
