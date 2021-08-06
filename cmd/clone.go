@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -41,6 +42,7 @@ var (
 	cloneInfos        []string
 	targetCloneSource string
 	matchPrefix       string
+	matchRegex        string
 )
 
 func init() {
@@ -62,6 +64,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&topics, "topics", "", "", "GHORG_TOPICS - comma separated list of github/gitea topics to filter for")
 	cloneCmd.Flags().StringVarP(&outputDir, "output-dir", "", "", "GHORG_OUTPUT_DIR - name of directory repos will be cloned into (default name of org/repo being cloned")
 	cloneCmd.Flags().StringVarP(&matchPrefix, "match-prefix", "", "", "GHORG_MATCH_PREFIX - only clone repos with matching prefix, can be a comma separated list (default \"\")")
+	cloneCmd.Flags().StringVarP(&matchRegex, "match-regex", "", "", "GHORG_MATCH_REGEX - only clone repos that match name to regex provided")
 }
 
 var cloneCmd = &cobra.Command{
@@ -129,6 +132,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	if cmd.Flags().Changed("match-prefix") {
 		prefix := cmd.Flag("match-prefix").Value.String()
 		os.Setenv("GHORG_MATCH_PREFIX", prefix)
+	}
+
+	if cmd.Flags().Changed("match-regex") {
+		regex := cmd.Flag("match-regex").Value.String()
+		os.Setenv("GHORG_MATCH_REGEX", regex)
 	}
 
 	if cmd.Flags().Changed("skip-archived") {
@@ -285,6 +293,21 @@ func readGhorgIgnore() ([]string, error) {
 	return lines, scanner.Err()
 }
 
+func filterByRegex(repos []scm.Repo) []scm.Repo {
+	filteredRepos := []scm.Repo{}
+	regex := fmt.Sprintf(`%s`, os.Getenv("GHORG_MATCH_REGEX"))
+
+	for i, r := range repos {
+		re := regexp.MustCompile(regex)
+		match := re.FindString(getAppNameFromURL(r.URL))
+		if match != "" {
+			filteredRepos = append(filteredRepos, repos[i])
+		}
+	}
+
+	return filteredRepos
+}
+
 // CloneAllRepos clones all repos
 func CloneAllRepos() {
 	// resc, errc, infoc := make(chan string), make(chan error), make(chan error)
@@ -310,6 +333,12 @@ func CloneAllRepos() {
 	if len(cloneTargets) == 0 {
 		colorlog.PrintInfo("No repos found for " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + targetCloneSource + ", check spelling and verify clone-type (user/org) is set correctly e.g. -c=user")
 		os.Exit(0)
+	}
+
+	if os.Getenv("GHORG_MATCH_REGEX") != "" {
+		colorlog.PrintInfo("Filtering repos down by regex that match the provided...")
+		fmt.Println("")
+		cloneTargets = filterByRegex(cloneTargets)
 	}
 
 	// filter repos down based on ghorgignore if one exists
@@ -523,6 +552,9 @@ func PrintConfigs() {
 	}
 	if configs.GhorgIgnoreDetected() == true {
 		colorlog.PrintInfo("* Ghorgignore   : true")
+	}
+	if os.Getenv("GHORG_MATCH_REGEX") != "" {
+		colorlog.PrintInfo("* Regex Match   : " + os.Getenv("GHORG_MATCH_REGEX"))
 	}
 	if os.Getenv("GHORG_OUTPUT_DIR") != "" {
 		colorlog.PrintInfo("* Output Dir    : " + parentFolder)

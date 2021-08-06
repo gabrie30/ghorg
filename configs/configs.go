@@ -96,6 +96,7 @@ func initConfig() {
 	getOrSetDefaults("GHORG_SCM_BASE_URL")
 	getOrSetDefaults("GHORG_PRESERVE_DIRECTORY_STRUCTURE")
 	getOrSetDefaults("GHORG_OUTPUT_DIR")
+	getOrSetDefaults("GHORG_MATCH_REGEX")
 }
 
 // Load triggers the configs to load first, not sure if this is actually needed
