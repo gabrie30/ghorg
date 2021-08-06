@@ -21,5 +21,5 @@ $ ghorg clone <gitlab_group>/<gitlab_sub_group> --base-url=https://<your.instanc
 clone all repos that are **prefixed** with "frontend" **into a folder** called "design_only" from a **group** on a **hosted gitlab** instance
 
 ```
-$ ghorg clone <gitlab_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab --match-prefix=frontend --output-dir=design_only
+$ ghorg clone <gitlab_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab --match-regex=^frontend --output-dir=design_only
 ```

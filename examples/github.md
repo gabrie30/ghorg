@@ -13,5 +13,5 @@ $ ghorg clone <github_org>
 clone all repos from a **github org** that are **prefixed** with "frontend" **into a folder** called "design_only"
 
 ```
-$ ghorg clone <github_org> --match-prefix=frontend --output-dir=design_only
+$ ghorg clone <github_org> --match-regex=^frontend --output-dir=design_only
 ```
