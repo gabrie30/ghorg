@@ -9,9 +9,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ### Added
 - integration tests on windows, ubuntu, and mac for github
-- GHORG_MATCH_REGEX to filter cloning repos by regex
+- GHORG_MATCH_REGEX to filter cloning repos by regex; thanks @petomalina
 ### Changed
-- initial clone will try to checkout a branch if specified thanks @dword-design
+- initial clone will try to checkout a branch if specified; thanks @dword-design
 - default clone directory to $HOME/ghorg
 - users/orgs directory no longer appends "\_ghorg" or forces underscores
 ### Deprecated
