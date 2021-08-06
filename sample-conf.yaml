@@ -120,3 +120,7 @@ GHORG_OUTPUT_DIR:
 # default: ""
 # flag (--match-prefix)
 GHORG_MATCH_PREFIX:
+
+# Only clone repos that match name to regex provided
+# flag (--match-regex)
+GHORG_MATCH_REGEX:
