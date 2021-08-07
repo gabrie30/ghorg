@@ -22,10 +22,10 @@ import (
 
 var (
 	// ErrNoGitHubToken error message when token is not found
-	ErrNoGitHubToken = errors.New("Could not find a valid github token. GHORG_GITHUB_TOKEN or (--token, -t) flag must be set. Create a personal access token, then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag...For best results read the troubleshooting section of README.md https://github.com/gabrie30/ghorg to properly store your token in the osx keychain")
+	ErrNoGitHubToken = errors.New("Could not find a valid github token. GHORG_GITHUB_TOKEN or (--token, -t) flag must be set. Create a personal access token, then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'GitHub Setup' in README.md")
 
 	// ErrNoGitLabToken error message when token is not found
-	ErrNoGitLabToken = errors.New("Could not find a valid gitlab token. GHORG_GITLAB_TOKEN or (--token, -t) flag must be set. Create a token from gitlab then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag...For best results read the troubleshooting section of README.md https://github.com/gabrie30/ghorg to properly store your token in the osx keychain")
+	ErrNoGitLabToken = errors.New("Could not find a valid gitlab token. GHORG_GITLAB_TOKEN or (--token, -t) flag must be set. Create a token from gitlab then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'GitLab Setup' in README.md")
 
 	// ErrNoBitbucketUsername error message when no username found
 	ErrNoBitbucketUsername = errors.New("Could not find bitbucket username. GHORG_BITBUCKET_USERNAME or (--bitbucket-username) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
@@ -63,11 +63,7 @@ func initConfig() {
 				colorlog.PrintError("Found XDG_CONFIG_HOME set to: " + os.Getenv("XDG_CONFIG_HOME"))
 			}
 
-			fmt.Println("")
-			colorlog.PrintError(err)
-
-			colorlog.PrintError(fmt.Sprintf("Could not find %s/conf.yaml file, add one by running the following \n \n $ mkdir -p %s \n $ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > %s/conf.yaml \n", ghorgDir, ghorgDir, ghorgDir))
-			log.Fatal("Exiting due to improper configuration")
+			colorlog.PrintError(fmt.Sprintf("Could not find %s/conf.yaml file, add one by running the following \n \n $ mkdir -p %s \n $ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > %s/conf.yaml \n \n Or include the correct commandline flags, see below \n", ghorgDir, ghorgDir, ghorgDir))
 
 		} else {
 			// Config file was found but another error was produced

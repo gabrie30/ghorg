@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - initial clone will try to checkout a branch if specified; thanks @dword-design
 - default clone directory to $HOME/ghorg
 - users/orgs directory no longer appends "\_ghorg" or forces underscores
+- make $HOME/.config/ghorg/conf.yaml optional
 ### Deprecated
 ### Removed
 ### Fixed
