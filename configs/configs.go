@@ -47,29 +47,30 @@ func init() {
 	initConfig()
 }
 
-func initConfig() {
-
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(GhorgDir())
-	viper.SetConfigName("conf")
+func printGhorgConfMissing() {
 	ghorgDir := GhorgDir()
-
 	if err := viper.ReadInConfig(); err != nil {
-
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			// Config file not found; ignore error if desired
 
 			if XConfigHomeSet() {
-				colorlog.PrintError("Found XDG_CONFIG_HOME set to: " + os.Getenv("XDG_CONFIG_HOME"))
+				colorlog.PrintSubtleInfo("Found XDG_CONFIG_HOME set to: " + os.Getenv("XDG_CONFIG_HOME"))
 			}
 
-			colorlog.PrintError(fmt.Sprintf("Could not find %s/conf.yaml file, add one by running the following \n \n $ mkdir -p %s \n $ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > %s/conf.yaml \n \n Or include the correct commandline flags, see below \n", ghorgDir, ghorgDir, ghorgDir))
+			colorlog.PrintSubtleInfo(fmt.Sprintf("Could not find %s/conf.yaml file. If you are having trouble, add this file by running the commands below. Then review for intormation on default values and all optional commandline flags \n \n $ mkdir -p %s \n $ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > %s/conf.yaml \n \n If you are still having trouble see README.md for more information or raise an issue \n", ghorgDir, ghorgDir, ghorgDir))
 
 		} else {
 			// Config file was found but another error was produced
 			colorlog.PrintError(fmt.Sprintf("Something unexpected happened reading configuration file %s/conf.yaml, err: %s", ghorgDir, err))
 		}
 	}
+}
+
+func initConfig() {
+	ghorgDir := GhorgDir()
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(ghorgDir)
+	viper.SetConfigName("conf")
 
 	// Set With Default values
 	getOrSetDefaults("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
@@ -312,20 +313,24 @@ func VerifyTokenSet() error {
 		tokenLength = 20
 		token = os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
 		if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" {
+			printGhorgConfMissing()
 			return ErrNoBitbucketUsername
 		}
 	}
 
 	if len(token) != tokenLength {
 		if scmProvider == "github" {
+			printGhorgConfMissing()
 			return ErrNoGitHubToken
 		}
 
 		if scmProvider == "gitlab" {
+			printGhorgConfMissing()
 			return ErrNoGitLabToken
 		}
 
 		if scmProvider == "bitbucket" {
+			printGhorgConfMissing()
 			return ErrNoBitbucketAppPassword
 		}
 
@@ -341,14 +346,17 @@ func VerifyConfigsSetCorrectly() error {
 	protocol := os.Getenv("GHORG_CLONE_PROTOCOL")
 
 	if !utils.IsStringInSlice(scmType, scm.SupportedClients()) {
+		printGhorgConfMissing()
 		return ErrIncorrectScmType
 	}
 
 	if cloneType != "user" && cloneType != "org" {
+		printGhorgConfMissing()
 		return ErrIncorrectCloneType
 	}
 
 	if protocol != "ssh" && protocol != "https" {
+		printGhorgConfMissing()
 		return ErrIncorrectProtocolType
 	}
 
