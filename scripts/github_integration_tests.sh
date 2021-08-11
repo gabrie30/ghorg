@@ -10,7 +10,10 @@ GITHUB_ORG=underdeveloped
 
 ghorg version
 
-sed -i 's/GHORG_OUTPUT_DIR:/GHORG_OUTPUT_DIR: testing_conf_is_set/g' $HOME/.config/ghorg/conf.yaml
+# hack to allow sed to be ran on both mac and ubuntu
+sed "s/GHORG_OUTPUT_DIR:/GHORG_OUTPUT_DIR: testing_conf_is_set/g" $HOME/.config/ghorg/conf.yaml >updated_conf.yaml && \
+mv $HOME/.config/ghorg/conf.yaml $HOME/.config/ghorg/conf-bak.yaml && \
+mv updated_conf.yaml $HOME/.config/ghorg/conf.yaml
 
 ghorg clone $GITHUB_ORG --token=$GITHUB_TOKEN
 
@@ -32,4 +35,6 @@ else
     exit 1
 fi
 
-sed -i 's/GHORG_OUTPUT_DIR: testing_conf_is_set/GHORG_OUTPUT_DIR:/g' $HOME/.config/ghorg/conf.yaml
+# Move back to original conf but keep updated_conf if we want to use it again
+mv $HOME/.config/ghorg/conf.yaml $HOME/.config/ghorg/updated_conf.yaml
+mv $HOME/.config/ghorg/conf-bak.yaml $HOME/.config/ghorg/conf.yaml
