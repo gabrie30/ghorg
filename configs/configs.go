@@ -67,10 +67,11 @@ func printGhorgConfMissing() {
 }
 
 func initConfig() {
-	ghorgDir := GhorgDir()
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(ghorgDir)
+	viper.AddConfigPath(GhorgDir())
 	viper.SetConfigName("conf")
+
+	viper.ReadInConfig()
 
 	// Set With Default values
 	getOrSetDefaults("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
