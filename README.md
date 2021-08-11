@@ -116,6 +116,7 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 ## Filtering Repos
 - To filter repos by regex use `--match-regex` flag
 - To filter out any archived repos while cloning use the `--skip-archived` flag (not bitbucket)
+- To filter out any forked repos while cloning use the `--skip-forks` flag
 - To ignore specific repos create a `ghorgignore` file inside `$HOME/.config/ghorg`. Each line in this file is considered a substring and will be compared against each repos clone url. If the clone url contains a substring in the `ghorgignore` it will be excluded from cloning. To prevent accidentally excluding a repo, you should make each line as specific as possible, eg. `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git` depending on how you clone. This is useful for permanently igorning certain repos.
 
 

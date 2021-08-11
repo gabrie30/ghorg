@@ -16,6 +16,8 @@ jobs:
       id: go
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
+    - name: Test
+      run: go test -v ./...
     - name: Set configuration file
       run: |
         echo $HOME
@@ -26,8 +28,6 @@ jobs:
         go get -v -t -d ./...
     - name: Build
       run: go build -v -o ghorg .
-    - name: Test
-      run: go test -v ./...
     - name: Run GitHub Integration Tests
       run: scripts/github_integration_tests.sh
       env:
