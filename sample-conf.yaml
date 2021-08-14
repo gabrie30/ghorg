@@ -82,7 +82,7 @@ GHORG_BRANCH:
 GHORG_CLONE_TYPE:
 
 # Color output (on, off)
-# default: on
+# default: off
 # flag (--color)
 GHORG_COLOR:
 
@@ -124,3 +124,9 @@ GHORG_MATCH_PREFIX:
 # Only clone repos that match name to regex provided
 # flag (--match-regex)
 GHORG_MATCH_REGEX:
+
+# Specifies the location of your ghorg conf.yaml, allowing you to have many configuration files, or none at all
+# default: ghorg looks in $HOME/.config/ghorg/conf.yaml, if not set in that location nor as a commandline flag, ghorg will use all default values
+# NOTE: this cannot be set in the configuration file and only available in ghorg v1.7.0+
+# flag (--config)
+# GHORG_CONFIG:

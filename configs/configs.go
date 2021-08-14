@@ -43,60 +43,6 @@ var (
 	ErrIncorrectProtocolType = errors.New("GHORG_CLONE_PROTOCOL or --protocol must be one of https or ssh")
 )
 
-func init() {
-	initConfig()
-}
-
-func printGhorgConfMissing() {
-	ghorgDir := GhorgDir()
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// Config file not found; ignore error if desired
-
-			if XConfigHomeSet() {
-				colorlog.PrintSubtleInfo("Found XDG_CONFIG_HOME set to: " + os.Getenv("XDG_CONFIG_HOME"))
-			}
-
-			colorlog.PrintSubtleInfo(fmt.Sprintf("Could not find %s/conf.yaml file. If you are having trouble, add this file by running the commands below. Then review for intormation on default values and all optional commandline flags \n \n $ mkdir -p %s \n $ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > %s/conf.yaml \n \n If you are still having trouble see README.md for more information or raise an issue \n", ghorgDir, ghorgDir, ghorgDir))
-
-		} else {
-			// Config file was found but another error was produced
-			colorlog.PrintError(fmt.Sprintf("Something unexpected happened reading configuration file %s/conf.yaml, err: %s", ghorgDir, err))
-		}
-	}
-}
-
-func initConfig() {
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(GhorgDir())
-	viper.SetConfigName("conf")
-
-	viper.ReadInConfig()
-
-	// Set With Default values
-	getOrSetDefaults("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
-	getOrSetDefaults("GHORG_BRANCH")
-	getOrSetDefaults("GHORG_CLONE_PROTOCOL")
-	getOrSetDefaults("GHORG_CLONE_TYPE")
-	getOrSetDefaults("GHORG_SCM_TYPE")
-	getOrSetDefaults("GHORG_COLOR")
-	getOrSetDefaults("GHORG_SKIP_ARCHIVED")
-	getOrSetDefaults("GHORG_SKIP_FORKS")
-	getOrSetDefaults("GHORG_BACKUP")
-	getOrSetDefaults("GHORG_CONCURRENCY")
-	getOrSetDefaults("GHORG_MATCH_PREFIX")
-	// Optionally set
-	getOrSetDefaults("GHORG_GITHUB_TOKEN")
-	getOrSetDefaults("GHORG_TOPICS")
-	getOrSetDefaults("GHORG_GITLAB_TOKEN")
-	getOrSetDefaults("GHORG_BITBUCKET_USERNAME")
-	getOrSetDefaults("GHORG_BITBUCKET_APP_PASSWORD")
-	getOrSetDefaults("GHORG_SCM_BASE_URL")
-	getOrSetDefaults("GHORG_PRESERVE_DIRECTORY_STRUCTURE")
-	getOrSetDefaults("GHORG_OUTPUT_DIR")
-	getOrSetDefaults("GHORG_MATCH_REGEX")
-}
-
 // Load triggers the configs to load first, not sure if this is actually needed
 func Load() {}
 
@@ -115,57 +61,15 @@ func isZero(value interface{}) bool {
 	return value == reflect.Zero(reflect.TypeOf(value)).Interface()
 }
 
-func getAbsolutePathToCloneTo() string {
+func GetAbsolutePathToCloneTo() string {
 	path := HomeDir()
 	path = filepath.Join(path, "ghorg")
 	return EnsureTrailingSlash(path)
 }
 
-func getOrSetDefaults(envVar string) {
-
-	// When a user does not set value in $HOME/.config/ghorg/conf.yaml set the default values, else set env to what they have added to the file.
-	if viper.GetString(envVar) == "" {
-		switch envVar {
-		case "GHORG_ABSOLUTE_PATH_TO_CLONE_TO":
-			os.Setenv(envVar, getAbsolutePathToCloneTo())
-		case "GHORG_CLONE_PROTOCOL":
-			os.Setenv(envVar, "https")
-		case "GHORG_CLONE_TYPE":
-			os.Setenv(envVar, "org")
-		case "GHORG_SCM_TYPE":
-			os.Setenv(envVar, "github")
-		case "GHORG_COLOR":
-			os.Setenv(envVar, "on")
-		case "GHORG_SKIP_ARCHIVED":
-			os.Setenv(envVar, "false")
-		case "GHORG_SKIP_FORKS":
-			os.Setenv(envVar, "false")
-		case "GHORG_BACKUP":
-			os.Setenv(envVar, "false")
-		case "GHORG_PRESERVE_DIRECTORY_STRUCTURE":
-			os.Setenv(envVar, "false")
-		case "GHORG_CONCURRENCY":
-			os.Setenv(envVar, "25")
-		}
-	} else {
-		s := viper.GetString(envVar)
-
-		// envs that need a trailing slash
-		if envVar == "GHORG_SCM_BASE_URL" || envVar == "GHORG_ABSOLUTE_PATH_TO_CLONE_TO" {
-			os.Setenv(envVar, EnsureTrailingSlash(s))
-		} else {
-			os.Setenv(envVar, s)
-		}
-	}
-}
-
 // EnsureTrailingSlash takes a string and ensures a single / is appened
 func EnsureTrailingSlash(s string) string {
-	trailing := "/"
-
-	if runtime.GOOS == "windows" {
-		trailing = "\\"
-	}
+	trailing := GetCorrectFilePathSeparator()
 
 	if !strings.HasSuffix(s, trailing) {
 		s = s + trailing
@@ -216,6 +120,10 @@ func XConfigHomeSet() bool {
 	}
 
 	return false
+}
+
+func DefaultConfFile() string {
+	return filepath.Join(GhorgDir(), "conf.yaml")
 }
 
 // HomeDir finds the users home directory
@@ -314,24 +222,20 @@ func VerifyTokenSet() error {
 		tokenLength = 20
 		token = os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
 		if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" {
-			printGhorgConfMissing()
 			return ErrNoBitbucketUsername
 		}
 	}
 
 	if len(token) != tokenLength {
 		if scmProvider == "github" {
-			printGhorgConfMissing()
 			return ErrNoGitHubToken
 		}
 
 		if scmProvider == "gitlab" {
-			printGhorgConfMissing()
 			return ErrNoGitLabToken
 		}
 
 		if scmProvider == "bitbucket" {
-			printGhorgConfMissing()
 			return ErrNoBitbucketAppPassword
 		}
 
@@ -347,17 +251,14 @@ func VerifyConfigsSetCorrectly() error {
 	protocol := os.Getenv("GHORG_CLONE_PROTOCOL")
 
 	if !utils.IsStringInSlice(scmType, scm.SupportedClients()) {
-		printGhorgConfMissing()
 		return ErrIncorrectScmType
 	}
 
 	if cloneType != "user" && cloneType != "org" {
-		printGhorgConfMissing()
 		return ErrIncorrectCloneType
 	}
 
 	if protocol != "ssh" && protocol != "https" {
-		printGhorgConfMissing()
 		return ErrIncorrectProtocolType
 	}
 
