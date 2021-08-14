@@ -7,26 +7,6 @@ import (
 	"github.com/gabrie30/ghorg/configs"
 )
 
-func TestDefaultSettings(t *testing.T) {
-
-	protocol := os.Getenv("GHORG_CLONE_PROTOCOL")
-	scm := os.Getenv("GHORG_SCM_TYPE")
-	cloneType := os.Getenv("GHORG_CLONE_TYPE")
-
-	if protocol != "https" {
-		t.Errorf("Default protocol should be https, got: %v", protocol)
-	}
-
-	if scm != "github" {
-		t.Errorf("Default scm should be github, got: %v", scm)
-	}
-
-	if cloneType != "org" {
-		t.Errorf("Default clone type should be org, got: %v", cloneType)
-	}
-
-}
-
 func TestVerifyTokenSet(t *testing.T) {
 
 	t.Run("When cloning github", func(tt *testing.T) {

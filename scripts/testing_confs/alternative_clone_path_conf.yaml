@@ -1,0 +1,11 @@
+# This is where your ghorg directory will be created, use absolute pathing, shell expansions will not work
+# default: YOUR_HOME_DIR/ghorg
+# flag (--path, -p)
+GHORG_ABSOLUTE_PATH_TO_CLONE_TO: /tmp
+
+
+# Folder ghorg will clone all repos into. Cloning will result in: GHORG_ABSOLUTE_PATH_TO_CLONE_TO/GHORG_OUTPUT_DIR/*
+# default: {org/user you are cloning}
+# flag (--output-dir)
+GHORG_OUTPUT_DIR: path_from_configuration_file
+
