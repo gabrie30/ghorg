@@ -47,7 +47,25 @@ var rootCmd = &cobra.Command{
 	},
 }
 
+// reads in configuration file and updates anything not set to default
 func getOrSetDefaults(envVar string) {
+
+	if envVar == "GHORG_COLOR" {
+		if color == "enabled" {
+			os.Setenv("GHORG_COLOR", "enabled")
+			return
+		}
+
+		if color == "disabled" {
+			os.Setenv("GHORG_COLOR", "disabled")
+			return
+		}
+
+		if viper.GetString(envVar) == "enabled" {
+			os.Setenv("GHORG_COLOR", "enabled")
+			return
+		}
+	}
 
 	// When a user does not set value in $HOME/.config/ghorg/conf.yaml set the default values, else set env to what they have added to the file.
 	if viper.GetString(envVar) == "" {
@@ -66,6 +84,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		case "GHORG_BACKUP":
 			os.Setenv(envVar, "false")
+		case "GHORG_COLOR":
+			os.Setenv(envVar, "disabled")
 		case "GHORG_PRESERVE_DIRECTORY_STRUCTURE":
 			os.Setenv(envVar, "false")
 		case "GHORG_CONCURRENCY":
@@ -73,13 +93,16 @@ func getOrSetDefaults(envVar string) {
 		}
 	} else {
 		s := viper.GetString(envVar)
-
 		// envs that need a trailing slash
 		if envVar == "GHORG_SCM_BASE_URL" || envVar == "GHORG_ABSOLUTE_PATH_TO_CLONE_TO" {
 			os.Setenv(envVar, configs.EnsureTrailingSlash(s))
 		} else {
 			os.Setenv(envVar, s)
 		}
+	}
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		fmt.Printf("%s: %s\n", envVar, os.Getenv(envVar))
 	}
 }
 
@@ -96,10 +119,6 @@ func InitConfig() {
 
 	}
 
-	if viper.GetString("color") == "on" {
-		os.Setenv("GHORG_COLOR", "on")
-	}
-
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			os.Setenv("GHORG_CONF", "none")
@@ -107,6 +126,10 @@ func InitConfig() {
 			colorlog.PrintError(fmt.Sprintf("Something unexpected happened reading configuration file: %s, err: %s", os.Getenv("GHORG_CONF"), err))
 			os.Exit(1)
 		}
+	}
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		fmt.Println("-------- Setting Default ENV values ---------")
 	}
 
 	getOrSetDefaults("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
@@ -121,6 +144,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_MATCH_PREFIX")
 	// Optionally set
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
+	getOrSetDefaults("GHORG_COLOR")
 	getOrSetDefaults("GHORG_TOPICS")
 	getOrSetDefaults("GHORG_GITLAB_TOKEN")
 	getOrSetDefaults("GHORG_BITBUCKET_USERNAME")
@@ -141,11 +165,10 @@ func InitConfig() {
 func init() {
 	cobra.OnInitialize(InitConfig)
 
-	rootCmd.PersistentFlags().StringVarP(&color, "color", "", "off", "GHORG_COLOR - toggles colorful output")
-	rootCmd.PersistentFlags().StringVarP(&config, "config", "", "", "manually set the path to your config file")
+	rootCmd.PersistentFlags().StringVar(&color, "color", "", "GHORG_COLOR - toggles colorful output (default: disabled)")
+	rootCmd.PersistentFlags().StringVar(&config, "config", "", "manually set the path to your config file")
 
 	viper.SetDefault("config", configs.DefaultConfFile())
-	viper.SetDefault("color", "off")
 
 	_ = viper.BindPFlag("color", rootCmd.PersistentFlags().Lookup("color"))
 	_ = viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))

@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - users/orgs directory no longer appends "\_ghorg" or forces underscores
 - make $HOME/.config/ghorg/conf.yaml optional
 - color is off by default
+- color flag configuration options are enabled/disabled
 ### Deprecated
 ### Removed
 ### Fixed

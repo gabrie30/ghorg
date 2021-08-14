@@ -11,7 +11,7 @@ import (
 // PrintInfo prints yellow colored text to standard out
 func PrintInfo(msg interface{}) {
 	switch os.Getenv("GHORG_COLOR") {
-	case "on":
+	case "enabled":
 		color.New(color.FgYellow).Println(msg)
 	default:
 		fmt.Println(msg)
@@ -21,7 +21,7 @@ func PrintInfo(msg interface{}) {
 // PrintSuccess prints green colored text to standard out
 func PrintSuccess(msg interface{}) {
 	switch os.Getenv("GHORG_COLOR") {
-	case "on":
+	case "enabled":
 		color.New(color.FgGreen).Println(msg)
 	default:
 		fmt.Println(msg)
@@ -31,7 +31,7 @@ func PrintSuccess(msg interface{}) {
 // PrintError prints red colored text to standard out
 func PrintError(msg interface{}) {
 	switch os.Getenv("GHORG_COLOR") {
-	case "on":
+	case "enabled":
 		color.New(color.FgRed).Println(msg)
 	default:
 		fmt.Println(msg)
@@ -41,7 +41,7 @@ func PrintError(msg interface{}) {
 // PrintSubtleInfo prints magenta colored text to standard out
 func PrintSubtleInfo(msg interface{}) {
 	switch os.Getenv("GHORG_COLOR") {
-	case "on":
+	case "enabled":
 		color.New(color.FgHiMagenta).Println(msg)
 	default:
 		fmt.Println(msg)
