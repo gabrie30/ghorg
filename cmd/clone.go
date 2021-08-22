@@ -363,10 +363,21 @@ func CloneAllRepos() {
 					cmd := exec.Command("git", "checkout", branch)
 					cmd.Dir = repoDir
 					err := cmd.Run()
+
 					if err != nil {
-						e := fmt.Sprintf("Could not checkout out %s, branch may not exist, no changes made Repo: %s Error: %v", branch, repo.URL, err)
-						cloneInfos = append(cloneInfos, e)
-						return
+						cmd = exec.Command("git", "fetch", "--all")
+						cmd.Dir = repoDir
+						err = cmd.Run()
+
+						cmd = exec.Command("git", "checkout", branch)
+						cmd.Dir = repoDir
+						err = cmd.Run()
+
+						if err != nil {
+							e := fmt.Sprintf("Could not checkout out %s, branch may not exist, no changes made Repo: %s Error: %v", branch, repo.URL, err)
+							cloneInfos = append(cloneInfos, e)
+							return
+						}
 					}
 
 					cmd = exec.Command("git", "clean", "-f", "-d")
