@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/configs"
+	"github.com/gabrie30/ghorg/git"
 	"github.com/gabrie30/ghorg/scm"
 	"github.com/korovkin/limiter"
 	"github.com/spf13/cobra"
@@ -140,8 +140,34 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	parseParentFolder(argz)
 	args = argz
 	targetCloneSource = argz[0]
+	setupRepoClone()
+}
 
-	CloneAllRepos()
+func setupRepoClone() {
+	var cloneTargets []scm.Repo
+	var err error
+
+	if os.Getenv("GHORG_CLONE_TYPE") == "org" {
+		cloneTargets, err = getAllOrgCloneUrls()
+	} else if os.Getenv("GHORG_CLONE_TYPE") == "user" {
+		cloneTargets, err = getAllUserCloneUrls()
+	} else {
+		colorlog.PrintError("GHORG_CLONE_TYPE not set or unsupported")
+		os.Exit(1)
+	}
+
+	if err != nil {
+		colorlog.PrintError("Encountered an error, aborting")
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	if len(cloneTargets) == 0 {
+		colorlog.PrintInfo("No repos found for " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + targetCloneSource + ", check spelling and verify clone-type (user/org) is set correctly e.g. -c=user")
+		os.Exit(0)
+	}
+	git := git.NewGit()
+	CloneAllRepos(git, cloneTargets)
 }
 
 func getAllOrgCloneUrls() ([]scm.Repo, error) {
@@ -251,31 +277,8 @@ func filterByRegex(repos []scm.Repo) []scm.Repo {
 }
 
 // CloneAllRepos clones all repos
-func CloneAllRepos() {
+func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	// resc, errc, infoc := make(chan string), make(chan error), make(chan error)
-
-	var cloneTargets []scm.Repo
-	var err error
-
-	if os.Getenv("GHORG_CLONE_TYPE") == "org" {
-		cloneTargets, err = getAllOrgCloneUrls()
-	} else if os.Getenv("GHORG_CLONE_TYPE") == "user" {
-		cloneTargets, err = getAllUserCloneUrls()
-	} else {
-		colorlog.PrintError("GHORG_CLONE_TYPE not set or unsupported")
-		os.Exit(1)
-	}
-
-	if err != nil {
-		colorlog.PrintError("Encountered an error, aborting")
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	if len(cloneTargets) == 0 {
-		colorlog.PrintInfo("No repos found for " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + targetCloneSource + ", check spelling and verify clone-type (user/org) is set correctly e.g. -c=user")
-		os.Exit(0)
-	}
 
 	if os.Getenv("GHORG_MATCH_REGEX") != "" {
 		colorlog.PrintInfo("Filtering repos down by regex that match the provided...")
@@ -284,7 +287,7 @@ func CloneAllRepos() {
 	}
 
 	// filter repos down based on ghorgignore if one exists
-	_, err = os.Stat(configs.GhorgIgnoreLocation())
+	_, err := os.Stat(configs.GhorgIgnoreLocation())
 	if !os.IsNotExist(err) {
 		// Open the file parse each line and remove cloneTargets containing
 		toIgnore, err := readGhorgIgnore()
@@ -340,19 +343,18 @@ func CloneAllRepos() {
 				path = repo.Path
 			}
 
-			repoDir := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder, configs.GetCorrectFilePathSeparator(), path)
+			repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder, configs.GetCorrectFilePathSeparator(), path)
 
 			if os.Getenv("GHORG_BACKUP") == "true" {
-				repoDir = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder+"_backup", configs.GetCorrectFilePathSeparator(), path)
+				repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder+"_backup", configs.GetCorrectFilePathSeparator(), path)
 			}
 
 			action := "cloning"
 
-			if repoExistsLocally(repoDir) == true {
+			if repoExistsLocally(repo.HostPath) == true {
 				if os.Getenv("GHORG_BACKUP") == "true" {
-					cmd := exec.Command("git", "remote", "update")
-					cmd.Dir = repoDir
-					err := cmd.Run()
+					err := git.UpdateRemote(repo)
+
 					if err != nil {
 						e := fmt.Sprintf("Could not update remotes in Repo: %s Error: %v", repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
@@ -360,50 +362,34 @@ func CloneAllRepos() {
 					}
 				} else {
 
-					cmd := exec.Command("git", "checkout", branch)
-					cmd.Dir = repoDir
-					err := cmd.Run()
+					err := git.Checkout(repo)
 
 					if err != nil {
-						cmd = exec.Command("git", "fetch", "--all")
-						cmd.Dir = repoDir
-						err = cmd.Run()
-
-						cmd = exec.Command("git", "checkout", branch)
-						cmd.Dir = repoDir
-						err = cmd.Run()
-
-						if err != nil {
-							e := fmt.Sprintf("Could not checkout out %s, branch may not exist, no changes made Repo: %s Error: %v", branch, repo.URL, err)
-							cloneInfos = append(cloneInfos, e)
-							return
-						}
+						e := fmt.Sprintf("Could not checkout out %s, branch may not exist, no changes made Repo: %s Error: %v", repo.CloneBranch, repo.URL, err)
+						cloneInfos = append(cloneInfos, e)
+						return
 					}
 
-					cmd = exec.Command("git", "clean", "-f", "-d")
-					cmd.Dir = repoDir
-					err = cmd.Run()
+					err = git.Clean(repo)
+
 					if err != nil {
 						e := fmt.Sprintf("Problem running git clean: %s Error: %v", repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
 
-					cmd = exec.Command("git", "reset", "--hard", "origin/"+branch)
-					cmd.Dir = repoDir
-					err = cmd.Run()
+					err = git.Reset(repo)
+
 					if err != nil {
-						e := fmt.Sprintf("Problem resetting %s Repo: %s Error: %v", branch, repo.URL, err)
+						e := fmt.Sprintf("Problem resetting %s Repo: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
 
-					// TODO: handle case where repo was removed, should not give user an error
-					cmd = exec.Command("git", "pull", "origin", branch)
-					cmd.Dir = repoDir
-					err = cmd.Run()
+					err = git.Pull(repo)
+
 					if err != nil {
-						e := fmt.Sprintf("Problem trying to pull %v Repo: %s Error: %v", branch, repo.URL, err)
+						e := fmt.Sprintf("Problem trying to pull %v Repo: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
@@ -413,13 +399,7 @@ func CloneAllRepos() {
 			} else {
 				// if https clone and github/gitlab add personal access token to url
 
-				args := []string{"clone", repo.CloneURL, repoDir}
-				if os.Getenv("GHORG_BACKUP") == "true" {
-					args = append(args, "--mirror")
-				}
-
-				cmd := exec.Command("git", args...)
-				err := cmd.Run()
+				err = git.Clone(repo)
 
 				if err != nil {
 					e := fmt.Sprintf("Problem trying to clone Repo: %s Error: %v", repo.URL, err)
@@ -428,9 +408,7 @@ func CloneAllRepos() {
 				}
 
 				if os.Getenv("GHORG_BRANCH") != "" {
-					cmd = exec.Command("git", "checkout", branch)
-					cmd.Dir = repoDir
-					err = cmd.Run()
+					err := git.Checkout(repo)
 					if err != nil {
 						e := fmt.Sprintf("Could not checkout out %s, branch may not exist, no changes made Repo: %s Error: %v", branch, repo.URL, err)
 						cloneInfos = append(cloneInfos, e)
@@ -440,10 +418,7 @@ func CloneAllRepos() {
 
 				// TODO: make configs around remote name
 				// we clone with api-key in clone url
-				args = []string{"remote", "set-url", "origin", repo.URL}
-				cmd = exec.Command("git", args...)
-				cmd.Dir = repoDir
-				err = cmd.Run()
+				err = git.SetOrigin(repo)
 
 				if err != nil {
 					e := fmt.Sprintf("Problem trying to set remote on Repo: %s Error: %v", repo.URL, err)
