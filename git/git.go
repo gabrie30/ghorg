@@ -35,8 +35,6 @@ func (g GitClient) Clone(repo scm.Repo) error {
 }
 
 func (g GitClient) SetOrigin(repo scm.Repo) error {
-	// TODO: make configs around remote name
-	// we clone with api-key in clone url
 	args := []string{"remote", "set-url", "origin", repo.URL}
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath
@@ -46,19 +44,7 @@ func (g GitClient) SetOrigin(repo scm.Repo) error {
 func (g GitClient) Checkout(repo scm.Repo) error {
 	cmd := exec.Command("git", "checkout", repo.CloneBranch)
 	cmd.Dir = repo.HostPath
-	err := cmd.Run()
-
-	if err != nil {
-		cmd = exec.Command("git", "fetch", "--all")
-		cmd.Dir = repo.HostPath
-		err = cmd.Run()
-
-		cmd = exec.Command("git", "checkout", repo.CloneBranch)
-		cmd.Dir = repo.HostPath
-		err = cmd.Run()
-	}
-
-	return err
+	return cmd.Run()
 }
 
 func (g GitClient) Clean(repo scm.Repo) error {
@@ -74,7 +60,6 @@ func (g GitClient) UpdateRemote(repo scm.Repo) error {
 }
 
 func (g GitClient) Pull(repo scm.Repo) error {
-	// TODO: handle case where repo was removed, should not give user an error
 	cmd := exec.Command("git", "pull", "origin", repo.CloneBranch)
 	cmd.Dir = repo.HostPath
 	return cmd.Run()
