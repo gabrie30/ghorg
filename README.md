@@ -167,7 +167,6 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 ## Troubleshooting
 
 - If the `security` command does not return your token, follow this [GitHub Documentation](https://help.github.com/en/articles/caching-your-github-password-in-git). For GitHub tokens you will need to set your token as your username and set nothing as the password when prompted. For GitLab you will need to set your token for both the username and password when prompted. This will correctly store your credentials in the keychain. If you are still having problems see this [StackOverflow Post](https://stackoverflow.com/questions/31305945/git-clone-from-github-over-https-with-two-factor-authentication)
-- If your GitHub account is behind 2fa follow this [Github Documentation](https://github.blog/2013-09-03-two-factor-authentication/#how-does-it-work-for-command-line-git)
 - If your GitHub org is behind SSO, you will need to authorize your token, see [here](https://docs.github.com/en/github/authenticating-to-github/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on)
 - GitHub Personal Access Token only finding public repos - Give your token all the repo permissions
 - Make sure your `$ git --version` is >= 2.19.0
