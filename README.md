@@ -10,7 +10,7 @@ ghorg allows you to quickly clone all of an orgs, or users repos into a single d
 4. Onboarding
 5. Performing Audits
 
-> When running ghorg a second time on the same org/user, all local changes in cloned directory will be overwritten by whats on GitHub. If you are working out of this directory, make sure you rename it before running a second time otherwise all of your changes will be lost.
+> When running ghorg a second time on the same org/user, all local changes in the cloned directory will be overwritten by what's on GitHub. If you are working out of this directory, make sure you rename it before running a second time otherwise all of your changes will be lost.
 
 <p align="center">
   <img width="648" alt="ghorg cli example" src="https://user-images.githubusercontent.com/1512282/63229247-5459f880-c1b3-11e9-9e5d-d20723046946.png">
@@ -24,26 +24,47 @@ ghorg allows you to quickly clone all of an orgs, or users repos into a single d
 
 > The terminology used in ghorg is that of GitHub, mainly orgs/repos. GitLab and BitBucket use different terminology. There is a handy chart thanks to GitLab that translates terminology [here](https://about.gitlab.com/images/blogimages/gitlab-terminology.png)
 
+## Configuration
+
+Precedence for configuration is first given to the flags set on the command-line, then to what's set in your `$HOME/.config/ghorg/conf.yaml`. This file comes from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml). If neither of these exist, ghorg will fall back to its defaults -- cloning a GitHub org using your security token, if no security token is detected you will need to provide a token `--token`.
+
+Although it's optional, it is recommended to add a `$HOME/.config/ghorg/conf.yaml` following the instructions in the install section.
+
+You can have multiple configuration files which is useful if you clone from multiple SCM providers. Alternative configuration files can only be referenced as a command-line flag `--config`
+
+```
+# example using an secondary configuration file
+ghorg clone kubernetes --config=$HOME/.config/ghorg/other-config.yaml
+```
+
 ## Install
 
 ### Homebrew
 
-> optional
+> optional but recommended
 
 ```bash
-$ brew update
-$ brew upgrade git
+mkdir -p $HOME/.config/ghorg
+curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
+vi $HOME/.config/ghorg/conf.yaml
 ```
 > required
 
 ```bash
-$ brew install gabrie30/utils/ghorg
-$ mkdir -p $HOME/.config/ghorg
-$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
-$ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
+brew install gabrie30/utils/ghorg
 ```
 
 ### Golang
+
+> optional but recommended
+
+```bash
+mkdir -p $HOME/.config/ghorg
+curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
+vi $HOME/.config/ghorg/conf.yaml
+```
+
+> required
 
 ```bash
 # ensure $HOME/go/bin is in your path ($ echo $PATH | grep $HOME/go/bin)
@@ -52,11 +73,7 @@ $ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 go install github.com/gabrie30/ghorg@latest
 
 # older go versions can run
-$ go get github.com/gabrie30/ghorg
-
-$ mkdir -p $HOME/.config/ghorg
-$ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
-$ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
+go get github.com/gabrie30/ghorg
 ```
 
 ## Use
@@ -66,7 +83,7 @@ $ vi $HOME/.config/ghorg/conf.yaml # (optional but recommended)
 # note: for examples see ./examples
 $ ghorg clone someorg
 $ ghorg clone someorg --concurrency=50 --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
-$ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop --color=off
+$ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop --color=enabled
 $ ghorg clone gitlab-group --scm=gitlab --base-url=https://gitlab.internal.yourcompany.com --preserve-dir
 $ ghorg clone gitlab-group/gitlab-subgroup --scm=gitlab --base-url=https://gitlab.internal.yourcompany.com
 $ ghorg clone --help
@@ -75,14 +92,12 @@ $ ghorg ls
 $ ghorg ls someorg
 ```
 
-## Setup and Configuration
+## SCM Provider Setup
 
 > Note: if you are running into issues, read the troubleshooting and known issues section below
 
-Configuration for each clone can be set in two ways. The first is in `$HOME/.config/ghorg/conf.yaml`. This file should be created from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) by copying into `$HOME/.config/ghorg/conf.yaml`. The second method of configuration is setting flags via the cli, run `$ ghorg clone --help` for a list of flags. A flag set on the command line will overwrite any setting in the conf.yaml
-
 ### github setup
-1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. Update `GHORG_GITHUB_TOKEN` in your `ghorg/conf.yaml`, as a cli flag, or add to your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
+1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. Update `GHORG_GITHUB_TOKEN` in your `ghorg/conf.yaml`, as a cli flag, or add to your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git). If your org has Saml SSO in front you will need to give your token those permissions as well, see [this doc](https://docs.github.com/en/github/authenticating-to-github/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on).
 
 ### gitlab setup
 
@@ -104,7 +119,7 @@ Configuration for each clone can be set in two ways. The first is in `$HOME/.con
 
 ### osx default github/gitlab token used
 
-> NOTE: cloning via https rather than ssh is the ghorg default, this is because a token must be present to retreive the list of repos. However, if you run into trouble cloning via https and genearlly clone via ssh, try switching `--protocol ssh`
+> NOTE: cloning via https rather than ssh is the ghorg default, this is because a token must be present to retrieve the list of repos. However, if you run into trouble cloning via https and generally clone via ssh, try switching `--protocol ssh`
 
 ```bash
 $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
@@ -117,7 +132,7 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 - To filter repos by regex use `--match-regex` flag
 - To filter out any archived repos while cloning use the `--skip-archived` flag (not bitbucket)
 - To filter out any forked repos while cloning use the `--skip-forks` flag
-- To ignore specific repos create a `ghorgignore` file inside `$HOME/.config/ghorg`. Each line in this file is considered a substring and will be compared against each repos clone url. If the clone url contains a substring in the `ghorgignore` it will be excluded from cloning. To prevent accidentally excluding a repo, you should make each line as specific as possible, eg. `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git` depending on how you clone. This is useful for permanently igorning certain repos.
+- To ignore specific repos create a `ghorgignore` file inside `$HOME/.config/ghorg`. Each line in this file is considered a substring and will be compared against each repos clone url. If the clone url contains a substring in the `ghorgignore` it will be excluded from cloning. To prevent accidentally excluding a repo, you should make each line as specific as possible, eg. `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git` depending on how you clone. This is useful for permanently ignoring certain repos.
 
 
   ```bash
@@ -156,6 +171,7 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 - If your GitHub org is behind SSO, you will need to authorize your token, see [here](https://docs.github.com/en/github/authenticating-to-github/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on)
 - GitHub Personal Access Token only finding public repos - Give your token all the repo permissions
 - Make sure your `$ git --version` is >= 2.19.0
+- Check for other software, such as anti-malware, that could interfere with ghorgs ability to create large number of connections, see [issue 132](https://github.com/gabrie30/ghorg/issues/132#issuecomment-889357960)
 
 ### Updating brew tap
 - [See Readme](https://github.com/gabrie30/homebrew-utils/blob/master/README.md)
