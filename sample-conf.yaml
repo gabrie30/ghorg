@@ -81,8 +81,8 @@ GHORG_BRANCH:
 # flag (--clone-type, -c)
 GHORG_CLONE_TYPE:
 
-# Color output (on, off)
-# default: off
+# Color output (enabled, disabled)
+# default: disabled
 # flag (--color)
 GHORG_COLOR:
 

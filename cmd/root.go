@@ -165,7 +165,7 @@ func InitConfig() {
 func init() {
 	cobra.OnInitialize(InitConfig)
 
-	rootCmd.PersistentFlags().StringVar(&color, "color", "", "GHORG_COLOR - toggles colorful output (default: disabled)")
+	rootCmd.PersistentFlags().StringVar(&color, "color", "", "GHORG_COLOR - toggles colorful output, enabled/disabled (default: disabled)")
 	rootCmd.PersistentFlags().StringVar(&config, "config", "", "manually set the path to your config file")
 
 	viper.SetDefault("config", configs.DefaultConfFile())
