@@ -49,7 +49,7 @@ GHORG_BITBUCKET_USERNAME:
 # |G|E|N|E|R|A|L| |C|O|N|F|I|G|U|R|A|T|I|O|N|
 # +-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-# Change SCM base url, for on self hosted instances (for gitlab, use format of https://git.mydomain.com/api/v3), gitea require this
+# Change SCM base url, for on self hosted instances, gitea require this
 # default: uses github/gitlab public api
 # flag (--base-url)
 GHORG_SCM_BASE_URL:
