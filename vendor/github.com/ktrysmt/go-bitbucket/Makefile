@@ -17,7 +17,10 @@ endif
 test: env ## run go test all
 	go test -v ./tests
 
+test/swagger:
+	env BITBUCKET_API_BASE_URL=http://0.0.0.0:4010 go test -v ./...
+
 help: ## print this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: test help
+.PHONY: test test/swagger help

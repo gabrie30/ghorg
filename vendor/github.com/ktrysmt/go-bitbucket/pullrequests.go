@@ -87,12 +87,12 @@ func (p *PullRequests) Commits(po *PullRequestsOptions) (interface{}, error) {
 
 func (p *PullRequests) Patch(po *PullRequestsOptions) (interface{}, error) {
 	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/patch"
-	return p.c.execute("GET", urlStr, "")
+	return p.c.executeRaw("GET", urlStr, "")
 }
 
 func (p *PullRequests) Diff(po *PullRequestsOptions) (interface{}, error) {
 	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/diff"
-	return p.c.execute("GET", urlStr, "")
+	return p.c.executeRaw("GET", urlStr, "")
 }
 
 func (p *PullRequests) Merge(po *PullRequestsOptions) (interface{}, error) {
@@ -107,6 +107,26 @@ func (p *PullRequests) Decline(po *PullRequestsOptions) (interface{}, error) {
 	return p.c.execute("POST", urlStr, data)
 }
 
+func (p *PullRequests) Approve(po *PullRequestsOptions) (interface{}, error) {
+	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/approve"
+	return p.c.execute("POST", urlStr, "")
+}
+
+func (p *PullRequests) UnApprove(po *PullRequestsOptions) (interface{}, error) {
+	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/approve"
+	return p.c.execute("DELETE", urlStr, "")
+}
+
+func (p *PullRequests) RequestChanges(po *PullRequestsOptions) (interface{}, error) {
+	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/request-changes"
+	return p.c.execute("POST", urlStr, "")
+}
+
+func (p *PullRequests) UnRequestChanges(po *PullRequestsOptions) (interface{}, error) {
+	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/request-changes"
+	return p.c.execute("DELETE", urlStr, "")
+}
+
 func (p *PullRequests) GetComments(po *PullRequestsOptions) (interface{}, error) {
 	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/comments/"
 	return p.c.execute("GET", urlStr, "")
@@ -114,6 +134,32 @@ func (p *PullRequests) GetComments(po *PullRequestsOptions) (interface{}, error)
 
 func (p *PullRequests) GetComment(po *PullRequestsOptions) (interface{}, error) {
 	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/comments/" + po.CommentID
+	return p.c.execute("GET", urlStr, "")
+}
+
+func (p *PullRequests) Statuses(po *PullRequestsOptions) (interface{}, error) {
+	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/statuses"
+	if po.Query != "" {
+		parsed, err := url.Parse(urlStr)
+		if err != nil {
+			return nil, err
+		}
+		query := parsed.Query()
+		query.Set("q", po.Query)
+		parsed.RawQuery = query.Encode()
+		urlStr = parsed.String()
+	}
+
+	if po.Sort != "" {
+		parsed, err := url.Parse(urlStr)
+		if err != nil {
+			return nil, err
+		}
+		query := parsed.Query()
+		query.Set("sort", po.Sort)
+		parsed.RawQuery = query.Encode()
+		urlStr = parsed.String()
+	}
 	return p.c.execute("GET", urlStr, "")
 }
 

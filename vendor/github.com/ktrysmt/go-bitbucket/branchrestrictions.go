@@ -5,10 +5,16 @@ import (
 	"os"
 
 	"github.com/k0kubun/pp"
+	"github.com/mitchellh/mapstructure"
 )
 
 type BranchRestrictions struct {
 	c *Client
+
+	ID      int
+	Pattern string
+	Kind    string
+	Value   *int
 }
 
 func (b *BranchRestrictions) Gets(bo *BranchRestrictionsOptions) (interface{}, error) {
@@ -16,21 +22,36 @@ func (b *BranchRestrictions) Gets(bo *BranchRestrictionsOptions) (interface{}, e
 	return b.c.execute("GET", urlStr, "")
 }
 
-func (b *BranchRestrictions) Create(bo *BranchRestrictionsOptions) (interface{}, error) {
+func (b *BranchRestrictions) Create(bo *BranchRestrictionsOptions) (*BranchRestrictions, error) {
 	data := b.buildBranchRestrictionsBody(bo)
 	urlStr := b.c.requestUrl("/repositories/%s/%s/branch-restrictions", bo.Owner, bo.RepoSlug)
-	return b.c.execute("POST", urlStr, data)
+	response, err := b.c.execute("POST", urlStr, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return decodeBranchRestriction(response)
 }
 
-func (b *BranchRestrictions) Get(bo *BranchRestrictionsOptions) (interface{}, error) {
+func (b *BranchRestrictions) Get(bo *BranchRestrictionsOptions) (*BranchRestrictions, error) {
 	urlStr := b.c.requestUrl("/repositories/%s/%s/branch-restrictions/%s", bo.Owner, bo.RepoSlug, bo.ID)
-	return b.c.execute("GET", urlStr, "")
+	response, err := b.c.execute("GET", urlStr, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return decodeBranchRestriction(response)
 }
 
 func (b *BranchRestrictions) Update(bo *BranchRestrictionsOptions) (interface{}, error) {
 	data := b.buildBranchRestrictionsBody(bo)
 	urlStr := b.c.requestUrl("/repositories/%s/%s/branch-restrictions/%s", bo.Owner, bo.RepoSlug, bo.ID)
-	return b.c.execute("PUT", urlStr, data)
+	response, err := b.c.execute("PUT", urlStr, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return decodeBranchRestriction(response)
 }
 
 func (b *BranchRestrictions) Delete(bo *BranchRestrictionsOptions) (interface{}, error) {
@@ -127,4 +148,19 @@ func (b *BranchRestrictions) buildBranchRestrictionsBody(bo *BranchRestrictionsO
 	}
 
 	return string(data)
+}
+
+func decodeBranchRestriction(branchResponse interface{}) (*BranchRestrictions, error) {
+	branchMap := branchResponse.(map[string]interface{})
+
+	if branchMap["type"] == "error" {
+		return nil, DecodeError(branchMap)
+	}
+
+	var branchRestriction = new(BranchRestrictions)
+	err := mapstructure.Decode(branchMap, branchRestriction)
+	if err != nil {
+		return nil, err
+	}
+	return branchRestriction, nil
 }

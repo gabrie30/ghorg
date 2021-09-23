@@ -1,3 +1,4 @@
+// Copyright 2021 The Gitea Authors. All rights reserved.
 // Copyright 2016 The Gogs Authors. All rights reserved.
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file.
@@ -17,6 +18,9 @@ type ListCollaboratorsOptions struct {
 
 // ListCollaborators list a repository's collaborators
 func (c *Client) ListCollaborators(user, repo string, opt ListCollaboratorsOptions) ([]*User, *Response, error) {
+	if err := escapeValidatePathSegments(&user, &repo); err != nil {
+		return nil, nil, err
+	}
 	opt.setDefaults()
 	collaborators := make([]*User, 0, opt.PageSize)
 	resp, err := c.getParsedResponse("GET",
@@ -27,6 +31,9 @@ func (c *Client) ListCollaborators(user, repo string, opt ListCollaboratorsOptio
 
 // IsCollaborator check if a user is a collaborator of a repository
 func (c *Client) IsCollaborator(user, repo, collaborator string) (bool, *Response, error) {
+	if err := escapeValidatePathSegments(&user, &repo, &collaborator); err != nil {
+		return false, nil, err
+	}
 	status, resp, err := c.getStatusCode("GET", fmt.Sprintf("/repos/%s/%s/collaborators/%s", user, repo, collaborator), nil, nil)
 	if err != nil {
 		return false, resp, err
@@ -78,6 +85,9 @@ func (opt AddCollaboratorOption) Validate() error {
 
 // AddCollaborator add some user as a collaborator of a repository
 func (c *Client) AddCollaborator(user, repo, collaborator string, opt AddCollaboratorOption) (*Response, error) {
+	if err := escapeValidatePathSegments(&user, &repo, &collaborator); err != nil {
+		return nil, err
+	}
 	if err := opt.Validate(); err != nil {
 		return nil, err
 	}
@@ -91,7 +101,36 @@ func (c *Client) AddCollaborator(user, repo, collaborator string, opt AddCollabo
 
 // DeleteCollaborator remove a collaborator from a repository
 func (c *Client) DeleteCollaborator(user, repo, collaborator string) (*Response, error) {
+	if err := escapeValidatePathSegments(&user, &repo, &collaborator); err != nil {
+		return nil, err
+	}
 	_, resp, err := c.getResponse("DELETE",
 		fmt.Sprintf("/repos/%s/%s/collaborators/%s", user, repo, collaborator), nil, nil)
 	return resp, err
+}
+
+// GetReviewers return all users that can be requested to review in this repo
+func (c *Client) GetReviewers(user, repo string) ([]*User, *Response, error) {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_15_0); err != nil {
+		return nil, nil, err
+	}
+	if err := escapeValidatePathSegments(&user, &repo); err != nil {
+		return nil, nil, err
+	}
+	reviewers := make([]*User, 0, 5)
+	resp, err := c.getParsedResponse("GET", fmt.Sprintf("/repos/%s/%s/reviewers", user, repo), nil, nil, &reviewers)
+	return reviewers, resp, err
+}
+
+// GetAssignees return all users that have write access and can be assigned to issues
+func (c *Client) GetAssignees(user, repo string) ([]*User, *Response, error) {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_15_0); err != nil {
+		return nil, nil, err
+	}
+	if err := escapeValidatePathSegments(&user, &repo); err != nil {
+		return nil, nil, err
+	}
+	assignees := make([]*User, 0, 5)
+	resp, err := c.getParsedResponse("GET", fmt.Sprintf("/repos/%s/%s/assignees", user, repo), nil, nil, &assignees)
+	return assignees, resp, err
 }

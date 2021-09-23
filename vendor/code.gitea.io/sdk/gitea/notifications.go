@@ -8,6 +8,12 @@ import (
 	"fmt"
 	"net/url"
 	"time"
+
+	"github.com/hashicorp/go-version"
+)
+
+var (
+	version1_12_3, _ = version.NewVersion("1.12.3")
 )
 
 // NotificationThread expose Notification on API
@@ -23,10 +29,11 @@ type NotificationThread struct {
 
 // NotificationSubject contains the notification subject (Issue/Pull/Commit)
 type NotificationSubject struct {
-	Title            string `json:"title"`
-	URL              string `json:"url"`
-	LatestCommentURL string `json:"latest_comment_url"`
-	Type             string `json:"type" binding:"In(Issue,Pull,Commit)"`
+	Title            string             `json:"title"`
+	URL              string             `json:"url"`
+	LatestCommentURL string             `json:"latest_comment_url"`
+	Type             NotifySubjectType  `json:"type"`
+	State            NotifySubjectState `json:"state"`
 }
 
 // NotifyStatus notification status type
@@ -41,12 +48,39 @@ const (
 	NotifyStatusPinned NotifyStatus = "pinned"
 )
 
+// NotifySubjectType represent type of notification subject
+type NotifySubjectType string
+
+const (
+	// NotifySubjectIssue an issue is subject of an notification
+	NotifySubjectIssue NotifySubjectType = "Issue"
+	// NotifySubjectPull an pull is subject of an notification
+	NotifySubjectPull NotifySubjectType = "Pull"
+	// NotifySubjectCommit an commit is subject of an notification
+	NotifySubjectCommit NotifySubjectType = "Commit"
+	// NotifySubjectRepository an repository is subject of an notification
+	NotifySubjectRepository NotifySubjectType = "Repository"
+)
+
+// NotifySubjectState reflect state of notification subject
+type NotifySubjectState string
+
+const (
+	// NotifySubjectOpen if subject is a pull/issue and is open at the moment
+	NotifySubjectOpen NotifySubjectState = "open"
+	// NotifySubjectClosed if subject is a pull/issue and is closed at the moment
+	NotifySubjectClosed NotifySubjectState = "closed"
+	// NotifySubjectMerged if subject is a pull and got merged
+	NotifySubjectMerged NotifySubjectState = "merged"
+)
+
 // ListNotificationOptions represents the filter options
 type ListNotificationOptions struct {
 	ListOptions
-	Since  time.Time
-	Before time.Time
-	Status []NotifyStatus
+	Since        time.Time
+	Before       time.Time
+	Status       []NotifyStatus
+	SubjectTypes []NotifySubjectType
 }
 
 // MarkNotificationOptions represents the filter & modify options
@@ -68,13 +102,16 @@ func (opt *ListNotificationOptions) QueryEncode() string {
 	for _, s := range opt.Status {
 		query.Add("status-types", string(s))
 	}
+	for _, s := range opt.SubjectTypes {
+		query.Add("subject-type", string(s))
+	}
 	return query.Encode()
 }
 
 // Validate the CreateUserOption struct
 func (opt ListNotificationOptions) Validate(c *Client) error {
 	if len(opt.Status) != 0 {
-		return c.CheckServerVersionConstraint(">=1.12.3")
+		return c.checkServerVersionGreaterThanOrEqual(version1_12_3)
 	}
 	return nil
 }
@@ -97,14 +134,14 @@ func (opt *MarkNotificationOptions) QueryEncode() string {
 // Validate the CreateUserOption struct
 func (opt MarkNotificationOptions) Validate(c *Client) error {
 	if len(opt.Status) != 0 || len(opt.ToStatus) != 0 {
-		return c.CheckServerVersionConstraint(">=1.12.3")
+		return c.checkServerVersionGreaterThanOrEqual(version1_12_3)
 	}
 	return nil
 }
 
 // CheckNotifications list users's notification threads
 func (c *Client) CheckNotifications() (int64, *Response, error) {
-	if err := c.CheckServerVersionConstraint(">=1.12.0"); err != nil {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_12_0); err != nil {
 		return 0, nil, err
 	}
 	new := struct {
@@ -117,7 +154,7 @@ func (c *Client) CheckNotifications() (int64, *Response, error) {
 
 // GetNotification get notification thread by ID
 func (c *Client) GetNotification(id int64) (*NotificationThread, *Response, error) {
-	if err := c.CheckServerVersionConstraint(">=1.12.0"); err != nil {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_12_0); err != nil {
 		return nil, nil, err
 	}
 	thread := new(NotificationThread)
@@ -128,7 +165,7 @@ func (c *Client) GetNotification(id int64) (*NotificationThread, *Response, erro
 // ReadNotification mark notification thread as read by ID
 // It optionally takes a second argument if status has to be set other than 'read'
 func (c *Client) ReadNotification(id int64, status ...NotifyStatus) (*Response, error) {
-	if err := c.CheckServerVersionConstraint(">=1.12.0"); err != nil {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_12_0); err != nil {
 		return nil, err
 	}
 	link := fmt.Sprintf("/notifications/threads/%d", id)
@@ -141,7 +178,7 @@ func (c *Client) ReadNotification(id int64, status ...NotifyStatus) (*Response, 
 
 // ListNotifications list users's notification threads
 func (c *Client) ListNotifications(opt ListNotificationOptions) ([]*NotificationThread, *Response, error) {
-	if err := c.CheckServerVersionConstraint(">=1.12.0"); err != nil {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_12_0); err != nil {
 		return nil, nil, err
 	}
 	if err := opt.Validate(c); err != nil {
@@ -156,7 +193,7 @@ func (c *Client) ListNotifications(opt ListNotificationOptions) ([]*Notification
 
 // ReadNotifications mark notification threads as read
 func (c *Client) ReadNotifications(opt MarkNotificationOptions) (*Response, error) {
-	if err := c.CheckServerVersionConstraint(">=1.12.0"); err != nil {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_12_0); err != nil {
 		return nil, err
 	}
 	if err := opt.Validate(c); err != nil {
@@ -169,14 +206,17 @@ func (c *Client) ReadNotifications(opt MarkNotificationOptions) (*Response, erro
 }
 
 // ListRepoNotifications list users's notification threads on a specific repo
-func (c *Client) ListRepoNotifications(owner, reponame string, opt ListNotificationOptions) ([]*NotificationThread, *Response, error) {
-	if err := c.CheckServerVersionConstraint(">=1.12.0"); err != nil {
+func (c *Client) ListRepoNotifications(owner, repo string, opt ListNotificationOptions) ([]*NotificationThread, *Response, error) {
+	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
+		return nil, nil, err
+	}
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_12_0); err != nil {
 		return nil, nil, err
 	}
 	if err := opt.Validate(c); err != nil {
 		return nil, nil, err
 	}
-	link, _ := url.Parse(fmt.Sprintf("/repos/%s/%s/notifications", owner, reponame))
+	link, _ := url.Parse(fmt.Sprintf("/repos/%s/%s/notifications", owner, repo))
 	link.RawQuery = opt.QueryEncode()
 	threads := make([]*NotificationThread, 0, 10)
 	resp, err := c.getParsedResponse("GET", link.String(), nil, nil, &threads)
@@ -184,14 +224,17 @@ func (c *Client) ListRepoNotifications(owner, reponame string, opt ListNotificat
 }
 
 // ReadRepoNotifications mark notification threads as read on a specific repo
-func (c *Client) ReadRepoNotifications(owner, reponame string, opt MarkNotificationOptions) (*Response, error) {
-	if err := c.CheckServerVersionConstraint(">=1.12.0"); err != nil {
+func (c *Client) ReadRepoNotifications(owner, repo string, opt MarkNotificationOptions) (*Response, error) {
+	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
+		return nil, err
+	}
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_12_0); err != nil {
 		return nil, err
 	}
 	if err := opt.Validate(c); err != nil {
 		return nil, err
 	}
-	link, _ := url.Parse(fmt.Sprintf("/repos/%s/%s/notifications", owner, reponame))
+	link, _ := url.Parse(fmt.Sprintf("/repos/%s/%s/notifications", owner, repo))
 	link.RawQuery = opt.QueryEncode()
 	_, resp, err := c.getResponse("PUT", link.String(), nil, nil)
 	return resp, err
