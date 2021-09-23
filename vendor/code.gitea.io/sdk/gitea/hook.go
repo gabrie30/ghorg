@@ -24,6 +24,28 @@ type Hook struct {
 	Created time.Time         `json:"created_at"`
 }
 
+// HookType represent all webhook types gitea currently offer
+type HookType string
+
+const (
+	// HookTypeDingtalk webhook that dingtalk understand
+	HookTypeDingtalk HookType = "dingtalk"
+	// HookTypeDiscord webhook that discord understand
+	HookTypeDiscord HookType = "discord"
+	// HookTypeGitea webhook that gitea understand
+	HookTypeGitea HookType = "gitea"
+	// HookTypeGogs webhook that gogs understand
+	HookTypeGogs HookType = "gogs"
+	// HookTypeMsteams webhook that msteams understand
+	HookTypeMsteams HookType = "msteams"
+	// HookTypeSlack webhook that slack understand
+	HookTypeSlack HookType = "slack"
+	// HookTypeTelegram webhook that telegram understand
+	HookTypeTelegram HookType = "telegram"
+	// HookTypeFeishu webhook that feishu understand
+	HookTypeFeishu HookType = "feishu"
+)
+
 // ListHooksOptions options for listing hooks
 type ListHooksOptions struct {
 	ListOptions
@@ -31,6 +53,9 @@ type ListHooksOptions struct {
 
 // ListOrgHooks list all the hooks of one organization
 func (c *Client) ListOrgHooks(org string, opt ListHooksOptions) ([]*Hook, *Response, error) {
+	if err := escapeValidatePathSegments(&org); err != nil {
+		return nil, nil, err
+	}
 	opt.setDefaults()
 	hooks := make([]*Hook, 0, opt.PageSize)
 	resp, err := c.getParsedResponse("GET", fmt.Sprintf("/orgs/%s/hooks?%s", org, opt.getURLQuery().Encode()), nil, nil, &hooks)
@@ -39,6 +64,9 @@ func (c *Client) ListOrgHooks(org string, opt ListHooksOptions) ([]*Hook, *Respo
 
 // ListRepoHooks list all the hooks of one repository
 func (c *Client) ListRepoHooks(user, repo string, opt ListHooksOptions) ([]*Hook, *Response, error) {
+	if err := escapeValidatePathSegments(&user, &repo); err != nil {
+		return nil, nil, err
+	}
 	opt.setDefaults()
 	hooks := make([]*Hook, 0, opt.PageSize)
 	resp, err := c.getParsedResponse("GET", fmt.Sprintf("/repos/%s/%s/hooks?%s", user, repo, opt.getURLQuery().Encode()), nil, nil, &hooks)
@@ -47,6 +75,9 @@ func (c *Client) ListRepoHooks(user, repo string, opt ListHooksOptions) ([]*Hook
 
 // GetOrgHook get a hook of an organization
 func (c *Client) GetOrgHook(org string, id int64) (*Hook, *Response, error) {
+	if err := escapeValidatePathSegments(&org); err != nil {
+		return nil, nil, err
+	}
 	h := new(Hook)
 	resp, err := c.getParsedResponse("GET", fmt.Sprintf("/orgs/%s/hooks/%d", org, id), nil, nil, h)
 	return h, resp, err
@@ -54,6 +85,9 @@ func (c *Client) GetOrgHook(org string, id int64) (*Hook, *Response, error) {
 
 // GetRepoHook get a hook of a repository
 func (c *Client) GetRepoHook(user, repo string, id int64) (*Hook, *Response, error) {
+	if err := escapeValidatePathSegments(&user, &repo); err != nil {
+		return nil, nil, err
+	}
 	h := new(Hook)
 	resp, err := c.getParsedResponse("GET", fmt.Sprintf("/repos/%s/%s/hooks/%d", user, repo, id), nil, nil, h)
 	return h, resp, err
@@ -61,7 +95,7 @@ func (c *Client) GetRepoHook(user, repo string, id int64) (*Hook, *Response, err
 
 // CreateHookOption options when create a hook
 type CreateHookOption struct {
-	Type         string            `json:"type"`
+	Type         HookType          `json:"type"`
 	Config       map[string]string `json:"config"`
 	Events       []string          `json:"events"`
 	BranchFilter string            `json:"branch_filter"`
@@ -78,6 +112,9 @@ func (opt CreateHookOption) Validate() error {
 
 // CreateOrgHook create one hook for an organization, with options
 func (c *Client) CreateOrgHook(org string, opt CreateHookOption) (*Hook, *Response, error) {
+	if err := escapeValidatePathSegments(&org); err != nil {
+		return nil, nil, err
+	}
 	if err := opt.Validate(); err != nil {
 		return nil, nil, err
 	}
@@ -92,6 +129,9 @@ func (c *Client) CreateOrgHook(org string, opt CreateHookOption) (*Hook, *Respon
 
 // CreateRepoHook create one hook for a repository, with options
 func (c *Client) CreateRepoHook(user, repo string, opt CreateHookOption) (*Hook, *Response, error) {
+	if err := escapeValidatePathSegments(&user, &repo); err != nil {
+		return nil, nil, err
+	}
 	body, err := json.Marshal(&opt)
 	if err != nil {
 		return nil, nil, err
@@ -111,6 +151,9 @@ type EditHookOption struct {
 
 // EditOrgHook modify one hook of an organization, with hook id and options
 func (c *Client) EditOrgHook(org string, id int64, opt EditHookOption) (*Response, error) {
+	if err := escapeValidatePathSegments(&org); err != nil {
+		return nil, err
+	}
 	body, err := json.Marshal(&opt)
 	if err != nil {
 		return nil, err
@@ -121,6 +164,9 @@ func (c *Client) EditOrgHook(org string, id int64, opt EditHookOption) (*Respons
 
 // EditRepoHook modify one hook of a repository, with hook id and options
 func (c *Client) EditRepoHook(user, repo string, id int64, opt EditHookOption) (*Response, error) {
+	if err := escapeValidatePathSegments(&user, &repo); err != nil {
+		return nil, err
+	}
 	body, err := json.Marshal(&opt)
 	if err != nil {
 		return nil, err
@@ -131,12 +177,18 @@ func (c *Client) EditRepoHook(user, repo string, id int64, opt EditHookOption) (
 
 // DeleteOrgHook delete one hook from an organization, with hook id
 func (c *Client) DeleteOrgHook(org string, id int64) (*Response, error) {
+	if err := escapeValidatePathSegments(&org); err != nil {
+		return nil, err
+	}
 	_, resp, err := c.getResponse("DELETE", fmt.Sprintf("/orgs/%s/hooks/%d", org, id), nil, nil)
 	return resp, err
 }
 
 // DeleteRepoHook delete one hook from a repository, with hook id
 func (c *Client) DeleteRepoHook(user, repo string, id int64) (*Response, error) {
+	if err := escapeValidatePathSegments(&user, &repo); err != nil {
+		return nil, err
+	}
 	_, resp, err := c.getResponse("DELETE", fmt.Sprintf("/repos/%s/%s/hooks/%d", user, repo, id), nil, nil)
 	return resp, err
 }

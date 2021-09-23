@@ -23,6 +23,16 @@ import (
 
 const DEFAULT_PAGE_LENGTH = 10
 const DEFAULT_MAX_DEPTH = 1
+const DEFAULT_BITBUCKET_API_BASE_URL = "https://api.bitbucket.org/2.0"
+
+func apiBaseUrl() (*url.URL, error) {
+	ev := os.Getenv("BITBUCKET_API_BASE_URL")
+	if ev == "" {
+		ev = DEFAULT_BITBUCKET_API_BASE_URL
+	}
+
+	return url.Parse(ev)
+}
 
 type Client struct {
 	Auth         *auth
@@ -30,9 +40,10 @@ type Client struct {
 	User         user
 	Teams        teams
 	Repositories *Repositories
+	Workspaces   *Workspace
 	Pagelen      uint64
 	MaxDepth     uint64
-	apiBaseURL   string
+	apiBaseURL   *url.URL
 
 	HttpClient *http.Client
 }
@@ -124,11 +135,17 @@ func NewBasicAuth(u, p string) *Client {
 }
 
 func injectClient(a *auth) *Client {
-	c := &Client{Auth: a, Pagelen: DEFAULT_PAGE_LENGTH, MaxDepth: DEFAULT_MAX_DEPTH, apiBaseURL: "https://api.bitbucket.org/2.0"}
+	bitbucketUrl, err := apiBaseUrl()
+	if err != nil {
+		log.Fatalf("invalid bitbucket url")
+	}
+	c := &Client{Auth: a, Pagelen: DEFAULT_PAGE_LENGTH, MaxDepth: DEFAULT_MAX_DEPTH, apiBaseURL: bitbucketUrl}
 	c.Repositories = &Repositories{
 		c:                  c,
 		PullRequests:       &PullRequests{c: c},
+		Pipelines:          &Pipelines{c: c},
 		Repository:         &Repository{c: c},
+		Issues:             &Issues{c: c},
 		Commits:            &Commits{c: c},
 		Diff:               &Diff{c: c},
 		BranchRestrictions: &BranchRestrictions{c: c},
@@ -138,16 +155,21 @@ func injectClient(a *auth) *Client {
 	c.Users = &Users{c: c}
 	c.User = &User{c: c}
 	c.Teams = &Teams{c: c}
+	c.Workspaces = &Workspace{c: c, Repositories: c.Repositories, Permissions: &Permission{c: c}}
 	c.HttpClient = new(http.Client)
 	return c
 }
 
 func (c *Client) GetApiBaseURL() string {
-	return c.apiBaseURL
+	return fmt.Sprintf("%s%s", c.GetApiHostnameURL(), c.apiBaseURL.Path)
 }
 
-func (c *Client) SetApiBaseURL(urlStr string) {
-	c.apiBaseURL = urlStr
+func (c *Client) GetApiHostnameURL() string {
+	return fmt.Sprintf("%s://%s", c.apiBaseURL.Scheme, c.apiBaseURL.Host)
+}
+
+func (c *Client) SetApiBaseURL(urlStr url.URL) {
+	c.apiBaseURL = &urlStr
 }
 
 func (c *Client) executeRaw(method string, urlStr string, text string) (io.ReadCloser, error) {
@@ -249,7 +271,7 @@ func (c *Client) execute(method string, urlStr string, text string) (interface{}
 	return result, nil
 }
 
-func (c *Client) executeFileUpload(method string, urlStr string, filePath string, fileName string) (interface{}, error) {
+func (c *Client) executeFileUpload(method string, urlStr string, filePath string, fileName string, fieldname string, params map[string]string) (interface{}, error) {
 	fileReader, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -261,12 +283,19 @@ func (c *Client) executeFileUpload(method string, urlStr string, filePath string
 	w := multipart.NewWriter(&b)
 
 	var fw io.Writer
-	if fw, err = w.CreateFormFile("files", fileName); err != nil {
+	if fw, err = w.CreateFormFile(fieldname, fileName); err != nil {
 		return nil, err
 	}
 
 	if _, err = io.Copy(fw, fileReader); err != nil {
 		return nil, err
+	}
+
+	for key, value := range params {
+		err = w.WriteField(key, value)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Don't forget to close the multipart writer.
@@ -304,6 +333,10 @@ func (c *Client) doRequest(req *http.Request, emptyResponse bool) (interface{}, 
 	if err != nil {
 		return nil, err
 	}
+	if emptyResponse || resBody == nil {
+		return nil, nil
+	}
+
 	defer resBody.Close()
 
 	var result interface{}
@@ -321,28 +354,40 @@ func (c *Client) doRawRequest(req *http.Request, emptyResponse bool) (io.ReadClo
 		return nil, err
 	}
 
-	if (resp.StatusCode != http.StatusOK) && (resp.StatusCode != http.StatusCreated) {
+	if unexpectedHttpStatusCode(resp.StatusCode) {
 		resp.Body.Close()
 		return nil, fmt.Errorf(resp.Status)
 	}
 
-	if emptyResponse {
+	if emptyResponse || resp.StatusCode == http.StatusNoContent {
 		resp.Body.Close()
 		return nil, nil
 	}
 
 	if resp.Body == nil {
-		resp.Body.Close()
 		return nil, fmt.Errorf("response body is nil")
 	}
 
 	return resp.Body, nil
 }
 
+func unexpectedHttpStatusCode(statusCode int) bool {
+	switch statusCode {
+	case http.StatusOK:
+		return false
+	case http.StatusCreated:
+		return false
+	case http.StatusNoContent:
+		return false
+	default:
+		return true
+	}
+}
+
 func (c *Client) requestUrl(template string, args ...interface{}) string {
 
 	if len(args) == 1 && args[0] == "" {
-		return c.apiBaseURL + template
+		return c.GetApiBaseURL() + template
 	}
-	return c.apiBaseURL + fmt.Sprintf(template, args...)
+	return c.GetApiBaseURL() + fmt.Sprintf(template, args...)
 }

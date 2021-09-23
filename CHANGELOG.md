@@ -3,9 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.x.x] - Unreleased
+## [1.7.1] - Unreleased
 ### Added
 ### Changed
+- go version in go.mod to 1.17 and updated all dependencies
 ### Deprecated
 ### Removed
 ### Fixed

@@ -21,7 +21,7 @@ type User struct {
 
 // Profile is getting the user data
 func (u *User) Profile() (*User, error) {
-	urlStr := u.c.GetApiBaseURL() + "/user/"
+	urlStr := u.c.GetApiBaseURL() + "/user"
 	response, err := u.c.execute("GET", urlStr, "")
 	if err != nil {
 		return nil, err

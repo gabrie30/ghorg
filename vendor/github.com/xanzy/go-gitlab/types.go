@@ -1,3 +1,19 @@
+//
+// Copyright 2021, Sander van Harmelen
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 package gitlab
 
 import (
@@ -62,6 +78,26 @@ func AccessLevel(v AccessLevelValue) *AccessLevelValue {
 	return p
 }
 
+// AvailabilityValue represents an availability value within GitLab.
+type AvailabilityValue string
+
+// List of available availability values.
+//
+// Undocummented, see code at:
+// https://gitlab.com/gitlab-org/gitlab-foss/-/blob/master/app/models/user_status.rb#L22
+const (
+	NotSet AvailabilityValue = "not_set"
+	Busy   AvailabilityValue = "busy"
+)
+
+// Availability is a helper routine that allocates a new AvailabilityValue
+// to store v and returns a pointer to it.
+func Availability(v AvailabilityValue) *AvailabilityValue {
+	p := new(AvailabilityValue)
+	*p = v
+	return p
+}
+
 // BuildStateValue represents a GitLab build state.
 type BuildStateValue string
 
@@ -101,6 +137,64 @@ const (
 // DeploymentStatusValue to store v and returns a pointer to it.
 func DeploymentStatus(v DeploymentStatusValue) *DeploymentStatusValue {
 	p := new(DeploymentStatusValue)
+	*p = v
+	return p
+}
+
+// EventTypeValue represents actions type for contribution events
+type EventTypeValue string
+
+// List of available action type
+//
+// GitLab API docs: https://docs.gitlab.com/ce/api/events.html#action-types
+const (
+	CreatedEventType   EventTypeValue = "created"
+	UpdatedEventType   EventTypeValue = "updated"
+	ClosedEventType    EventTypeValue = "closed"
+	ReopenedEventType  EventTypeValue = "reopened"
+	PushedEventType    EventTypeValue = "pushed"
+	CommentedEventType EventTypeValue = "commented"
+	MergedEventType    EventTypeValue = "merged"
+	JoinedEventType    EventTypeValue = "joined"
+	LeftEventType      EventTypeValue = "left"
+	DestroyedEventType EventTypeValue = "destroyed"
+	ExpiredEventType   EventTypeValue = "expired"
+)
+
+// EventTargetTypeValue represents actions type value for contribution events
+type EventTargetTypeValue string
+
+// List of available action type
+//
+// GitLab API docs: https://docs.gitlab.com/ce/api/events.html#target-types
+const (
+	IssueEventTargetType        EventTargetTypeValue = "issue"
+	MilestoneEventTargetType    EventTargetTypeValue = "milestone"
+	MergeRequestEventTargetType EventTargetTypeValue = "merge_request"
+	NoteEventTargetType         EventTargetTypeValue = "note"
+	ProjectEventTargetType      EventTargetTypeValue = "project"
+	SnippetEventTargetType      EventTargetTypeValue = "snippet"
+	UserEventTargetType         EventTargetTypeValue = "user"
+)
+
+// FileActionValue represents the available actions that can be performed on a file.
+//
+// GitLab API docs: https://docs.gitlab.com/ce/api/commits.html#create-a-commit-with-multiple-files-and-actions
+type FileActionValue string
+
+// The available file actions.
+const (
+	FileCreate FileActionValue = "create"
+	FileDelete FileActionValue = "delete"
+	FileMove   FileActionValue = "move"
+	FileUpdate FileActionValue = "update"
+	FileChmod  FileActionValue = "chmod"
+)
+
+// FileAction is a helper routine that allocates a new FileActionValue value
+// to store v and returns a pointer to it.
+func FileAction(v FileActionValue) *FileActionValue {
+	p := new(FileActionValue)
 	*p = v
 	return p
 }
@@ -151,6 +245,88 @@ func (t *ISOTime) EncodeValues(key string, v *url.Values) error {
 // String implements the Stringer interface
 func (t ISOTime) String() string {
 	return time.Time(t).Format(iso8601)
+}
+
+// LinkTypeValue represents a release link type.
+type LinkTypeValue string
+
+// List of available release link types
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ee/api/releases/links.html#create-a-link
+const (
+	ImageLinkType   LinkTypeValue = "image"
+	OtherLinkType   LinkTypeValue = "other"
+	PackageLinkType LinkTypeValue = "package"
+	RunbookLinkType LinkTypeValue = "runbook"
+)
+
+// LinkType is a helper routine that allocates a new LinkType value
+// to store v and returns a pointer to it.
+func LinkType(v LinkTypeValue) *LinkTypeValue {
+	p := new(LinkTypeValue)
+	*p = v
+	return p
+}
+
+// LicenseApprovalStatusValue describe the approval statuses of a license.
+//
+// GitLab API docs: https://docs.gitlab.com/ee/api/managed_licenses.html
+type LicenseApprovalStatusValue string
+
+// List of available license approval statuses.
+const (
+	LicenseApproved    LicenseApprovalStatusValue = "approved"
+	LicenseBlacklisted LicenseApprovalStatusValue = "blacklisted"
+)
+
+// LicenseApprovalStatus is a helper routine that allocates a new license
+// approval status value to store v and returns a pointer to it.
+func LicenseApprovalStatus(v LicenseApprovalStatusValue) *LicenseApprovalStatusValue {
+	p := new(LicenseApprovalStatusValue)
+	*p = v
+	return p
+}
+
+// MergeMethodValue represents a project merge type within GitLab.
+//
+// GitLab API docs: https://docs.gitlab.com/ce/api/projects.html#project-merge-method
+type MergeMethodValue string
+
+// List of available merge type
+//
+// GitLab API docs: https://docs.gitlab.com/ce/api/projects.html#project-merge-method
+const (
+	NoFastForwardMerge MergeMethodValue = "merge"
+	FastForwardMerge   MergeMethodValue = "ff"
+	RebaseMerge        MergeMethodValue = "rebase_merge"
+)
+
+// MergeMethod is a helper routine that allocates a new MergeMethod
+// to sotre v and returns a pointer to it.
+func MergeMethod(v MergeMethodValue) *MergeMethodValue {
+	p := new(MergeMethodValue)
+	*p = v
+	return p
+}
+
+// NoteTypeValue represents the type of a Note.
+type NoteTypeValue string
+
+// List of available note types.
+const (
+	DiffNote       NoteTypeValue = "DiffNote"
+	DiscussionNote NoteTypeValue = "DiscussionNote"
+	GenericNote    NoteTypeValue = "Note"
+	LegacyDiffNote NoteTypeValue = "LegacyDiffNote"
+)
+
+// NoteType is a helper routine that allocates a new NoteTypeValue to
+// store v and returns a pointer to it.
+func NoteType(v NoteTypeValue) *NoteTypeValue {
+	p := new(NoteTypeValue)
+	*p = v
+	return p
 }
 
 // NotificationLevelValue represents a notification level.
@@ -223,28 +399,6 @@ func NotificationLevel(v NotificationLevelValue) *NotificationLevelValue {
 	return p
 }
 
-// VisibilityValue represents a visibility level within GitLab.
-//
-// GitLab API docs: https://docs.gitlab.com/ce/api/
-type VisibilityValue string
-
-// List of available visibility levels.
-//
-// GitLab API docs: https://docs.gitlab.com/ce/api/
-const (
-	PrivateVisibility  VisibilityValue = "private"
-	InternalVisibility VisibilityValue = "internal"
-	PublicVisibility   VisibilityValue = "public"
-)
-
-// Visibility is a helper routine that allocates a new VisibilityValue
-// to store v and returns a pointer to it.
-func Visibility(v VisibilityValue) *VisibilityValue {
-	p := new(VisibilityValue)
-	*p = v
-	return p
-}
-
 // ProjectCreationLevelValue represents a project creation level within GitLab.
 //
 // GitLab API docs: https://docs.gitlab.com/ce/api/
@@ -263,6 +417,31 @@ const (
 // to store v and returns a pointer to it.
 func ProjectCreationLevel(v ProjectCreationLevelValue) *ProjectCreationLevelValue {
 	p := new(ProjectCreationLevelValue)
+	*p = v
+	return p
+}
+
+// SharedRunnersSettingValue determines whether shared runners are enabled for a
+// group’s subgroups and projects.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ee/api/groups.html#options-for-shared_runners_setting
+type SharedRunnersSettingValue string
+
+// List of available shared runner setting levels.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ee/api/groups.html#options-for-shared_runners_setting
+const (
+	EnabledSharedRunnersSettingValue                  SharedRunnersSettingValue = "enabled"
+	DisabledWithOverrideSharedRunnersSettingValue     SharedRunnersSettingValue = "disabled_with_override"
+	DisabledAndUnoverridableSharedRunnersSettingValue SharedRunnersSettingValue = "disabled_and_unoverridable"
+)
+
+// SharedRunnersSetting is a helper routine that allocates a new SharedRunnersSettingValue
+// to store v and returns a pointer to it.
+func SharedRunnersSetting(v SharedRunnersSettingValue) *SharedRunnersSettingValue {
+	p := new(SharedRunnersSettingValue)
 	*p = v
 	return p
 }
@@ -288,6 +467,62 @@ func SubGroupCreationLevel(v SubGroupCreationLevelValue) *SubGroupCreationLevelV
 	return p
 }
 
+// SquashOptionValue represents a squash optional level within GitLab.
+//
+// GitLab API docs: https://docs.gitlab.com/ee/api/projects.html#create-project
+type SquashOptionValue string
+
+// List of available squash options.
+//
+// GitLab API docs: https://docs.gitlab.com/ee/api/projects.html#create-project
+const (
+	SquashOptionNever      SquashOptionValue = "never"
+	SquashOptionAlways     SquashOptionValue = "always"
+	SquashOptionDefaultOff SquashOptionValue = "default_on"
+	SquashOptionDefaultOn  SquashOptionValue = "default_off"
+)
+
+// SquashOption is a helper routine that allocates a new SquashOptionValue
+// to store s and returns a pointer to it.
+func SquashOption(s SquashOptionValue) *SquashOptionValue {
+	p := new(SquashOptionValue)
+	*p = s
+	return p
+}
+
+// TasksCompletionStatus represents tasks of the issue/merge request.
+type TasksCompletionStatus struct {
+	Count          int `json:"count"`
+	CompletedCount int `json:"completed_count"`
+}
+
+// TodoAction represents the available actions that can be performed on a todo.
+//
+// GitLab API docs: https://docs.gitlab.com/ce/api/todos.html
+type TodoAction string
+
+// The available todo actions.
+const (
+	TodoAssigned          TodoAction = "assigned"
+	TodoMentioned         TodoAction = "mentioned"
+	TodoBuildFailed       TodoAction = "build_failed"
+	TodoMarked            TodoAction = "marked"
+	TodoApprovalRequired  TodoAction = "approval_required"
+	TodoDirectlyAddressed TodoAction = "directly_addressed"
+)
+
+// TodoTargetType represents the available target that can be linked to a todo.
+//
+// GitLab API docs: https://docs.gitlab.com/ce/api/todos.html
+type TodoTargetType string
+
+const (
+	TodoTargetAlertManagement  TodoTargetType = "AlertManagement::Alert"
+	TodoTargetDesignManagement TodoTargetType = "DesignManagement::Design"
+	TodoTargetIssue            TodoTargetType = "Issue"
+	TodoTargetMergeRequest     TodoTargetType = "MergeRequest"
+)
+
 // VariableTypeValue represents a variable type within GitLab.
 //
 // GitLab API docs: https://docs.gitlab.com/ce/api/
@@ -309,63 +544,48 @@ func VariableType(v VariableTypeValue) *VariableTypeValue {
 	return p
 }
 
-// MergeMethodValue represents a project merge type within GitLab.
+// VisibilityValue represents a visibility level within GitLab.
 //
-// GitLab API docs: https://docs.gitlab.com/ce/api/projects.html#project-merge-method
-type MergeMethodValue string
+// GitLab API docs: https://docs.gitlab.com/ce/api/
+type VisibilityValue string
 
-// List of available merge type
+// List of available visibility levels.
 //
-// GitLab API docs: https://docs.gitlab.com/ce/api/projects.html#project-merge-method
+// GitLab API docs: https://docs.gitlab.com/ce/api/
 const (
-	NoFastForwardMerge MergeMethodValue = "merge"
-	FastForwardMerge   MergeMethodValue = "ff"
-	RebaseMerge        MergeMethodValue = "rebase_merge"
+	PrivateVisibility  VisibilityValue = "private"
+	InternalVisibility VisibilityValue = "internal"
+	PublicVisibility   VisibilityValue = "public"
 )
 
-// MergeMethod is a helper routine that allocates a new MergeMethod
-// to sotre v and returns a pointer to it.
-func MergeMethod(v MergeMethodValue) *MergeMethodValue {
-	p := new(MergeMethodValue)
+// Visibility is a helper routine that allocates a new VisibilityValue
+// to store v and returns a pointer to it.
+func Visibility(v VisibilityValue) *VisibilityValue {
+	p := new(VisibilityValue)
 	*p = v
 	return p
 }
 
-// EventTypeValue represents actions type for contribution events
-type EventTypeValue string
-
-// List of available action type
+// WikiFormatValue represents the available wiki formats.
 //
-// GitLab API docs: https://docs.gitlab.com/ce/api/events.html#action-types
+// GitLab API docs: https://docs.gitlab.com/ce/api/wikis.html
+type WikiFormatValue string
+
+// The available wiki formats.
 const (
-	CreatedEventType   EventTypeValue = "created"
-	UpdatedEventType   EventTypeValue = "updated"
-	ClosedEventType    EventTypeValue = "closed"
-	ReopenedEventType  EventTypeValue = "reopened"
-	PushedEventType    EventTypeValue = "pushed"
-	CommentedEventType EventTypeValue = "commented"
-	MergedEventType    EventTypeValue = "merged"
-	JoinedEventType    EventTypeValue = "joined"
-	LeftEventType      EventTypeValue = "left"
-	DestroyedEventType EventTypeValue = "destroyed"
-	ExpiredEventType   EventTypeValue = "expired"
+	WikiFormatMarkdown WikiFormatValue = "markdown"
+	WikiFormatRDoc     WikiFormatValue = "rdoc"
+	WikiFormatASCIIDoc WikiFormatValue = "asciidoc"
+	WikiFormatOrg      WikiFormatValue = "org"
 )
 
-// EventTargetTypeValue represents actions type value for contribution events
-type EventTargetTypeValue string
-
-// List of available action type
-//
-// GitLab API docs: https://docs.gitlab.com/ce/api/events.html#target-types
-const (
-	IssueEventTargetType        EventTargetTypeValue = "issue"
-	MilestoneEventTargetType    EventTargetTypeValue = "milestone"
-	MergeRequestEventTargetType EventTargetTypeValue = "merge_request"
-	NoteEventTargetType         EventTargetTypeValue = "note"
-	ProjectEventTargetType      EventTargetTypeValue = "project"
-	SnippetEventTargetType      EventTargetTypeValue = "snippet"
-	UserEventTargetType         EventTargetTypeValue = "user"
-)
+// WikiFormat is a helper routine that allocates a new WikiFormatValue
+// to store v and returns a pointer to it.
+func WikiFormat(v WikiFormatValue) *WikiFormatValue {
+	p := new(WikiFormatValue)
+	*p = v
+	return p
+}
 
 // Bool is a helper routine that allocates a new bool value
 // to store v and returns a pointer to it.

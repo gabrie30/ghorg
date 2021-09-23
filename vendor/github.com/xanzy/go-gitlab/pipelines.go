@@ -1,5 +1,5 @@
 //
-// Copyright 2017, Igor Varavko
+// Copyright 2021, Igor Varavko
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package gitlab
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 )
 
@@ -43,6 +44,7 @@ type PipelineVariable struct {
 // GitLab API docs: https://docs.gitlab.com/ce/api/pipelines.html
 type Pipeline struct {
 	ID             int             `json:"id"`
+	ProjectID      int             `json:"project_id"`
 	Status         string          `json:"status"`
 	Ref            string          `json:"ref"`
 	SHA            string          `json:"sha"`
@@ -56,6 +58,7 @@ type Pipeline struct {
 	FinishedAt     *time.Time      `json:"finished_at"`
 	CommittedAt    *time.Time      `json:"committed_at"`
 	Duration       int             `json:"duration"`
+	QueuedDuration int             `json:"queued_duration"`
 	Coverage       string          `json:"coverage"`
 	WebURL         string          `json:"web_url"`
 	DetailedStatus *DetailedStatus `json:"detailed_status"`
@@ -105,10 +108,21 @@ type PipelineTestSuites struct {
 
 // PipelineTestCases contains test cases details.
 type PipelineTestCases struct {
-	Status        string  `json:"status"`
-	Name          string  `json:"name"`
-	Classname     string  `json:"classname"`
-	ExecutionTime float64 `json:"execution_time"`
+	Status         string         `json:"status"`
+	Name           string         `json:"name"`
+	Classname      string         `json:"classname"`
+	File           string         `json:"file"`
+	ExecutionTime  float64        `json:"execution_time"`
+	SystemOutput   string         `json:"system_output"`
+	StackTrace     string         `json:"stack_trace"`
+	AttachmentURL  string         `json:"attachment_url"`
+	RecentFailures RecentFailures `json:"recent_failures"`
+}
+
+// RecentFailures contains failures count for the project's default branch.
+type RecentFailures struct {
+	Count      int    `json:"count"`
+	BaseBranch string `json:"base_branch"`
 }
 
 func (p PipelineTestReport) String() string {
@@ -119,6 +133,7 @@ func (p PipelineTestReport) String() string {
 // on other assets, like Commit.
 type PipelineInfo struct {
 	ID        int        `json:"id"`
+	ProjectID int        `json:"project_id"`
 	Status    string     `json:"status"`
 	Ref       string     `json:"ref"`
 	SHA       string     `json:"sha"`
@@ -159,7 +174,7 @@ func (s *PipelinesService) ListProjectPipelines(pid interface{}, opt *ListProjec
 	}
 	u := fmt.Sprintf("projects/%s/pipelines", pathEscape(project))
 
-	req, err := s.client.NewRequest("GET", u, opt, options)
+	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -183,7 +198,7 @@ func (s *PipelinesService) GetPipeline(pid interface{}, pipeline int, options ..
 	}
 	u := fmt.Sprintf("projects/%s/pipelines/%d", pathEscape(project), pipeline)
 
-	req, err := s.client.NewRequest("GET", u, nil, options)
+	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -207,7 +222,7 @@ func (s *PipelinesService) GetPipelineVariables(pid interface{}, pipeline int, o
 	}
 	u := fmt.Sprintf("projects/%s/pipelines/%d/variables", pathEscape(project), pipeline)
 
-	req, err := s.client.NewRequest("GET", u, nil, options)
+	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -231,7 +246,7 @@ func (s *PipelinesService) GetPipelineTestReport(pid interface{}, pipeline int) 
 	}
 	u := fmt.Sprintf("projects/%s/pipelines/%d/test_report", pathEscape(project), pipeline)
 
-	req, err := s.client.NewRequest("GET", u, nil, nil)
+	req, err := s.client.NewRequest(http.MethodGet, u, nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -263,7 +278,7 @@ func (s *PipelinesService) CreatePipeline(pid interface{}, opt *CreatePipelineOp
 	}
 	u := fmt.Sprintf("projects/%s/pipeline", pathEscape(project))
 
-	req, err := s.client.NewRequest("POST", u, opt, options)
+	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -288,7 +303,7 @@ func (s *PipelinesService) RetryPipelineBuild(pid interface{}, pipeline int, opt
 	}
 	u := fmt.Sprintf("projects/%s/pipelines/%d/retry", pathEscape(project), pipeline)
 
-	req, err := s.client.NewRequest("POST", u, nil, options)
+	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -313,7 +328,7 @@ func (s *PipelinesService) CancelPipelineBuild(pid interface{}, pipeline int, op
 	}
 	u := fmt.Sprintf("projects/%s/pipelines/%d/cancel", pathEscape(project), pipeline)
 
-	req, err := s.client.NewRequest("POST", u, nil, options)
+	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -338,7 +353,7 @@ func (s *PipelinesService) DeletePipeline(pid interface{}, pipeline int, options
 	}
 	u := fmt.Sprintf("projects/%s/pipelines/%d", pathEscape(project), pipeline)
 
-	req, err := s.client.NewRequest("DELETE", u, nil, options)
+	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
 	if err != nil {
 		return nil, err
 	}
