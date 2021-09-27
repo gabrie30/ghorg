@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -518,4 +519,14 @@ func parseParentFolder(argz []string) {
 	}
 
 	parentFolder = strings.ToLower(argz[0])
+
+	// If all-group is used set the parent folder to the name of the baseurl
+	if argz[0] == "all-groups" && os.Getenv("GHORG_SCM_BASE_URL") != "" {
+		u, err := url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
+		if err != nil {
+			return
+		}
+		parentFolder = strings.TrimSuffix(strings.TrimPrefix(u.Host, "www."), ".com")
+		fmt.Println(parentFolder)
+	}
 }

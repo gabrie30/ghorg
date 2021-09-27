@@ -1,4 +1,11 @@
-> Note: all flags can be permanently set in your $HOME/.config/ghorg/conf.yaml
+## Hosted GitLab Instances
+
+
+clone all groups on a **hosted gitlab** instance **preserving** the directory structure of subgroups
+
+```
+$ ghorg clone all-groups --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
+```
 
 clone a **user** on a **hosted gitlab** instance using a **token** for auth
 
@@ -22,4 +29,20 @@ clone all repos that are **prefixed** with "frontend" **into a folder** called "
 
 ```
 $ ghorg clone <gitlab_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab --match-regex=^frontend --output-dir=design_only
+```
+
+## Cloud GitLab Orgs
+
+eg. https://gitlab.com/fdroid
+
+clone all groups **preserving** the directory structure of subgroups
+
+```
+$ ghorg clone fdroid --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
+```
+
+clone only a **subgroup**
+
+```
+$ ghorg clone fdroid/metrics-data --scm=gitlab --token=XXXXXXXXXXXXX
 ```

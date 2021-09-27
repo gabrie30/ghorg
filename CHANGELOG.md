@@ -5,11 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.7.1] - Unreleased
 ### Added
+- all-groups for cloning all groups on a hosted gitlab instance
 ### Changed
 - go version in go.mod to 1.17 and updated all dependencies
 ### Deprecated
 ### Removed
 ### Fixed
+Pagination with gitlab cloud
 ### Security
 
 ## [1.7.0] - 9/2/21
