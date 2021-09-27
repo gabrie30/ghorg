@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
-Pagination with gitlab cloud; thanks @brenwhyte
+- Pagination with gitlab cloud; thanks @brenwhyte
 ### Security
 
 ## [1.7.0] - 9/2/21
