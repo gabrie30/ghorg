@@ -106,6 +106,20 @@ $ ghorg ls someorg
 1. Update `GHORG_SCM_TYPE` to `gitlab` in your `ghorg/conf.yaml` or via cli flags
 1. See [examples/gitlab.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md) on how to run
 
+#### gitlab specific notes
+1. ghorg works slightly differently for hosted gitlab instances and gitlab cloud
+    1. To clone all groups within a hosted instance use the keyword "all-groups" when cloning
+        ```sh
+        ghorg clone all-groups --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
+        ```
+    1. For gitlab cloud you can use the top level group name e.g. for https://gitlab.com/fdroid
+        ```sh
+        ghorg clone fdroid --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
+        ```
+1. for hosted instances you need to have a `--base-url` set, cloning cloud gitlab should omit this
+1. all flags can be permanently set in your $HOME/.config/ghorg/conf.yaml if you have multiple gitlab instances you can create multiple configuration files for each instance and use different config files with the `--config` flag
+
+
 ### gitea setup
 
 1. Create [Access Token](https://docs.gitea.io/en-us/api-usage/) (Settings -> Applications -> Generate Token)

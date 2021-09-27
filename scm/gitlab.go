@@ -5,12 +5,13 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gabrie30/ghorg/colorlog"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
 var (
 	_       Client = Gitlab{}
-	perPage        = 50
+	perPage        = 100
 )
 
 func init() {
@@ -28,6 +29,80 @@ func (_ Gitlab) GetType() string {
 
 // GetOrgRepos fetches repo data from a specific group
 func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
+	allGroups := []string{}
+	repoData := []Repo{}
+	longFetch := false
+
+	if targetOrg == "all-groups" {
+		longFetch = true
+
+		grps, err := c.GetTopLevelGroups()
+		if err != nil {
+			return nil, fmt.Errorf("error getting groups error: %v", err)
+		}
+
+		allGroups = append(allGroups, grps...)
+
+	} else {
+		allGroups = append(allGroups, targetOrg)
+	}
+
+	for _, group := range allGroups {
+		if longFetch {
+			msg := fmt.Sprintf("fetching repos for group: %v", group)
+			colorlog.PrintInfo(msg)
+		}
+		repos, err := c.GetGroupRepos(group)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching repos for group '%s', error: %v", group, err)
+		}
+
+		repoData = append(repoData, repos...)
+
+	}
+
+	return repoData, nil
+}
+
+// GetTopLevelGroups all top level org groups
+func (c Gitlab) GetTopLevelGroups() ([]string, error) {
+	allGroups := []string{}
+
+	opt := &gitlab.ListGroupsOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: perPage,
+			Page:    1,
+		},
+		TopLevelOnly: gitlab.Bool(true),
+	}
+
+	for {
+
+		groups, resp, err := c.Client.Groups.ListGroups(opt)
+
+		if err != nil {
+			return allGroups, err
+		}
+
+		for _, g := range groups {
+			allGroups = append(allGroups, g.Path)
+		}
+
+		// Exit the loop when we've seen all pages.
+		if resp.NextPage == 0 {
+			break
+		}
+
+		// Update the page number to get the next page.
+		opt.Page = resp.NextPage
+	}
+
+	return allGroups, nil
+}
+
+// GetGroupRepos fetches repo data from a specific group
+func (c Gitlab) GetGroupRepos(targetGroup string) ([]Repo, error) {
+
 	repoData := []Repo{}
 
 	opt := &gitlab.ListGroupProjectsOptions{
@@ -40,11 +115,11 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 	for {
 		// Get the first page with projects.
-		ps, resp, err := c.Groups.ListGroupProjects(targetOrg, opt)
+		ps, resp, err := c.Groups.ListGroupProjects(targetGroup, opt)
 
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
-				return nil, fmt.Errorf("group '%s' does not exist", targetOrg)
+				return nil, fmt.Errorf("group '%s' does not exist", targetGroup)
 			}
 			return []Repo{}, err
 		}
@@ -53,7 +128,7 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		repoData = append(repoData, c.filter(ps)...)
 
 		// Exit the loop when we've seen all pages.
-		if resp.CurrentPage >= resp.TotalPages {
+		if resp.NextPage == 0 {
 			break
 		}
 
@@ -89,7 +164,7 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 		cloneData = append(cloneData, c.filter(ps)...)
 
 		// Exit the loop when we've seen all pages.
-		if resp.CurrentPage >= resp.TotalPages {
+		if resp.NextPage == 0 {
 			break
 		}
 
@@ -116,7 +191,8 @@ func (_ Gitlab) NewClient() (Client, error) {
 }
 
 func (_ Gitlab) addTokenToHTTPSCloneURL(url string, token string) string {
-	splitURL := strings.Split(url, "https://")
+	// allows for http and https for local testing
+	splitURL := strings.Split(url, "://")
 	return "https://oauth2:" + token + "@" + splitURL[1]
 }
 
