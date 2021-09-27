@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.7.1] - Unreleased
+## [1.7.1] - 9/27/21
 ### Added
 - all-groups for cloning all groups on a hosted gitlab instance
 ### Changed
@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
-Pagination with gitlab cloud
+Pagination with gitlab cloud; thanks @brenwhyte
 ### Security
 
 ## [1.7.0] - 9/2/21
