@@ -125,7 +125,7 @@ GHORG_MATCH_PREFIX:
 # flag (--match-regex)
 GHORG_MATCH_REGEX:
 
-# Only clones new repos and does not perform a git clean on existing repos
+# Only clones new repos and does not perform a git clean on existing repos. Useful if you don't want to lose changes made to repos in the org/user directory.
 # default: false
 # flag (--no-clean)
 GHORG_NO_CLEAN:
