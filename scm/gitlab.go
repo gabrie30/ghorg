@@ -190,10 +190,10 @@ func (_ Gitlab) NewClient() (Client, error) {
 	return Gitlab{c}, err
 }
 
-func (_ Gitlab) addTokenToHTTPSCloneURL(url string, token string) string {
+func (_ Gitlab) addTokenToCloneURL(url string, token string) string {
 	// allows for http and https for local testing
 	splitURL := strings.Split(url, "://")
-	return "https://oauth2:" + token + "@" + splitURL[1]
+	return splitURL[0] + "://oauth2:" + token + "@" + splitURL[1]
 }
 
 func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
@@ -240,7 +240,7 @@ func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
 
 		r.Path = p.PathWithNamespace
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
-			r.CloneURL = c.addTokenToHTTPSCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))
+			r.CloneURL = c.addTokenToCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))
 			r.URL = p.HTTPURLToRepo
 			repoData = append(repoData, r)
 		} else {
