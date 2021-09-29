@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.7.2] - Unreleased
 ### Added
-- GHORG_NO_CLEAN only clones new repos and does not perform a git clean on existing repos
+- GHORG_NO_CLEAN only clones new repos and does not perform a git clean on existing repos; thanks @harmathy
 ### Changed
 ### Deprecated
 ### Removed
