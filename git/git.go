@@ -15,6 +15,7 @@ type Gitter interface {
 	Clean(scm.Repo) error
 	Checkout(scm.Repo) error
 	UpdateRemote(scm.Repo) error
+	FetchAll(scm.Repo) error
 }
 
 type GitClient struct{}
@@ -67,6 +68,12 @@ func (g GitClient) Pull(repo scm.Repo) error {
 
 func (g GitClient) Reset(repo scm.Repo) error {
 	cmd := exec.Command("git", "reset", "--hard", "origin/"+repo.CloneBranch)
+	cmd.Dir = repo.HostPath
+	return cmd.Run()
+}
+
+func (g GitClient) FetchAll(repo scm.Repo) error {
+	cmd := exec.Command("git", "fetch", "--all")
 	cmd.Dir = repo.HostPath
 	return cmd.Run()
 }

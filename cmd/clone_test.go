@@ -88,6 +88,10 @@ func (g MockGitClient) Reset(repo scm.Repo) error {
 	return nil
 }
 
+func (g MockGitClient) FetchAll(repo scm.Repo) error {
+	return nil
+}
+
 func TestInitialClone(t *testing.T) {
 	dir, err := ioutil.TempDir(".", "ghorg_tests")
 	if err != nil {

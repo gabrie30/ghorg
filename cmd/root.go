@@ -28,6 +28,8 @@ var (
 	skipArchived      bool
 	skipForks         bool
 	backup            bool
+	noClean           bool
+	preserveDir       bool
 	args              []string
 	cloneErrors       []string
 	cloneInfos        []string
@@ -81,6 +83,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_SKIP_ARCHIVED":
 			os.Setenv(envVar, "false")
 		case "GHORG_SKIP_FORKS":
+			os.Setenv(envVar, "false")
+		case "GHORG_NO_CLEAN":
 			os.Setenv(envVar, "false")
 		case "GHORG_BACKUP":
 			os.Setenv(envVar, "false")
@@ -139,6 +143,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_SCM_TYPE")
 	getOrSetDefaults("GHORG_SKIP_ARCHIVED")
 	getOrSetDefaults("GHORG_SKIP_FORKS")
+	getOrSetDefaults("GHORG_NO_CLEAN")
 	getOrSetDefaults("GHORG_BACKUP")
 	getOrSetDefaults("GHORG_CONCURRENCY")
 	getOrSetDefaults("GHORG_MATCH_PREFIX")
@@ -181,8 +186,9 @@ func init() {
 	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "", "GHORG_SCM_TYPE - type of scm used, github, gitlab, gitea or bitbucket (default github)")
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - clone target type, user or org (default org)")
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED - skips archived repos, github/gitlab/gitea only")
+	cloneCmd.Flags().BoolVar(&noClean, "no-clean", false, "GHORG_NO_CLEAN - only clones new repos and does not perform a git clean on existing repos")
 	cloneCmd.Flags().BoolVar(&skipForks, "skip-forks", false, "GHORG_SKIP_FORKS - skips repo if its a fork, github/gitlab/gitea only")
-	cloneCmd.Flags().BoolVar(&skipArchived, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/unit/subunit/app, gitlab only")
+	cloneCmd.Flags().BoolVar(&preserveDir, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/unit/subunit/app, gitlab only")
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP - backup mode, clone as mirror, no working copy (ignores branch parameter)")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - change SCM base url, for on self hosted instances (currently gitlab, gitea and github (use format of https://git.mydomain.com/api/v3))")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - max goroutines to spin up while cloning (default 25)")
