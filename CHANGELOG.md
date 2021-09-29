@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.7.2] - Unreleased
+### Added
+- GHORG_NO_CLEAN only clones new repos and does not perform a git clean on existing repos
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.7.1] - 9/27/21
 ### Added
 - all-groups for cloning all groups on a hosted gitlab instance

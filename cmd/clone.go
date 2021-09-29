@@ -86,6 +86,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_SKIP_ARCHIVED", "true")
 	}
 
+	if cmd.Flags().Changed("no-clean") {
+		os.Setenv("GHORG_NO_CLEAN", "true")
+	}
+
 	if cmd.Flags().Changed("skip-forks") {
 		os.Setenv("GHORG_SKIP_FORKS", "true")
 	}
@@ -264,7 +268,7 @@ func readGhorgIgnore() ([]string, error) {
 
 func filterByRegex(repos []scm.Repo) []scm.Repo {
 	filteredRepos := []scm.Repo{}
-	regex := fmt.Sprintf(`%s`, os.Getenv("GHORG_MATCH_REGEX"))
+	regex := fmt.Sprint(os.Getenv("GHORG_MATCH_REGEX"))
 
 	for i, r := range repos {
 		re := regexp.MustCompile(regex)
@@ -311,7 +315,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				}
 			}
 
-			if flag == false {
+			if !flag {
 				filteredCloneTargets = append(filteredCloneTargets, cloned)
 			}
 		}
@@ -352,7 +356,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 			action := "cloning"
 
-			if repoExistsLocally(repo.HostPath) == true {
+			if repoExistsLocally(repo.HostPath) {
 				if os.Getenv("GHORG_BACKUP") == "true" {
 					err := git.UpdateRemote(repo)
 
@@ -361,6 +365,16 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
+				} else if os.Getenv("GHORG_NO_CLEAN") == "true" {
+					action = "fetching"
+					err := git.FetchAll(repo)
+
+					if err != nil {
+						e := fmt.Sprintf("Could not fetch remotes in Repo: %s Error: %v", repo.URL, err)
+						cloneErrors = append(cloneErrors, e)
+						return
+					}
+
 				} else {
 
 					err := git.Checkout(repo)
@@ -466,7 +480,6 @@ func PrintConfigs() {
 	if os.Getenv("GHORG_BRANCH") != "" {
 		colorlog.PrintInfo("* Branch        : " + getGhorgBranch())
 	}
-
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		colorlog.PrintInfo("* Base URL      : " + os.Getenv("GHORG_SCM_BASE_URL"))
 	}
@@ -479,7 +492,7 @@ func PrintConfigs() {
 	if os.Getenv("GHORG_BACKUP") == "true" {
 		colorlog.PrintInfo("* Backup        : " + os.Getenv("GHORG_BACKUP"))
 	}
-	if configs.GhorgIgnoreDetected() == true {
+	if configs.GhorgIgnoreDetected() {
 		colorlog.PrintInfo("* Ghorgignore   : true")
 	}
 	if os.Getenv("GHORG_MATCH_REGEX") != "" {
@@ -488,6 +501,10 @@ func PrintConfigs() {
 	if os.Getenv("GHORG_OUTPUT_DIR") != "" {
 		colorlog.PrintInfo("* Output Dir    : " + parentFolder)
 	}
+	if os.Getenv("GHORG_NO_CLEAN") != "" {
+		colorlog.PrintInfo("* No Clean      : " + "true")
+	}
+
 	colorlog.PrintInfo("* Config Used   : " + os.Getenv("GHORG_CONF"))
 
 	colorlog.PrintInfo("*************************************")
@@ -500,16 +517,6 @@ func getGhorgBranch() string {
 	}
 
 	return os.Getenv("GHORG_BRANCH")
-}
-
-func addTokenToHTTPSCloneURL(url string, token string) string {
-	splitURL := strings.Split(url, "https://")
-
-	if os.Getenv("GHORG_SCM_TYPE") == "gitlab" {
-		return "https://oauth2:" + token + "@" + splitURL[1]
-	}
-
-	return "https://" + token + "@" + splitURL[1]
 }
 
 func parseParentFolder(argz []string) {
