@@ -1,7 +1,9 @@
 package scm
 
 import (
+	"crypto/tls"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
@@ -183,7 +185,12 @@ func (_ Gitlab) NewClient() (Client, error) {
 	var err error
 	var c *gitlab.Client
 	if baseURL != "" {
-		c, err = gitlab.NewClient(token, gitlab.WithBaseURL(baseURL))
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: tr}
+		opt := gitlab.WithHTTPClient(client)
+		c, err = gitlab.NewClient(token, gitlab.WithBaseURL(baseURL), opt)
 	} else {
 		c, err = gitlab.NewClient(token)
 	}
