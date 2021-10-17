@@ -5,8 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.7.3] - Unreleased
 ### Added
+- GHORG_INSECURE_GITLAB_CLIENT to to skip verification of ssl certificates for hosted gitlab servers
 ### Changed
-- Gitlab client to skip verification of ssl certificates for hosted gitlab servers
 ### Deprecated
 ### Removed
 ### Fixed

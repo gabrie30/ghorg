@@ -185,12 +185,26 @@ func (_ Gitlab) NewClient() (Client, error) {
 	var err error
 	var c *gitlab.Client
 	if baseURL != "" {
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		if os.Getenv("GHORG_INSECURE_GITLAB_CLIENT") == "true" {
+			defaultTransport := http.DefaultTransport.(*http.Transport)
+			// Create new Transport that ignores self-signed SSL
+			customTransport := &http.Transport{
+				Proxy:                 defaultTransport.Proxy,
+				DialContext:           defaultTransport.DialContext,
+				MaxIdleConns:          defaultTransport.MaxIdleConns,
+				IdleConnTimeout:       defaultTransport.IdleConnTimeout,
+				ExpectContinueTimeout: defaultTransport.ExpectContinueTimeout,
+				TLSHandshakeTimeout:   defaultTransport.TLSHandshakeTimeout,
+				TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
+			}
+			client := &http.Client{Transport: customTransport}
+			opt := gitlab.WithHTTPClient(client)
+			c, err = gitlab.NewClient(token, gitlab.WithBaseURL(baseURL), opt)
+			colorlog.PrintError("WARNING: USING AN INSECURE GITLAB CLIENT")
+		} else {
+			c, err = gitlab.NewClient(token, gitlab.WithBaseURL(baseURL))
 		}
-		client := &http.Client{Transport: tr}
-		opt := gitlab.WithHTTPClient(client)
-		c, err = gitlab.NewClient(token, gitlab.WithBaseURL(baseURL), opt)
+
 	} else {
 		c, err = gitlab.NewClient(token)
 	}

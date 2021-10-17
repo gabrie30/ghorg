@@ -24,6 +24,11 @@ GHORG_GITLAB_TOKEN:
 # flag (--preserve-dir)
 GHORG_PRESERVE_DIRECTORY_STRUCTURE:
 
+# Skip TLS certificate verification for hosted gitlab instances
+# flag (--insecure-gitlab-client)
+# default: false
+GHORG_INSECURE_GITLAB_CLIENT:
+
 # +-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 # |G|I|T|E|A| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+ +-+-+-+-+-+-+-+-+
