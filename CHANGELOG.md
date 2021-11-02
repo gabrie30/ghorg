@@ -3,13 +3,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.7.3] - Unreleased
+## [1.7.4] - Unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## [1.7.3] - 11/1/21
 ### Added
 - GHORG_INSECURE_GITLAB_CLIENT to to skip verification of ssl certificates for hosted gitlab servers
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+- Gitlab token length validation; thanks @vegas1880
 ### Security
 ## [1.7.2] - 10/14/21
 ### Added

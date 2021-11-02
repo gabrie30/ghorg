@@ -214,8 +214,12 @@ func VerifyTokenSet() error {
 	}
 
 	if scmProvider == "gitlab" {
-		tokenLength = 20
 		token = os.Getenv("GHORG_GITLAB_TOKEN")
+		if strings.HasPrefix(token, "glpat-") {
+			tokenLength = 26
+		} else {
+			tokenLength = 20
+		}
 	}
 
 	if scmProvider == "bitbucket" {
