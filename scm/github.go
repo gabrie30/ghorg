@@ -196,6 +196,15 @@ func (c Github) filter(allRepos []*github.Repository, envTopics []string) []Repo
 			r.URL = *ghRepo.SSHURL
 			repoData = append(repoData, r)
 		}
+
+		if ghRepo.GetHasWiki() && os.Getenv("GHORG_CLONE_WIKI") == "true" {
+			wiki := Repo{}
+			wiki.IsWiki = true
+			wiki.CloneURL = strings.Replace(r.CloneURL, ".git", ".wiki.git", 1)
+			wiki.URL = strings.Replace(r.URL, ".git", ".wiki.git", 1)
+			wiki.CloneBranch = "master"
+			repoData = append(repoData, wiki)
+		}
 	}
 
 	return repoData

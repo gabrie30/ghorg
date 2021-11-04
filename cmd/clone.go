@@ -90,6 +90,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_NO_CLEAN", "true")
 	}
 
+	if cmd.Flags().Changed("clone-wiki") {
+		os.Setenv("GHORG_CLONE_WIKI", "true")
+	}
+
 	if cmd.Flags().Changed("insecure-gitlab-client") {
 		os.Setenv("GHORG_INSECURE_GITLAB_CLIENT", "true")
 	}
@@ -216,8 +220,8 @@ func createDirIfNotExist() {
 	}
 }
 
-func repoExistsLocally(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+func repoExistsLocally(repo scm.Repo) bool {
+	if _, err := os.Stat(repo.HostPath); os.IsNotExist(err) {
 		return false
 	}
 
@@ -285,6 +289,18 @@ func filterByRegex(repos []scm.Repo) []scm.Repo {
 	return filteredRepos
 }
 
+// exclude wikis from repo count
+func getRepoCountOnly(targets []scm.Repo) int {
+	count := 0
+	for _, t := range targets {
+		if !t.IsWiki {
+			count++
+		}
+	}
+
+	return count
+}
+
 // CloneAllRepos clones all repos
 func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	// resc, errc, infoc := make(chan string), make(chan error), make(chan error)
@@ -328,7 +344,15 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	}
 
-	colorlog.PrintInfo(strconv.Itoa(len(cloneTargets)) + " repos found in " + targetCloneSource)
+	repoCount := getRepoCountOnly(cloneTargets)
+
+	if os.Getenv("GHORG_CLONE_WIKI") == "true" {
+		wikiCount := strconv.Itoa(len(cloneTargets) - repoCount)
+		colorlog.PrintInfo(strconv.Itoa(repoCount) + " repos found in " + targetCloneSource + ", including " + wikiCount + " enabled wikis")
+	} else {
+		colorlog.PrintInfo(strconv.Itoa(repoCount) + " repos found in " + targetCloneSource)
+	}
+
 	fmt.Println()
 
 	createDirIfNotExist()
@@ -342,6 +366,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	limit := limiter.NewConcurrencyLimiter(l)
 	for _, target := range cloneTargets {
 		appName := getAppNameFromURL(target.URL)
+
 		branch := target.CloneBranch
 		repo := target
 
@@ -354,15 +379,28 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 			repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder, configs.GetCorrectFilePathSeparator(), path)
 
+			if repo.IsWiki {
+				if !strings.HasSuffix(repo.HostPath, ".wiki") {
+					repo.HostPath = repo.HostPath + ".wiki"
+				}
+			}
+
 			if os.Getenv("GHORG_BACKUP") == "true" {
 				repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder+"_backup", configs.GetCorrectFilePathSeparator(), path)
 			}
 
 			action := "cloning"
 
-			if repoExistsLocally(repo.HostPath) {
+			if repoExistsLocally(repo) {
 				if os.Getenv("GHORG_BACKUP") == "true" {
 					err := git.UpdateRemote(repo)
+
+					// Theres no way to tell if a github repo has a wiki to clone
+					if err != nil && repo.IsWiki {
+						e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on Repo: %s Error: %v", repo.URL, err)
+						cloneInfos = append(cloneInfos, e)
+						return
+					}
 
 					if err != nil {
 						e := fmt.Sprintf("Could not update remotes in Repo: %s Error: %v", repo.URL, err)
@@ -373,6 +411,13 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					action = "fetching"
 					err := git.FetchAll(repo)
 
+					// Theres no way to tell if a github repo has a wiki to clone
+					if err != nil && repo.IsWiki {
+						e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on Repo: %s Error: %v", repo.URL, err)
+						cloneInfos = append(cloneInfos, e)
+						return
+					}
+
 					if err != nil {
 						e := fmt.Sprintf("Could not fetch remotes in Repo: %s Error: %v", repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
@@ -380,7 +425,6 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					}
 
 				} else {
-
 					err := git.Checkout(repo)
 
 					if err != nil {
@@ -420,6 +464,13 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 				err = git.Clone(repo)
 
+				// Theres no way to tell if a github repo has a wiki to clone
+				if err != nil && repo.IsWiki {
+					e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on Repo: %s Error: %v", repo.URL, err)
+					cloneInfos = append(cloneInfos, e)
+					return
+				}
+
 				if err != nil {
 					e := fmt.Sprintf("Problem trying to clone Repo: %s Error: %v", repo.URL, err)
 					cloneErrors = append(cloneErrors, e)
@@ -439,6 +490,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				// we clone with api-key in clone url
 				err = git.SetOrigin(repo)
 
+				// if repo has wiki, but content does not exist this is going to error
 				if err != nil {
 					e := fmt.Sprintf("Problem trying to set remote on Repo: %s Error: %v", repo.URL, err)
 					cloneErrors = append(cloneErrors, e)
@@ -495,6 +547,9 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_BACKUP") == "true" {
 		colorlog.PrintInfo("* Backup        : " + os.Getenv("GHORG_BACKUP"))
+	}
+	if os.Getenv("GHORG_CLONE_WIKI") == "true" {
+		colorlog.PrintInfo("* Wikis         : " + os.Getenv("GHORG_CLONE_WIKI"))
 	}
 	if configs.GhorgIgnoreDetected() {
 		colorlog.PrintInfo("* Ghorgignore   : true")

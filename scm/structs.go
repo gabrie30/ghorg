@@ -8,4 +8,5 @@ type Repo struct {
 	URL         string
 	CloneURL    string
 	CloneBranch string
+	IsWiki      bool
 }

@@ -29,6 +29,7 @@ var (
 	skipForks            bool
 	backup               bool
 	noClean              bool
+	cloneWiki            bool
 	preserveDir          bool
 	insecureGitlabClient bool
 	args                 []string
@@ -84,6 +85,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_SKIP_ARCHIVED":
 			os.Setenv(envVar, "false")
 		case "GHORG_SKIP_FORKS":
+			os.Setenv(envVar, "false")
+		case "GHORG_CLONE_WIKI":
 			os.Setenv(envVar, "false")
 		case "GHORG_NO_CLEAN":
 			os.Setenv(envVar, "false")
@@ -147,6 +150,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_SKIP_ARCHIVED")
 	getOrSetDefaults("GHORG_SKIP_FORKS")
 	getOrSetDefaults("GHORG_NO_CLEAN")
+	getOrSetDefaults("GHORG_CLONE_WIKI")
 	getOrSetDefaults("GHORG_INSECURE_GITLAB_CLIENT")
 	getOrSetDefaults("GHORG_BACKUP")
 	getOrSetDefaults("GHORG_CONCURRENCY")
@@ -192,6 +196,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED - skips archived repos, github/gitlab/gitea only")
 	cloneCmd.Flags().BoolVar(&noClean, "no-clean", false, "GHORG_NO_CLEAN - only clones new repos and does not perform a git clean on existing repos")
 	cloneCmd.Flags().BoolVar(&insecureGitlabClient, "insecure-gitlab-client", false, "GHORG_INSECURE_GITLAB_CLIENT - skip TLS certificate verification for hosted gitlab instances")
+	cloneCmd.Flags().BoolVar(&cloneWiki, "clone-wiki", false, "GHORG_CLONE_WIKI - Additionally clone the wiki page for repo")
 	cloneCmd.Flags().BoolVar(&skipForks, "skip-forks", false, "GHORG_SKIP_FORKS - skips repo if its a fork, github/gitlab/gitea only")
 	cloneCmd.Flags().BoolVar(&preserveDir, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/unit/subunit/app, gitlab only")
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP - backup mode, clone as mirror, no working copy (ignores branch parameter)")

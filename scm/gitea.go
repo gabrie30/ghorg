@@ -197,6 +197,15 @@ func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 			r.URL = rp.SSHURL
 			repoData = append(repoData, r)
 		}
+
+		if rp.HasWiki && os.Getenv("GHORG_CLONE_WIKI") == "true" {
+			wiki := Repo{}
+			wiki.IsWiki = true
+			wiki.CloneURL = strings.Replace(r.CloneURL, ".git", ".wiki.git", 1)
+			wiki.URL = strings.Replace(r.URL, ".git", ".wiki.git", 1)
+			wiki.CloneBranch = "master"
+			repoData = append(repoData, wiki)
+		}
 	}
 	return repoData, nil
 }
