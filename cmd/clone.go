@@ -560,7 +560,7 @@ func PrintConfigs() {
 	if os.Getenv("GHORG_OUTPUT_DIR") != "" {
 		colorlog.PrintInfo("* Output Dir    : " + parentFolder)
 	}
-	if os.Getenv("GHORG_NO_CLEAN") != "" {
+	if os.Getenv("GHORG_NO_CLEAN") == "true" {
 		colorlog.PrintInfo("* No Clean      : " + "true")
 	}
 
