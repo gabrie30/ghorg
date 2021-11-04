@@ -135,6 +135,11 @@ GHORG_MATCH_REGEX:
 # flag (--no-clean)
 GHORG_NO_CLEAN:
 
+# Additionally clone the wiki page for repo
+# default: false
+# flag (--clone-wiki)
+GHORG_CLONE_WIKI:
+
 # Specifies the location of your ghorg conf.yaml, allowing you to have many configuration files, or none at all
 # default: ghorg looks in $HOME/.config/ghorg/conf.yaml, if not set in that location nor as a commandline flag, ghorg will use all default values
 # NOTE: this cannot be set in the configuration file and only available in ghorg v1.7.0+
