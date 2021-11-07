@@ -158,6 +158,25 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
   vi $HOME/.config/ghorg/ghorgignore
   ```
 
+## Creating Backups
+
+When taking backups the two noteable flags are `--backup` and `--clone-wiki`. The `--backup` flag will clone the repo with [git clone --mirror](https://www.git-scm.com/docs/git-clone#Documentation/git-clone.txt---mirror). The `--clone-wiki` flag will include any wiki pages the repo has.
+
+```
+ghorg clone kubernetes --backup --clone-wiki
+```
+
+This will create a kubernetes_backup directory for the org. Each folder inside will contain the .git contents for the source repo. To restore the code from the .git contents you would move all contents into a .git dir, then run `git init` inside the dir, then checkout branch.
+
+```sh
+# inside kubernetes_backup dir, to restore kubelet source code
+cd kubelet
+mkdir .git
+mv -f * .git # moves all contents into .git directory
+git init
+git checkout master
+```
+
 ## Known issues
 
 - When cloning if you see something like `Username for 'https://gitlab.com': ` and the run won't finish. Make sure your token is in the osxkeychain, see the troubleshooting section for how to set this up. If this does not work or you are not on mac try cloning via ssh (--protocol=ssh). If this still does not resolve your issue you will need to update your git configs to match below, be sure to update the `gitlab.mydomain.com` portion
