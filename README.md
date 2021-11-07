@@ -166,7 +166,7 @@ When taking backups the two noteable flags are `--backup` and `--clone-wiki`. Th
 ghorg clone kubernetes --backup --clone-wiki
 ```
 
-This will create a kubernetes_backup directory for the org. Each folder inside will contain the .git contents for the source repo. To restore the code from the .git contents you would move all contents into a .git dir, then run `git init` inside the dir, then checkout branch.
+This will create a kubernetes_backup directory for the org. Each folder inside will contain the .git contents for the source repo. To restore the code from the .git contents you would move all contents into a .git dir, then run `git init` inside the dir, then checkout branch e.g.
 
 ```sh
 # inside kubernetes_backup dir, to restore kubelet source code
