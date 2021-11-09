@@ -181,29 +181,29 @@ git checkout master
 
 1. When cloning if you see something like `Username for 'https://gitlab.com': ` and the run won't finish. Make sure you have correctly set your token on the commandline, in your ghorg conf, or in your oskeychain. If this does not work, try cloning via ssh (--protocol=ssh). If this still does not resolve your issue you can try following the process below.
 
-  1. Make sure that you can clone using SSH with no username/password using "git clone git@gitlab.com:xxx/yyy/zzz.git" (replace the link to the correct git file). If you can't clone or it requires a password, fix this problem first (unrelated to ghorg)
-  2. In "git config", make sure that the email is correct
-  3. Delete all files and folders (git repos) in the ghorg directory
-  4. Run ghorg once again using -t (the gitlab personal access token, new tokens start with "glpat-"), --scm=gitlab --protocol=ssh
+    1. Make sure that you can clone using SSH with no username/password using "git clone git@gitlab.com:xxx/yyy/zzz.git" (replace the link to the correct git file). If you can't clone or it requires a password, fix this problem first (unrelated to ghorg)
+    2. In "git config", make sure that the email is correct
+    3. Delete all files and folders (git repos) in the ghorg directory
+    4. Run ghorg once again using -t (the gitlab personal access token, new tokens start with "glpat-"), --scm=gitlab --protocol=ssh
 
-  If this still does not resolve your issue you will need to update your git configs to match below, be sure to update the gitlab.mydomain.com portion
+    If this still does not resolve your issue you will need to update your git configs to match below, be sure to update the gitlab.mydomain.com portion
 
-  ```
-  git config --global url."git@gitlab.mydomain.com:".insteadOf http://gitlab.mydomain.com/
-  git config --global url."git://".insteadOf https://
-  ```
+    ```
+    git config --global url."git@gitlab.mydomain.com:".insteadOf http://gitlab.mydomain.com/
+    git config --global url."git://".insteadOf https://
+    ```
 
 1. If you are cloning a large org you may see `Error: open /dev/null: too many open files` which means you need to increase your ulimits, there are lots of docs online for this. For mac the quick and dirty is below
 
-  ```
-  # reset the soft and hard file limit boundaries
-  $ sudo launchctl limit maxfiles 65536 200000
+    ```
+    # reset the soft and hard file limit boundaries
+    $ sudo launchctl limit maxfiles 65536 200000
 
-  # actually now set the ulimit boundary
-  $ ulimit -n 20000
-  ```
+    # actually now set the ulimit boundary
+    $ ulimit -n 20000
+    ```
 
-  Another solution is to decrease the number of concurrent clones. Use the `--concurrency` flag to set to lower than 25 (the default)
+    Another solution is to decrease the number of concurrent clones. Use the `--concurrency` flag to set to lower than 25 (the default)
 
 ## Troubleshooting
 
