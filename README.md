@@ -179,7 +179,14 @@ git checkout master
 
 ## Known issues
 
-- When cloning if you see something like `Username for 'https://gitlab.com': ` and the run won't finish. Make sure your token is in the osxkeychain, see the troubleshooting section for how to set this up. If this does not work or you are not on mac try cloning via ssh (--protocol=ssh). If this still does not resolve your issue you will need to update your git configs to match below, be sure to update the `gitlab.mydomain.com` portion
+- When cloning if you see something like `Username for 'https://gitlab.com': ` and the run won't finish. Make sure you have correctly set your token on the commandline, in your ghorg conf, or in your oskeychain. If this does not work, try cloning via ssh (--protocol=ssh). If this still does not resolve your issue you can try following the process below.
+
+  1. Make sure that you can clone using SSH with no username/password using "git clone git@gitlab.com:xxx/yyy/zzz.git" (replace the link to the correct git file). If you can't clone or it requires a password, fix this problem first (unrelated to ghorg)
+  2. In "git config", make sure that the email is correct
+  3. Delete all files and folders (git repos) in the ghorg directory
+  4. Run ghorg once again using -t (the gitlab personal access token, new tokens start with "glpat-"), --scm=gitlab --protocol=ssh
+
+  If this still does not resolve your issue you will need to update your git configs to match below, be sure to update the gitlab.mydomain.com portion
 
   ```
   git config --global url."git@gitlab.mydomain.com:".insteadOf http://gitlab.mydomain.com/

@@ -168,7 +168,14 @@ func getOrSetGitHubToken() {
 
 func getOrSetGitLabToken() {
 	var token string
-	if isZero(os.Getenv("GHORG_GITLAB_TOKEN")) || len(os.Getenv("GHORG_GITLAB_TOKEN")) != 20 {
+
+	token = os.Getenv("GHORG_GITLAB_TOKEN")
+
+	if strings.HasPrefix(token, "glpat-") && len(token) == 26 {
+		return
+	}
+
+	if isZero(token) || len(token) != 20 {
 		if runtime.GOOS == "windows" {
 			return
 		}
