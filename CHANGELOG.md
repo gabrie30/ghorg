@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- Setting new gitlab token check from config file; thanks @vegas1880
 ### Security
 
 ## [1.7.3] - 11/1/21
