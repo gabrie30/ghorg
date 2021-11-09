@@ -179,7 +179,7 @@ git checkout master
 
 ## Known issues
 
-- When cloning if you see something like `Username for 'https://gitlab.com': ` and the run won't finish. Make sure you have correctly set your token on the commandline, in your ghorg conf, or in your oskeychain. If this does not work, try cloning via ssh (--protocol=ssh). If this still does not resolve your issue you can try following the process below.
+1. When cloning if you see something like `Username for 'https://gitlab.com': ` and the run won't finish. Make sure you have correctly set your token on the commandline, in your ghorg conf, or in your oskeychain. If this does not work, try cloning via ssh (--protocol=ssh). If this still does not resolve your issue you can try following the process below.
 
   1. Make sure that you can clone using SSH with no username/password using "git clone git@gitlab.com:xxx/yyy/zzz.git" (replace the link to the correct git file). If you can't clone or it requires a password, fix this problem first (unrelated to ghorg)
   2. In "git config", make sure that the email is correct
@@ -193,7 +193,7 @@ git checkout master
   git config --global url."git://".insteadOf https://
   ```
 
-- If you are cloning a large org you may see `Error: open /dev/null: too many open files` which means you need to increase your ulimits, there are lots of docs online for this. For mac the quick and dirty is below
+1. If you are cloning a large org you may see `Error: open /dev/null: too many open files` which means you need to increase your ulimits, there are lots of docs online for this. For mac the quick and dirty is below
 
   ```
   # reset the soft and hard file limit boundaries
