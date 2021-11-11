@@ -108,7 +108,7 @@ $ ghorg ls someorg
 
 #### gitlab specific notes
 1. ghorg works slightly differently for hosted gitlab instances and gitlab cloud
-    1. To clone all groups within a hosted instance use the keyword "all-groups" when cloning
+    1. To clone all groups within a hosted instance use the keyword "all-groups" when cloning. **Note, this will only clone from groups/repos your user has permissions to.**
         ```sh
         ghorg clone all-groups --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
         ```
@@ -119,7 +119,6 @@ $ ghorg ls someorg
 1. for hosted instances you need to have a `--base-url` set, cloning cloud gitlab should omit this
 1. for hosted instances you can use the `--insecure-gitlab-client` flag if you use self signed certificates, this is not an option for cloud
 1. all flags can be permanently set in your $HOME/.config/ghorg/conf.yaml if you have multiple gitlab instances you can create multiple configuration files for each instance and use different config files with the `--config` flag
-
 
 ### gitea setup
 
