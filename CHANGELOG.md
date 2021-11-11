@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.7.4] - Unreleased
+## [1.7.4] - 11/11/21
 ### Added
 - GHORG_CLONE_WIKI to clone wiki pages of repos; thanks @ahmadalli
 ### Changed
