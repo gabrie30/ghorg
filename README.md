@@ -146,37 +146,38 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 
 1. By default ghorg will clone the org or user repos into a directory like `$HOME/ghorg/org`. If you want to clone the org to a different directory use the `--path` flag or set `GHORG_ABSOLUTE_PATH_TO_CLONE_TO` in your ghorg conf. **This value must be an absolute path**. For example if you wanted to clone the kubernetes org to `/tmp/ghorg`
 
-  ```
-  ghorg clone kubernetes --path=/tmp/ghorg
-  ```
+    ```
+    ghorg clone kubernetes --path=/tmp/ghorg
+    ```
 
-  which would create
+    which would create
 
-  ```
-  /tmp/ghorg
-  └── kubernetes
-      ├── apimachinery
-      ├── gengo
-      ├── git-sync
-      ├── kubeadm
-      ├── kubernetes-template-project
-      ├── ...
-  ```
+    ```
+    /tmp/ghorg
+    └── kubernetes
+        ├── apimachinery
+        ├── gengo
+        ├── git-sync
+        ├── kubeadm
+        ├── kubernetes-template-project
+        ├── ...
+    ```
 
 1. If you want to change the name of the directory the repos get cloned into, set the `GHORG_OUTPUT_DIR` in your ghorg conf or set the `--output-dir` flag. For example to clone only the repos starting with `sig-` from the kubernetes org into a direcotry called `kubernetes-sig-only`. You would
 
-  ```
-  ghorg clone kubernetes --match-regex=^sig- --output-dir=kubernetes-sig-only
-  ```
-  which would create
+    ```
+    ghorg clone kubernetes --match-regex=^sig- --output-dir=kubernetes-sig-only
+    ```
 
-  ```
-  $HOME/ghorg
-  └── kubernetes-sig-only
-      ├── sig-release
-      ├── sig-security
-      └── sig-testing
-  ```
+    which would create
+
+    ```
+    $HOME/ghorg
+    └── kubernetes-sig-only
+        ├── sig-release
+        ├── sig-security
+        └── sig-testing
+    ```
 ## Filtering Repos
 - To filter repos by regex use `--match-regex` flag
 - To filter out any archived repos while cloning use the `--skip-archived` flag (not bitbucket)
