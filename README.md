@@ -46,7 +46,7 @@ ghorg clone kubernetes --config=$HOME/.config/ghorg/other-config.yaml
 ```bash
 mkdir -p $HOME/.config/ghorg
 curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
-vi $HOME/.config/ghorg/conf.yaml
+vi $HOME/.config/ghorg/conf.yaml # To update your configuration
 ```
 > required
 
@@ -61,7 +61,7 @@ brew install gabrie30/utils/ghorg
 ```bash
 mkdir -p $HOME/.config/ghorg
 curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
-vi $HOME/.config/ghorg/conf.yaml
+vi $HOME/.config/ghorg/conf.yaml # To update your configuration
 ```
 
 > required
@@ -147,9 +147,8 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 1. By default ghorg will clone the org or user repos into a directory like `$HOME/ghorg/org`. If you want to clone the org to a different directory use the `--path` flag or set `GHORG_ABSOLUTE_PATH_TO_CLONE_TO` in your ghorg conf. **This value must be an absolute path**. For example if you wanted to clone the kubernetes org to `/tmp/ghorg`
 
     ```
-    ghorg clone kubernetes --path=/tmp/ghorg
+    $ ghorg clone kubernetes --path=/tmp/ghorg
     ```
-
     which would create
 
     ```
@@ -166,9 +165,8 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 1. If you want to change the name of the directory the repos get cloned into, set the `GHORG_OUTPUT_DIR` in your ghorg conf or set the `--output-dir` flag. For example to clone only the repos starting with `sig-` from the kubernetes org into a direcotry called `kubernetes-sig-only`. You would
 
     ```
-    ghorg clone kubernetes --match-regex=^sig- --output-dir=kubernetes-sig-only
+    $ ghorg clone kubernetes --match-regex=^sig- --output-dir=kubernetes-sig-only
     ```
-
     which would create
 
     ```
