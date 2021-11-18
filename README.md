@@ -118,7 +118,7 @@ $ ghorg ls someorg
         ```
 1. for hosted instances you need to have a `--base-url` set, cloning cloud gitlab should omit this
 1. for hosted instances you can use the `--insecure-gitlab-client` flag if you use self signed certificates, this is not an option for cloud
-1. all flags can be permanently set in your $HOME/.config/ghorg/conf.yaml if you have multiple gitlab instances you can create multiple configuration files for each instance and use different config files with the `--config` flag
+1. all flags can be permanently set in your `$HOME/.config/ghorg/conf.yaml` if you have multiple gitlab instances you can create multiple configuration files for each instance and use different config files with the `--config` flag
 
 ### gitea setup
 
