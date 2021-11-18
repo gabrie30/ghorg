@@ -110,11 +110,11 @@ $ ghorg ls someorg
 1. ghorg works slightly differently for hosted gitlab instances and gitlab cloud
     1. To clone all groups within a hosted instance use the keyword "all-groups" when cloning. **Note, this will only clone from groups/repos your user has permissions to.**
         ```sh
-        ghorg clone all-groups --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
+        $ ghorg clone all-groups --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
         ```
     1. For gitlab cloud you can use the top level group name e.g. for https://gitlab.com/fdroid
         ```sh
-        ghorg clone fdroid --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
+        $ ghorg clone fdroid --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
         ```
 1. for hosted instances you need to have a `--base-url` set, cloning cloud gitlab should omit this
 1. for hosted instances you can use the `--insecure-gitlab-client` flag if you use self signed certificates, this is not an option for cloud
@@ -144,12 +144,12 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 
 ## Changing clone directories
 
-1. By default ghorg will clone the org or user repos into a directory like `$HOME/ghorg/org`. If you want to clone the org to a different directory use the `--path` flag or set `GHORG_ABSOLUTE_PATH_TO_CLONE_TO` in your ghorg conf. **This value must be an absolute path**. For example if you wanted to clone the kubernetes org to `/tmp/ghorg`
+1. By default ghorg will clone the org or user repos into a directory like `$HOME/ghorg/org`. If you want to clone the org to a different directory use the `--path` flag or set `GHORG_ABSOLUTE_PATH_TO_CLONE_TO` in your ghorg conf. **This value must be an absolute path**. For example if you wanted to clone the kubernetes org to `/tmp/ghorg` you would run the following command.
 
     ```
     $ ghorg clone kubernetes --path=/tmp/ghorg
     ```
-    which would create
+    which would create...
 
     ```
     /tmp/ghorg
@@ -162,12 +162,12 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
         ├── ...
     ```
 
-1. If you want to change the name of the directory the repos get cloned into, set the `GHORG_OUTPUT_DIR` in your ghorg conf or set the `--output-dir` flag. For example to clone only the repos starting with `sig-` from the kubernetes org into a direcotry called `kubernetes-sig-only`. You would
+1. If you want to change the name of the directory the repos get cloned into, set the `GHORG_OUTPUT_DIR` in your ghorg conf or set the `--output-dir` flag. For example to clone only the repos starting with `sig-` from the kubernetes org into a direcotry called `kubernetes-sig-only`. You would run the following command.
 
     ```
     $ ghorg clone kubernetes --match-regex=^sig- --output-dir=kubernetes-sig-only
     ```
-    which would create
+    which would create...
 
     ```
     $HOME/ghorg
