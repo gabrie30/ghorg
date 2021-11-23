@@ -92,7 +92,8 @@ GHORG_CLONE_TYPE:
 GHORG_COLOR:
 
 # A comma separated list of topics to filter by, currently github/gitea only
-# Defaults to ""
+# default: ""
+# flag (--topics)
 # If any topics exist here, ghorg will only clone repos that match at least one of these topics
 GHORG_TOPICS:
 

@@ -5,10 +5,10 @@
 ghorg allows you to quickly clone all of an orgs, or users repos into a single directory. This can be useful in many situations including
 
 1. Searching an orgs/users codebase with ack, silver searcher, grep etc..
-2. Bash scripting
-3. Creating backups
-4. Onboarding
-5. Performing Audits
+1. Bash scripting
+1. Creating backups
+1. Onboarding new team members (cloning all team repos)
+1. Performing Audits
 
 > When running ghorg a second time on the same org/user, all local changes in the cloned directory by default will be overwritten by what's on GitHub. If you want to work out of this directory, make sure you either rename the directory or set the `--no-clean` flag on all future clones to prevent losing your changes.
 
@@ -181,6 +181,7 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 - To filter out any archived repos while cloning use the `--skip-archived` flag (not bitbucket)
 - To filter out any forked repos while cloning use the `--skip-forks` flag
 - To ignore specific repos create a `ghorgignore` file inside `$HOME/.config/ghorg`. Each line in this file is considered a substring and will be compared against each repos clone url. If the clone url contains a substring in the `ghorgignore` it will be excluded from cloning. To prevent accidentally excluding a repo, you should make each line as specific as possible, eg. `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git` depending on how you clone. This is useful for permanently ignoring certain repos.
+- Filter by specific GitHub [topics](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/classifying-your-repository-with-topics) `GHORG_TOPICS` or `--topics` will clone only repos with a matching topic. GitHub/Gitea only
 
 
   ```bash
