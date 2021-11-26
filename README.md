@@ -187,7 +187,7 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
   # Create ghorgignore
   touch $HOME/.config/ghorg/ghorgignore
 
-  # update file
+  # Update file
   vi $HOME/.config/ghorg/ghorgignore
   ```
 
