@@ -108,7 +108,7 @@ $ ghorg ls someorg
 
 #### gitlab specific notes
 1. ghorg works slightly differently for hosted gitlab instances and gitlab cloud
-    1. To clone all groups within a hosted instance use the keyword "all-groups" when cloning. **Note, this will only clone from groups/repos your user has permissions to.**
+    1. To clone all groups within a hosted instance use the keyword "all-groups" when cloning. **Note, this requires a GitLab instance running 13.0.1 or greater and will only clone from groups/repos your user has permissions to.**
         ```sh
         $ ghorg clone all-groups --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
         ```

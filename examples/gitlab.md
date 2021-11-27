@@ -1,6 +1,8 @@
 ## Hosted GitLab Instances
 
 
+**Note: "all-groups" only works on GitLab instances running 13.0.1 or greater**
+
 clone all groups on a **hosted gitlab** instance **preserving** the directory structure of subgroups
 
 ```
