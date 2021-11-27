@@ -107,18 +107,36 @@ $ ghorg ls someorg
 1. See [examples/gitlab.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md) on how to run
 
 #### gitlab specific notes
-1. ghorg works slightly differently for hosted gitlab instances and gitlab cloud
-    1. To clone all groups within a hosted instance use the keyword "all-groups" when cloning. **Note, this requires a GitLab instance running 13.0.1 or greater and will only clone from groups/repos your user has permissions to.**
-        ```sh
-        $ ghorg clone all-groups --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
-        ```
-    1. For gitlab cloud you can use the top level group name e.g. for https://gitlab.com/fdroid
-        ```sh
-        $ ghorg clone fdroid --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
-        ```
-1. for hosted instances you need to have a `--base-url` set, cloning cloud gitlab should omit this
-1. for hosted instances you can use the `--insecure-gitlab-client` flag if you use self signed certificates, this is not an option for cloud
-1. all flags can be permanently set in your `$HOME/.config/ghorg/conf.yaml` if you have multiple gitlab instances you can create multiple configuration files for each instance and use different config files with the `--config` flag
+
+ghorg works differently for hosted gitlab instances vs gitlab cloud read below for the differences
+
+##### hosted gitlab instances
+
+1. To clone all groups of the groups at once the keyword "all-groups". **Note, all-groups requires a GitLab instance running 13.0.1 or greater and will only clone from groups/repos your user has permissions to.**
+
+    ```sh
+    $ ghorg clone all-groups --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXX --preserve-dir
+    ```
+
+1. For all versions of GitLab you can clone groups or sub groups individually
+
+    ```sh
+    # cloning a top level group
+    $ ghorg clone mygroup --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXX --preserve-dir
+
+    # cloning a subgroup
+    $ ghorg clone mygroup/mysubgroup --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXX --preserve-dir
+    ```
+
+1. You must set `--base-url` which is the url to your instance. If your instance uses self signed certificates you can use the `--insecure-gitlab-client` flag
+
+##### gitlab cloud
+
+To clone all repos you can use the top level group name e.g. to clone `fdroid` on GitLab cloud https://gitlab.com/fdroid
+
+```sh
+$ ghorg clone fdroid --scm=gitlab --token=XXXX --preserve-dir
+```
 
 ### gitea setup
 
