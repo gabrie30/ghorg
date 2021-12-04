@@ -24,6 +24,10 @@ ghorg allows you to quickly clone all of an orgs, or users repos into a single d
 
 > The terminology used in ghorg is that of GitHub, mainly orgs/repos. GitLab and BitBucket use different terminology. There is a handy chart thanks to GitLab that translates terminology [here](https://about.gitlab.com/images/blogimages/gitlab-terminology.png). Note, some features may be different for certain providers.
 
+## Windows support
+
+Ghorg supports windows when built with golang, however the readme and other documentation is not geared towards windows users.
+
 ## Configuration
 
 Precedence for configuration is first given to the flags set on the command-line, then to what's set in your `$HOME/.config/ghorg/conf.yaml`. This file comes from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml). If neither of these exist, ghorg will fall back to its defaults -- cloning a GitHub org using your security token, if no security token is detected you will need to provide a token `--token`.
