@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/google/go-github/v32/github"
 	"golang.org/x/oauth2"
 )
@@ -56,6 +57,9 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 			break
 		}
 
+		if opt.Page%12 == 0 && opt.Page != 0 {
+			colorlog.PrintSubtleInfo("Everything is okay, its just a lot of repos...")
+		}
 		opt.Page = resp.NextPage
 	}
 

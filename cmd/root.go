@@ -29,6 +29,7 @@ var (
 	skipForks            bool
 	backup               bool
 	noClean              bool
+	dryRun               bool
 	cloneWiki            bool
 	preserveDir          bool
 	insecureGitlabClient bool
@@ -89,6 +90,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_CLONE_WIKI":
 			os.Setenv(envVar, "false")
 		case "GHORG_NO_CLEAN":
+			os.Setenv(envVar, "false")
+		case "GHORG_DRY_RUN":
 			os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_GITLAB_CLIENT":
 			os.Setenv(envVar, "false")
@@ -195,6 +198,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - clone target type, user or org (default org)")
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED - skips archived repos, github/gitlab/gitea only")
 	cloneCmd.Flags().BoolVar(&noClean, "no-clean", false, "GHORG_NO_CLEAN - only clones new repos and does not perform a git clean on existing repos")
+	cloneCmd.Flags().BoolVar(&dryRun, "dry-run", false, "GHORG_DRY_RUN - perform a dry run of the clone; fetches repos but does not clone them")
 	cloneCmd.Flags().BoolVar(&insecureGitlabClient, "insecure-gitlab-client", false, "GHORG_INSECURE_GITLAB_CLIENT - skip TLS certificate verification for hosted gitlab instances")
 	cloneCmd.Flags().BoolVar(&cloneWiki, "clone-wiki", false, "GHORG_CLONE_WIKI - Additionally clone the wiki page for repo")
 	cloneCmd.Flags().BoolVar(&skipForks, "skip-forks", false, "GHORG_SKIP_FORKS - skips repo if its a fork, github/gitlab/gitea only")

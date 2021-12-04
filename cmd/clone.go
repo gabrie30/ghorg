@@ -90,6 +90,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_NO_CLEAN", "true")
 	}
 
+	if cmd.Flags().Changed("dry-run") {
+		os.Setenv("GHORG_DRY_RUN", "true")
+	}
+
 	if cmd.Flags().Changed("clone-wiki") {
 		os.Setenv("GHORG_CLONE_WIKI", "true")
 	}
@@ -301,6 +305,15 @@ func getRepoCountOnly(targets []scm.Repo) int {
 	return count
 }
 
+func printDryRun(repos []scm.Repo) {
+	for _, repo := range repos {
+		colorlog.PrintSubtleInfo(repo.URL)
+	}
+	fmt.Println()
+	count := len(repos)
+	colorlog.PrintSuccess(fmt.Sprintf("%v repos to be cloned into: %s%s", count, os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
+}
+
 // CloneAllRepos clones all repos
 func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	// resc, errc, infoc := make(chan string), make(chan error), make(chan error)
@@ -354,6 +367,11 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	}
 
 	fmt.Println()
+
+	if os.Getenv("GHORG_DRY_RUN") == "true" {
+		printDryRun(cloneTargets)
+		return
+	}
 
 	createDirIfNotExist()
 
@@ -509,8 +527,10 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	// TODO: fix all these if else checks with ghorg_backups
 	if os.Getenv("GHORG_BACKUP") == "true" {
+		fmt.Println()
 		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_backup", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
 	} else {
+		fmt.Println()
 		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
 	}
 }

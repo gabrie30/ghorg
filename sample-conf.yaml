@@ -20,13 +20,11 @@ GHORG_GITHUB_TOKEN:
 GHORG_GITLAB_TOKEN:
 
 # clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/org/unit/subunit/app
-# default: false
 # flag (--preserve-dir)
 GHORG_PRESERVE_DIRECTORY_STRUCTURE:
 
 # Skip TLS certificate verification for hosted gitlab instances
 # flag (--insecure-gitlab-client)
-# default: false
 GHORG_INSECURE_GITLAB_CLIENT:
 
 # +-+-+-+-+-+ +-+-+-+-+-+-+-+-+
@@ -47,7 +45,7 @@ GHORG_GITEA_TOKEN:
 # flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 GHORG_BITBUCKET_APP_PASSWORD:
 
-# flag (--bitbucket-username)
+# flag (--bitbucket-username) eg: --bitbucket-username=user123
 GHORG_BITBUCKET_USERNAME:
 
 # +-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -56,59 +54,55 @@ GHORG_BITBUCKET_USERNAME:
 
 # Change SCM base url, for on self hosted instances, gitea require this
 # default: uses github/gitlab public api
-# flag (--base-url)
+# flag (--base-url) eg: --base-url=https://my.instance.com
 GHORG_SCM_BASE_URL:
 
 # Which provider to clone from (github, gitlab, gitea or bitbucket)
 # default: github
-# flag (--scm, -s)
+# flag (--scm, -s) eg: --scm=gitlab
 GHORG_SCM_TYPE:
 
 # How you'd like to clone the repos (https or ssh)
 # default: https
-# flag (--protocol)
+# flag (--protocol) eg: --protocol=https
 GHORG_CLONE_PROTOCOL:
 
 # This is where your ghorg directory will be created, use absolute pathing, shell expansions will not work
 # default: YOUR_HOME_DIR/ghorg
-# flag (--path, -p)
+# flag (--path, -p) eg: --path=/tmp/ghorg
 GHORG_ABSOLUTE_PATH_TO_CLONE_TO:
 
 # Branch ghorg resets and leaves checked out
 # default: default branch
 # NOTE: if no default branch is found on the repo, will fallback to using master
-# flag (--branch, -b)
+# flag (--branch, -b) eg: --branch=develop
 GHORG_BRANCH:
 
 # Type of entity to clone (user or org)
 # default: org
-# to clone all of your own repos from github don't specify any user eg. "ghorg clone --clone-type=user --output-dir=personal"
-# flag (--clone-type, -c)
+# flag (--clone-type, -c) eg: --clone-type=user
 GHORG_CLONE_TYPE:
 
 # Color output (enabled, disabled)
 # default: disabled
-# flag (--color)
+# flag (--color) eg: --color=disabled
 GHORG_COLOR:
 
 # A comma separated list of topics to filter by, currently github/gitea only
 # default: ""
-# flag (--topics)
+# flag (--topics) eg: --topics=frontend
 # If any topics exist here, ghorg will only clone repos that match at least one of these topics
 GHORG_TOPICS:
 
-# Skip archived repos (true/false), currently github/gitlab/gitea only
-# default: false
+# Skip archived repos, currently github/gitlab/gitea only
 # flag (--skip-archived)
 GHORG_SKIP_ARCHIVED:
 
-# Skip repos that are forks (true/false), currently github/gitlab/gitea only
-# default: false
+# Skip repos that are forks, currently github/gitlab/gitea only
 # flag (--skip-forks)
 GHORG_SKIP_FORKS:
 
-# Backup mode, clone as mirror, no working copy (ignores branch parameter) (true/false)
-# default: false
+# Backup mode, clone as mirror, no working copy (ignores branch parameter)
 # flag (--backup)
 GHORG_BACKUP:
 
@@ -119,27 +113,30 @@ GHORG_CONCURRENCY:
 
 # Folder ghorg will clone all repos into. Cloning will result in: GHORG_ABSOLUTE_PATH_TO_CLONE_TO/GHORG_OUTPUT_DIR/*
 # default: {org/user you are cloning}
-# flag (--output-dir)
+# flag (--output-dir) eg: --output-dir=testing
 GHORG_OUTPUT_DIR:
 
 # Only clone repos with matching prefix, can be a comma separated list
 # default: ""
-# flag (--match-prefix)
+# flag (--match-prefix) eg: --match-prefix=backend
 GHORG_MATCH_PREFIX:
 
 # Only clone repos that match name to regex provided
-# flag (--match-regex)
+# default: match all
+# flag (--match-regex) eg: --match-regex=^foo
 GHORG_MATCH_REGEX:
 
 # Only clones new repos and does not perform a git clean on existing repos. Useful if you don't want to lose changes made to repos in the org/user directory.
-# default: false
 # flag (--no-clean)
 GHORG_NO_CLEAN:
 
 # Additionally clone the wiki page for repo
-# default: false
 # flag (--clone-wiki)
 GHORG_CLONE_WIKI:
+
+# Perform a dry run of the clone; fetches repos but does not clone them.
+# flag (--dry-run)
+GHORG_DRY_RUN:
 
 # Specifies the location of your ghorg conf.yaml, allowing you to have many configuration files, or none at all
 # default: ghorg looks in $HOME/.config/ghorg/conf.yaml, if not set in that location nor as a commandline flag, ghorg will use all default values
