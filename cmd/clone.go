@@ -383,7 +383,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	limit := limiter.NewConcurrencyLimiter(l)
 
-	var cloneCount, updatedCount int
+	var cloneCount, pulledCount int
 
 	for _, target := range cloneTargets {
 		appName := getAppNameFromURL(target.URL)
@@ -478,8 +478,8 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						return
 					}
 
-					action = "updating"
-					updatedCount++
+					action = "pulling"
+					pulledCount++
 				}
 			} else {
 				// if https clone and github/gitlab add personal access token to url
@@ -531,7 +531,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	printRemainingMessages()
 
-	colorlog.PrintSuccess(fmt.Sprintf("New repos cloned: %v, updated: %v", cloneCount, updatedCount))
+	colorlog.PrintSuccess(fmt.Sprintf("New repos cloned: %v, existing repos pulled: %v", cloneCount, pulledCount))
 
 	// TODO: fix all these if else checks with ghorg_backups
 	if os.Getenv("GHORG_BACKUP") == "true" {
