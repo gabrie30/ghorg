@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.7.5] - unreleased
 ### Added
 - GHORG_DRY_RUN to do dry runs on clones
+- GHORG_FETCH_ALL to run fetch all on each repo
 - output for long running repo fetches
 - support for cloning github enterprise repos
 - log repos cloned vs pulled at end of run
