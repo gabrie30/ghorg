@@ -32,9 +32,6 @@ func (_ Github) GetType() string {
 
 // GetOrgRepos gets org repos
 func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
-	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
-		c.BaseURL, _ = url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
-	}
 
 	opt := &github.RepositoryListByOrgOptions{
 		Type:        "all",
@@ -120,7 +117,15 @@ func (_ Github) NewClient() (Client, error) {
 		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
 	)
 	tc := oauth2.NewClient(ctx, ts)
-	c := github.NewClient(tc)
+
+	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
+	var c *github.Client
+
+	if baseURL != "" {
+		c, _ = github.NewEnterpriseClient(baseURL, baseURL, tc)
+	} else {
+		c = github.NewClient(tc)
+	}
 
 	client := Github{Client: c, perPage: 100}
 

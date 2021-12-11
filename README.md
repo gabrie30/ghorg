@@ -102,6 +102,7 @@ $ ghorg ls someorg
 
 ### github setup
 1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. Update `GHORG_GITHUB_TOKEN` in your `ghorg/conf.yaml`, as a cli flag, or add to your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git). If your org has Saml SSO in front you will need to give your token those permissions as well, see [this doc](https://docs.github.com/en/github/authenticating-to-github/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on).
+1. For cloning GitHub Enterprise repos you must set `--base-url` e.g. `ghorg clone <github_org> --base-url=https://internal.github.com`
 
 ### gitlab setup
 
