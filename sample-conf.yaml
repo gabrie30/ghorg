@@ -104,7 +104,6 @@ GHORG_SKIP_FORKS: false
 GHORG_BACKUP: false
 
 # Max goroutines created while cloning
-# default: 25
 # flag (--concurrency)
 GHORG_CONCURRENCY: 25
 
