@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v41/github"
 	"golang.org/x/oauth2"
 )
 

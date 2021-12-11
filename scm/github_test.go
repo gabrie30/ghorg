@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	ghpkg "github.com/google/go-github/v32/github"
+	ghpkg "github.com/google/go-github/v41/github"
 )
 
 const (

@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - GHORG_DRY_RUN to do dry runs on clones
 - output for long running repo fetches
 ### Changed
+- go-github versions v32 -> v41
 ### Deprecated
 ### Removed
 ### Fixed
