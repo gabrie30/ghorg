@@ -90,6 +90,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_NO_CLEAN", "true")
 	}
 
+	if cmd.Flags().Changed("fetch-all") {
+		os.Setenv("GHORG_FETCH_ALL", "true")
+	}
+
 	if cmd.Flags().Changed("dry-run") {
 		os.Setenv("GHORG_DRY_RUN", "true")
 	}
@@ -480,6 +484,16 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 					action = "pulling"
 					pulledCount++
+
+					if os.Getenv("GHORG_FETCH_ALL") == "true" {
+						err = git.FetchAll(repo)
+
+						if err != nil {
+							e := fmt.Sprintf("Could not fetch remotes in Repo: %s Error: %v", repo.URL, err)
+							cloneErrors = append(cloneErrors, e)
+							return
+						}
+					}
 				}
 			} else {
 				// if https clone and github/gitlab add personal access token to url
@@ -519,6 +533,16 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					e := fmt.Sprintf("Problem trying to set remote on Repo: %s Error: %v", repo.URL, err)
 					cloneErrors = append(cloneErrors, e)
 					return
+				}
+
+				if os.Getenv("GHORG_FETCH_ALL") == "true" {
+					err = git.FetchAll(repo)
+
+					if err != nil {
+						e := fmt.Sprintf("Could not fetch remotes in Repo: %s Error: %v", repo.URL, err)
+						cloneErrors = append(cloneErrors, e)
+						return
+					}
 				}
 			}
 
@@ -590,6 +614,12 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_NO_CLEAN") == "true" {
 		colorlog.PrintInfo("* No Clean      : " + "true")
+	}
+	if os.Getenv("GHORG_FETCH_ALL") == "true" {
+		colorlog.PrintInfo("* Fetch All     : " + "true")
+	}
+	if os.Getenv("GHORG_DRY_RUN") == "true" {
+		colorlog.PrintInfo("* Dry Run       : " + "true")
 	}
 
 	colorlog.PrintInfo("* Config Used   : " + os.Getenv("GHORG_CONF"))

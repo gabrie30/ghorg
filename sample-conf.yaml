@@ -21,7 +21,7 @@ GHORG_GITLAB_TOKEN:
 
 # clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/org/unit/subunit/app
 # flag (--preserve-dir)
-GHORG_PRESERVE_DIRECTORY_STRUCTURE:
+GHORG_PRESERVE_DIRECTORY_STRUCTURE: false
 
 # Skip TLS certificate verification for hosted gitlab instances
 # flag (--insecure-gitlab-client)
@@ -60,12 +60,12 @@ GHORG_SCM_BASE_URL:
 # Which provider to clone from (github, gitlab, gitea or bitbucket)
 # default: github
 # flag (--scm, -s) eg: --scm=gitlab
-GHORG_SCM_TYPE:
+GHORG_SCM_TYPE: github
 
 # How you'd like to clone the repos (https or ssh)
 # default: https
 # flag (--protocol) eg: --protocol=https
-GHORG_CLONE_PROTOCOL:
+GHORG_CLONE_PROTOCOL: https
 
 # This is where your ghorg directory will be created, use absolute pathing, shell expansions will not work
 # default: YOUR_HOME_DIR/ghorg
@@ -79,37 +79,34 @@ GHORG_ABSOLUTE_PATH_TO_CLONE_TO:
 GHORG_BRANCH:
 
 # Type of entity to clone (user or org)
-# default: org
 # flag (--clone-type, -c) eg: --clone-type=user
-GHORG_CLONE_TYPE:
+GHORG_CLONE_TYPE: org
 
 # Color output (enabled, disabled)
-# default: disabled
 # flag (--color) eg: --color=disabled
-GHORG_COLOR:
+GHORG_COLOR: disabled
 
 # A comma separated list of topics to filter by, currently github/gitea only
-# default: ""
 # flag (--topics) eg: --topics=frontend
 # If any topics exist here, ghorg will only clone repos that match at least one of these topics
 GHORG_TOPICS:
 
 # Skip archived repos, currently github/gitlab/gitea only
 # flag (--skip-archived)
-GHORG_SKIP_ARCHIVED:
+GHORG_SKIP_ARCHIVED: false
 
 # Skip repos that are forks, currently github/gitlab/gitea only
 # flag (--skip-forks)
-GHORG_SKIP_FORKS:
+GHORG_SKIP_FORKS: false
 
 # Backup mode, clone as mirror, no working copy (ignores branch parameter)
 # flag (--backup)
-GHORG_BACKUP:
+GHORG_BACKUP: false
 
 # Max goroutines created while cloning
 # default: 25
 # flag (--concurrency)
-GHORG_CONCURRENCY:
+GHORG_CONCURRENCY: 25
 
 # Folder ghorg will clone all repos into. Cloning will result in: GHORG_ABSOLUTE_PATH_TO_CLONE_TO/GHORG_OUTPUT_DIR/*
 # default: {org/user you are cloning}
@@ -128,15 +125,19 @@ GHORG_MATCH_REGEX:
 
 # Only clones new repos and does not perform a git clean on existing repos. Useful if you don't want to lose changes made to repos in the org/user directory.
 # flag (--no-clean)
-GHORG_NO_CLEAN:
+GHORG_NO_CLEAN: false
 
 # Additionally clone the wiki page for repo
 # flag (--clone-wiki)
-GHORG_CLONE_WIKI:
+GHORG_CLONE_WIKI: false
 
 # Perform a dry run of the clone; fetches repos but does not clone them.
 # flag (--dry-run)
-GHORG_DRY_RUN:
+GHORG_DRY_RUN: false
+
+# Perform a dry run of the clone; fetches repos but does not clone them.
+# flag (--fetch-all)
+GHORG_FETCH_ALL: false
 
 # Specifies the location of your ghorg conf.yaml, allowing you to have many configuration files, or none at all
 # default: ghorg looks in $HOME/.config/ghorg/conf.yaml, if not set in that location nor as a commandline flag, ghorg will use all default values

@@ -19,7 +19,6 @@ var (
 	cloneType            string
 	scmType              string
 	bitbucketUsername    string
-	namespace            string
 	color                string
 	baseURL              string
 	concurrency          string
@@ -33,6 +32,7 @@ var (
 	cloneWiki            bool
 	preserveDir          bool
 	insecureGitlabClient bool
+	fetchAll             bool
 	args                 []string
 	cloneErrors          []string
 	cloneInfos           []string
@@ -90,6 +90,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_CLONE_WIKI":
 			os.Setenv(envVar, "false")
 		case "GHORG_NO_CLEAN":
+			os.Setenv(envVar, "false")
+		case "GHORG_FETCH_ALL":
 			os.Setenv(envVar, "false")
 		case "GHORG_DRY_RUN":
 			os.Setenv(envVar, "false")
@@ -153,6 +155,8 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_SKIP_ARCHIVED")
 	getOrSetDefaults("GHORG_SKIP_FORKS")
 	getOrSetDefaults("GHORG_NO_CLEAN")
+	getOrSetDefaults("GHORG_FETCH_ALL")
+	getOrSetDefaults("GHORG_DRY_RUN")
 	getOrSetDefaults("GHORG_CLONE_WIKI")
 	getOrSetDefaults("GHORG_INSECURE_GITLAB_CLIENT")
 	getOrSetDefaults("GHORG_BACKUP")
@@ -198,6 +202,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - clone target type, user or org (default org)")
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED - skips archived repos, github/gitlab/gitea only")
 	cloneCmd.Flags().BoolVar(&noClean, "no-clean", false, "GHORG_NO_CLEAN - only clones new repos and does not perform a git clean on existing repos")
+	cloneCmd.Flags().BoolVar(&fetchAll, "fetch-all", false, "GHORG_FETCH_ALL - fetches all remote branches for each repo by running a git fetch --all")
 	cloneCmd.Flags().BoolVar(&dryRun, "dry-run", false, "GHORG_DRY_RUN - perform a dry run of the clone; fetches repos but does not clone them")
 	cloneCmd.Flags().BoolVar(&insecureGitlabClient, "insecure-gitlab-client", false, "GHORG_INSECURE_GITLAB_CLIENT - skip TLS certificate verification for hosted gitlab instances")
 	cloneCmd.Flags().BoolVar(&cloneWiki, "clone-wiki", false, "GHORG_CLONE_WIKI - Additionally clone the wiki page for repo")
