@@ -14,8 +14,9 @@ find $HOME/Desktop/ghorg -name "test.sh" -exec cat {} \; > results
 find $HOME/Desktop/ghorg -name "test.sh" | xargs grep -i "gcloud"
 ```
 
-> Sort cloned repos by size. Change directories into a clone dir
+> Sort cloned repos by size
 
 ```
+# cd into a clone dir
 du -d 1 . | sort -nr | cut -f2- | xargs du -hs
 ```
