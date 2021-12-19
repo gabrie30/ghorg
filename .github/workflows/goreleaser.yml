@@ -1,9 +1,8 @@
 name: goreleaser
 
 on:
+  pull_request:
   push:
-    tags:
-      - '*'
 
 permissions:
   contents: write
