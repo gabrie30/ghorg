@@ -45,7 +45,7 @@ ghorg clone kubernetes --config=$HOME/.config/ghorg/other-config.yaml
 
 ### Prebuilt Binaries
 
-See [releases](https://github.com/gabrie30/ghorg/releases) to download binaries directly
+See [latest release](https://github.com/gabrie30/ghorg/releases/latest) to download directly
 
 ### Homebrew
 
