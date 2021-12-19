@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.7.6] - unreleased
+### Added
+- goreleaser
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.7.5] - 12/11/21
 ### Added
 - GHORG_DRY_RUN to do dry runs on clones
