@@ -193,7 +193,7 @@ func getOrSetGitLabToken() {
 
 func getOrSetBitBucketToken() {
 	var token string
-	if isZero(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) || isZero(os.Getenv("GHORG_BITBUCKET_OAUTH_TOKEN")) {
+	if isZero(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) && isZero(os.Getenv("GHORG_BITBUCKET_OAUTH_TOKEN")) {
 		if runtime.GOOS == "windows" {
 			return
 		}

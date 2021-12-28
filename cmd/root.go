@@ -169,6 +169,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_GITLAB_TOKEN")
 	getOrSetDefaults("GHORG_BITBUCKET_USERNAME")
 	getOrSetDefaults("GHORG_BITBUCKET_APP_PASSWORD")
+	getOrSetDefaults("GHORG_BITBUCKET_OAUTH_TOKEN")
 	getOrSetDefaults("GHORG_SCM_BASE_URL")
 	getOrSetDefaults("GHORG_PRESERVE_DIRECTORY_STRUCTURE")
 	getOrSetDefaults("GHORG_OUTPUT_DIR")

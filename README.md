@@ -155,8 +155,17 @@ $ ghorg clone fdroid --scm=gitlab --token=XXXX --preserve-dir
 
 ### bitbucket setup
 
-1. To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/.config/ghorg/conf.yaml` [here](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L37-L47) or use the (--token, -t) and (--bitbucket-username) flags. If no `--bitbucket-username` is set, ghorg will assume the `--token` is an oauth token.
+#### app passwords
+
+1. To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/.config/ghorg/conf.yaml` or use the (--token, -t) and (--bitbucket-username) flags.
 1. Update [SCM type](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L54-L57) to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
+
+#### PAT/OAuth token
+
+1. Create a [PAT](https://confluence.atlassian.com/bitbucketserver/personal-access-tokens-939515499.html)
+1. Set the token with `GHORG_BITBUCKET_OAUTH_TOKEN` in your `$HOME/.config/ghorg/conf.yaml` or using the `--token` flag. Make sure you do not have `--bitbucket-username` set.
+1. Update SCM TYPE to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
+
 
 ### osx default github/gitlab token used
 
