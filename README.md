@@ -267,9 +267,9 @@ git checkout master
 
 ## Troubleshooting
 
-- If the `security` command does not return your token, follow this [GitHub Documentation](https://help.github.com/en/articles/caching-your-github-password-in-git). For GitHub tokens you will need to set your token as your username and set nothing as the password when prompted. For GitLab you will need to set your token for both the username and password when prompted. This will correctly store your credentials in the keychain. If you are still having problems see this [StackOverflow Post](https://stackoverflow.com/questions/31305945/git-clone-from-github-over-https-with-two-factor-authentication)
+- If you are having trouble cloning repos. Try to clone one of the repos locally e.g. manually running `git clone https://github.com/your_private_org/your_private_repo.git` if this does not work, ghorg will also not work. Your git client must first be setup to clone the target repos. If you normally clone using an ssh key use the `--protocol=ssh` flag with ghorg. This will fetch the ssh clone urls instead of the https clone urls.
 - If your GitHub org is behind SSO, you will need to authorize your token, see [here](https://docs.github.com/en/github/authenticating-to-github/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on)
-- GitHub Personal Access Token only finding public repos - Give your token all the repo permissions
+- If your GitHub Personal Access Token is only finding public repos, give your token all the repos permissions
 - Make sure your `$ git --version` is >= 2.19.0
 - Check for other software, such as anti-malware, that could interfere with ghorgs ability to create large number of connections, see [issue 132](https://github.com/gabrie30/ghorg/issues/132#issuecomment-889357960)
 
