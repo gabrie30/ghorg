@@ -48,7 +48,14 @@ func (c Bitbucket) GetUserRepos(targetUser string) ([]Repo, error) {
 func (_ Bitbucket) NewClient() (Client, error) {
 	user := os.Getenv("GHORG_BITBUCKET_USERNAME")
 	password := os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
-	c := bitbucket.NewBasicAuth(user, password)
+	oAuth := os.Getenv("GHORG_BITBUCKET_OAUTH")
+	var c *bitbucket.Client
+
+	if oAuth != "" {
+		c = bitbucket.NewOAuthbearerToken(oAuth)
+	} else {
+		c = bitbucket.NewBasicAuth(user, password)
+	}
 	return Bitbucket{c}, nil
 }
 
