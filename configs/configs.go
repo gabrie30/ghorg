@@ -234,16 +234,17 @@ func VerifyTokenSet() error {
 	}
 
 	if scmProvider == "bitbucket" {
+		tokenLength = 20
+		if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" && len(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) == 20 {
+			return ErrNoBitbucketUsername
+		}
+
 		if isZero(os.Getenv("GHORG_BITBUCKET_USERNAME")) {
 			// todo not sure how long this is so, so just make it pass for now
 			tokenLength = 0
 			token = ""
 		} else {
-			tokenLength = 20
 			token = os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
-			if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" {
-				return ErrNoBitbucketUsername
-			}
 		}
 
 	}

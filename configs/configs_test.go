@@ -34,6 +34,7 @@ func TestVerifyTokenSet(t *testing.T) {
 	t.Run("When cloning bitbucket with no username", func(tt *testing.T) {
 		os.Setenv("GHORG_SCM_TYPE", "bitbucket")
 		os.Setenv("GHORG_BITBUCKET_USERNAME", "")
+		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", "12345678912345678901")
 		err := configs.VerifyTokenSet()
 		if err != configs.ErrNoBitbucketUsername {
 			tt.Errorf("Expected ErrNoBitbucketUsername, got: %v", err)
