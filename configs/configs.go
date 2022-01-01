@@ -193,7 +193,7 @@ func getOrSetGitLabToken() {
 
 func getOrSetBitBucketToken() {
 	var token string
-	if isZero(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) || len(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) != 20 {
+	if isZero(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) && isZero(os.Getenv("GHORG_BITBUCKET_OAUTH_TOKEN")) {
 		if runtime.GOOS == "windows" {
 			return
 		}
@@ -205,7 +205,11 @@ func getOrSetBitBucketToken() {
 
 		token = strings.TrimSuffix(string(out), "\n")
 
-		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", token)
+		if !isZero(os.Getenv("GHORG_BITBUCKET_USERNAME")) {
+			os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", token)
+		} else {
+			os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", token)
+		}
 	}
 }
 
@@ -231,10 +235,18 @@ func VerifyTokenSet() error {
 
 	if scmProvider == "bitbucket" {
 		tokenLength = 20
-		token = os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
-		if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" {
+		if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" && len(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) == 20 {
 			return ErrNoBitbucketUsername
 		}
+
+		if isZero(os.Getenv("GHORG_BITBUCKET_USERNAME")) {
+			// todo not sure how long this is so, so just make it pass for now
+			tokenLength = 0
+			token = ""
+		} else {
+			token = os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
+		}
+
 	}
 
 	if len(token) != tokenLength {

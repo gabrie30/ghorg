@@ -40,11 +40,17 @@ GHORG_GITEA_TOKEN:
 # |B|I|T|B|U|C|K|E|T| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 
-# Add your Bitbucket app password
+# When using this OAuth/PAT token, do not set the bitbucket username flag. Do not set both this value and the GHORG_BITBUCKET_APP_PASSWORD
+# https://confluence.atlassian.com/bitbucketserver/personal-access-tokens-939515499.html
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+GHORG_BITBUCKET_OAUTH_TOKEN:
+
+# Add your Bitbucket app password. Do not set both this value and the GHORG_BITBUCKET_OAUTH_TOKEN
 # https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html
 # flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 GHORG_BITBUCKET_APP_PASSWORD:
 
+# Used with GHORG_BITBUCKET_APP_PASSWORD. Should not be set when using GHORG_BITBUCKET_OAUTH_TOKEN
 # flag (--bitbucket-username) eg: --bitbucket-username=user123
 GHORG_BITBUCKET_USERNAME:
 

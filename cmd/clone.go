@@ -140,7 +140,12 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		} else if os.Getenv("GHORG_SCM_TYPE") == "gitlab" {
 			os.Setenv("GHORG_GITLAB_TOKEN", cmd.Flag("token").Value.String())
 		} else if os.Getenv("GHORG_SCM_TYPE") == "bitbucket" {
-			os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
+			if cmd.Flags().Changed("bitbucket-username") {
+				os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
+			} else {
+				os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", cmd.Flag("token").Value.String())
+			}
+
 		} else if os.Getenv("GHORG_SCM_TYPE") == "gitea" {
 			os.Setenv("GHORG_GITEA_TOKEN", cmd.Flag("token").Value.String())
 		}
