@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.7.6] - unreleased
 ### Added
 - goreleaser
+- GHORG_BITBUCKET_OAUTH_TOKEN to support oauth tokens for bitbucket
 ### Changed
 ### Deprecated
 ### Removed

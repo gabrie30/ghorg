@@ -166,7 +166,6 @@ $ ghorg clone fdroid --scm=gitlab --token=XXXX --preserve-dir
 1. Set the token with `GHORG_BITBUCKET_OAUTH_TOKEN` in your `$HOME/.config/ghorg/conf.yaml` or using the `--token` flag. Make sure you do not have `--bitbucket-username` set.
 1. Update SCM TYPE to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
 
-
 ### osx default github/gitlab token used
 
 > NOTE: cloning via https rather than ssh is the ghorg default, this is because a token must be present to retrieve the list of repos. However, if you run into trouble cloning via https and generally clone via ssh, try switching `--protocol ssh`
