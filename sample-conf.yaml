@@ -134,7 +134,7 @@ GHORG_CLONE_WIKI: false
 # flag (--dry-run)
 GHORG_DRY_RUN: false
 
-# Perform a dry run of the clone; fetches repos but does not clone them.
+# Fetches all remote branches for each repo by running a git fetch --all
 # flag (--fetch-all)
 GHORG_FETCH_ALL: false
 
