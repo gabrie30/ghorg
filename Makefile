@@ -14,3 +14,7 @@ homebrew:
 .PHONY: fmt
 fmt:
 		$(GOFMT) -w $(GOFILES)
+
+.PHONY: release
+release:
+		goreleaser release
