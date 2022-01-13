@@ -228,8 +228,11 @@ func VerifyTokenSet() error {
 		token = os.Getenv("GHORG_GITLAB_TOKEN")
 		if strings.HasPrefix(token, "glpat-") {
 			tokenLength = 26
+		} else if len(token) > 0 {
+			// gitlab admins can change token prefixes so we dont know the exact length
+			tokenLength = len(token)
 		} else {
-			tokenLength = 20
+			tokenLength = -1
 		}
 	}
 
