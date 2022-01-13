@@ -26,7 +26,7 @@ func TestVerifyTokenSet(t *testing.T) {
 
 		err := configs.VerifyTokenSet()
 		if err != configs.ErrNoGitLabToken {
-			tt.Errorf("Expected ErrNoGitHubTokenError, got: %v", err)
+			tt.Errorf("Expected ErrNoGitLabTokenError, got: %v", err)
 		}
 
 	})

@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- Gitlab token length requirements; thanks @dschafhauser
 ### Security
 
 ## [1.7.5] - 12/11/21
