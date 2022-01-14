@@ -97,53 +97,6 @@ func TestVerifyConfigsSetCorrectly(t *testing.T) {
 	})
 }
 
-func TestVerifyTrialingSlashes(t *testing.T) {
-
-	t.Run("When cloning github", func(tt *testing.T) {
-		os.Setenv("GHORG_SCM_TYPE", "github")
-		os.Setenv("GHORG_GITHUB_TOKEN", "")
-
-		err := configs.VerifyTokenSet()
-		if err != configs.ErrNoGitHubToken {
-			tt.Errorf("Expected ErrNoGitHubTokenError, got: %v", err)
-		}
-
-	})
-
-	t.Run("When cloning gitlab", func(tt *testing.T) {
-		os.Setenv("GHORG_SCM_TYPE", "gitlab")
-		os.Setenv("GHORG_GITLAB_TOKEN", "")
-
-		err := configs.VerifyTokenSet()
-		if err != configs.ErrNoGitLabToken {
-			tt.Errorf("Expected ErrNoGitLabTokenError, got: %v", err)
-		}
-
-	})
-
-	t.Run("When cloning bitbucket with no username", func(tt *testing.T) {
-		os.Setenv("GHORG_SCM_TYPE", "bitbucket")
-		os.Setenv("GHORG_BITBUCKET_USERNAME", "")
-		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", "12345678912345678901")
-		err := configs.VerifyTokenSet()
-		if err != configs.ErrNoBitbucketUsername {
-			tt.Errorf("Expected ErrNoBitbucketUsername, got: %v", err)
-		}
-
-	})
-
-	t.Run("When cloning bitbucket with username but no app password", func(tt *testing.T) {
-		os.Setenv("GHORG_SCM_TYPE", "bitbucket")
-		os.Setenv("GHORG_BITBUCKET_USERNAME", "bitbucketuser")
-		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", "")
-		err := configs.VerifyTokenSet()
-		if err != configs.ErrNoBitbucketAppPassword {
-			tt.Errorf("Expected ErrNoBitbucketAppPassword, got: %v", err)
-		}
-
-	})
-}
-
 func TestTrailingSlashes(t *testing.T) {
 	t.Run("URL's with no trailing slash should get one", func(tt *testing.T) {
 		got := configs.EnsureTrailingSlashOnURL("github.com")
