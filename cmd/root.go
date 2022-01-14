@@ -109,8 +109,10 @@ func getOrSetDefaults(envVar string) {
 	} else {
 		s := viper.GetString(envVar)
 		// envs that need a trailing slash
-		if envVar == "GHORG_SCM_BASE_URL" || envVar == "GHORG_ABSOLUTE_PATH_TO_CLONE_TO" {
-			os.Setenv(envVar, configs.EnsureTrailingSlash(s))
+		if envVar == "GHORG_SCM_BASE_URL" {
+			os.Setenv(envVar, configs.EnsureTrailingSlashOnURL(s))
+		} else if envVar == "GHORG_ABSOLUTE_PATH_TO_CLONE_TO" {
+			os.Setenv(envVar, configs.EnsureTrailingSlashOnFilePath(s))
 		} else {
 			os.Setenv(envVar, s)
 		}

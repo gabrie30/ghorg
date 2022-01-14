@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 ### Fixed
 - Gitlab token length requirements; thanks @dschafhauser
+- Appending trailing slashes on urls and filepaths; thanks @dschafhauser
 ### Security
 
 ## [1.7.5] - 12/11/21

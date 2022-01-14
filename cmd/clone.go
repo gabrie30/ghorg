@@ -30,7 +30,7 @@ var cloneCmd = &cobra.Command{
 func cloneFunc(cmd *cobra.Command, argz []string) {
 
 	if cmd.Flags().Changed("path") {
-		absolutePath := configs.EnsureTrailingSlash((cmd.Flag("path").Value.String()))
+		absolutePath := configs.EnsureTrailingSlashOnFilePath((cmd.Flag("path").Value.String()))
 		os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", absolutePath)
 	}
 
