@@ -61,14 +61,25 @@ func isZero(value interface{}) bool {
 	return value == reflect.Zero(reflect.TypeOf(value)).Interface()
 }
 
+// EnsureTrailingSlashOnURL takes a url and ensures a single / is appened
+func EnsureTrailingSlashOnURL(s string) string {
+	trailing := "/"
+
+	if !strings.HasSuffix(s, trailing) {
+		s = s + trailing
+	}
+
+	return s
+}
+
 func GetAbsolutePathToCloneTo() string {
 	path := HomeDir()
 	path = filepath.Join(path, "ghorg")
-	return EnsureTrailingSlash(path)
+	return EnsureTrailingSlashOnFilePath(path)
 }
 
-// EnsureTrailingSlash takes a string and ensures a single / is appened
-func EnsureTrailingSlash(s string) string {
+// EnsureTrailingSlashOnFilePath takes a filepath and ensures a single / is appened
+func EnsureTrailingSlashOnFilePath(s string) string {
 	trailing := GetCorrectFilePathSeparator()
 
 	if !strings.HasSuffix(s, trailing) {
