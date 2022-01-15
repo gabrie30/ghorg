@@ -11,8 +11,8 @@ ghorg allows you to quickly clone all of an orgs, or users repos into a single d
 1. Performing Audits
 
 > With default configuration ghorg performs two actions.
-> 1. Will clone a repo if it doesn't exist locally.
-> 2. If repo does exists locally it will perform a git pull and git clean.
+> 1. Will clone a repo if its not inside the clone directory.
+> 2. If repo does exists locally in the clone directory it will perform a git pull and git clean on the repo.
 
 > So when running ghorg a second time on the same org/user, all local changes in the cloned directory by default will be overwritten by what's on GitHub. If you want to work out of this directory, make sure you either rename the directory or set the `--no-clean` flag on all future clones to prevent losing your changes locally.
 
