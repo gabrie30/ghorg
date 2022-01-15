@@ -3,10 +3,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.7.6] - unreleased
+## [1.7.6] - 1/15/22
 ### Added
 - goreleaser
-- GHORG_BITBUCKET_OAUTH_TOKEN to support oauth tokens for bitbucket
+- GHORG_BITBUCKET_OAUTH_TOKEN to support oauth tokens for bitbucket; thanks @
+skupjoe
 ### Changed
 ### Deprecated
 ### Removed
