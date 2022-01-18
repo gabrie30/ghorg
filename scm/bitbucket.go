@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/ktrysmt/go-bitbucket"
 )
 
@@ -69,6 +70,10 @@ func (_ Bitbucket) filter(resp interface{}) (repoData []Repo, err error) {
 		for _, l := range links {
 			link := l.(map[string]interface{})["href"]
 			linkType := l.(map[string]interface{})["name"]
+
+			if os.Getenv("GHORG_TOPICS") != "" {
+				colorlog.PrintError("WARNING: Filtering by topics is not supported for Bitbucket SCM")
+			}
 
 			if os.Getenv("GHORG_MATCH_PREFIX") != "" {
 				repoName := strings.ToLower(clone["name"].(string))
