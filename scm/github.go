@@ -38,8 +38,6 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		ListOptions: github.ListOptions{PerPage: c.perPage},
 	}
 
-	envTopics := strings.Split(os.Getenv("GHORG_TOPICS"), ",")
-
 	// get all pages of results
 	var allRepos []*github.Repository
 	for {
@@ -60,7 +58,7 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		opt.Page = resp.NextPage
 	}
 
-	return c.filter(allRepos, envTopics), nil
+	return c.filter(allRepos), nil
 }
 
 // GetUserRepos gets user repos
@@ -73,8 +71,6 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 		Visibility:  "all",
 		ListOptions: github.ListOptions{PerPage: c.perPage},
 	}
-
-	envTopics := strings.Split(os.Getenv("GHORG_TOPICS"), ",")
 
 	// get all pages of results
 	var allRepos []*github.Repository
@@ -107,7 +103,7 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 		opt.Page = resp.NextPage
 	}
 
-	return c.filter(allRepos, envTopics), nil
+	return c.filter(allRepos), nil
 }
 
 // NewClient create new github scm client
@@ -137,7 +133,7 @@ func (_ Github) addTokenToHTTPSCloneURL(url string, token string) string {
 	return "https://" + token + "@" + splitURL[1]
 }
 
-func (c Github) filter(allRepos []*github.Repository, envTopics []string) []Repo {
+func (c Github) filter(allRepos []*github.Repository) []Repo {
 	var repoData []Repo
 
 	for _, ghRepo := range allRepos {
@@ -154,20 +150,8 @@ func (c Github) filter(allRepos []*github.Repository, envTopics []string) []Repo
 			}
 		}
 
-		// If user defined a list of topics, check if any match with this repo
-		if os.Getenv("GHORG_TOPICS") != "" {
-			foundTopic := false
-			for _, topic := range ghRepo.Topics {
-				for _, envTopic := range envTopics {
-					if topic == envTopic {
-						foundTopic = true
-						continue
-					}
-				}
-			}
-			if foundTopic == false {
-				continue
-			}
+		if !hasMatchingTopic(ghRepo.Topics) {
+			continue
 		}
 
 		if os.Getenv("GHORG_MATCH_PREFIX") != "" {
