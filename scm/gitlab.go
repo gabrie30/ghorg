@@ -233,6 +233,10 @@ func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
 			}
 		}
 
+		if !hasMatchingTopic(p.Topics) {
+			continue
+		}
+
 		if os.Getenv("GHORG_MATCH_PREFIX") != "" {
 			repoName := strings.ToLower(p.Name)
 			foundPrefix := false

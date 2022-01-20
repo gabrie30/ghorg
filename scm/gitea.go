@@ -118,8 +118,6 @@ func (_ Gitea) NewClient() (Client, error) {
 }
 
 func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
-	envTopics := strings.Split(os.Getenv("GHORG_TOPICS"), ",")
-
 	for _, rp := range rps {
 
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
@@ -134,25 +132,12 @@ func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 			}
 		}
 
-		// If user defined a list of topics, check if any match with this repo
 		if os.Getenv("GHORG_TOPICS") != "" {
 			rpTopics, _, err := c.ListRepoTopics(rp.Owner.UserName, rp.Name, gitea.ListRepoTopicsOptions{})
 			if err != nil {
 				return []Repo{}, err
 			}
-			foundTopic := false
-			for _, topic := range rpTopics {
-				for _, envTopic := range envTopics {
-					if topic == envTopic {
-						foundTopic = true
-						break
-					}
-				}
-				if foundTopic == true {
-					break
-				}
-			}
-			if foundTopic == false {
+			if !hasMatchingTopic(rpTopics) {
 				continue
 			}
 		}
