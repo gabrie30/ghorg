@@ -92,7 +92,7 @@ GHORG_CLONE_TYPE: org
 # flag (--color) eg: --color=disabled
 GHORG_COLOR: disabled
 
-# A comma separated list of topics to filter by, currently github/gitea only
+# A comma separated list of topics to filter by, currently github/gitlab/gitea only
 # flag (--topics) eg: --topics=frontend
 # If any topics exist here, ghorg will only clone repos that match at least one of these topics
 GHORG_TOPICS:
