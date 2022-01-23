@@ -30,7 +30,7 @@ ghorg allows you to quickly clone all of an orgs, or users repos into a single d
 
 ## Windows support
 
-Ghorg supports windows when built with golang, however the readme and other documentation is not geared towards windows users.
+Windows is supported when built with golang or as a [prebuilt binary](https://github.com/gabrie30/ghorg/releases/latest) however, the readme and other documentation is not geared towards windows users.
 
 ## Configuration
 
@@ -49,7 +49,11 @@ ghorg clone kubernetes --config=$HOME/.config/ghorg/other-config.yaml
 
 ### Prebuilt Binaries
 
-See [latest release](https://github.com/gabrie30/ghorg/releases/latest) to download directly
+See [latest release](https://github.com/gabrie30/ghorg/releases/latest) to download directly for
+
+- Mac
+- Windows
+- Linux
 
 ### Homebrew
 
