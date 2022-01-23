@@ -51,9 +51,11 @@ ghorg clone kubernetes --config=$HOME/.config/ghorg/other-config.yaml
 
 See [latest release](https://github.com/gabrie30/ghorg/releases/latest) to download directly for
 
-- Mac
+- Mac (Darwin)
 - Windows
 - Linux
+
+If you don't know which to choose its likely going to be the x86_64 version for your operating system
 
 ### Homebrew
 
