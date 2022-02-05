@@ -121,13 +121,13 @@ func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 	for _, rp := range rps {
 
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
-			if rp.Archived == true {
+			if rp.Archived {
 				continue
 			}
 		}
 
 		if os.Getenv("GHORG_SKIP_FORKS") == "true" {
-			if rp.Fork == true {
+			if rp.Fork {
 				continue
 			}
 		}
@@ -142,22 +142,9 @@ func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 			}
 		}
 
-		if os.Getenv("GHORG_MATCH_PREFIX") != "" {
-			repoName := strings.ToLower(rp.Name)
-			foundPrefix := false
-			pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
-			for _, p := range pfs {
-				if strings.HasPrefix(repoName, strings.ToLower(p)) {
-					foundPrefix = true
-				}
-			}
-			if foundPrefix == false {
-				continue
-			}
-		}
-
 		r := Repo{}
 		r.Path = rp.FullName
+		r.Name = rp.Name
 
 		if os.Getenv("GHORG_BRANCH") == "" {
 			defaultBranch := rp.DefaultBranch

@@ -2,7 +2,6 @@ package scm
 
 import (
 	"os"
-	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/ktrysmt/go-bitbucket"
@@ -75,21 +74,8 @@ func (_ Bitbucket) filter(resp interface{}) (repoData []Repo, err error) {
 				colorlog.PrintError("WARNING: Filtering by topics is not supported for Bitbucket SCM")
 			}
 
-			if os.Getenv("GHORG_MATCH_PREFIX") != "" {
-				repoName := strings.ToLower(clone["name"].(string))
-				foundPrefix := false
-				pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
-				for _, p := range pfs {
-					if strings.HasPrefix(repoName, strings.ToLower(p)) {
-						foundPrefix = true
-					}
-				}
-				if foundPrefix == false {
-					continue
-				}
-			}
-
 			r := Repo{}
+			r.Name = clone["name"].(string)
 
 			if os.Getenv("GHORG_BRANCH") == "" {
 				var defaultBranch string
