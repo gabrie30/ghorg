@@ -119,14 +119,20 @@ GHORG_CONCURRENCY: 25
 GHORG_OUTPUT_DIR:
 
 # Only clone repos with matching prefix, can be a comma separated list
-# default: ""
 # flag (--match-prefix) eg: --match-prefix=backend
 GHORG_MATCH_PREFIX:
 
+# Exclude cloning repos with matching prefix, can be a comma separated list
+# flag (--exclude-match-prefix) eg: --exclude-match-prefix=backend
+GHORG_MATCH_PREFIX:
+
 # Only clone repos that match name to regex provided
-# default: match all
 # flag (--match-regex) eg: --match-regex=^foo
 GHORG_MATCH_REGEX:
+
+# Exclude cloning repos that match name to regex provided
+# flag (--exclude-match-regex) eg: --exclude-match-regex=^foo
+GHORG_EXCLUDE_MATCH_REGEX:
 
 # Only clones new repos and does not perform a git clean on existing repos. Useful if you don't want to lose changes made to repos in the org/user directory.
 # flag (--no-clean)

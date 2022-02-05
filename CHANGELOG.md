@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.7.7] - Unreleased
 ### Added
 - Filtering repos by topics for gitlab; thanks @dschafhauser
+- Exclude filtering for prefix and regex; thanks @dschafhauser
 ### Changed
 ### Deprecated
 ### Removed

@@ -77,9 +77,19 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_MATCH_PREFIX", prefix)
 	}
 
+	if cmd.Flags().Changed("exclude-match-prefix") {
+		prefix := cmd.Flag("exclude-match-prefix").Value.String()
+		os.Setenv("GHORG_EXCLUDE_MATCH_PREFIX", prefix)
+	}
+
 	if cmd.Flags().Changed("match-regex") {
 		regex := cmd.Flag("match-regex").Value.String()
 		os.Setenv("GHORG_MATCH_REGEX", regex)
+	}
+
+	if cmd.Flags().Changed("exclude-match-regex") {
+		regex := cmd.Flag("exclude-match-regex").Value.String()
+		os.Setenv("GHORG_EXCLUDE_MATCH_REGEX", regex)
 	}
 
 	if cmd.Flags().Changed("skip-archived") {
@@ -287,14 +297,67 @@ func readGhorgIgnore() ([]string, error) {
 	return lines, scanner.Err()
 }
 
-func filterByRegex(repos []scm.Repo) []scm.Repo {
+func filterByRegexMatch(repos []scm.Repo) []scm.Repo {
 	filteredRepos := []scm.Repo{}
 	regex := fmt.Sprint(os.Getenv("GHORG_MATCH_REGEX"))
 
 	for i, r := range repos {
 		re := regexp.MustCompile(regex)
-		match := re.FindString(getAppNameFromURL(r.URL))
+		match := re.FindString(r.Name)
 		if match != "" {
+			filteredRepos = append(filteredRepos, repos[i])
+		}
+	}
+
+	return filteredRepos
+}
+
+func filterByExcludeRegexMatch(repos []scm.Repo) []scm.Repo {
+	filteredRepos := []scm.Repo{}
+	regex := fmt.Sprint(os.Getenv("GHORG_EXCLUDE_MATCH_REGEX"))
+
+	for i, r := range repos {
+		exclude := false
+		re := regexp.MustCompile(regex)
+		match := re.FindString(r.Name)
+		if match != "" {
+			exclude = true
+		}
+
+		if !exclude {
+			filteredRepos = append(filteredRepos, repos[i])
+		}
+	}
+
+	return filteredRepos
+}
+
+func filterByMatchPrefix(repos []scm.Repo) []scm.Repo {
+	filteredRepos := []scm.Repo{}
+	for i, r := range repos {
+		pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
+		for _, p := range pfs {
+			if strings.HasPrefix(strings.ToLower(r.Name), strings.ToLower(p)) {
+				filteredRepos = append(filteredRepos, repos[i])
+			}
+		}
+	}
+
+	return filteredRepos
+}
+
+func filterByExcludeMatchPrefix(repos []scm.Repo) []scm.Repo {
+	filteredRepos := []scm.Repo{}
+	for i, r := range repos {
+		var exclude bool
+		pfs := strings.Split(os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX"), ",")
+		for _, p := range pfs {
+			if strings.HasPrefix(strings.ToLower(r.Name), strings.ToLower(p)) {
+				exclude = true
+			}
+		}
+
+		if !exclude {
 			filteredRepos = append(filteredRepos, repos[i])
 		}
 	}
@@ -325,12 +388,27 @@ func printDryRun(repos []scm.Repo) {
 
 // CloneAllRepos clones all repos
 func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
-	// resc, errc, infoc := make(chan string), make(chan error), make(chan error)
 
+	// Filter repos that have attributes that don't need specific scm api calls
 	if os.Getenv("GHORG_MATCH_REGEX") != "" {
-		colorlog.PrintInfo("Filtering repos down by regex that match the provided...")
+		colorlog.PrintInfo("Filtering repos down by including regex matches...")
 		fmt.Println("")
-		cloneTargets = filterByRegex(cloneTargets)
+		cloneTargets = filterByRegexMatch(cloneTargets)
+	}
+	if os.Getenv("GHORG_EXCLUDE_MATCH_REGEX") != "" {
+		colorlog.PrintInfo("Filtering repos down by excluding regex matches...")
+		fmt.Println("")
+		cloneTargets = filterByExcludeRegexMatch(cloneTargets)
+	}
+	if os.Getenv("GHORG_MATCH_PREFIX") != "" {
+		colorlog.PrintInfo("Filtering repos down by including prefix matches...")
+		fmt.Println("")
+		cloneTargets = filterByMatchPrefix(cloneTargets)
+	}
+	if os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX") != "" {
+		colorlog.PrintInfo("Filtering repos down by excluding prefix matches...")
+		fmt.Println("")
+		cloneTargets = filterByExcludeMatchPrefix(cloneTargets)
 	}
 
 	// filter repos down based on ghorgignore if one exists
@@ -394,20 +472,15 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	var cloneCount, pulledCount int
 
-	for _, target := range cloneTargets {
-		appName := getAppNameFromURL(target.URL)
-
-		branch := target.CloneBranch
-		repo := target
-
+	for i := range cloneTargets {
+		repo := cloneTargets[i]
+		repoSlug := getAppNameFromURL(repo.URL)
 		limit.Execute(func() {
-
-			path := appName
 			if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
 				path = repo.Path
 			}
 
-			repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder, configs.GetCorrectFilePathSeparator(), path)
+			repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder, configs.GetCorrectFilePathSeparator(), repoSlug)
 
 			if repo.IsWiki {
 				if !strings.HasSuffix(repo.HostPath, ".wiki") {
@@ -416,7 +489,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			}
 
 			if os.Getenv("GHORG_BACKUP") == "true" {
-				repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder+"_backup", configs.GetCorrectFilePathSeparator(), path)
+				repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder+"_backup", configs.GetCorrectFilePathSeparator(), repoSlug)
 			}
 
 			action := "cloning"
@@ -521,7 +594,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				if os.Getenv("GHORG_BRANCH") != "" {
 					err := git.Checkout(repo)
 					if err != nil {
-						e := fmt.Sprintf("Could not checkout out %s, branch may not exist, no changes made Repo: %s Error: %v", branch, repo.URL, err)
+						e := fmt.Sprintf("Could not checkout out %s, branch may not exist, no changes made Repo: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneInfos = append(cloneInfos, e)
 						return
 					}
@@ -551,7 +624,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				}
 			}
 
-			colorlog.PrintSuccess("Success " + action + " repo: " + repo.URL + " -> branch: " + branch)
+			colorlog.PrintSuccess("Success " + action + " repo: " + repo.URL + " -> branch: " + repo.CloneBranch)
 		})
 
 	}
@@ -613,6 +686,15 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_MATCH_REGEX") != "" {
 		colorlog.PrintInfo("* Regex Match   : " + os.Getenv("GHORG_MATCH_REGEX"))
+	}
+	if os.Getenv("GHORG_EXCLUDE_MATCH_REGEX") != "" {
+		colorlog.PrintInfo("* Exclude Regex : " + os.Getenv("GHORG_EXCLUDE_MATCH_REGEX"))
+	}
+	if os.Getenv("GHORG_MATCH_PREFIX") != "" {
+		colorlog.PrintInfo("* Prefix Match: " + os.Getenv("GHORG_MATCH_PREFIX"))
+	}
+	if os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX") != "" {
+		colorlog.PrintInfo("* Exclude Prefix: " + os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX"))
 	}
 	if os.Getenv("GHORG_OUTPUT_DIR") != "" {
 		colorlog.PrintInfo("* Output Dir    : " + parentFolder)

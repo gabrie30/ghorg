@@ -222,7 +222,7 @@ func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
 	for _, p := range ps {
 
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
-			if p.Archived == true {
+			if p.Archived {
 				continue
 			}
 		}
@@ -237,21 +237,9 @@ func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
 			continue
 		}
 
-		if os.Getenv("GHORG_MATCH_PREFIX") != "" {
-			repoName := strings.ToLower(p.Name)
-			foundPrefix := false
-			pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
-			for _, p := range pfs {
-				if strings.HasPrefix(repoName, strings.ToLower(p)) {
-					foundPrefix = true
-				}
-			}
-			if foundPrefix == false {
-				continue
-			}
-		}
-
 		r := Repo{}
+
+		r.Name = p.Name
 
 		if os.Getenv("GHORG_BRANCH") == "" {
 			defaultBranch := p.DefaultBranch

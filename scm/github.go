@@ -139,13 +139,13 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 	for _, ghRepo := range allRepos {
 
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
-			if *ghRepo.Archived == true {
+			if *ghRepo.Archived {
 				continue
 			}
 		}
 
 		if os.Getenv("GHORG_SKIP_FORKS") == "true" {
-			if *ghRepo.Fork == true {
+			if *ghRepo.Fork {
 				continue
 			}
 		}
@@ -154,21 +154,9 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 			continue
 		}
 
-		if os.Getenv("GHORG_MATCH_PREFIX") != "" {
-			repoName := strings.ToLower(*ghRepo.Name)
-			foundPrefix := false
-			pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
-			for _, p := range pfs {
-				if strings.HasPrefix(repoName, strings.ToLower(p)) {
-					foundPrefix = true
-				}
-			}
-			if foundPrefix == false {
-				continue
-			}
-		}
-
 		r := Repo{}
+
+		r.Name = *ghRepo.Name
 
 		if os.Getenv("GHORG_BRANCH") == "" {
 			defaultBranch := ghRepo.GetDefaultBranch()

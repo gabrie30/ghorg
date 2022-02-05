@@ -133,19 +133,4 @@ func TestGetOrgRepos(t *testing.T) {
 		}
 		os.Setenv("GHORG_TOPICS", "")
 	})
-
-	t.Run("Find all repos with specific prefix", func(tt *testing.T) {
-		os.Setenv("GHORG_MATCH_PREFIX", "tp-")
-		resp, err := github.GetOrgRepos("testorg")
-
-		if err != nil {
-			t.Fatal(err)
-		}
-		want := 3
-		got := len(resp)
-		if want != got {
-			tt.Errorf("Expected %v repo, got: %v", want, got)
-		}
-		os.Setenv("GHORG_MATCH_PREFIX", "")
-	})
 }

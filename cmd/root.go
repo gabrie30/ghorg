@@ -38,7 +38,9 @@ var (
 	cloneInfos           []string
 	targetCloneSource    string
 	matchPrefix          string
+	excludeMatchPrefix   string
 	matchRegex           string
+	excludeMatchRegex    string
 	config               string
 )
 
@@ -163,7 +165,6 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_INSECURE_GITLAB_CLIENT")
 	getOrSetDefaults("GHORG_BACKUP")
 	getOrSetDefaults("GHORG_CONCURRENCY")
-	getOrSetDefaults("GHORG_MATCH_PREFIX")
 	// Optionally set
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
 	getOrSetDefaults("GHORG_COLOR")
@@ -176,6 +177,9 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_PRESERVE_DIRECTORY_STRUCTURE")
 	getOrSetDefaults("GHORG_OUTPUT_DIR")
 	getOrSetDefaults("GHORG_MATCH_REGEX")
+	getOrSetDefaults("GHORG_EXCLUDE_MATCH_REGEX")
+	getOrSetDefaults("GHORG_MATCH_PREFIX")
+	getOrSetDefaults("GHORG_EXCLUDE_MATCH_PREFIX")
 
 	if os.Getenv("GHORG_DEBUG") != "" {
 		viper.Debug()
@@ -216,8 +220,10 @@ func init() {
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - max goroutines to spin up while cloning (default 25)")
 	cloneCmd.Flags().StringVarP(&topics, "topics", "", "", "GHORG_TOPICS - comma separated list of github/gitea topics to filter for")
 	cloneCmd.Flags().StringVarP(&outputDir, "output-dir", "", "", "GHORG_OUTPUT_DIR - name of directory repos will be cloned into (default name of org/repo being cloned")
-	cloneCmd.Flags().StringVarP(&matchPrefix, "match-prefix", "", "", "GHORG_MATCH_PREFIX - only clone repos with matching prefix, can be a comma separated list (default \"\")")
+	cloneCmd.Flags().StringVarP(&matchPrefix, "match-prefix", "", "", "GHORG_MATCH_PREFIX - only clone repos with matching prefix, can be a comma separated list")
+	cloneCmd.Flags().StringVarP(&excludeMatchPrefix, "exclude-match-prefix", "", "", "GHORG_EXCLUDE_MATCH_PREFIX - exclude cloning repos with matching prefix, can be a comma separated list")
 	cloneCmd.Flags().StringVarP(&matchRegex, "match-regex", "", "", "GHORG_MATCH_REGEX - only clone repos that match name to regex provided")
+	cloneCmd.Flags().StringVarP(&excludeMatchRegex, "exclude-match-regex", "", "", "GHORG_EXCLUDE_MATCH_REGEX - exclude cloning repos that match name to regex provided")
 
 	rootCmd.AddCommand(lsCmd, versionCmd, cloneCmd)
 }
