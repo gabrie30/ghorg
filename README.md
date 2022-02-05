@@ -222,8 +222,8 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
         └── sig-testing
     ```
 ## Filtering Repos
-- To clone repos that match regex use `--match-regex` flag or exclude cloning repos that match regex with `--exclude-match-regex`
-- To clone repos that match prefix(s) use `--match-prefix` flag or exclude cloning repos that match prefix(s) with `--exclude-match-prefix`
+- To only clone repos that match regex use `--match-regex` flag or exclude cloning repos that match regex with `--exclude-match-regex`
+- To only clone repos that match prefix(s) use `--match-prefix` flag or exclude cloning repos that match prefix(s) with `--exclude-match-prefix`
 - To filter out any archived repos while cloning use the `--skip-archived` flag (not bitbucket)
 - To filter out any forked repos while cloning use the `--skip-forks` flag
 - Filter by specific repo [topics](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/classifying-your-repository-with-topics) `GHORG_TOPICS` or `--topics` will clone only repos with a matching topic. GitHub/GitLab/Gitea only
