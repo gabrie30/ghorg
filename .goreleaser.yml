@@ -1,5 +1,6 @@
 # This is an example .goreleaser.yml file with some sensible defaults.
 # Make sure to check the documentation at https://goreleaser.com
+project_name: ghorg
 before:
   hooks:
     # You may remove this if you don't use go modules.
@@ -8,6 +9,7 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
+      - GITHUB_TOKEN="{{ .Env.GHORG_GITHUB_TOKEN }}"
     goos:
       - linux
       - windows
