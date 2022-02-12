@@ -27,3 +27,52 @@ snapshot:
   name_template: "{{ incpatch .Version }}-next"
 changelog:
   skip: true
+brews:
+  -
+    tap:
+      owner: gabrie30
+      name: homebrew-utils
+
+      # Optionally a branch can be provided.
+      # Defaults to the default repository branch.
+      branch: master
+
+    # The project name and current git tag are used in the format string.
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+
+    homepage: "https://github.com/gabrie30/ghorg"
+
+    description: "Quickly clone an entire org/users repositories into one directory"
+
+    license: "Apache-2.0"
+
+    # Packages your package depends on.
+    dependencies:
+      - name: go
+
+    test: |
+      system "#{bin}/ghorg version"
+
+    # Custom install script for brew.
+    # Default is 'bin.install "program"'.
+    install: |
+        ENV["GOPATH"] = buildpath
+
+        bin_path = buildpath/"src/github.com/gabrie30/ghorg"
+        bin_path.install Dir["*"]
+        cd bin_path do
+          system "go", "build", "-o", bin/"ghorg", "."
+        end
+
+    post_install: |
+        ohai ""
+        ohai "***************************"
+        ohai "For examples on how to use ghorg see: https://github.com/gabrie30/ghorg/tree/master/examples"
+        ohai ""
+        ohai "Remember to set your $HOME/.config/ghorg/conf.yaml"
+        ohai ""
+        ohai "Here's all you need to do..."
+        ohai "1) mkdir -p $HOME/.config/ghorg"
+        ohai "2) curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml"
+        ohai "***************************"
+        ohai ""
