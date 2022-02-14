@@ -477,7 +477,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		repoSlug := getAppNameFromURL(repo.URL)
 		limit.Execute(func() {
 			if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
-				path = repo.Path
+				repoSlug = repo.Path
 			}
 
 			repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder, configs.GetCorrectFilePathSeparator(), repoSlug)
