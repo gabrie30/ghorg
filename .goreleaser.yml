@@ -47,22 +47,11 @@ brews:
     license: "Apache-2.0"
 
     # Packages your package depends on.
-    dependencies:
-      - name: go
+    # dependencies:
+      # - name: git
 
     test: |
       system "#{bin}/ghorg version"
-
-    # Custom install script for brew.
-    # Default is 'bin.install "program"'.
-    install: |
-        ENV["GOPATH"] = buildpath
-
-        bin_path = buildpath/"src/github.com/gabrie30/ghorg"
-        bin_path.install Dir["*"]
-        cd bin_path do
-          system "go", "build", "-o", bin/"ghorg", "."
-        end
 
     post_install: |
         ohai ""
