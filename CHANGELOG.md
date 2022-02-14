@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- GitLab `--preserve-dir` flag not being respected; thanks @attachmentgenie
 ### Security
 
 ## [1.7.7] - 2/12/22
