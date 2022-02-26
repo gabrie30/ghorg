@@ -70,6 +70,7 @@ func (_ Bitbucket) NewClient() (Client, error) {
 func (_ Bitbucket) filter(resp []bitbucket.Repository) (repoData []Repo, err error) {
 	cloneData := []Repo{}
 
+	for _, a := range resp {
 		links := a.Links["clone"].([]interface{})
 		for _, l := range links {
 			link := l.(map[string]interface{})["href"]
