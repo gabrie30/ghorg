@@ -1,6 +1,7 @@
 package scm
 
 import (
+	"net/url"
 	"os"
 
 	"github.com/gabrie30/ghorg/colorlog"
@@ -50,6 +51,11 @@ func (_ Bitbucket) NewClient() (Client, error) {
 	password := os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
 	oAuth := os.Getenv("GHORG_BITBUCKET_OAUTH")
 	var c *bitbucket.Client
+
+	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
+		u, _ := url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
+		c.SetApiBaseURL(*u)
+	}
 
 	if oAuth != "" {
 		c = bitbucket.NewOAuthbearerToken(oAuth)
