@@ -2,6 +2,7 @@ package scm
 
 import (
 	"net/url"
+
 	"os"
 
 	"github.com/gabrie30/ghorg/colorlog"
@@ -27,22 +28,22 @@ func (_ Bitbucket) GetType() string {
 
 // GetOrgRepos gets org repos
 func (c Bitbucket) GetOrgRepos(targetOrg string) ([]Repo, error) {
-	resp, err := c.Teams.Repositories(targetOrg)
+	resp, err := c.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: targetOrg})
 	if err != nil {
 		return []Repo{}, err
 	}
 
-	return c.filter(resp)
+	return c.filter(resp.Items)
 }
 
 // GetUserRepos gets user repos from bitbucket
 func (c Bitbucket) GetUserRepos(targetUser string) ([]Repo, error) {
-	resp, err := c.Users.Repositories(targetUser)
+	resp, err := c.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: targetUser})
 	if err != nil {
 		return []Repo{}, err
 	}
 
-	return c.filter(resp)
+	return c.filter(resp.Items)
 }
 
 // NewClient create new bitbucket scm client
@@ -62,16 +63,14 @@ func (_ Bitbucket) NewClient() (Client, error) {
 	} else {
 		c = bitbucket.NewBasicAuth(user, password)
 	}
+
 	return Bitbucket{c}, nil
 }
 
-func (_ Bitbucket) filter(resp interface{}) (repoData []Repo, err error) {
+func (_ Bitbucket) filter(resp []bitbucket.Repository) (repoData []Repo, err error) {
 	cloneData := []Repo{}
-	values := resp.(map[string]interface{})["values"].([]interface{})
 
-	for _, a := range values {
-		clone := a.(map[string]interface{})
-		links := clone["links"].(map[string]interface{})["clone"].([]interface{})
+		links := a.Links["clone"].([]interface{})
 		for _, l := range links {
 			link := l.(map[string]interface{})["href"]
 			linkType := l.(map[string]interface{})["name"]
@@ -81,23 +80,10 @@ func (_ Bitbucket) filter(resp interface{}) (repoData []Repo, err error) {
 			}
 
 			r := Repo{}
-			r.Name = clone["name"].(string)
+			r.Name = a.Name
 
 			if os.Getenv("GHORG_BRANCH") == "" {
-				var defaultBranch string
-				if clone["mainbranch"] == nil {
-					defaultBranch = "master"
-				} else {
-					defaultBranch = clone["mainbranch"].(map[string]interface{})["name"].(string)
-				}
-
-				r.CloneBranch = defaultBranch
-			} else {
-				r.CloneBranch = os.Getenv("GHORG_BRANCH")
-			}
-
-			if os.Getenv("GHORG_BRANCH") == "" {
-				r.CloneBranch = "master"
+				r.CloneBranch = a.Mainbranch.Name
 			} else {
 				r.CloneBranch = os.Getenv("GHORG_BRANCH")
 			}
