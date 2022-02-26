@@ -53,15 +53,15 @@ func (_ Bitbucket) NewClient() (Client, error) {
 	oAuth := os.Getenv("GHORG_BITBUCKET_OAUTH")
 	var c *bitbucket.Client
 
-	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
-		u, _ := url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
-		c.SetApiBaseURL(*u)
-	}
-
 	if oAuth != "" {
 		c = bitbucket.NewOAuthbearerToken(oAuth)
 	} else {
 		c = bitbucket.NewBasicAuth(user, password)
+	}
+
+	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
+		u, _ := url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
+		c.SetApiBaseURL(*u)
 	}
 
 	return Bitbucket{c}, nil
