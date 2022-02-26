@@ -58,3 +58,8 @@ jobs:
       run: scripts/windows_github_integration_tests.bat
       env:
         GITHUB_TOKEN: ${{ secrets.GHORG_GITHUB_TOKEN }}
+    - name: Run Bitbucket Integration Tests
+      run: scripts/bitbucket_integration_tests.sh
+      env:
+        BITBUCKET_TOKEN: ${{ secrets.GHORG_BITBUCKET_APP_PASSWORD }}
+        BITBUCKET_USERNAME: ${{ secrets.GHORG_BITBUCKET_USERNAME }}
