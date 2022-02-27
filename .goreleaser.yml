@@ -48,7 +48,7 @@ brews:
 
     # Packages your package depends on.
     dependencies:
-      - name: go
+      - name: git
 
     test: |
       system "#{bin}/ghorg version"
