@@ -47,8 +47,8 @@ brews:
     license: "Apache-2.0"
 
     # Packages your package depends on.
-    dependencies:
-      - name: git
+    # dependencies:
+    #   - name: git
 
     test: |
       system "#{bin}/ghorg version"
