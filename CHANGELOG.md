@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - Deprecated bitbucket api calls; thanks @Riduidel
 ### Security
+
 ## [1.7.8] - 2/14/22
 ### Added
 ### Changed
