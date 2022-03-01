@@ -129,13 +129,15 @@ func InitConfig() {
 	if config != "" {
 		viper.SetConfigFile(config)
 		os.Setenv("GHORG_CONFIG", config)
+	} else if os.Getenv("GHORG_CONFIG") != "" {
+		// TODO maybe check if config is valid etc ...
+		viper.SetConfigFile(os.Getenv("GHORG_CONFIG"))
 	} else {
 		config = configs.DefaultConfFile()
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath(configs.GhorgDir())
 		viper.SetConfigName("conf")
 		os.Setenv("GHORG_CONFIG", configs.DefaultConfFile())
-
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
