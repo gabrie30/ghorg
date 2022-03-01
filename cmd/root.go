@@ -128,21 +128,21 @@ func getOrSetDefaults(envVar string) {
 func InitConfig() {
 	if config != "" {
 		viper.SetConfigFile(config)
-		os.Setenv("GHORG_CONF", config)
+		os.Setenv("GHORG_CONFIG", config)
 	} else {
 		config = configs.DefaultConfFile()
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath(configs.GhorgDir())
 		viper.SetConfigName("conf")
-		os.Setenv("GHORG_CONF", configs.DefaultConfFile())
+		os.Setenv("GHORG_CONFIG", configs.DefaultConfFile())
 
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			os.Setenv("GHORG_CONF", "none")
+			os.Setenv("GHORG_CONFIG", "none")
 		} else {
-			colorlog.PrintError(fmt.Sprintf("Something unexpected happened reading configuration file: %s, err: %s", os.Getenv("GHORG_CONF"), err))
+			colorlog.PrintError(fmt.Sprintf("Something unexpected happened reading configuration file: %s, err: %s", os.Getenv("GHORG_CONFIG"), err))
 			os.Exit(1)
 		}
 	}
@@ -184,7 +184,7 @@ func InitConfig() {
 	if os.Getenv("GHORG_DEBUG") != "" {
 		viper.Debug()
 		fmt.Println("Viper config file used:", viper.ConfigFileUsed())
-		fmt.Printf("GHORG_CONF SET TO: %s\n", os.Getenv("GHORG_CONF"))
+		fmt.Printf("GHORG_CONFIG SET TO: %s\n", os.Getenv("GHORG_CONFIG"))
 	}
 
 }
@@ -193,7 +193,7 @@ func init() {
 	cobra.OnInitialize(InitConfig)
 
 	rootCmd.PersistentFlags().StringVar(&color, "color", "", "GHORG_COLOR - toggles colorful output, enabled/disabled (default: disabled)")
-	rootCmd.PersistentFlags().StringVar(&config, "config", "", "manually set the path to your config file")
+	rootCmd.PersistentFlags().StringVar(&config, "config", "", "GHORG_CONFIG - manually set the path to your config file")
 
 	viper.SetDefault("config", configs.DefaultConfFile())
 
