@@ -709,7 +709,7 @@ func PrintConfigs() {
 		colorlog.PrintInfo("* Dry Run       : " + "true")
 	}
 
-	colorlog.PrintInfo("* Config Used   : " + os.Getenv("GHORG_CONF"))
+	colorlog.PrintInfo("* Config Used   : " + os.Getenv("GHORG_CONFIG"))
 
 	colorlog.PrintInfo("*************************************")
 	fmt.Println("")
