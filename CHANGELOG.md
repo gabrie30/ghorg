@@ -2,7 +2,16 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-## [1.7.10] - unreleased
+
+## [1.7.11] - unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## [1.7.10] - 3/2/22
 ### Added
 ### Changed
 ### Deprecated
