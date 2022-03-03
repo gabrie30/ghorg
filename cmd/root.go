@@ -198,6 +198,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&config, "config", "", "GHORG_CONFIG - manually set the path to your config file")
 
 	viper.SetDefault("config", configs.DefaultConfFile())
+	viper.AutomaticEnv()
 
 	_ = viper.BindPFlag("color", rootCmd.PersistentFlags().Lookup("color"))
 	_ = viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
