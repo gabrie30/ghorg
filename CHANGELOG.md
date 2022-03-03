@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.7.11] - unreleased
 ### Added
+- Automatic env setting for viper to allow for overriding env vars; thanks @hojerst
 ### Changed
 ### Deprecated
 ### Removed
@@ -17,7 +18,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
-Configuration env var; thanks @Rabattkarte
+- Configuration env var; thanks @Rabattkarte
 ### Security
 
 ## [1.7.9] - 2/27/22
