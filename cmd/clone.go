@@ -82,6 +82,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_EXCLUDE_MATCH_PREFIX", prefix)
 	}
 
+	if cmd.Flags().Changed("gitlab-group-exclude-match-regex") {
+		prefix := cmd.Flag("gitlab-group-exclude-match-regex").Value.String()
+		os.Setenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX", prefix)
+	}
+
 	if cmd.Flags().Changed("match-regex") {
 		regex := cmd.Flag("match-regex").Value.String()
 		os.Setenv("GHORG_MATCH_REGEX", regex)

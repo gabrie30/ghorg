@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.7.11] - unreleased
 ### Added
 - Automatic env setting for viper to allow for overriding env vars; thanks @hojerst
+- Exclude gitlab groups by regex match; thanks @schelhorn
 ### Changed
 ### Deprecated
 ### Removed
