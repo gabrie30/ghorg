@@ -3,7 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.7.11] - unreleased
+## [1.7.12] - unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## [1.7.11] - 3/5/22
 ### Added
 - Automatic env setting for viper to allow for overriding env vars; thanks @hojerst
 - Exclude gitlab groups by regex match; thanks @schelhorn
