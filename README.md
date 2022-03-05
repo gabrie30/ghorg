@@ -114,22 +114,6 @@ docker run ghorg-docker ./ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9
 docker run -v $HOME/ghorg/:/root/ghorg/ ghorg-docker ./ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 --output-dir=cloned-from-docker
 ```
 
-## Use
-
-```bash
-# note: to view/set all available flags/features see sample-conf.yaml
-# note: for examples see ./examples
-$ ghorg clone someorg
-$ ghorg clone someorg --concurrency=50 --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
-$ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop --color=enabled
-$ ghorg clone gitlab-group --scm=gitlab --base-url=https://gitlab.internal.yourcompany.com --preserve-dir
-$ ghorg clone gitlab-group/gitlab-subgroup --scm=gitlab --base-url=https://gitlab.internal.yourcompany.com
-$ ghorg clone --help
-# view cloned resources
-$ ghorg ls
-$ ghorg ls someorg
-```
-
 ## SCM Provider Setup
 
 > Note: if you are running into issues, read the troubleshooting and known issues section below
@@ -206,6 +190,23 @@ $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ pri
 ```
 
 > It's recommended to store github/gitlab tokens in the osxkeychain, if this command returns anything other than your token see Troubleshooting section below. However, you can always add your token to the $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flags.
+
+## How to Use
+
+See [examples](https://github.com/gabrie30/ghorg/tree/master/examples) dir for more SCM specific docs
+
+```bash
+# note: to view/set all available flags/features see sample-conf.yaml
+$ ghorg clone someorg
+$ ghorg clone someorg --concurrency=50 --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+$ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop --color=enabled
+$ ghorg clone gitlab-group --scm=gitlab --base-url=https://gitlab.internal.yourcompany.com --preserve-dir
+$ ghorg clone gitlab-group/gitlab-subgroup --scm=gitlab --base-url=https://gitlab.internal.yourcompany.com
+$ ghorg clone --help
+# view cloned resources
+$ ghorg ls
+$ ghorg ls someorg
+```
 
 ## Changing clone directories
 
