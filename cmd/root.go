@@ -11,37 +11,38 @@ import (
 )
 
 var (
-	protocol             string
-	path                 string
-	parentFolder         string
-	branch               string
-	token                string
-	cloneType            string
-	scmType              string
-	bitbucketUsername    string
-	color                string
-	baseURL              string
-	concurrency          string
-	outputDir            string
-	topics               string
-	skipArchived         bool
-	skipForks            bool
-	backup               bool
-	noClean              bool
-	dryRun               bool
-	cloneWiki            bool
-	preserveDir          bool
-	insecureGitlabClient bool
-	fetchAll             bool
-	args                 []string
-	cloneErrors          []string
-	cloneInfos           []string
-	targetCloneSource    string
-	matchPrefix          string
-	excludeMatchPrefix   string
-	matchRegex           string
-	excludeMatchRegex    string
-	config               string
+	protocol                     string
+	path                         string
+	parentFolder                 string
+	branch                       string
+	token                        string
+	cloneType                    string
+	scmType                      string
+	bitbucketUsername            string
+	color                        string
+	baseURL                      string
+	concurrency                  string
+	outputDir                    string
+	topics                       string
+	skipArchived                 bool
+	skipForks                    bool
+	backup                       bool
+	noClean                      bool
+	dryRun                       bool
+	cloneWiki                    bool
+	preserveDir                  bool
+	insecureGitlabClient         bool
+	fetchAll                     bool
+	args                         []string
+	cloneErrors                  []string
+	cloneInfos                   []string
+	targetCloneSource            string
+	matchPrefix                  string
+	excludeMatchPrefix           string
+	matchRegex                   string
+	excludeMatchRegex            string
+	config                       string
+	gitlabGroupExcludeMatchRegex string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -182,6 +183,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_EXCLUDE_MATCH_REGEX")
 	getOrSetDefaults("GHORG_MATCH_PREFIX")
 	getOrSetDefaults("GHORG_EXCLUDE_MATCH_PREFIX")
+	getOrSetDefaults("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX")
 
 	if os.Getenv("GHORG_DEBUG") != "" {
 		viper.Debug()
@@ -227,6 +229,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&excludeMatchPrefix, "exclude-match-prefix", "", "", "GHORG_EXCLUDE_MATCH_PREFIX - exclude cloning repos with matching prefix, can be a comma separated list")
 	cloneCmd.Flags().StringVarP(&matchRegex, "match-regex", "", "", "GHORG_MATCH_REGEX - only clone repos that match name to regex provided")
 	cloneCmd.Flags().StringVarP(&excludeMatchRegex, "exclude-match-regex", "", "", "GHORG_EXCLUDE_MATCH_REGEX - exclude cloning repos that match name to regex provided")
+	cloneCmd.Flags().StringVarP(&gitlabGroupExcludeMatchRegex, "gitlab-group-exclude-match-regex", "", "", "GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX - exclude cloning gitlab groups that match name to regex provided")
 
 	rootCmd.AddCommand(lsCmd, versionCmd, cloneCmd)
 }

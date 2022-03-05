@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
@@ -47,6 +48,10 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 	} else {
 		allGroups = append(allGroups, targetOrg)
+	}
+
+	if os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX") != "" {
+		allGroups = filterGitlabGroupByExcludeMatchRegex(allGroups)
 	}
 
 	for _, group := range allGroups {
@@ -272,4 +277,25 @@ func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
 		}
 	}
 	return repoData
+}
+
+func filterGitlabGroupByExcludeMatchRegex(groups []string) []string {
+	filteredGroups := []string{}
+	regex := fmt.Sprint(os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX"))
+
+	for i, grp := range groups {
+		fmt.Println(grp)
+		exclude := false
+		re := regexp.MustCompile(regex)
+		match := re.FindString(grp)
+		if match != "" {
+			exclude = true
+		}
+
+		if !exclude {
+			filteredGroups = append(filteredGroups, groups[i])
+		}
+	}
+
+	return filteredGroups
 }
