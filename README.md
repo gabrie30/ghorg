@@ -95,6 +95,25 @@ go install github.com/gabrie30/ghorg@latest
 go get github.com/gabrie30/ghorg
 ```
 
+### Docker
+
+> This is only recommended for testing due to resource constraints
+
+1. Clone repo then `cd ghorg`
+1. Build the image `docker build . -t ghorg-docker`
+1. Run in docker
+
+```bash
+# Using your local ghorg configuration file, cloning in container
+docker run -v $HOME/.config/ghorg/conf.yaml:/root/.config/ghorg/conf.yaml ghorg-docker ./ghorg clone kubernetes
+
+# Using flags, cloning in container
+docker run ghorg-docker ./ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+
+# Using flags, cloning to your machine
+docker run -v $HOME/ghorg/:/root/ghorg/ ghorg-docker ./ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 --output-dir=cloned-from-docker
+```
+
 ## Use
 
 ```bash
