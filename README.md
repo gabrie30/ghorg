@@ -104,13 +104,13 @@ go get github.com/gabrie30/ghorg
 1. Run in docker
 
 ```bash
-# Using your local ghorg configuration file, cloning in container
+# using your local ghorg configuration file, cloning in container
 docker run -v $HOME/.config/ghorg/conf.yaml:/root/.config/ghorg/conf.yaml ghorg-docker ./ghorg clone kubernetes
 
-# Using flags, cloning in container
+# using flags, cloning in container
 docker run ghorg-docker ./ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 
-# Using flags, cloning to your machine
+# using flags, cloning to your machine
 docker run -v $HOME/ghorg/:/root/ghorg/ ghorg-docker ./ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 --output-dir=cloned-from-docker
 ```
 
