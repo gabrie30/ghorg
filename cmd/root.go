@@ -57,7 +57,6 @@ var rootCmd = &cobra.Command{
 
 // reads in configuration file and updates anything not set to default
 func getOrSetDefaults(envVar string) {
-
 	if envVar == "GHORG_COLOR" {
 		if color == "enabled" {
 			os.Setenv("GHORG_COLOR", "enabled")
@@ -80,6 +79,8 @@ func getOrSetDefaults(envVar string) {
 		switch envVar {
 		case "GHORG_ABSOLUTE_PATH_TO_CLONE_TO":
 			os.Setenv(envVar, configs.GetAbsolutePathToCloneTo())
+		case "GHORG_IGNORE_PATH":
+			os.Setenv(envVar, configs.GhorgIgnoreLocation())
 		case "GHORG_CLONE_PROTOCOL":
 			os.Setenv(envVar, "https")
 		case "GHORG_CLONE_TYPE":
@@ -184,13 +185,13 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_MATCH_PREFIX")
 	getOrSetDefaults("GHORG_EXCLUDE_MATCH_PREFIX")
 	getOrSetDefaults("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX")
+	getOrSetDefaults("GHORG_IGNORE_PATH")
 
 	if os.Getenv("GHORG_DEBUG") != "" {
 		viper.Debug()
 		fmt.Println("Viper config file used:", viper.ConfigFileUsed())
 		fmt.Printf("GHORG_CONFIG SET TO: %s\n", os.Getenv("GHORG_CONFIG"))
 	}
-
 }
 
 func init() {

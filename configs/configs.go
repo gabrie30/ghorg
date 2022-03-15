@@ -102,16 +102,18 @@ func GetCorrectFilePathSeparator() string {
 
 // GhorgIgnoreLocation returns the path of users ghorgignore
 func GhorgIgnoreLocation() string {
+	ignoreLocation := os.Getenv("GHORG_IGNORE_PATH")
+	if ignoreLocation != "" {
+		return ignoreLocation
+	}
+
 	return filepath.Join(GhorgDir(), "ghorgignore")
 }
 
-// GhorgIgnoreDetected identify if a ghorgignore file exists in users .config/ghorg directory
+// GhorgIgnoreDetected returns true if a ghorgignore file exists.
 func GhorgIgnoreDetected() bool {
 	_, err := os.Stat(GhorgIgnoreLocation())
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
+	return !os.IsNotExist(err)
 }
 
 // GhorgDir returns the ghorg directory path
