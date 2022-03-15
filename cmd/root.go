@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/configs"
@@ -128,12 +130,18 @@ func getOrSetDefaults(envVar string) {
 }
 
 func InitConfig() {
+	curDir, _ := os.Getwd()
+	localConfig := filepath.Join(curDir, "ghorg.yaml")
+
 	if config != "" {
 		viper.SetConfigFile(config)
 		os.Setenv("GHORG_CONFIG", config)
 	} else if os.Getenv("GHORG_CONFIG") != "" {
 		// TODO maybe check if config is valid etc ...
 		viper.SetConfigFile(os.Getenv("GHORG_CONFIG"))
+	} else if _, err := os.Stat(localConfig); !errors.Is(err, os.ErrNotExist) {
+		viper.SetConfigFile(localConfig)
+		os.Setenv("GHORG_CONFIG", localConfig)
 	} else {
 		config = configs.DefaultConfFile()
 		viper.SetConfigType("yaml")
