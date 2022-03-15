@@ -28,7 +28,6 @@ var cloneCmd = &cobra.Command{
 }
 
 func cloneFunc(cmd *cobra.Command, argz []string) {
-
 	if cmd.Flags().Changed("path") {
 		absolutePath := configs.EnsureTrailingSlashOnFilePath((cmd.Flag("path").Value.String()))
 		os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", absolutePath)
@@ -160,7 +159,6 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 			} else {
 				os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", cmd.Flag("token").Value.String())
 			}
-
 		} else if os.Getenv("GHORG_SCM_TYPE") == "gitea" {
 			os.Setenv("GHORG_GITEA_TOKEN", cmd.Flag("token").Value.String())
 		}
@@ -241,7 +239,7 @@ func getCloneUrls(isOrg bool) ([]scm.Repo, error) {
 
 func createDirIfNotExist() {
 	if _, err := os.Stat(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + parentFolder); os.IsNotExist(err) {
-		err = os.MkdirAll(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), 0700)
+		err = os.MkdirAll(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), 0o700)
 		if err != nil {
 			panic(err)
 		}
@@ -393,7 +391,6 @@ func printDryRun(repos []scm.Repo) {
 
 // CloneAllRepos clones all repos
 func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
-
 	// Filter repos that have attributes that don't need specific scm api calls
 	if os.Getenv("GHORG_MATCH_REGEX") != "" {
 		colorlog.PrintInfo("Filtering repos down by including regex matches...")
@@ -468,7 +465,6 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	createDirIfNotExist()
 
 	l, err := strconv.Atoi(os.Getenv("GHORG_CONCURRENCY"))
-
 	if err != nil {
 		log.Fatal("Could not determine GHORG_CONCURRENCY")
 	}
@@ -534,7 +530,6 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 				} else {
 					err := git.Checkout(repo)
-
 					if err != nil {
 						e := fmt.Sprintf("Could not checkout out %s, branch may not exist, no changes made Repo: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneInfos = append(cloneInfos, e)
@@ -687,7 +682,7 @@ func PrintConfigs() {
 		colorlog.PrintInfo("* Wikis         : " + os.Getenv("GHORG_CLONE_WIKI"))
 	}
 	if configs.GhorgIgnoreDetected() {
-		colorlog.PrintInfo("* Ghorgignore   : true")
+		colorlog.PrintInfo("* Ghorgignore   : " + configs.GhorgIgnoreLocation())
 	}
 	if os.Getenv("GHORG_MATCH_REGEX") != "" {
 		colorlog.PrintInfo("* Regex Match   : " + os.Getenv("GHORG_MATCH_REGEX"))
