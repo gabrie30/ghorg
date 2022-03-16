@@ -149,6 +149,10 @@ func HomeDir() string {
 	return home
 }
 
+func GhorgQuiet() bool {
+	return os.Getenv("GHORG_QUIET") != ""
+}
+
 // GetOrSetToken will set token based on scm
 func GetOrSetToken() {
 	switch os.Getenv("GHORG_SCM_TYPE") {

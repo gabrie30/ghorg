@@ -10,6 +10,10 @@ import (
 
 // PrintInfo prints yellow colored text to standard out
 func PrintInfo(msg interface{}) {
+	if os.Getenv("GHORG_QUIET") == "true" {
+		return
+	}
+
 	switch os.Getenv("GHORG_COLOR") {
 	case "enabled":
 		color.New(color.FgYellow).Println(msg)
@@ -40,6 +44,10 @@ func PrintError(msg interface{}) {
 
 // PrintSubtleInfo prints magenta colored text to standard out
 func PrintSubtleInfo(msg interface{}) {
+	if os.Getenv("GHORG_QUIET") == "true" {
+		return
+	}
+
 	switch os.Getenv("GHORG_COLOR") {
 	case "enabled":
 		color.New(color.FgHiMagenta).Println(msg)
