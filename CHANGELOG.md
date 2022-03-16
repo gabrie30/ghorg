@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Dockerfile
 - Ability to set GHORG_IGNORE_PATH; thanks @jeffreylo
 - Ability to set configuration file as `ghorg.yaml` at root of repo; thanks @jeffreylo
+- GHORG_QUIET mode; thanks @jeffreylo
 ### Changed
 ### Deprecated
 ### Removed
