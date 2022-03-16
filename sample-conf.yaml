@@ -154,6 +154,10 @@ GHORG_DRY_RUN: false
 # flag (--fetch-all)
 GHORG_FETCH_ALL: false
 
+# If you want to set a path other than $HOME/.config/ghorg/ghorgignore for your ghorgignore
+# flag (--ghorgignore-path)
+GHORG_IGNORE_PATH:
+
 # Specifies the location of your ghorg conf.yaml, allowing you to have many configuration files, or none at all
 # default: ghorg looks in $HOME/.config/ghorg/conf.yaml, if not set in that location nor as a commandline flag, ghorg will use all default values
 # NOTE: this cannot be set in the configuration file and only available in ghorg v1.7.0+

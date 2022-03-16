@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.7.12] - unreleased
 ### Added
 - Dockerfile
+- Ability to set GHORG_IGNORE_PATH; thanks @jeffreylo
+- Ability to set configuration file as `ghorg.yaml` at root of repo; thanks @jeffreylo
 ### Changed
 ### Deprecated
 ### Removed
