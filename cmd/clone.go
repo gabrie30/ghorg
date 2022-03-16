@@ -129,6 +129,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_SKIP_FORKS", "true")
 	}
 
+	if cmd.Flags().Changed("quiet") {
+		os.Setenv("GHORG_QUIET", "true")
+	}
+
 	if cmd.Flags().Changed("preserve-dir") {
 		os.Setenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE", "true")
 	}
