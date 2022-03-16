@@ -46,6 +46,7 @@ var (
 	config                       string
 	gitlabGroupExcludeMatchRegex string
 	ghorgIgnorePath              string
+	quietMode                    bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -112,6 +113,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		case "GHORG_CONCURRENCY":
 			os.Setenv(envVar, "25")
+		case "GHORG_QUIET":
+			os.Setenv(envVar, "false")
 		}
 	} else {
 		s := viper.GetString(envVar)
@@ -195,6 +198,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_EXCLUDE_MATCH_PREFIX")
 	getOrSetDefaults("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX")
 	getOrSetDefaults("GHORG_IGNORE_PATH")
+	getOrSetDefaults("GHORG_QUIET")
 
 	if os.Getenv("GHORG_DEBUG") != "" {
 		viper.Debug()
@@ -231,6 +235,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&skipForks, "skip-forks", false, "GHORG_SKIP_FORKS - skips repo if its a fork, github/gitlab/gitea only")
 	cloneCmd.Flags().BoolVar(&preserveDir, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/unit/subunit/app, gitlab only")
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP - backup mode, clone as mirror, no working copy (ignores branch parameter)")
+	cloneCmd.Flags().BoolVar(&quietMode, "quiet", false, "GHORG_QUIET - emit critical output only")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - change SCM base url, for on self hosted instances (currently gitlab, gitea and github (use format of https://git.mydomain.com/api/v3))")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - max goroutines to spin up while cloning (default 25)")
 	cloneCmd.Flags().StringVarP(&topics, "topics", "", "", "GHORG_TOPICS - comma separated list of github/gitea topics to filter for")

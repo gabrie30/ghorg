@@ -268,23 +268,17 @@ func getAppNameFromURL(url string) string {
 
 func printRemainingMessages() {
 	if len(cloneInfos) > 0 {
-		fmt.Println()
-		colorlog.PrintInfo("============ Info ============")
-		fmt.Println()
+		colorlog.PrintInfo("\n============ Info ============\n")
 		for _, i := range cloneInfos {
-			colorlog.PrintInfo(i)
+			colorlog.PrintInfo(i + "\n")
 		}
-		fmt.Println()
 	}
 
 	if len(cloneErrors) > 0 {
-		fmt.Println()
-		colorlog.PrintError("============ Issues ============")
-		fmt.Println()
+		colorlog.PrintError("\n============ Issues ============\n")
 		for _, e := range cloneErrors {
-			colorlog.PrintError(e)
+			colorlog.PrintError(e + "\n")
 		}
-		fmt.Println()
 	}
 }
 
@@ -387,9 +381,8 @@ func getRepoCountOnly(targets []scm.Repo) int {
 
 func printDryRun(repos []scm.Repo) {
 	for _, repo := range repos {
-		colorlog.PrintSubtleInfo(repo.URL)
+		colorlog.PrintSubtleInfo(repo.URL + "\n")
 	}
-	fmt.Println()
 	count := len(repos)
 	colorlog.PrintSuccess(fmt.Sprintf("%v repos to be cloned into: %s%s", count, os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
 }
@@ -398,23 +391,19 @@ func printDryRun(repos []scm.Repo) {
 func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	// Filter repos that have attributes that don't need specific scm api calls
 	if os.Getenv("GHORG_MATCH_REGEX") != "" {
-		colorlog.PrintInfo("Filtering repos down by including regex matches...")
-		fmt.Println("")
+		colorlog.PrintInfo("Filtering repos down by including regex matches...\n")
 		cloneTargets = filterByRegexMatch(cloneTargets)
 	}
 	if os.Getenv("GHORG_EXCLUDE_MATCH_REGEX") != "" {
-		colorlog.PrintInfo("Filtering repos down by excluding regex matches...")
-		fmt.Println("")
+		colorlog.PrintInfo("Filtering repos down by excluding regex matches...\n")
 		cloneTargets = filterByExcludeRegexMatch(cloneTargets)
 	}
 	if os.Getenv("GHORG_MATCH_PREFIX") != "" {
-		colorlog.PrintInfo("Filtering repos down by including prefix matches...")
-		fmt.Println("")
+		colorlog.PrintInfo("Filtering repos down by including prefix matches...\n")
 		cloneTargets = filterByMatchPrefix(cloneTargets)
 	}
 	if os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX") != "" {
-		colorlog.PrintInfo("Filtering repos down by excluding prefix matches...")
-		fmt.Println("")
+		colorlog.PrintInfo("Filtering repos down by excluding prefix matches...\n")
 		cloneTargets = filterByExcludeMatchPrefix(cloneTargets)
 	}
 
@@ -429,8 +418,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			os.Exit(1)
 		}
 
-		colorlog.PrintInfo("Using ghorgignore, filtering repos down...")
-		fmt.Println("")
+		colorlog.PrintInfo("Using ghorgignore, filtering repos down...\n")
 
 		filteredCloneTargets := []scm.Repo{}
 		var flag bool
@@ -455,12 +443,10 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	if os.Getenv("GHORG_CLONE_WIKI") == "true" {
 		wikiCount := strconv.Itoa(len(cloneTargets) - repoCount)
-		colorlog.PrintInfo(strconv.Itoa(repoCount) + " repos found in " + targetCloneSource + ", including " + wikiCount + " enabled wikis")
+		colorlog.PrintInfo(strconv.Itoa(repoCount) + " repos found in " + targetCloneSource + ", including " + wikiCount + " enabled wikis\n")
 	} else {
-		colorlog.PrintInfo(strconv.Itoa(repoCount) + " repos found in " + targetCloneSource)
+		colorlog.PrintInfo(strconv.Itoa(repoCount) + " repos found in " + targetCloneSource + "\n")
 	}
-
-	fmt.Println()
 
 	if os.Getenv("GHORG_DRY_RUN") == "true" {
 		printDryRun(cloneTargets)
@@ -642,11 +628,9 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	// TODO: fix all these if else checks with ghorg_backups
 	if os.Getenv("GHORG_BACKUP") == "true" {
-		fmt.Println()
-		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s_backup", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
-	} else {
-		fmt.Println()
-		colorlog.PrintSuccess(fmt.Sprintf("Finished! %s%s", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
+		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s%s_backup", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
+	} else if os.Getenv("GHORG_QUIET") != "true" {
+		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s%s", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
 	}
 }
 
@@ -661,6 +645,10 @@ func asciiTime() {
 
 // PrintConfigs shows the user what is set before cloning
 func PrintConfigs() {
+	if os.Getenv("GHORG_QUIET") == "true" {
+		return
+	}
+
 	colorlog.PrintInfo("*************************************")
 	colorlog.PrintInfo("* SCM           : " + os.Getenv("GHORG_SCM_TYPE"))
 	colorlog.PrintInfo("* Type          : " + os.Getenv("GHORG_CLONE_TYPE"))
@@ -717,7 +705,6 @@ func PrintConfigs() {
 	colorlog.PrintInfo("* Config Used   : " + os.Getenv("GHORG_CONFIG"))
 
 	colorlog.PrintInfo("*************************************")
-	fmt.Println("")
 }
 
 func getGhorgBranch() string {
