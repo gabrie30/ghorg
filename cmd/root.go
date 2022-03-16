@@ -45,6 +45,7 @@ var (
 	excludeMatchRegex            string
 	config                       string
 	gitlabGroupExcludeMatchRegex string
+	ghorgIgnorePath              string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -239,6 +240,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&matchRegex, "match-regex", "", "", "GHORG_MATCH_REGEX - only clone repos that match name to regex provided")
 	cloneCmd.Flags().StringVarP(&excludeMatchRegex, "exclude-match-regex", "", "", "GHORG_EXCLUDE_MATCH_REGEX - exclude cloning repos that match name to regex provided")
 	cloneCmd.Flags().StringVarP(&gitlabGroupExcludeMatchRegex, "gitlab-group-exclude-match-regex", "", "", "GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX - exclude cloning gitlab groups that match name to regex provided")
+	cloneCmd.Flags().StringVarP(&ghorgIgnorePath, "ghorgignore-path", "", "", "GHORG_IGNORE_PATH - If you want to set a path other than $HOME/.config/ghorg/ghorgignore for your ghorgignore")
 
 	rootCmd.AddCommand(lsCmd, versionCmd, cloneCmd)
 }

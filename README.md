@@ -39,7 +39,7 @@ Precedence for configuration is first given to the flags set on the command-line
 
 Although it's optional, it is recommended to add a `$HOME/.config/ghorg/conf.yaml` following the instructions in the install section.
 
-You can have multiple configuration files which is useful if you clone from multiple SCM providers. Alternative configuration files can only be referenced as a command-line flag `--config`
+You can have multiple configuration files which is useful if you clone from multiple SCM providers. Alternative configuration files can only be referenced as a command-line flag `--config`.
 
 ```
 # example using an secondary configuration file

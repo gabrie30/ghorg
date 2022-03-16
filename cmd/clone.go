@@ -96,6 +96,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_EXCLUDE_MATCH_REGEX", regex)
 	}
 
+	if cmd.Flags().Changed("ghorgignore-path") {
+		path := cmd.Flag("ghorgignore-path").Value.String()
+		os.Setenv("GHORG_IGNORE_PATH", path)
+	}
+
 	if cmd.Flags().Changed("skip-archived") {
 		os.Setenv("GHORG_SKIP_ARCHIVED", "true")
 	}
