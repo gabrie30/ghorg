@@ -1,10 +1,8 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: Issues/Bug reports
+about: If you are having issues please first read the [troubleshooting](https://github.com/gabrie30/ghorg#troubleshooting) section of the readme
 
 ---
-
-> If you are having issues please first read the [troubleshooting](https://github.com/gabrie30/ghorg#troubleshooting) section of the readme
 
 **Describe the bug**
 A clear and concise description of what the bug is.
