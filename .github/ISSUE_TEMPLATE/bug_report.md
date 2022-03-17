@@ -1,6 +1,6 @@
 ---
 name: Issues/Bug reports
-about: If you are having issues please first read the [troubleshooting](https://github.com/gabrie30/ghorg#troubleshooting) section of the readme
+about: If you are having issues please first read the troubleshooting section in the readme
 
 ---
 
