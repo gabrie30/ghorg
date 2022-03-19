@@ -3,7 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.7.12] - unreleased
+## [1.7.13] - unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## [1.7.12] - 5/19/22
 ### Added
 - Dockerfile
 - Ability to set GHORG_IGNORE_PATH; thanks @jeffreylo
