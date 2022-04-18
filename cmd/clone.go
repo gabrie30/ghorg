@@ -422,7 +422,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			os.Exit(1)
 		}
 
-		colorlog.PrintInfo("Using ghorgignore, filtering repos down...\n")
+		colorlog.PrintInfo("\nUsing ghorgignore, filtering repos down...\n")
 
 		filteredCloneTargets := []scm.Repo{}
 		var flag bool

@@ -53,7 +53,7 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		}
 
 		if opt.Page%12 == 0 && opt.Page != 0 {
-			colorlog.PrintSubtleInfo("Everything is okay, its just a lot of repos...")
+			colorlog.PrintSubtleInfo("\nEverything is okay, the org just has a lot of repos...")
 		}
 		opt.Page = resp.NextPage
 	}
@@ -63,6 +63,14 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 // GetUserRepos gets user repos
 func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
+
+	userToken, _, _ := c.Users.Get(context.Background(), "")
+
+	if targetUser == userToken.GetLogin() {
+		colorlog.PrintSubtleInfo("\nCloning all your public/private repos. This process may take a bit longer than other clones, please be patient...")
+		targetUser = ""
+	}
+
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		c.BaseURL, _ = url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
 	}
