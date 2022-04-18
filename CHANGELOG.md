@@ -3,12 +3,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.7.13] - unreleased
+## [1.7.14] - Unreleased
 ### Added
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+### Security
+
+## [1.7.13] - 4/17/22
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- User cloning self on github now finds all public/private repos; thanks @iDoka
 ### Security
 
 ## [1.7.12] - 5/19/22
