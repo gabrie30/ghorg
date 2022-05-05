@@ -4,6 +4,11 @@ about: If you are having issues please first read the troubleshooting section in
 
 ---
 
+**Please check the following resources before opening an issue**
+
+1. Review the [troubelshooting section](https://github.com/gabrie30/ghorg#troubleshooting) in the README.md
+1. Review the [examples](https://github.com/gabrie30/ghorg/tree/master/examples) directory for example commands
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
