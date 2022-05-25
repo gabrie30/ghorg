@@ -624,7 +624,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	}
 
-	limit.Wait()
+	limit.WaitAndClose()
 
 	printRemainingMessages()
 

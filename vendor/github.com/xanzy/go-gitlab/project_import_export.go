@@ -19,6 +19,7 @@ package gitlab
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
@@ -45,6 +46,9 @@ type ImportStatus struct {
 	PathWithNamespace string     `json:"path_with_namespace"`
 	CreateAt          *time.Time `json:"create_at"`
 	ImportStatus      string     `json:"import_status"`
+	ImportType        string     `json:"import_type"`
+	CorrelationID     string     `json:"correlation_id"`
+	ImportError       string     `json:"import_error"`
 }
 
 func (s ImportStatus) String() string {
@@ -96,7 +100,7 @@ func (s *ProjectImportExportService) ScheduleExport(pid interface{}, opt *Schedu
 	if err != nil {
 		return nil, err
 	}
-	u := fmt.Sprintf("projects/%s/export", pathEscape(project))
+	u := fmt.Sprintf("projects/%s/export", PathEscape(project))
 
 	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
 	if err != nil {
@@ -115,7 +119,7 @@ func (s *ProjectImportExportService) ExportStatus(pid interface{}, options ...Re
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/export", pathEscape(project))
+	u := fmt.Sprintf("projects/%s/export", PathEscape(project))
 
 	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
 	if err != nil {
@@ -140,7 +144,7 @@ func (s *ProjectImportExportService) ExportDownload(pid interface{}, options ...
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/export/download", pathEscape(project))
+	u := fmt.Sprintf("projects/%s/export/download", PathEscape(project))
 
 	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
 	if err != nil {
@@ -162,18 +166,26 @@ func (s *ProjectImportExportService) ExportDownload(pid interface{}, options ...
 // https://docs.gitlab.com/ce/api/project_import_export.html#import-a-file
 type ImportFileOptions struct {
 	Namespace      *string               `url:"namespace,omitempty" json:"namespace,omitempty"`
-	File           *string               `url:"file,omitempty" json:"file,omitempty"`
+	Name           *string               `url:"name,omitempty" json:"name,omitempty"`
 	Path           *string               `url:"path,omitempty" json:"path,omitempty"`
 	Overwrite      *bool                 `url:"overwrite,omitempty" json:"overwrite,omitempty"`
 	OverrideParams *CreateProjectOptions `url:"override_params,omitempty" json:"override_params,omitempty"`
 }
 
-// ImportFile import a file.
+// Import a project from an archive file.
 //
 // GitLab API docs:
 // https://docs.gitlab.com/ce/api/project_import_export.html#import-a-file
-func (s *ProjectImportExportService) ImportFile(opt *ImportFileOptions, options ...RequestOptionFunc) (*ImportStatus, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodPost, "projects/import", opt, options)
+func (s *ProjectImportExportService) ImportFromFile(archive io.Reader, opt *ImportFileOptions, options ...RequestOptionFunc) (*ImportStatus, *Response, error) {
+	req, err := s.client.UploadRequest(
+		http.MethodPost,
+		"projects/import",
+		archive,
+		"archive.tar.gz",
+		UploadFile,
+		opt,
+		options,
+	)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -196,7 +208,7 @@ func (s *ProjectImportExportService) ImportStatus(pid interface{}, options ...Re
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/import", pathEscape(project))
+	u := fmt.Sprintf("projects/%s/import", PathEscape(project))
 
 	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
 	if err != nil {

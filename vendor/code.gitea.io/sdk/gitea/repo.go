@@ -335,7 +335,7 @@ func (opt CreateRepoOption) Validate(c *Client) error {
 		return fmt.Errorf("name has more than 100 chars")
 	}
 	if len(opt.TrustModel) != 0 {
-		if err := c.CheckServerVersionConstraint(">=1.13.0"); err != nil {
+		if err := c.checkServerVersionGreaterThanOrEqual(version1_13_0); err != nil {
 			return err
 		}
 	}

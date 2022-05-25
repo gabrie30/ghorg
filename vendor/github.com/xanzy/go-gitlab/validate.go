@@ -33,9 +33,10 @@ type ValidateService struct {
 //
 // GitLab API docs: https://docs.gitlab.com/ce/api/lint.html
 type LintResult struct {
-	Status   string   `json:"status"`
-	Errors   []string `json:"errors"`
-	Warnings []string `json:"warnings"`
+	Status     string   `json:"status"`
+	Errors     []string `json:"errors"`
+	Warnings   []string `json:"warnings"`
+	MergedYaml string   `json:"merged_yaml"`
 }
 
 // ProjectLintResult represents the linting results by project.
@@ -90,7 +91,7 @@ func (s *ValidateService) ProjectNamespaceLint(pid interface{}, opt *ProjectName
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/ci/lint", pathEscape(project))
+	u := fmt.Sprintf("projects/%s/ci/lint", PathEscape(project))
 
 	req, err := s.client.NewRequest(http.MethodPost, u, &opt, options)
 	if err != nil {
@@ -123,7 +124,7 @@ func (s *ValidateService) ProjectLint(pid interface{}, opt *ProjectLintOptions, 
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/ci/lint", pathEscape(project))
+	u := fmt.Sprintf("projects/%s/ci/lint", PathEscape(project))
 
 	req, err := s.client.NewRequest(http.MethodGet, u, &opt, options)
 	if err != nil {

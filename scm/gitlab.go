@@ -117,7 +117,7 @@ func (c Gitlab) GetGroupRepos(targetGroup string) ([]Repo, error) {
 			PerPage: perPage,
 			Page:    1,
 		},
-		IncludeSubgroups: gitlab.Bool(true),
+		IncludeSubGroups: gitlab.Bool(true),
 	}
 
 	for {

@@ -1,7 +1,7 @@
 package bitbucket
 
 type users interface {
-	Get(username string) (interface{}, error)
+	Get(username string) (*User, error)
 	Followers(username string) (interface{}, error)
 	Following(username string) (interface{}, error)
 	Repositories(username string) (interface{}, error)
@@ -179,6 +179,7 @@ type RepositoryFilesOptions struct {
 	RepoSlug string `json:"repo_slug"`
 	Ref      string `json:"ref"`
 	Path     string `json:"path"`
+	MaxDepth int    `json:"max_depth"`
 }
 
 type RepositoryBlobOptions struct {
@@ -232,6 +233,14 @@ type RepositoryBranchCreationOptions struct {
 	Target   RepositoryBranchTarget `json:"target"`
 }
 
+type RepositoryBranchDeleteOptions struct {
+	Owner    string `json:"owner"`
+	RepoSlug string `json:"repo_slug"`
+	RepoUUID string `json:"uuid"`
+	RefName  string `json:"name"`
+	RefUUID  string `json:uuid`
+}
+
 type RepositoryBranchTarget struct {
 	Hash string `json:"hash"`
 }
@@ -274,6 +283,14 @@ type PullRequestsOptions struct {
 	States            []string `json:"states"`
 	Query             string   `json:"query"`
 	Sort              string   `json:"sort"`
+}
+
+type PullRequestCommentOptions struct {
+	Owner         string `json:"owner"`
+	RepoSlug      string `json:"repo_slug"`
+	PullRequestID string `json:"id"`
+	Content       string `json:"content"`
+	CommentId     string `json:"-"`
 }
 
 type IssuesOptions struct {
@@ -362,6 +379,7 @@ type DiffStatOptions struct {
 	PageNum    int    `json:"page"`
 	Pagelen    int    `json:"pagelen"`
 	MaxDepth   int    `json:"max_depth"`
+	Fields     []string
 }
 
 type WebhooksOptions struct {
@@ -371,7 +389,7 @@ type WebhooksOptions struct {
 	Description string   `json:"description"`
 	Url         string   `json:"url"`
 	Active      bool     `json:"active"`
-	Events      []string `json:"events"` // EX) {'repo:push','issue:created',..} REF) https://goo.gl/VTj93b
+	Events      []string `json:"events"` // EX: {'repo:push','issue:created',..} REF: https://bit.ly/3FjRHHu
 }
 
 type RepositoryPipelineOptions struct {
@@ -511,4 +529,12 @@ type RepositoryDeploymentVariableDeleteOptions struct {
 	RepoSlug    string       `json:"repo_slug"`
 	Environment *Environment `json:"environment"`
 	Uuid        string       `json:"uuid"`
+}
+
+type DeployKeyOptions struct {
+	Owner    string `json:"owner"`
+	RepoSlug string `json:"repo_slug"`
+	Id       int    `json:"id"`
+	Label    string `json:"label"`
+	Key      string `json:"key"`
 }
