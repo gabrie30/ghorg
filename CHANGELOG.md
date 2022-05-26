@@ -3,13 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.7.14] - Unreleased
+## [1.7.14] - 5/25/22
 ### Added
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 ### Security
+- Upgrade all dependencies, including gopkg.in/yaml.v3 to 3.0.0
 
 ## [1.7.13] - 4/17/22
 ### Added

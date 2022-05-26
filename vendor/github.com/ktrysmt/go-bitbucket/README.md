@@ -20,6 +20,8 @@ go get github.com/ktrysmt/go-bitbucket
 
 ## Usage
 
+### create a pullrequest
+
 ```go
 package main
 
@@ -30,7 +32,6 @@ import (
 )
 
 func main() {
-
         c := bitbucket.NewBasicAuth("username", "password")
 
         opt := &bitbucket.PullRequestsOptions{
@@ -43,6 +44,35 @@ func main() {
         }
 
         res, err := c.Repositories.PullRequests.Create(opt)
+        if err != nil {
+                panic(err)
+        }
+
+        fmt.Println(res)
+}
+```
+
+### create a repository
+
+```go
+package main
+
+import (
+        "fmt"
+
+        "github.com/ktrysmt/go-bitbucket"
+)
+
+func main() {
+        c := bitbucket.NewBasicAuth("username", "password")
+
+        opt := &bitbucket.RepositoryOptions{
+                Owner:    "project_name",
+                RepoSlug: "repo_name",
+                Scm:      "git",
+        }
+
+        res, err := c.Repositories.Repository.Create(opt)
         if err != nil {
                 panic(err)
         }

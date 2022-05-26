@@ -35,23 +35,24 @@ type CommitsService struct {
 //
 // GitLab API docs: https://docs.gitlab.com/ce/api/commits.html
 type Commit struct {
-	ID             string           `json:"id"`
-	ShortID        string           `json:"short_id"`
-	Title          string           `json:"title"`
-	AuthorName     string           `json:"author_name"`
-	AuthorEmail    string           `json:"author_email"`
-	AuthoredDate   *time.Time       `json:"authored_date"`
-	CommitterName  string           `json:"committer_name"`
-	CommitterEmail string           `json:"committer_email"`
-	CommittedDate  *time.Time       `json:"committed_date"`
-	CreatedAt      *time.Time       `json:"created_at"`
-	Message        string           `json:"message"`
-	ParentIDs      []string         `json:"parent_ids"`
-	Stats          *CommitStats     `json:"stats"`
-	Status         *BuildStateValue `json:"status"`
-	LastPipeline   *PipelineInfo    `json:"last_pipeline"`
-	ProjectID      int              `json:"project_id"`
-	WebURL         string           `json:"web_url"`
+	ID             string            `json:"id"`
+	ShortID        string            `json:"short_id"`
+	Title          string            `json:"title"`
+	AuthorName     string            `json:"author_name"`
+	AuthorEmail    string            `json:"author_email"`
+	AuthoredDate   *time.Time        `json:"authored_date"`
+	CommitterName  string            `json:"committer_name"`
+	CommitterEmail string            `json:"committer_email"`
+	CommittedDate  *time.Time        `json:"committed_date"`
+	CreatedAt      *time.Time        `json:"created_at"`
+	Message        string            `json:"message"`
+	ParentIDs      []string          `json:"parent_ids"`
+	Stats          *CommitStats      `json:"stats"`
+	Status         *BuildStateValue  `json:"status"`
+	LastPipeline   *PipelineInfo     `json:"last_pipeline"`
+	ProjectID      int               `json:"project_id"`
+	Trailers       map[string]string `json:"trailers"`
+	WebURL         string            `json:"web_url"`
 }
 
 // CommitStats represents the number of added and deleted files in a commit.
@@ -79,6 +80,7 @@ type ListCommitsOptions struct {
 	All         *bool      `url:"all,omitempty" json:"all,omitempty"`
 	WithStats   *bool      `url:"with_stats,omitempty" json:"with_stats,omitempty"`
 	FirstParent *bool      `url:"first_parent,omitempty" json:"first_parent,omitempty"`
+	Trailers    *bool      `url:"trailers,omitempty" json:"trailers,omitempty"`
 }
 
 // ListCommits gets a list of repository commits in a project.
@@ -89,7 +91,7 @@ func (s *CommitsService) ListCommits(pid interface{}, opt *ListCommitsOptions, o
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/repository/commits", pathEscape(project))
+	u := fmt.Sprintf("projects/%s/repository/commits", PathEscape(project))
 
 	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
 	if err != nil {
@@ -132,7 +134,7 @@ func (s *CommitsService) GetCommitRefs(pid interface{}, sha string, opt *GetComm
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/repository/commits/%s/refs", pathEscape(project), url.PathEscape(sha))
+	u := fmt.Sprintf("projects/%s/repository/commits/%s/refs", PathEscape(project), url.PathEscape(sha))
 
 	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
 	if err != nil {
@@ -160,7 +162,7 @@ func (s *CommitsService) GetCommit(pid interface{}, sha string, options ...Reque
 	if sha == "" {
 		return nil, nil, fmt.Errorf("SHA must be a non-empty string")
 	}
-	u := fmt.Sprintf("projects/%s/repository/commits/%s", pathEscape(project), url.PathEscape(sha))
+	u := fmt.Sprintf("projects/%s/repository/commits/%s", PathEscape(project), url.PathEscape(sha))
 
 	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
 	if err != nil {
@@ -214,7 +216,7 @@ func (s *CommitsService) CreateCommit(pid interface{}, opt *CreateCommitOptions,
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/repository/commits", pathEscape(project))
+	u := fmt.Sprintf("projects/%s/repository/commits", PathEscape(project))
 
 	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
 	if err != nil {
@@ -263,7 +265,7 @@ func (s *CommitsService) GetCommitDiff(pid interface{}, sha string, opt *GetComm
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/repository/commits/%s/diff", pathEscape(project), url.PathEscape(sha))
+	u := fmt.Sprintf("projects/%s/repository/commits/%s/diff", PathEscape(project), url.PathEscape(sha))
 
 	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
 	if err != nil {
@@ -320,7 +322,7 @@ func (s *CommitsService) GetCommitComments(pid interface{}, sha string, opt *Get
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/repository/commits/%s/comments", pathEscape(project), url.PathEscape(sha))
+	u := fmt.Sprintf("projects/%s/repository/commits/%s/comments", PathEscape(project), url.PathEscape(sha))
 
 	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
 	if err != nil {
@@ -359,7 +361,7 @@ func (s *CommitsService) PostCommitComment(pid interface{}, sha string, opt *Pos
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/repository/commits/%s/comments", pathEscape(project), url.PathEscape(sha))
+	u := fmt.Sprintf("projects/%s/repository/commits/%s/comments", PathEscape(project), url.PathEscape(sha))
 
 	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
 	if err != nil {
@@ -399,6 +401,7 @@ type CommitStatus struct {
 	FinishedAt   *time.Time `json:"finished_at"`
 	Name         string     `json:"name"`
 	AllowFailure bool       `json:"allow_failure"`
+	Coverage     float64    `json:"coverage"`
 	Author       Author     `json:"author"`
 	Description  string     `json:"description"`
 	TargetURL    string     `json:"target_url"`
@@ -412,7 +415,7 @@ func (s *CommitsService) GetCommitStatuses(pid interface{}, sha string, opt *Get
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/repository/commits/%s/statuses", pathEscape(project), url.PathEscape(sha))
+	u := fmt.Sprintf("projects/%s/repository/commits/%s/statuses", PathEscape(project), url.PathEscape(sha))
 
 	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
 	if err != nil {
@@ -450,7 +453,7 @@ func (s *CommitsService) SetCommitStatus(pid interface{}, sha string, opt *SetCo
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/statuses/%s", pathEscape(project), url.PathEscape(sha))
+	u := fmt.Sprintf("projects/%s/statuses/%s", PathEscape(project), url.PathEscape(sha))
 
 	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
 	if err != nil {
@@ -466,16 +469,16 @@ func (s *CommitsService) SetCommitStatus(pid interface{}, sha string, opt *SetCo
 	return cs, resp, err
 }
 
-// GetMergeRequestsByCommit gets merge request associated with a commit.
+// ListMergeRequestsByCommit gets merge request associated with a commit.
 //
 // GitLab API docs:
 // https://docs.gitlab.com/ce/api/commits.html#list-merge-requests-associated-with-a-commit
-func (s *CommitsService) GetMergeRequestsByCommit(pid interface{}, sha string, options ...RequestOptionFunc) ([]*MergeRequest, *Response, error) {
+func (s *CommitsService) ListMergeRequestsByCommit(pid interface{}, sha string, options ...RequestOptionFunc) ([]*MergeRequest, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/repository/commits/%s/merge_requests", pathEscape(project), url.PathEscape(sha))
+	u := fmt.Sprintf("projects/%s/repository/commits/%s/merge_requests", PathEscape(project), url.PathEscape(sha))
 
 	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
 	if err != nil {
@@ -508,7 +511,7 @@ func (s *CommitsService) CherryPickCommit(pid interface{}, sha string, opt *Cher
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/repository/commits/%s/cherry_pick", pathEscape(project), url.PathEscape(sha))
+	u := fmt.Sprintf("projects/%s/repository/commits/%s/cherry_pick", PathEscape(project), url.PathEscape(sha))
 
 	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
 	if err != nil {
@@ -539,7 +542,7 @@ func (s *CommitsService) RevertCommit(pid interface{}, sha string, opt *RevertCo
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/repository/commits/%s/revert", pathEscape(project), url.PathEscape(sha))
+	u := fmt.Sprintf("projects/%s/repository/commits/%s/revert", PathEscape(project), url.PathEscape(sha))
 
 	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
 	if err != nil {
@@ -576,7 +579,7 @@ func (s *CommitsService) GetGPGSiganature(pid interface{}, sha string, options .
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/repository/commits/%s/signature", pathEscape(project), url.PathEscape(sha))
+	u := fmt.Sprintf("projects/%s/repository/commits/%s/signature", PathEscape(project), url.PathEscape(sha))
 
 	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
 	if err != nil {

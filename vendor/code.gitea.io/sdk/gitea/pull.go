@@ -12,6 +12,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/go-version"
 )
 
 // PRBranchInfo information about a branch
@@ -214,10 +216,12 @@ type MergePullRequestOption struct {
 	Message string     `json:"MergeMessageField"`
 }
 
+var version1_11_5, _ = version.NewVersion("1.11.5")
+
 // Validate the MergePullRequestOption struct
 func (opt MergePullRequestOption) Validate(c *Client) error {
 	if opt.Style == MergeStyleSquash {
-		if err := c.CheckServerVersionConstraint(">=1.11.5"); err != nil {
+		if err := c.checkServerVersionGreaterThanOrEqual(version1_11_5); err != nil {
 			return err
 		}
 	}
