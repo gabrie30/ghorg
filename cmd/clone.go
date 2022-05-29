@@ -707,6 +707,7 @@ func PrintConfigs() {
 	}
 
 	colorlog.PrintInfo("* Config Used   : " + os.Getenv("GHORG_CONFIG"))
+	colorlog.PrintInfo("* Ghorg version : " + GetVersion())
 
 	colorlog.PrintInfo("*************************************")
 }
