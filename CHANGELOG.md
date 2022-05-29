@@ -3,6 +3,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.7.15] - 5/29/22
+### Added
+- CodeQL security analysis action
+- Security policy
+- Ghorg version in run details output
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.7.14] - 5/25/22
 ### Added
 ### Changed
