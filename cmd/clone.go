@@ -109,6 +109,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_NO_CLEAN", "true")
 	}
 
+	if cmd.Flags().Changed("prune") {
+		os.Setenv("GHORG_PRUNE", "true")
+	}
+
 	if cmd.Flags().Changed("fetch-all") {
 		os.Setenv("GHORG_FETCH_ALL", "true")
 	}
@@ -698,6 +702,9 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_NO_CLEAN") == "true" {
 		colorlog.PrintInfo("* No Clean      : " + "true")
+	}
+	if os.Getenv("GHORG_PRUNE") == "true" {
+		colorlog.PrintInfo("* Prune         : " + "true")
 	}
 	if os.Getenv("GHORG_FETCH_ALL") == "true" {
 		colorlog.PrintInfo("* Fetch All     : " + "true")

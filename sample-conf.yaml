@@ -150,6 +150,10 @@ GHORG_CLONE_WIKI: false
 # flag (--dry-run)
 GHORG_DRY_RUN: false
 
+# Remove locally cloned repos that aren't found on remote (e.g., after remote deletion).  With GHORG_SKIP_ARCHIVED set, archived repositories will also be pruned from your local clone.
+# flag (--prune)
+GHORG_PRUNE: false
+
 # Fetches all remote branches for each repo by running a git fetch --all
 # flag (--fetch-all)
 GHORG_FETCH_ALL: false
