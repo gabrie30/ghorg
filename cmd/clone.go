@@ -4,6 +4,7 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -634,12 +635,44 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	colorlog.PrintSuccess(fmt.Sprintf("New repos cloned: %v, existing repos pulled: %v", cloneCount, pulledCount))
 
+	// Now, clean up local repos that don't exist in remote, if prune flag is set
+	if os.Getenv("GHORG_PRUNE") == "true" {
+		colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
+		cloneLocation := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder)
+
+		files, err := ioutil.ReadDir(cloneLocation)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, f := range files {
+			// for each item in the org's clone directory, let's make sure we found a corresponding repo
+			// on the remote.
+			if !sliceContainsNamedRepo(cloneTargets, f.Name()) {
+				colorlog.PrintSubtleInfo(fmt.Sprintf("%s not found in remote.  Pruning.", f.Name()))
+				// TODO ask user interactively whether dir should be deleted
+				os.RemoveAll(filepath.Join(cloneLocation, f.Name()))
+			}
+		}
+	}
+
 	// TODO: fix all these if else checks with ghorg_backups
 	if os.Getenv("GHORG_BACKUP") == "true" {
 		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s%s_backup", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
 	} else if os.Getenv("GHORG_QUIET") != "true" {
 		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s%s", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
 	}
+}
+
+// There's probably a nicer way of finding whether any scm.Repo in the slice matches a given name.
+func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
+	for _, repo := range haystack {
+		if repo.Name == needle {
+			return true
+		}
+	}
+
+	return false
 }
 
 func asciiTime() {
