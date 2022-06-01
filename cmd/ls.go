@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
-	"github.com/gabrie30/ghorg/configs"
 	"github.com/spf13/cobra"
 )
 
@@ -58,7 +57,7 @@ func listGhorgDir(arg string) {
 
 	for _, f := range files {
 		if f.IsDir() {
-			str := filepath.Join(path, configs.GetCorrectFilePathSeparator(), f.Name())
+			str := filepath.Join(path, f.Name())
 			colorlog.PrintSubtleInfo(str)
 		}
 	}

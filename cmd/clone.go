@@ -476,7 +476,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				repoSlug = repo.Path
 			}
 
-			repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder, configs.GetCorrectFilePathSeparator(), repoSlug)
+			repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder, repoSlug)
 
 			if repo.IsWiki {
 				if !strings.HasSuffix(repo.HostPath, ".wiki") {
@@ -485,7 +485,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			}
 
 			if os.Getenv("GHORG_BACKUP") == "true" {
-				repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder+"_backup", configs.GetCorrectFilePathSeparator(), repoSlug)
+				repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder+"_backup", repoSlug)
 			}
 
 			action := "cloning"

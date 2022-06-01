@@ -80,24 +80,13 @@ func GetAbsolutePathToCloneTo() string {
 
 // EnsureTrailingSlashOnFilePath takes a filepath and ensures a single / is appened
 func EnsureTrailingSlashOnFilePath(s string) string {
-	trailing := GetCorrectFilePathSeparator()
+	trailing := string(os.PathSeparator)
 
 	if !strings.HasSuffix(s, trailing) {
 		s = s + trailing
 	}
 
 	return s
-}
-
-// GetCorrectFilePathSeparator returns the correct trailing slash based on os
-func GetCorrectFilePathSeparator() string {
-	trailing := "/"
-
-	if runtime.GOOS == "windows" {
-		trailing = "\\"
-	}
-
-	return trailing
 }
 
 // GhorgIgnoreLocation returns the path of users ghorgignore
