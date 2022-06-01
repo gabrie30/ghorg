@@ -394,6 +394,31 @@ func printDryRun(repos []scm.Repo) {
 	}
 	count := len(repos)
 	colorlog.PrintSuccess(fmt.Sprintf("%v repos to be cloned into: %s%s", count, os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
+
+	if os.Getenv("GHORG_PRUNE") == "true" {
+		cloneLocation := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder)
+		if stat, err := os.Stat(cloneLocation); err == nil && stat.IsDir() {
+			// We check that the clone path exists, otherwise there would definitely be no pruning
+			// to do.
+			colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
+
+			files, err := ioutil.ReadDir(cloneLocation)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			eligibleForPrune := 0
+			for _, f := range files {
+				// for each item in the org's clone directory, let's make sure we found a
+				// corresponding repo on the remote.
+				if !sliceContainsNamedRepo(repos, f.Name()) {
+					eligibleForPrune++
+					colorlog.PrintSubtleInfo(fmt.Sprintf("%s not found in remote.", f.Name()))
+				}
+			}
+			colorlog.PrintSuccess(fmt.Sprintf("Local clones eligible for pruning: %d", eligibleForPrune))
+		}
+	}
 }
 
 // CloneAllRepos clones all repos
