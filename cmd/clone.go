@@ -689,6 +689,23 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	}
 }
 
+func interactiveYesNoPrompt(prompt string) bool {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print(strings.TrimSpace(prompt) + " (y/N) ")
+	s, err := reader.ReadString('\n')
+	if err != nil {
+		panic(err)
+	}
+
+	s = strings.TrimSpace(s)
+	s = strings.ToLower(s)
+
+	if s == "y" || s == "yes" {
+		return true
+	}
+	return false
+}
+
 // There's probably a nicer way of finding whether any scm.Repo in the slice matches a given name.
 func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
 	for _, repo := range haystack {
