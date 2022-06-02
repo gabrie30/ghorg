@@ -4,6 +4,7 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -107,6 +108,14 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 
 	if cmd.Flags().Changed("no-clean") {
 		os.Setenv("GHORG_NO_CLEAN", "true")
+	}
+
+	if cmd.Flags().Changed("prune") {
+		os.Setenv("GHORG_PRUNE", "true")
+	}
+
+	if cmd.Flags().Changed("prune-no-confirm") {
+		os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
 	}
 
 	if cmd.Flags().Changed("fetch-all") {
@@ -389,6 +398,31 @@ func printDryRun(repos []scm.Repo) {
 	}
 	count := len(repos)
 	colorlog.PrintSuccess(fmt.Sprintf("%v repos to be cloned into: %s%s", count, os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
+
+	if os.Getenv("GHORG_PRUNE") == "true" {
+		cloneLocation := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder)
+		if stat, err := os.Stat(cloneLocation); err == nil && stat.IsDir() {
+			// We check that the clone path exists, otherwise there would definitely be no pruning
+			// to do.
+			colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
+
+			files, err := ioutil.ReadDir(cloneLocation)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			eligibleForPrune := 0
+			for _, f := range files {
+				// for each item in the org's clone directory, let's make sure we found a
+				// corresponding repo on the remote.
+				if !sliceContainsNamedRepo(repos, f.Name()) {
+					eligibleForPrune++
+					colorlog.PrintSubtleInfo(fmt.Sprintf("%s not found in remote.", f.Name()))
+				}
+			}
+			colorlog.PrintSuccess(fmt.Sprintf("Local clones eligible for pruning: %d", eligibleForPrune))
+		}
+	}
 }
 
 // CloneAllRepos clones all repos
@@ -476,7 +510,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				repoSlug = repo.Path
 			}
 
-			repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder, configs.GetCorrectFilePathSeparator(), repoSlug)
+			repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder, repoSlug)
 
 			if repo.IsWiki {
 				if !strings.HasSuffix(repo.HostPath, ".wiki") {
@@ -485,7 +519,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			}
 
 			if os.Getenv("GHORG_BACKUP") == "true" {
-				repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder+"_backup", configs.GetCorrectFilePathSeparator(), repoSlug)
+				repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder+"_backup", repoSlug)
 			}
 
 			action := "cloning"
@@ -630,12 +664,76 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	colorlog.PrintSuccess(fmt.Sprintf("New repos cloned: %v, existing repos pulled: %v", cloneCount, pulledCount))
 
+	// Now, clean up local repos that don't exist in remote, if prune flag is set
+	if os.Getenv("GHORG_PRUNE") == "true" {
+		colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
+		cloneLocation := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder)
+
+		files, err := ioutil.ReadDir(cloneLocation)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// The first time around, we set userAgreesToDelete to true, otherwise we'd immediately
+		// break out of the loop.
+		userAgreesToDelete := true
+		pruneNoConfirm := os.Getenv("GHORG_PRUNE_NO_CONFIRM") == "true"
+		for _, f := range files {
+			// For each item in the org's clone directory, let's make sure we found a corresponding
+			// repo on the remote.  We check userAgreesToDelete here too, so that if the user says
+			// "No" at any time, we stop trying to prune things altogether.
+			if userAgreesToDelete && !sliceContainsNamedRepo(cloneTargets, f.Name()) {
+				// If the user specified --prune-no-confirm, we needn't prompt interactively.
+				userAgreesToDelete = pruneNoConfirm || interactiveYesNoPrompt(
+					fmt.Sprintf("%s was not found in remote.  Do you want to prune it?", f.Name()))
+				if userAgreesToDelete {
+					colorlog.PrintSubtleInfo(
+						fmt.Sprintf("Deleting %s", filepath.Join(cloneLocation, f.Name())))
+					err = os.RemoveAll(filepath.Join(cloneLocation, f.Name()))
+					if err != nil {
+						log.Fatal(err)
+					}
+				} else {
+					colorlog.PrintError("Pruning cancelled by user.  No more prunes will be considered.")
+				}
+			}
+		}
+	}
+
 	// TODO: fix all these if else checks with ghorg_backups
 	if os.Getenv("GHORG_BACKUP") == "true" {
 		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s%s_backup", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
 	} else if os.Getenv("GHORG_QUIET") != "true" {
 		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s%s", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
 	}
+}
+
+func interactiveYesNoPrompt(prompt string) bool {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print(strings.TrimSpace(prompt) + " (y/N) ")
+	s, err := reader.ReadString('\n')
+	if err != nil {
+		panic(err)
+	}
+
+	s = strings.TrimSpace(s)
+	s = strings.ToLower(s)
+
+	if s == "y" || s == "yes" {
+		return true
+	}
+	return false
+}
+
+// There's probably a nicer way of finding whether any scm.Repo in the slice matches a given name.
+func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
+	for _, repo := range haystack {
+		if repo.Name == needle {
+			return true
+		}
+	}
+
+	return false
 }
 
 func asciiTime() {
@@ -698,6 +796,13 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_NO_CLEAN") == "true" {
 		colorlog.PrintInfo("* No Clean      : " + "true")
+	}
+	if os.Getenv("GHORG_PRUNE") == "true" {
+		noConfirmText := ""
+		if os.Getenv("GHORG_PRUNE_NO_CONFIRM") == "true" {
+			noConfirmText = " (skipping confirmation)"
+		}
+		colorlog.PrintInfo("* Prune         : " + "true" + noConfirmText)
 	}
 	if os.Getenv("GHORG_FETCH_ALL") == "true" {
 		colorlog.PrintInfo("* Fetch All     : " + "true")
