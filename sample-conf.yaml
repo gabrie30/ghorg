@@ -154,6 +154,10 @@ GHORG_DRY_RUN: false
 # flag (--prune)
 GHORG_PRUNE: false
 
+# Skip interactive y/n prompt when pruning clones (only makes sense with --prune).
+# flag (--prune-no-confirm)
+GHORG_PRUNE_NO_CONFIRM: false
+
 # Fetches all remote branches for each repo by running a git fetch --all
 # flag (--fetch-all)
 GHORG_FETCH_ALL: false

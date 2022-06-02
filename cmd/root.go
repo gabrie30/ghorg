@@ -32,6 +32,7 @@ var (
 	noClean                      bool
 	dryRun                       bool
 	prune                        bool
+	pruneNoConfirm               bool
 	cloneWiki                    bool
 	preserveDir                  bool
 	insecureGitlabClient         bool
@@ -105,6 +106,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_DRY_RUN":
 			os.Setenv(envVar, "false")
 		case "GHORG_PRUNE":
+			os.Setenv(envVar, "false")
+		case "GHORG_PRUNE_NO_CONFIRM":
 			os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_GITLAB_CLIENT":
 			os.Setenv(envVar, "false")
@@ -180,6 +183,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_NO_CLEAN")
 	getOrSetDefaults("GHORG_FETCH_ALL")
 	getOrSetDefaults("GHORG_PRUNE")
+	getOrSetDefaults("GHORG_PRUNE_NO_CONFIRM")
 	getOrSetDefaults("GHORG_DRY_RUN")
 	getOrSetDefaults("GHORG_CLONE_WIKI")
 	getOrSetDefaults("GHORG_INSECURE_GITLAB_CLIENT")
@@ -233,6 +237,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED - skips archived repos, github/gitlab/gitea only")
 	cloneCmd.Flags().BoolVar(&noClean, "no-clean", false, "GHORG_NO_CLEAN - only clones new repos and does not perform a git clean on existing repos")
 	cloneCmd.Flags().BoolVar(&prune, "prune", false, "GHORG_PRUNE - remove local clones if not found on remote")
+	cloneCmd.Flags().BoolVar(&pruneNoConfirm, "prune-no-confirm", false, "GHORG_PRUNE_NO_CONFIRM - don't prompt on every prune candidate, just delete")
 	cloneCmd.Flags().BoolVar(&fetchAll, "fetch-all", false, "GHORG_FETCH_ALL - fetches all remote branches for each repo by running a git fetch --all")
 	cloneCmd.Flags().BoolVar(&dryRun, "dry-run", false, "GHORG_DRY_RUN - perform a dry run of the clone; fetches repos but does not clone them")
 	cloneCmd.Flags().BoolVar(&insecureGitlabClient, "insecure-gitlab-client", false, "GHORG_INSECURE_GITLAB_CLIENT - skip TLS certificate verification for hosted gitlab instances")

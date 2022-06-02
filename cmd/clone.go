@@ -114,6 +114,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_PRUNE", "true")
 	}
 
+	if cmd.Flags().Changed("prune-no-confirm") {
+		os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
+	}
+
 	if cmd.Flags().Changed("fetch-all") {
 		os.Setenv("GHORG_FETCH_ALL", "true")
 	}
@@ -789,7 +793,11 @@ func PrintConfigs() {
 		colorlog.PrintInfo("* No Clean      : " + "true")
 	}
 	if os.Getenv("GHORG_PRUNE") == "true" {
-		colorlog.PrintInfo("* Prune         : " + "true")
+		noConfirmText := ""
+		if os.Getenv("GHORG_PRUNE_NO_CONFIRM") == "true" {
+			noConfirmText = " (skipping confirmation)"
+		}
+		colorlog.PrintInfo("* Prune         : " + "true" + noConfirmText)
 	}
 	if os.Getenv("GHORG_FETCH_ALL") == "true" {
 		colorlog.PrintInfo("* Fetch All     : " + "true")
