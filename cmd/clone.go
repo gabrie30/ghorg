@@ -689,7 +689,10 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				if userAgreesToDelete {
 					colorlog.PrintSubtleInfo(
 						fmt.Sprintf("Deleting %s", filepath.Join(cloneLocation, f.Name())))
-					os.RemoveAll(filepath.Join(cloneLocation, f.Name()))
+					err = os.RemoveAll(filepath.Join(cloneLocation, f.Name()))
+					if err != nil {
+						log.Fatal(err)
+					}
 				} else {
 					colorlog.PrintError("Pruning cancelled by user.  No more prunes will be considered.")
 				}
