@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.7.16] - unreleased
+## [1.7.16] - 6/1/22
 ### Added
 - GHORG_PRUNE setting which allows a user to have Ghorg automatically remove items from their local
   org clone which have been removed (or archived, if GHORG_SKIP_ARCHIVED is set) upstream; thanks @toothbrush
