@@ -236,7 +236,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - clone target type, user or org (default org)")
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED - skips archived repos, github/gitlab/gitea only")
 	cloneCmd.Flags().BoolVar(&noClean, "no-clean", false, "GHORG_NO_CLEAN - only clones new repos and does not perform a git clean on existing repos")
-	cloneCmd.Flags().BoolVar(&prune, "prune", false, "GHORG_PRUNE - remove local clones if not found on remote")
+	cloneCmd.Flags().BoolVar(&prune, "prune", false, "GHORG_PRUNE - Deletes all files/directories found in your local clone directory that are not found on the remote (e.g., after remote deletion).  With GHORG_SKIP_ARCHIVED set, archived repositories will also be pruned from your local clone.  Will prompt before deleting any files unless used in combination with --prune-no-confirm")
 	cloneCmd.Flags().BoolVar(&pruneNoConfirm, "prune-no-confirm", false, "GHORG_PRUNE_NO_CONFIRM - don't prompt on every prune candidate, just delete")
 	cloneCmd.Flags().BoolVar(&fetchAll, "fetch-all", false, "GHORG_FETCH_ALL - fetches all remote branches for each repo by running a git fetch --all")
 	cloneCmd.Flags().BoolVar(&dryRun, "dry-run", false, "GHORG_DRY_RUN - perform a dry run of the clone; fetches repos but does not clone them")

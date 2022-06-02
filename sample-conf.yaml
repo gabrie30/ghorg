@@ -150,11 +150,12 @@ GHORG_CLONE_WIKI: false
 # flag (--dry-run)
 GHORG_DRY_RUN: false
 
-# Remove locally cloned repos that aren't found on remote (e.g., after remote deletion).  With GHORG_SKIP_ARCHIVED set, archived repositories will also be pruned from your local clone.
+# Deletes all files/directories found in your local clone directory that are not found on the remote (e.g., after remote deletion).  With GHORG_SKIP_ARCHIVED set, archived repositories will also be pruned from your local clone.
+# Will prompt before deleting any files unless used in combination with --prune-no-confirm
 # flag (--prune)
 GHORG_PRUNE: false
 
-# Skip interactive y/n prompt when pruning clones (only makes sense with --prune).
+# Skip interactive y/n prompt when pruning clones (can only be used in combination with --prune).
 # flag (--prune-no-confirm)
 GHORG_PRUNE_NO_CONFIRM: false
 
