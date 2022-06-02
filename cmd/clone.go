@@ -677,12 +677,14 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		// The first time around, we set userAgreesToDelete to true, otherwise we'd immediately
 		// break out of the loop.
 		userAgreesToDelete := true
+		pruneNoConfirm := os.Getenv("GHORG_PRUNE_NO_CONFIRM") == "true"
 		for _, f := range files {
 			// For each item in the org's clone directory, let's make sure we found a corresponding
 			// repo on the remote.  We check userAgreesToDelete here too, so that if the user says
 			// "No" at any time, we stop trying to prune things altogether.
 			if userAgreesToDelete && !sliceContainsNamedRepo(cloneTargets, f.Name()) {
-				userAgreesToDelete = interactiveYesNoPrompt(
+				// If the user specified --prune-no-confirm, we needn't prompt interactively.
+				userAgreesToDelete = pruneNoConfirm || interactiveYesNoPrompt(
 					fmt.Sprintf("%s was not found in remote.  Do you want to prune it?", f.Name()))
 				if userAgreesToDelete {
 					colorlog.PrintSubtleInfo(
