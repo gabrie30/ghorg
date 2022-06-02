@@ -6,9 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.7.16] - unreleased
 ### Added
 - GHORG_PRUNE setting which allows a user to have Ghorg automatically remove items from their local
-  org clone which have been removed (or archived, if GHORG_SKIP_ARCHIVED is set) upstream.
+  org clone which have been removed (or archived, if GHORG_SKIP_ARCHIVED is set) upstream; thanks @toothbrush
 - GHORG_PRUNE_NO_CONFIRM which disables the interactive yes/no prompt for every item to be deleted
-  when pruning.
+  when pruning; thanks @toothbrush
 ### Changed
 ### Deprecated
 ### Removed
