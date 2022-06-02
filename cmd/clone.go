@@ -670,13 +670,23 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			log.Fatal(err)
 		}
 
+		// The first time around, we set userAgreesToDelete to true, otherwise we'd immediately
+		// break out of the loop.
+		userAgreesToDelete := true
 		for _, f := range files {
-			// for each item in the org's clone directory, let's make sure we found a corresponding repo
-			// on the remote.
-			if !sliceContainsNamedRepo(cloneTargets, f.Name()) {
-				colorlog.PrintSubtleInfo(fmt.Sprintf("%s not found in remote.  Pruning.", f.Name()))
-				// TODO ask user interactively whether dir should be deleted
-				os.RemoveAll(filepath.Join(cloneLocation, f.Name()))
+			// For each item in the org's clone directory, let's make sure we found a corresponding
+			// repo on the remote.  We check userAgreesToDelete here too, so that if the user says
+			// "No" at any time, we stop trying to prune things altogether.
+			if userAgreesToDelete && !sliceContainsNamedRepo(cloneTargets, f.Name()) {
+				userAgreesToDelete = interactiveYesNoPrompt(
+					fmt.Sprintf("%s was not found in remote.  Do you want to prune it?", f.Name()))
+				if userAgreesToDelete {
+					colorlog.PrintSubtleInfo(
+						fmt.Sprintf("Deleting %s", filepath.Join(cloneLocation, f.Name())))
+					os.RemoveAll(filepath.Join(cloneLocation, f.Name()))
+				} else {
+					colorlog.PrintError("Pruning cancelled by user.  No more prunes will be considered.")
+				}
 			}
 		}
 	}
