@@ -15,7 +15,8 @@ import (
 var (
 	protocol                     string
 	path                         string
-	parentFolder                 string
+	outputDirName                string
+	outputDirAbsolutePath        string
 	branch                       string
 	token                        string
 	cloneType                    string

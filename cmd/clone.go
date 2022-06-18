@@ -194,7 +194,8 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Exit(1)
 	}
 
-	parseParentFolder(argz)
+	setOutputDirName(argz)
+	setOuputDirAbsolutePath()
 	args = argz
 	targetCloneSource = argz[0]
 	setupRepoClone()
@@ -256,7 +257,7 @@ func getCloneUrls(isOrg bool) ([]scm.Repo, error) {
 }
 
 func createDirIfNotExist() {
-	if _, err := os.Stat(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + parentFolder); os.IsNotExist(err) {
+	if _, err := os.Stat(outputDirAbsolutePath); os.IsNotExist(err) {
 		err = os.MkdirAll(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), 0o700)
 		if err != nil {
 			panic(err)
@@ -397,16 +398,16 @@ func printDryRun(repos []scm.Repo) {
 		colorlog.PrintSubtleInfo(repo.URL + "\n")
 	}
 	count := len(repos)
-	colorlog.PrintSuccess(fmt.Sprintf("%v repos to be cloned into: %s%s", count, os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
+	colorlog.PrintSuccess(fmt.Sprintf("%v repos to be cloned into: %s", count, outputDirAbsolutePath))
 
 	if os.Getenv("GHORG_PRUNE") == "true" {
-		cloneLocation := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder)
-		if stat, err := os.Stat(cloneLocation); err == nil && stat.IsDir() {
+
+		if stat, err := os.Stat(outputDirAbsolutePath); err == nil && stat.IsDir() {
 			// We check that the clone path exists, otherwise there would definitely be no pruning
 			// to do.
 			colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
-			files, err := ioutil.ReadDir(cloneLocation)
+			files, err := ioutil.ReadDir(outputDirAbsolutePath)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -510,16 +511,12 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				repoSlug = repo.Path
 			}
 
-			repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder, repoSlug)
+			repo.HostPath = filepath.Join(outputDirAbsolutePath, repoSlug)
 
 			if repo.IsWiki {
 				if !strings.HasSuffix(repo.HostPath, ".wiki") {
 					repo.HostPath = repo.HostPath + ".wiki"
 				}
-			}
-
-			if os.Getenv("GHORG_BACKUP") == "true" {
-				repo.HostPath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder+"_backup", repoSlug)
 			}
 
 			action := "cloning"
@@ -667,9 +664,8 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	// Now, clean up local repos that don't exist in remote, if prune flag is set
 	if os.Getenv("GHORG_PRUNE") == "true" {
 		colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
-		cloneLocation := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder)
 
-		files, err := ioutil.ReadDir(cloneLocation)
+		files, err := ioutil.ReadDir(outputDirAbsolutePath)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -688,8 +684,8 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					fmt.Sprintf("%s was not found in remote.  Do you want to prune it?", f.Name()))
 				if userAgreesToDelete {
 					colorlog.PrintSubtleInfo(
-						fmt.Sprintf("Deleting %s", filepath.Join(cloneLocation, f.Name())))
-					err = os.RemoveAll(filepath.Join(cloneLocation, f.Name()))
+						fmt.Sprintf("Deleting %s", filepath.Join(outputDirAbsolutePath, f.Name())))
+					err = os.RemoveAll(filepath.Join(outputDirAbsolutePath, f.Name()))
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -700,11 +696,8 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		}
 	}
 
-	// TODO: fix all these if else checks with ghorg_backups
-	if os.Getenv("GHORG_BACKUP") == "true" {
-		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s%s_backup", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
-	} else if os.Getenv("GHORG_QUIET") != "true" {
-		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s%s", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), parentFolder))
+	if os.Getenv("GHORG_QUIET") != "true" {
+		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s", outputDirAbsolutePath))
 	}
 }
 
@@ -792,7 +785,7 @@ func PrintConfigs() {
 		colorlog.PrintInfo("* Exclude Prefix: " + os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX"))
 	}
 	if os.Getenv("GHORG_OUTPUT_DIR") != "" {
-		colorlog.PrintInfo("* Output Dir    : " + parentFolder)
+		colorlog.PrintInfo("* Output Dir    : " + outputDirName)
 	}
 	if os.Getenv("GHORG_NO_CLEAN") == "true" {
 		colorlog.PrintInfo("* No Clean      : " + "true")
@@ -825,13 +818,17 @@ func getGhorgBranch() string {
 	return os.Getenv("GHORG_BRANCH")
 }
 
-func parseParentFolder(argz []string) {
+func setOuputDirAbsolutePath() {
+	outputDirAbsolutePath = filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), outputDirName)
+}
+
+func setOutputDirName(argz []string) {
 	if os.Getenv("GHORG_OUTPUT_DIR") != "" {
-		parentFolder = os.Getenv("GHORG_OUTPUT_DIR")
+		outputDirName = os.Getenv("GHORG_OUTPUT_DIR")
 		return
 	}
 
-	parentFolder = strings.ToLower(argz[0])
+	outputDirName = strings.ToLower(argz[0])
 
 	// If all-group is used set the parent folder to the name of the baseurl
 	if argz[0] == "all-groups" && os.Getenv("GHORG_SCM_BASE_URL") != "" {
@@ -839,7 +836,10 @@ func parseParentFolder(argz []string) {
 		if err != nil {
 			return
 		}
-		parentFolder = strings.TrimSuffix(strings.TrimPrefix(u.Host, "www."), ".com")
-		fmt.Println(parentFolder)
+		outputDirName = strings.TrimSuffix(strings.TrimPrefix(u.Host, "www."), ".com")
+	}
+
+	if os.Getenv("GHORG_BACKUP") == "true" {
+		outputDirName = outputDirName + "_backup"
 	}
 }

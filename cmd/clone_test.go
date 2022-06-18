@@ -13,20 +13,20 @@ import (
 func TestShouldLowerRegularString(t *testing.T) {
 
 	upperName := "RepoName"
-	parseParentFolder([]string{upperName})
+	setOutputDirName([]string{upperName})
 
-	if parentFolder != "reponame" {
-		t.Errorf("Wrong folder name, expected: %s, got: %s", upperName, parentFolder)
+	if outputDirName != "reponame" {
+		t.Errorf("Wrong folder name, expected: %s, got: %s", upperName, outputDirName)
 	}
 }
 
 func TestShouldNotChangeLowerCasedRegularString(t *testing.T) {
 
 	lowerName := "repo_name"
-	parseParentFolder([]string{lowerName})
+	setOutputDirName([]string{lowerName})
 
-	if parentFolder != "repo_name" {
-		t.Errorf("Wrong folder name, expected: %s, got: %s", lowerName, parentFolder)
+	if outputDirName != "repo_name" {
+		t.Errorf("Wrong folder name, expected: %s, got: %s", lowerName, outputDirName)
 	}
 }
 
@@ -34,20 +34,20 @@ func TestReplaceDashWithUnderscore(t *testing.T) {
 
 	want := "repo-name"
 	lowerName := "repo-name"
-	parseParentFolder([]string{lowerName})
+	setOutputDirName([]string{lowerName})
 
-	if parentFolder != want {
-		t.Errorf("Wrong folder name, expected: %s, got: %s", want, parentFolder)
+	if outputDirName != want {
+		t.Errorf("Wrong folder name, expected: %s, got: %s", want, outputDirName)
 	}
 }
 
 func TestShouldNotChangeNonLettersString(t *testing.T) {
 
 	numberName := "1234567_8"
-	parseParentFolder([]string{numberName})
+	setOutputDirName([]string{numberName})
 
-	if parentFolder != "1234567_8" {
-		t.Errorf("Wrong folder name, expected: %s, got: %s", numberName, parentFolder)
+	if outputDirName != "1234567_8" {
+		t.Errorf("Wrong folder name, expected: %s, got: %s", numberName, outputDirName)
 	}
 }
 
