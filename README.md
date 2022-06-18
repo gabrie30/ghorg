@@ -2,8 +2,9 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/gabrie30/ghorg)](https://goreportcard.com/report/github.com/gabrie30/ghorg) <a href="https://godoc.org/github.com/gabrie30/ghorg"><img src="https://godoc.org/github.com/gabrie30/ghorg?status.svg" alt="GoDoc"></a> [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![WakeMeOps](https://docs.wakemeops.com/badges/ghorg.svg)](https://docs.wakemeops.com//packages/ghorg)
 
+Pronounced [gore-guh]; similar to [gorge (verb)](https://www.dictionary.com/browse/gorge). You can use ghorg to gorge on repos...Time to gorge!
 
-ghorg allows you to quickly clone all of an orgs, or users repos into a single directory. This can be useful in many situations including
+Use ghorg to quickly clone all of an orgs, or users repos into a single directory. This can be useful in many situations including
 
 1. Searching an orgs/users codebase with ack, silver searcher, grep etc..
 1. Bash scripting
