@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const ghorgVersion = "v1.7.17"
+const ghorgVersion = "v1.8.0"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",

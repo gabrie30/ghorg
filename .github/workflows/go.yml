@@ -15,7 +15,7 @@ jobs:
         go-version: 1.17
       id: go
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Test
       run: go test -v ./...
     - name: Build
@@ -33,13 +33,13 @@ jobs:
     name: Build and Test Windows
     runs-on: windows-latest
     steps:
-    - name: Set up Go 1.16
+    - name: Set up Go 1.17
       uses: actions/setup-go@v1
       with:
         go-version: 1.17
       id: go
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Set configuration file
       run: |
         mkdir C:\Users\runneradmin\.config\ghorg

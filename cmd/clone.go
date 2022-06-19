@@ -67,6 +67,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_CONCURRENCY", g)
 	}
 
+	if cmd.Flags().Changed("exit-code-on-clone-infos") {
+		g := cmd.Flag("exit-code-on-clone-infos").Value.String()
+		os.Setenv("GHORG_EXIT_CODE_ON_CLONE_INFOS", g)
+	}
+
 	if cmd.Flags().Changed("topics") {
 		topics := cmd.Flag("topics").Value.String()
 		os.Setenv("GHORG_TOPICS", topics)
@@ -284,14 +289,14 @@ func printRemainingMessages() {
 	if len(cloneInfos) > 0 {
 		colorlog.PrintInfo("\n============ Info ============\n")
 		for _, i := range cloneInfos {
-			colorlog.PrintInfo(i + "\n")
+			colorlog.PrintInfo(i)
 		}
 	}
 
 	if len(cloneErrors) > 0 {
 		colorlog.PrintError("\n============ Issues ============\n")
 		for _, e := range cloneErrors {
-			colorlog.PrintError(e + "\n")
+			colorlog.PrintError(e)
 		}
 	}
 }
@@ -699,6 +704,21 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	if os.Getenv("GHORG_QUIET") != "true" {
 		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s", outputDirAbsolutePath))
 	}
+
+	if os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS") != "0" && len(cloneInfos) > 0 {
+		exitCode, err := strconv.Atoi(os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS"))
+		if err != nil {
+			colorlog.PrintError("Could not convert GHORG_EXIT_CODE_ON_CLONE_INFOS from string to integer")
+			os.Exit(1)
+		}
+
+		os.Exit(exitCode)
+	}
+
+	if len(cloneErrors) > 0 {
+		os.Exit(1)
+	}
+
 }
 
 func interactiveYesNoPrompt(prompt string) bool {

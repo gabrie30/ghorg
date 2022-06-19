@@ -8,12 +8,10 @@ cp ./ghorg /usr/local/bin
 
 BITBUCKET_WORKSPACE=ghorg
 
-ghorg version
-
 # clone an org with no config file
-ghorg clone $BITBUCKET_WORKSPACE --token="${BITBUCKET_TOKEN}" --bitbucket-username="${BITBUCKET_USERNAME}" --scm=bitbucket --base-url="https://api.bitbucket.org/2.0"
+ghorg clone $BITBUCKET_WORKSPACE --token="${BITBUCKET_TOKEN}" --bitbucket-username="${BITBUCKET_USERNAME}" --scm=bitbucket --base-url="https://api.bitbucket.org/2.0" --output-dir=bb-test-1
 
-if [ -e "${HOME}"/ghorg/$BITBUCKET_WORKSPACE ]
+if [ -e "${HOME}"/ghorg/bb-test-1 ]
 then
     echo "Pass: bitbucket org clone using no configuration file"
 else
