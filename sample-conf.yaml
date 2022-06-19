@@ -171,6 +171,11 @@ GHORG_IGNORE_PATH:
 # flag (--quiet)
 GHORG_QUIET: false
 
+# Allows you to control the exit code when ghorg runs into a problem cloning a repo from the remote.
+# For automation you may want to exit 1 if any repo fails to clone.
+# flag (--exit-code-on-clone-infos)
+GHORG_EXIT_CODE_ON_CLONE_INFOS: 0
+
 # Specifies the location of your ghorg conf.yaml, allowing you to have many configuration files, or none at all
 # default: ghorg looks in $HOME/.config/ghorg/conf.yaml, if not set in that location nor as a commandline flag, ghorg will use all default values
 # NOTE: this cannot be set in the configuration file and only available in ghorg v1.7.0+
