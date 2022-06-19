@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Added
 - Exit 1 when any issue messages are produced; thanks @i3v
 - GHORG_EXIT_CODE_ON_CLONE_INFOS to allow for control of exit code when any info messages are produced
+- Remotes updated count to clone stats
 ### Changed
 ### Deprecated
 ### Removed

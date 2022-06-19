@@ -506,7 +506,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	limit := limiter.NewConcurrencyLimiter(l)
 
-	var cloneCount, pulledCount int
+	var cloneCount, pulledCount, updateRemoteCount int
 
 	for i := range cloneTargets {
 		repo := cloneTargets[i]
@@ -529,7 +529,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			if repoExistsLocally(repo) {
 				if os.Getenv("GHORG_BACKUP") == "true" {
 					err := git.UpdateRemote(repo)
-
+					action = "updating remote"
 					// Theres no way to tell if a github repo has a wiki to clone
 					if err != nil && repo.IsWiki {
 						e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on Repo: %s Error: %v", repo.URL, err)
@@ -542,6 +542,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
+					updateRemoteCount++
 				} else if os.Getenv("GHORG_NO_CLEAN") == "true" {
 					action = "fetching"
 					err := git.FetchAll(repo)
@@ -663,8 +664,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	limit.WaitAndClose()
 
 	printRemainingMessages()
-
-	colorlog.PrintSuccess(fmt.Sprintf("New repos cloned: %v, existing repos pulled: %v", cloneCount, pulledCount))
+	printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount)
 
 	// Now, clean up local repos that don't exist in remote, if prune flag is set
 	if os.Getenv("GHORG_PRUNE") == "true" {
@@ -719,6 +719,15 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		os.Exit(1)
 	}
 
+}
+
+func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount int) {
+	if updateRemoteCount > 0 {
+		colorlog.PrintSuccess(fmt.Sprintf("New repos cloned: %v, existing repos pulled: %v, remotes updated: %v", cloneCount, pulledCount, updateRemoteCount))
+		return
+	}
+
+	colorlog.PrintSuccess(fmt.Sprintf("New repos cloned: %v, existing repos pulled: %v", cloneCount, pulledCount))
 }
 
 func interactiveYesNoPrompt(prompt string) bool {
