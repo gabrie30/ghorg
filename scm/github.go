@@ -2,6 +2,7 @@ package scm
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"os"
 	"strings"
@@ -165,6 +166,7 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 		r := Repo{}
 
 		r.Name = *ghRepo.Name
+		r.Path = r.Name
 
 		if os.Getenv("GHORG_BRANCH") == "" {
 			defaultBranch := ghRepo.GetDefaultBranch()
@@ -192,6 +194,7 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 			wiki.CloneURL = strings.Replace(r.CloneURL, ".git", ".wiki.git", 1)
 			wiki.URL = strings.Replace(r.URL, ".git", ".wiki.git", 1)
 			wiki.CloneBranch = "master"
+			wiki.Path = fmt.Sprintf("%s%s", r.Name, ".wiki")
 			repoData = append(repoData, wiki)
 		}
 	}

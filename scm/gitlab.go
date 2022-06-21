@@ -273,6 +273,7 @@ func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
 			wiki.CloneURL = strings.Replace(r.CloneURL, ".git", ".wiki.git", 1)
 			wiki.URL = strings.Replace(r.URL, ".git", ".wiki.git", 1)
 			wiki.CloneBranch = "master"
+			wiki.Path = fmt.Sprintf("%s%s", p.PathWithNamespace, ".wiki")
 			repoData = append(repoData, wiki)
 		}
 	}
