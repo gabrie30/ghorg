@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 ### Fixed
 - Backup flag not working with prune; thanks @i3v
+- Clone wiki flag with prune; thanks @i3v
+- Cloning of Gitlab subgroups with prune; thanks @i3v
 ### Security
 
 ## [1.7.16] - 6/1/22

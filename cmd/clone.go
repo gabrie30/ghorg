@@ -668,37 +668,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	// Now, clean up local repos that don't exist in remote, if prune flag is set
 	if os.Getenv("GHORG_PRUNE") == "true" {
-		colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
-
-		files, err := ioutil.ReadDir(outputDirAbsolutePath)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// The first time around, we set userAgreesToDelete to true, otherwise we'd immediately
-		// break out of the loop.
-		userAgreesToDelete := true
-		pruneNoConfirm := os.Getenv("GHORG_PRUNE_NO_CONFIRM") == "true"
-		for _, f := range files {
-			// For each item in the org's clone directory, let's make sure we found a corresponding
-			// repo on the remote.  We check userAgreesToDelete here too, so that if the user says
-			// "No" at any time, we stop trying to prune things altogether.
-			if userAgreesToDelete && !sliceContainsNamedRepo(cloneTargets, f.Name()) {
-				// If the user specified --prune-no-confirm, we needn't prompt interactively.
-				userAgreesToDelete = pruneNoConfirm || interactiveYesNoPrompt(
-					fmt.Sprintf("%s was not found in remote.  Do you want to prune it?", f.Name()))
-				if userAgreesToDelete {
-					colorlog.PrintSubtleInfo(
-						fmt.Sprintf("Deleting %s", filepath.Join(outputDirAbsolutePath, f.Name())))
-					err = os.RemoveAll(filepath.Join(outputDirAbsolutePath, f.Name()))
-					if err != nil {
-						log.Fatal(err)
-					}
-				} else {
-					colorlog.PrintError("Pruning cancelled by user.  No more prunes will be considered.")
-				}
-			}
-		}
+		pruneRepos(cloneTargets)
 	}
 
 	if os.Getenv("GHORG_QUIET") != "true" {
@@ -719,6 +689,40 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		os.Exit(1)
 	}
 
+}
+
+func pruneRepos(cloneTargets []scm.Repo) {
+	colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
+
+	files, err := ioutil.ReadDir(outputDirAbsolutePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// The first time around, we set userAgreesToDelete to true, otherwise we'd immediately
+	// break out of the loop.
+	userAgreesToDelete := true
+	pruneNoConfirm := os.Getenv("GHORG_PRUNE_NO_CONFIRM") == "true"
+	for _, f := range files {
+		// For each item in the org's clone directory, let's make sure we found a corresponding
+		// repo on the remote.  We check userAgreesToDelete here too, so that if the user says
+		// "No" at any time, we stop trying to prune things altogether.
+		if userAgreesToDelete && !sliceContainsNamedRepo(cloneTargets, f.Name()) {
+			// If the user specified --prune-no-confirm, we needn't prompt interactively.
+			userAgreesToDelete = pruneNoConfirm || interactiveYesNoPrompt(
+				fmt.Sprintf("%s was not found in remote.  Do you want to prune it?", f.Name()))
+			if userAgreesToDelete {
+				colorlog.PrintSubtleInfo(
+					fmt.Sprintf("Deleting %s", filepath.Join(outputDirAbsolutePath, f.Name())))
+				err = os.RemoveAll(filepath.Join(outputDirAbsolutePath, f.Name()))
+				if err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				colorlog.PrintError("Pruning cancelled by user.  No more prunes will be considered.")
+			}
+		}
+	}
 }
 
 func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount int) {
@@ -748,9 +752,18 @@ func interactiveYesNoPrompt(prompt string) bool {
 }
 
 // There's probably a nicer way of finding whether any scm.Repo in the slice matches a given name.
+// TODO, currently this does not work if user sets --preserve-dir see https://github.com/gabrie30/ghorg/issues/210 for more info
 func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
+
+	if os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
+		colorlog.PrintError("GHORG_PRUNE (--prune) does not currently work in combination with GHORG_PRESERVE_DIRECTORY_STRUCTURE (--preserve-dir), this will come in later versions")
+		os.Exit(1)
+	}
+
 	for _, repo := range haystack {
-		if repo.Name == needle {
+		basepath := filepath.Base(repo.Path)
+
+		if basepath == needle {
 			return true
 		}
 	}

@@ -82,7 +82,7 @@ func (_ Bitbucket) filter(resp []bitbucket.Repository) (repoData []Repo, err err
 
 			r := Repo{}
 			r.Name = a.Name
-
+			r.Path = r.Name
 			if os.Getenv("GHORG_BRANCH") == "" {
 				r.CloneBranch = a.Mainbranch.Name
 			} else {
