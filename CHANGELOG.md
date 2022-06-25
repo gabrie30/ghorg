@@ -3,10 +3,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.8.0] - unreleased
+## [1.8.0] - 6/25/22
 ### Added
 - Exit 1 when any issue messages are produced; thanks @i3v
 - GHORG_EXIT_CODE_ON_CLONE_INFOS to allow for control of exit code when any info messages are produced
+- GHORG_EXIT_CODE_ON_CLONE_ISSUES to allow for control of exit code when any issue messages are produced
 - Remotes updated count to clone stats
 ### Changed
 ### Deprecated

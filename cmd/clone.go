@@ -63,13 +63,18 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	}
 
 	if cmd.Flags().Changed("concurrency") {
-		g := cmd.Flag("concurrency").Value.String()
-		os.Setenv("GHORG_CONCURRENCY", g)
+		f := cmd.Flag("concurrency").Value.String()
+		os.Setenv("GHORG_CONCURRENCY", f)
 	}
 
 	if cmd.Flags().Changed("exit-code-on-clone-infos") {
-		g := cmd.Flag("exit-code-on-clone-infos").Value.String()
-		os.Setenv("GHORG_EXIT_CODE_ON_CLONE_INFOS", g)
+		f := cmd.Flag("exit-code-on-clone-infos").Value.String()
+		os.Setenv("GHORG_EXIT_CODE_ON_CLONE_INFOS", f)
+	}
+
+	if cmd.Flags().Changed("exit-code-on-clone-issues") {
+		f := cmd.Flag("exit-code-on-clone-issues").Value.String()
+		os.Setenv("GHORG_EXIT_CODE_ON_CLONE_ISSUES", f)
 	}
 
 	if cmd.Flags().Changed("topics") {
@@ -525,7 +530,6 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			}
 
 			action := "cloning"
-
 			if repoExistsLocally(repo) {
 				if os.Getenv("GHORG_BACKUP") == "true" {
 					err := git.UpdateRemote(repo)
@@ -686,7 +690,13 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	}
 
 	if len(cloneErrors) > 0 {
-		os.Exit(1)
+		exitCode, err := strconv.Atoi(os.Getenv("GHORG_EXIT_CODE_ON_CLONE_ISSUES"))
+		if err != nil {
+			colorlog.PrintError("Could not convert GHORG_EXIT_CODE_ON_CLONE_ISSUES from string to integer")
+			os.Exit(1)
+		}
+
+		os.Exit(exitCode)
 	}
 
 }

@@ -26,6 +26,7 @@ var (
 	baseURL                      string
 	concurrency                  string
 	exitCodeOnCloneInfos         string
+	exitCodeOnCloneIssues        string
 	outputDir                    string
 	topics                       string
 	skipArchived                 bool
@@ -125,6 +126,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		case "GHORG_EXIT_CODE_ON_CLONE_INFOS":
 			os.Setenv(envVar, "0")
+		case "GHORG_EXIT_CODE_ON_CLONE_ISSUES":
+			os.Setenv(envVar, "1")
 		}
 	} else {
 		s := viper.GetString(envVar)
@@ -194,6 +197,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_BACKUP")
 	getOrSetDefaults("GHORG_CONCURRENCY")
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_INFOS")
+	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_ISSUES")
 	// Optionally set
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
 	getOrSetDefaults("GHORG_COLOR")
@@ -261,7 +265,8 @@ func init() {
 	cloneCmd.Flags().StringVarP(&excludeMatchRegex, "exclude-match-regex", "", "", "GHORG_EXCLUDE_MATCH_REGEX - Exclude cloning repos that match name to regex provided")
 	cloneCmd.Flags().StringVarP(&gitlabGroupExcludeMatchRegex, "gitlab-group-exclude-match-regex", "", "", "GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX - Exclude cloning gitlab groups that match name to regex provided")
 	cloneCmd.Flags().StringVarP(&ghorgIgnorePath, "ghorgignore-path", "", "", "GHORG_IGNORE_PATH - If you want to set a path other than $HOME/.config/ghorg/ghorgignore for your ghorgignore")
-	cloneCmd.Flags().StringVarP(&exitCodeOnCloneInfos, "exit-code-on-clone-infos", "", "", "GHORG_EXIT_CODE_ON_CLONE_INFOS - Allows you to control the exit code when ghorg runs into a problem cloning a repo from the remote (default 0)")
+	cloneCmd.Flags().StringVarP(&exitCodeOnCloneInfos, "exit-code-on-clone-infos", "", "", "GHORG_EXIT_CODE_ON_CLONE_INFOS - Allows you to control the exit code when ghorg runs into a problem (info level message) cloning a repo from the remote. Info messages will appear after a clone is complete, similar to success messages. (default 0)")
+	cloneCmd.Flags().StringVarP(&exitCodeOnCloneIssues, "exit-code-on-clone-issues", "", "", "GHORG_EXIT_CODE_ON_CLONE_ISSUES - Allows you to control the exit code when ghorg runs into a problem (issue level message) cloning a repo from the remote. Issue messages will appear after a clone is complete, similar to success messages (default 1)")
 	rootCmd.AddCommand(lsCmd, versionCmd, cloneCmd)
 }
 
