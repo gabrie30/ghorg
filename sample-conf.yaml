@@ -128,7 +128,7 @@ GHORG_MATCH_PREFIX:
 
 # Exclude cloning repos with matching prefix, can be a comma separated list
 # flag (--exclude-match-prefix) eg: --exclude-match-prefix=backend
-GHORG_MATCH_PREFIX:
+GHORG_EXCLUDE_MATCH_PREFIX:
 
 # Only clone repos that match name to regex provided
 # flag (--match-regex) eg: --match-regex=^foo
