@@ -101,12 +101,12 @@ go get github.com/gabrie30/ghorg
 > Note: if you are running into issues, read the troubleshooting and known issues section below
 
 ### github setup
-1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. Update `GHORG_GITHUB_TOKEN` in your `ghorg/conf.yaml`, as a cli flag, or add to your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git). If your org has Saml SSO in front you will need to give your token those permissions as well, see [this doc](https://docs.github.com/en/github/authenticating-to-github/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on).
+1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. Update `GHORG_GITHUB_TOKEN` in your `ghorg/conf.yaml` or as a cli flag. If your org has Saml SSO in front you will need to give your token those permissions as well, see [this doc](https://docs.github.com/en/github/authenticating-to-github/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on).
 1. For cloning GitHub Enterprise repos you must set `--base-url` e.g. `ghorg clone <github_org> --base-url=https://internal.github.com`
 
 ### gitlab setup
 
-1. Create [Personal Access Token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) with the `read_api` scope (or `api` for self-managed GitLab older than 12.10). This token can be added to your `ghorg/conf.yaml`, as a cli flag, or your [osx keychain](https://help.github.com/en/github/using-git/caching-your-github-password-in-git).
+1. Create [Personal Access Token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) with the `read_api` scope (or `api` for self-managed GitLab older than 12.10). This token can be added to your `ghorg/conf.yaml` or as a cli flag.
 1. Update the `GitLab Specific` config in your `ghorg/conf.yaml` or via cli flags
 1. Update `GHORG_SCM_TYPE` to `gitlab` in your `ghorg/conf.yaml` or via cli flags
 1. See [examples/gitlab.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md) on how to run
@@ -161,17 +161,6 @@ $ ghorg clone fdroid --scm=gitlab --token=XXXX --preserve-dir
 1. Create a [PAT](https://confluence.atlassian.com/bitbucketserver/personal-access-tokens-939515499.html)
 1. Set the token with `GHORG_BITBUCKET_OAUTH_TOKEN` in your `$HOME/.config/ghorg/conf.yaml` or using the `--token` flag. Make sure you do not have `--bitbucket-username` set.
 1. Update SCM TYPE to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
-
-### osx default github/gitlab token used
-
-> NOTE: cloning via https rather than ssh is the ghorg default, this is because a token must be present to retrieve the list of repos. However, if you run into trouble cloning via https and generally clone via ssh, try switching `--protocol ssh`
-
-```bash
-$ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
-$ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ print $4 }'
-```
-
-> It's recommended to store github/gitlab tokens in the osxkeychain, if this command returns anything other than your token see Troubleshooting section below. However, you can always add your token to the $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flags.
 
 ## How to Use
 
