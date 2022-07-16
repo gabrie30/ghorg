@@ -36,16 +36,11 @@ Windows is supported when built with golang or as a [prebuilt binary](https://gi
 
 ## Configuration
 
-Precedence for configuration is first given to the flags set on the command-line, then to what's set in your `$HOME/.config/ghorg/conf.yaml`. This file comes from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml). If neither of these exist, ghorg will fall back to its defaults -- cloning a GitHub org using your security token, if no security token is detected you will need to provide a token `--token`.
+Precedence for configuration is first given to the flags set on the command-line, then to what's set in your `$HOME/.config/ghorg/conf.yaml`. This file comes from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml).
 
 Although it's optional, it is recommended to add a `$HOME/.config/ghorg/conf.yaml` following the instructions in the install section.
 
 You can have multiple configuration files which is useful if you clone from multiple SCM providers. Alternative configuration files can only be referenced as a command-line flag `--config`.
-
-```
-# example using an secondary configuration file
-ghorg clone kubernetes --config=$HOME/.config/ghorg/other-config.yaml
-```
 
 ## Install
 
