@@ -1,63 +1,4 @@
 ---
-# +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
-# |G|I|T|H|U|B| |S|P|E|C|I|F|I|C|
-# +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
-
-# Add your GitHub token
-# Defaults to using key returned by
-# $ security find-internet-password -s github.com  | grep "acct" | awk -F\" '{ print $4 }'
-# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
-GHORG_GITHUB_TOKEN:
-
-# +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-# |G|I|T|L|A|B| |S|P|E|C|I|F|I|C|
-# +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
-# Add your GitLab token
-# Defaults to using key returned by
-# $ security find-internet-password -s gitlab.com  | grep "acct" | awk -F\" '{ print $4 }'
-# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
-GHORG_GITLAB_TOKEN:
-
-# clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/org/unit/subunit/app
-# flag (--preserve-dir)
-GHORG_PRESERVE_DIRECTORY_STRUCTURE: false
-
-# Skip TLS certificate verification for hosted gitlab instances
-# flag (--insecure-gitlab-client)
-GHORG_INSECURE_GITLAB_CLIENT:
-
-# Exclude gitlab groups by regex
-# flag (--gitlab-group-exclude-match-regex)
-GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX:
-
-# +-+-+-+-+-+ +-+-+-+-+-+-+-+-+
-# |G|I|T|E|A| |S|P|E|C|I|F|I|C|
-# +-+-+-+-+-+ +-+-+-+-+-+-+-+-+
-
-# Add your Gitea token
-# Settings -> Applications -> Generate Token
-# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
-GHORG_GITEA_TOKEN:
-
-# +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
-# |B|I|T|B|U|C|K|E|T| |S|P|E|C|I|F|I|C|
-# +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
-
-# When using this OAuth/PAT token, do not set the bitbucket username flag. Do not set both this value and the GHORG_BITBUCKET_APP_PASSWORD
-# https://confluence.atlassian.com/bitbucketserver/personal-access-tokens-939515499.html
-# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
-GHORG_BITBUCKET_OAUTH_TOKEN:
-
-# Add your Bitbucket app password. Do not set both this value and the GHORG_BITBUCKET_OAUTH_TOKEN
-# https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html
-# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
-GHORG_BITBUCKET_APP_PASSWORD:
-
-# Used with GHORG_BITBUCKET_APP_PASSWORD. Should not be set when using GHORG_BITBUCKET_OAUTH_TOKEN
-# flag (--bitbucket-username) eg: --bitbucket-username=user123
-GHORG_BITBUCKET_USERNAME:
-
 # +-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+
 # |G|E|N|E|R|A|L| |C|O|N|F|I|G|U|R|A|T|I|O|N|
 # +-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -186,3 +127,58 @@ GHORG_EXIT_CODE_ON_CLONE_ISSUES: 1
 # NOTE: this cannot be set in the configuration file and only available in ghorg v1.7.0+
 # flag (--config)
 # GHORG_CONFIG:
+
+# +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+# |G|I|T|H|U|B| |S|P|E|C|I|F|I|C|
+# +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+
+# Add your GitHub token
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+GHORG_GITHUB_TOKEN:
+
+# +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+# |G|I|T|L|A|B| |S|P|E|C|I|F|I|C|
+# +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+# Add your GitLab token
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+GHORG_GITLAB_TOKEN:
+
+# clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/org/unit/subunit/app
+# flag (--preserve-dir)
+GHORG_PRESERVE_DIRECTORY_STRUCTURE: false
+
+# Skip TLS certificate verification for hosted gitlab instances
+# flag (--insecure-gitlab-client)
+GHORG_INSECURE_GITLAB_CLIENT:
+
+# Exclude gitlab groups by regex
+# flag (--gitlab-group-exclude-match-regex)
+GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX:
+
+# +-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+# |G|I|T|E|A| |S|P|E|C|I|F|I|C|
+# +-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+
+# Add your Gitea token
+# Settings -> Applications -> Generate Token
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+GHORG_GITEA_TOKEN:
+
+# +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+# |B|I|T|B|U|C|K|E|T| |S|P|E|C|I|F|I|C|
+# +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+
+# When using this OAuth/PAT token, do not set the bitbucket username flag. Do not set both this value and the GHORG_BITBUCKET_APP_PASSWORD
+# https://confluence.atlassian.com/bitbucketserver/personal-access-tokens-939515499.html
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+GHORG_BITBUCKET_OAUTH_TOKEN:
+
+# Add your Bitbucket app password. Do not set both this value and the GHORG_BITBUCKET_OAUTH_TOKEN
+# https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+GHORG_BITBUCKET_APP_PASSWORD:
+
+# Used with GHORG_BITBUCKET_APP_PASSWORD. Should not be set when using GHORG_BITBUCKET_OAUTH_TOKEN
+# flag (--bitbucket-username) eg: --bitbucket-username=user123
+GHORG_BITBUCKET_USERNAME:

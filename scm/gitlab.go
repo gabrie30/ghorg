@@ -54,8 +54,11 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		allGroups = filterGitlabGroupByExcludeMatchRegex(allGroups)
 	}
 
-	for _, group := range allGroups {
+	for i, group := range allGroups {
 		if longFetch {
+			if i == 0 {
+				fmt.Println("")
+			}
 			msg := fmt.Sprintf("fetching repos for group: %v", group)
 			colorlog.PrintInfo(msg)
 		}
