@@ -163,11 +163,11 @@ See [examples](https://github.com/gabrie30/ghorg/tree/master/examples) dir for m
 
 ```bash
 # note: to view/set all available flags/features see sample-conf.yaml
-$ ghorg clone someorg
-$ ghorg clone someorg --concurrency=50 --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
-$ ghorg clone someuser --clone-type=user --protocol=ssh --branch=develop --color=enabled
-$ ghorg clone gitlab-group --scm=gitlab --base-url=https://gitlab.internal.yourcompany.com --preserve-dir
-$ ghorg clone gitlab-group/gitlab-subgroup --scm=gitlab --base-url=https://gitlab.internal.yourcompany.com
+$ ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+$ ghorg clone davecheney --clone-type=user --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+$ ghorg clone gitlab-examples --scm=gitlab --preserve-dir --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+$ ghorg clone gitlab-examples/wayne-enterprises --scm=gitlab --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+$ ghorg clone all-groups --scm=gitlab --base-url=https://gitlab.internal.yourcompany.com --preserve-dir
 $ ghorg clone --help
 # view cloned resources
 $ ghorg ls
