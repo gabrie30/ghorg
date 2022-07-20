@@ -15,11 +15,13 @@ GHORG_CLONE_PROTOCOL: https
 
 # This is where your ghorg directory will be created, use absolute pathing, shell expansions will not work.
 # The ghorg directory is the home for all ghorg clones
+# See https://github.com/gabrie30/ghorg#changing-clone-directories for example
 # default: YOUR_HOME_DIR/ghorg
 # flag (--path, -p) eg: --path=/tmp/ghorg
 GHORG_ABSOLUTE_PATH_TO_CLONE_TO:
 
 # Folder ghorg will clone all repos into. Cloning will result in: GHORG_ABSOLUTE_PATH_TO_CLONE_TO/GHORG_OUTPUT_DIR/repo
+# See https://github.com/gabrie30/ghorg#changing-clone-directories for example
 # default: org/user you are cloning, e.g. 'ghorg clone kubernetes' would create a kubernetes directory inside your ghorg directory
 # flag (--output-dir) eg: --output-dir=testing
 GHORG_OUTPUT_DIR:
