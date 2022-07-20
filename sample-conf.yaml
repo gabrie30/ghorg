@@ -3,11 +3,6 @@
 # |G|E|N|E|R|A|L| |C|O|N|F|I|G|U|R|A|T|I|O|N|
 # +-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-# Change SCM base url, for on self hosted instances, gitea require this
-# default: uses github/gitlab public api
-# flag (--base-url) eg: --base-url=https://my.instance.com
-GHORG_SCM_BASE_URL:
-
 # Which provider to clone from (github, gitlab, gitea or bitbucket)
 # default: github
 # flag (--scm, -s) eg: --scm=gitlab
@@ -18,29 +13,39 @@ GHORG_SCM_TYPE: github
 # flag (--protocol) eg: --protocol=https
 GHORG_CLONE_PROTOCOL: https
 
-# This is where your ghorg directory will be created, use absolute pathing, shell expansions will not work
+# This is where your ghorg directory will be created, use absolute pathing, shell expansions will not work.
+# The ghorg directory is the home for all ghorg clones
 # default: YOUR_HOME_DIR/ghorg
 # flag (--path, -p) eg: --path=/tmp/ghorg
 GHORG_ABSOLUTE_PATH_TO_CLONE_TO:
 
-# Branch ghorg resets and leaves checked out
-# default: default branch
-# NOTE: if no default branch is found on the repo, will fallback to using master
-# flag (--branch, -b) eg: --branch=develop
-GHORG_BRANCH:
+# Folder ghorg will clone all repos into. Cloning will result in: GHORG_ABSOLUTE_PATH_TO_CLONE_TO/GHORG_OUTPUT_DIR/repo
+# default: org/user you are cloning, e.g. 'ghorg clone kubernetes' would create a kubernetes directory inside your ghorg directory
+# flag (--output-dir) eg: --output-dir=testing
+GHORG_OUTPUT_DIR:
 
 # Type of entity to clone (user or org)
 # flag (--clone-type, -c) eg: --clone-type=user
 GHORG_CLONE_TYPE: org
 
+# Deletes all files/directories found in your local clone directory that are not found on the remote (e.g., after remote deletion).  With GHORG_SKIP_ARCHIVED set, archived repositories will also be pruned from your local clone.
+# Will prompt before deleting any files unless used in combination with --prune-no-confirm
+# flag (--prune)
+GHORG_PRUNE: false
+
+# Skip interactive y/n prompt when pruning clones (can only be used in combination with --prune).
+# flag (--prune-no-confirm)
+GHORG_PRUNE_NO_CONFIRM: false
+
+# Change SCM base url, for on self hosted instances, gitea requires this.
+# For http gitlab instances see GHORG_INSECURE_GITLAB_CLIENT
+# default: uses github/gitlab public api
+# flag (--base-url) eg: --base-url=https://my.self.hosted.scm.instance.com
+GHORG_SCM_BASE_URL:
+
 # Color output (enabled, disabled)
 # flag (--color) eg: --color=disabled
 GHORG_COLOR: disabled
-
-# A comma separated list of topics to filter by, currently github/gitlab/gitea only
-# flag (--topics) eg: --topics=frontend
-# If any topics exist here, ghorg will only clone repos that match at least one of these topics
-GHORG_TOPICS:
 
 # Skip archived repos, currently github/gitlab/gitea only
 # flag (--skip-archived)
@@ -58,10 +63,10 @@ GHORG_BACKUP: false
 # flag (--concurrency)
 GHORG_CONCURRENCY: 25
 
-# Folder ghorg will clone all repos into. Cloning will result in: GHORG_ABSOLUTE_PATH_TO_CLONE_TO/GHORG_OUTPUT_DIR/*
-# default: {org/user you are cloning}
-# flag (--output-dir) eg: --output-dir=testing
-GHORG_OUTPUT_DIR:
+# A comma separated list of topics to filter by, currently github/gitlab/gitea only
+# flag (--topics) eg: --topics=frontend
+# If any topics exist here, ghorg will only clone repos that match at least one of these topics
+GHORG_TOPICS:
 
 # Only clone repos with matching prefix, can be a comma separated list
 # flag (--match-prefix) eg: --match-prefix=backend
@@ -87,19 +92,6 @@ GHORG_NO_CLEAN: false
 # flag (--clone-wiki)
 GHORG_CLONE_WIKI: false
 
-# Perform a dry run of the clone; fetches repos but does not clone them.
-# flag (--dry-run)
-GHORG_DRY_RUN: false
-
-# Deletes all files/directories found in your local clone directory that are not found on the remote (e.g., after remote deletion).  With GHORG_SKIP_ARCHIVED set, archived repositories will also be pruned from your local clone.
-# Will prompt before deleting any files unless used in combination with --prune-no-confirm
-# flag (--prune)
-GHORG_PRUNE: false
-
-# Skip interactive y/n prompt when pruning clones (can only be used in combination with --prune).
-# flag (--prune-no-confirm)
-GHORG_PRUNE_NO_CONFIRM: false
-
 # Fetches all remote branches for each repo by running a git fetch --all
 # flag (--fetch-all)
 GHORG_FETCH_ALL: false
@@ -111,6 +103,16 @@ GHORG_IGNORE_PATH:
 # Only emit critical output.
 # flag (--quiet)
 GHORG_QUIET: false
+
+# Perform a dry run of the clone; fetches repos but does not clone them.
+# flag (--dry-run)
+GHORG_DRY_RUN: false
+
+# Branch ghorg resets and leaves checked out
+# default: default branch
+# NOTE: if no default branch is found on the repo, will fallback to using master
+# flag (--branch, -b) eg: --branch=develop
+GHORG_BRANCH:
 
 # Allows you to control the exit code when ghorg runs into a problem (info level message) cloning a repo from the remote.
 # Info messages will appear after a clone is complete, similar to success messages
@@ -124,7 +126,7 @@ GHORG_EXIT_CODE_ON_CLONE_ISSUES: 1
 
 # Specifies the location of your ghorg conf.yaml, allowing you to have many configuration files, or none at all
 # default: ghorg looks in $HOME/.config/ghorg/conf.yaml, if not set in that location nor as a commandline flag, ghorg will use all default values
-# NOTE: this cannot be set in the configuration file and only available in ghorg v1.7.0+
+# NOTE: this cannot be set in the configuration file. Its supported through CLI flag and ENV var only.
 # flag (--config)
 # GHORG_CONFIG:
 
