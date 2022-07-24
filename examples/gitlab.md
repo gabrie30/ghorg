@@ -1,3 +1,7 @@
+# GitLab Examples
+
+> Note: all command line arguments can be set in your $HOME/.config/ghorg/conf.yaml
+
 ## Hosted GitLab Instances
 
 
@@ -6,13 +10,13 @@
 clone all groups on a **hosted gitlab** instance **preserving** the directory structure of subgroups
 
 ```
-ghorg clone all-groups --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
+ghorg clone all-groups --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir
 ```
 
 clone a **user** on a **hosted gitlab** instance using a **token** for auth
 
 ```
-ghorg clone <gitlab_username> --clone-type=user --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXXXXXXXXX
+ghorg clone <gitlab_username> --clone-type=user --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 ```
 
 clone a **group** on a **hosted gitlab** instance **preserving** the directory structure of subgroups
@@ -40,11 +44,11 @@ eg. https://gitlab.com/gitlab-examples
 clone all groups **preserving** the directory structure of subgroups
 
 ```
-ghorg clone gitlab-examples --scm=gitlab --token=XXXXXXXXXXXXX --preserve-dir
+ghorg clone gitlab-examples --scm=gitlab --token=XXXXXX --preserve-dir
 ```
 
 clone only a **subgroup**
 
 ```
-ghorg clone gitlab-examples/wayne-enterprises --scm=gitlab --token=XXXXXXXXXXXXX
+ghorg clone gitlab-examples/wayne-enterprises --scm=gitlab --token=XXXXXX
 ```
