@@ -1,11 +1,5 @@
 # GitHub Cloud
 
-clone a **users** repos, assumes ghorg conf.yaml is setup with a token
-
-```
-ghorg clone <github_username> --clone-type=user
-```
-
 clone an **org**, using a token on the commandline
 
 ```
@@ -18,13 +12,13 @@ clone all repos from a **github org** that are **prefixed** with "frontend" **in
 ghorg clone <github_org> --match-regex=^frontend --output-dir=design_only
 ```
 
+clone a **users** repos, assumes ghorg conf.yaml is setup with a token
+
+```
+ghorg clone <github_username> --clone-type=user
+```
+
 # GitHub Enterprise
-
-clone a **users** repos
-
-```
-ghorg clone <github_username> --clone-type=user --base-url=https://internal.github.com --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
-```
 
 clone an **org**
 
@@ -36,4 +30,10 @@ clone all repos from a **github org** that are **prefixed** with "frontend" **in
 
 ```
 ghorg clone <github_org> --match-regex=^frontend --output-dir=design_only --base-url=https://your.internal.github.com
+```
+
+clone a **users** repos
+
+```
+ghorg clone <github_username> --clone-type=user --base-url=https://internal.github.com --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 ```

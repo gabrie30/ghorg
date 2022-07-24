@@ -30,6 +30,12 @@ GHORG_OUTPUT_DIR:
 # flag (--clone-type, -c) eg: --clone-type=user
 GHORG_CLONE_TYPE: org
 
+# Change SCM api base url, this is for on self hosted scm instances only
+# For http gitlab instances see GHORG_INSECURE_GITLAB_CLIENT
+# default: github/gitlab/bitbucket public apis
+# flag (--base-url) eg: --base-url=https://my.self.hosted.scm.instance.com
+GHORG_SCM_BASE_URL:
+
 # Deletes all files/directories found in your local clone directory that are not found on the remote (e.g., after remote deletion).  With GHORG_SKIP_ARCHIVED set, archived repositories will also be pruned from your local clone.
 # Will prompt before deleting any files unless used in combination with --prune-no-confirm
 # flag (--prune)
@@ -38,12 +44,6 @@ GHORG_PRUNE: false
 # Skip interactive y/n prompt when pruning clones (can only be used in combination with --prune).
 # flag (--prune-no-confirm)
 GHORG_PRUNE_NO_CONFIRM: false
-
-# Change SCM base url, for on self hosted instances, gitea requires this.
-# For http gitlab instances see GHORG_INSECURE_GITLAB_CLIENT
-# default: uses github/gitlab public api
-# flag (--base-url) eg: --base-url=https://my.self.hosted.scm.instance.com
-GHORG_SCM_BASE_URL:
 
 # Color output (enabled, disabled)
 # flag (--color) eg: --color=disabled
