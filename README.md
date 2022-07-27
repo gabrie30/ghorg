@@ -42,6 +42,8 @@ Although it's optional, it is recommended to add a `$HOME/.config/ghorg/conf.yam
 
 You can have multiple configuration files which is useful if you clone from multiple SCM providers. Alternative configuration files can only be referenced as a command-line flag `--config`.
 
+Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wiki.archlinux.org/title/XDG_Base_Directory) if set.
+
 ## Install
 
 ### Prebuilt Binaries
