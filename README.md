@@ -299,8 +299,6 @@ ghorg reclone
 ghorg reclone kubernetes-sig gitlab-examples
 ```
 
-This will essentially run a for loop over each specified key in your reclone.yaml configuration.
-
 ## Troubleshooting
 
 - If you are having trouble cloning repos. Try to clone one of the repos locally e.g. manually running `git clone https://github.com/your_private_org/your_private_repo.git` if this does not work, ghorg will also not work. Your git client must first be setup to clone the target repos. If you normally clone using an ssh key use the `--protocol=ssh` flag with ghorg. This will fetch the ssh clone urls instead of the https clone urls.
