@@ -46,6 +46,8 @@ Although it's optional, it is recommended to add a `$HOME/.config/ghorg/conf.yam
 
 You can have multiple configuration files which is useful if you clone from multiple SCM providers. Alternative configuration files can only be referenced as a command-line flag `--config`.
 
+If you have multiple different orgs/users/configurations to clone see the `ghorg reclone` command as a way to manage them.
+
 Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wiki.archlinux.org/title/XDG_Base_Directory) if set.
 
 ## Install
@@ -273,25 +275,27 @@ git init
 git checkout master
 ```
 
-## ReCloning Multiple Users/Orgs/Configurations
+## Cloning Multiple Users/Orgs/Configurations
 
-If you have multiple orgs/users to clone that all have different configurations you can use `ghorg reclone` to clone each of these at once or individually.
+The `ghorg reclone` command is a way to store all your `ghorg clone` commands in one configuration file and makes calling long or multiple `ghorg clone` commands easier.
 
-To use, add a reclone.yaml to your $HOME/.config/ghorg directory. You can use the following command to set it for you with examples to use as a template
+Once your `[reclone.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-reclone.yaml)` configuration is set you can call `ghorg reclone` to clone each entry individually or clone all at once.
+
+To use, add a `[reclone.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-reclone.yaml)` to your `$HOME/.config/ghorg` directory. You can use the following command to set it for you with examples to use as a template
 
 ```
 curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-reclone.yaml > $HOME/.config/ghorg/reclone.yaml
 ```
 
-After updating your reclone.yaml you can run
+After updating your `reclone.yaml` you can run
 
 ```
-# To clone all the entries in your reclone.yaml
+# To clone all the entries in your reclone.yaml omit any arguments
 ghorg reclone
 ```
 
 ```
-# To run one or more entries in your reclone.yaml
+# To run one or more entries you can pass arguments
 ghorg reclone kubernetes-sig gitlab-examples
 ```
 
