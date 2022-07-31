@@ -1,54 +1,54 @@
 # GitLab Examples
 
-> Note: all command line arguments can be set in your $HOME/.config/ghorg/conf.yaml
+> Note: all command line arguments can be set in your $HOME/.config/ghorg/conf.yaml for more information see the [configuration](https://github.com/gabrie30/ghorg#configuration) section of the readme
 
 ## Hosted GitLab Instances
 
 
 **Note: "all-groups" only works on hosted GitLab instances running 13.0.1 or greater**
 
-clone all groups on a **hosted gitlab** instance **preserving** the directory structure of subgroups
+1. Clone all groups on a **hosted gitlab** instance **preserving** the directory structure of subgroups
 
-```
-ghorg clone all-groups --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir
-```
+    ```
+    ghorg clone all-groups --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir
+    ```
 
-clone a **user** on a **hosted gitlab** instance using a **token** for auth
+1. Clone a **user** on a **hosted gitlab** instance using a **token** for auth
 
-```
-ghorg clone <gitlab_username> --clone-type=user --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
-```
+    ```
+    ghorg clone <gitlab_username> --clone-type=user --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+    ```
 
-clone a **group** on a **hosted gitlab** instance **preserving** the directory structure of subgroups
+1. Clone a **group** on a **hosted gitlab** instance **preserving** the directory structure of subgroups
 
-```
-ghorg clone <gitlab_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab --preserve-dir
-```
+    ```
+    ghorg clone <gitlab_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab --preserve-dir
+    ```
 
-clone only a **subgroup** on a **hosted gitlab**
+1. Clone only a **subgroup** on a **hosted gitlab**
 
-```
-ghorg clone <gitlab_group>/<gitlab_sub_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab
-```
+    ```
+    ghorg clone <gitlab_group>/<gitlab_sub_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab
+    ```
 
-clone all repos that are **prefixed** with "frontend" **into a folder** called "design_only" from a **group** on a **hosted gitlab** instance
+1. clone all repos that are **prefixed** with "frontend" **into a folder** called "design_only" from a **group** on a **hosted gitlab** instance
 
-```
-ghorg clone <gitlab_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab --match-regex=^frontend --output-dir=design_only
-```
+    ```
+    ghorg clone <gitlab_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab --match-regex=^frontend --output-dir=design_only
+    ```
 
 ## Cloud GitLab Orgs
 
 eg. https://gitlab.com/gitlab-examples
 
-clone all groups **preserving** the directory structure of subgroups
+1. clone all groups **preserving** the directory structure of subgroups
 
-```
-ghorg clone gitlab-examples --scm=gitlab --token=XXXXXX --preserve-dir
-```
+    ```
+    ghorg clone gitlab-examples --scm=gitlab --token=XXXXXX --preserve-dir
+    ```
 
-clone only a **subgroup**
+1. clone only a **subgroup**
 
-```
-ghorg clone gitlab-examples/wayne-enterprises --scm=gitlab --token=XXXXXX
-```
+    ```
+    ghorg clone gitlab-examples/wayne-enterprises --scm=gitlab --token=XXXXXX
+    ```

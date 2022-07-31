@@ -104,6 +104,7 @@ go get github.com/gabrie30/ghorg
 ### github setup
 1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. Update `GHORG_GITHUB_TOKEN` in your `ghorg/conf.yaml` or as a cli flag. If your org has Saml SSO in front you will need to give your token those permissions as well, see [this doc](https://docs.github.com/en/github/authenticating-to-github/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on).
 1. For cloning GitHub Enterprise repos you must set `--base-url` e.g. `ghorg clone <github_org> --base-url=https://internal.github.com`
+1. See [examples/github.md](https://github.com/gabrie30/ghorg/blob/master/examples/github.md) on how to run
 
 ### gitlab setup
 
@@ -149,6 +150,7 @@ $ ghorg clone fdroid --scm=gitlab --token=XXXX --preserve-dir
 1. Create [Access Token](https://docs.gitea.io/en-us/api-usage/) (Settings -> Applications -> Generate Token)
 1. Update `GHORG_GITEA_TOKEN` in your `ghorg/conf.yaml` or use the (--token, -t) flag.
 1. Update `GHORG_SCM_TYPE` to `gitea` in your `ghorg/conf.yaml` or via cli flags
+1. See [examples/gitea.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitea.md) on how to run
 
 ### bitbucket setup
 
@@ -156,12 +158,15 @@ $ ghorg clone fdroid --scm=gitlab --token=XXXX --preserve-dir
 
 1. To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/.config/ghorg/conf.yaml` or use the (--token, -t) and (--bitbucket-username) flags.
 1. Update [SCM type](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L54-L57) to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
+1. See [examples/bitbucket.md](https://github.com/gabrie30/ghorg/blob/master/examples/bitbucket.md) on how to run
 
 #### PAT/OAuth token
 
 1. Create a [PAT](https://confluence.atlassian.com/bitbucketserver/personal-access-tokens-939515499.html)
 1. Set the token with `GHORG_BITBUCKET_OAUTH_TOKEN` in your `$HOME/.config/ghorg/conf.yaml` or using the `--token` flag. Make sure you do not have `--bitbucket-username` set.
 1. Update SCM TYPE to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
+1. See [examples/bitbucket.md](https://github.com/gabrie30/ghorg/blob/master/examples/bitbucket.md) on how to run
+
 
 ## How to Use
 
