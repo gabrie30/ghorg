@@ -279,9 +279,9 @@ git checkout master
 
 The `ghorg reclone` command is a way to store all your `ghorg clone` commands in one configuration file and makes calling long or multiple `ghorg clone` commands easier.
 
-Once your `[reclone.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-reclone.yaml)` configuration is set you can call `ghorg reclone` to clone each entry individually or clone all at once.
+Once your [reclone.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-reclone.yaml) configuration is set you can call `ghorg reclone` to clone each entry individually or clone all at once.
 
-To use, add a `[reclone.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-reclone.yaml)` to your `$HOME/.config/ghorg` directory. You can use the following command to set it for you with examples to use as a template
+To use, add a [reclone.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-reclone.yaml) to your `$HOME/.config/ghorg` directory. You can use the following command to set it for you with examples to use as a template
 
 ```
 curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-reclone.yaml > $HOME/.config/ghorg/reclone.yaml
@@ -305,7 +305,7 @@ This will essentially run a for loop over each specified key in your reclone.yam
 
 - If you are having trouble cloning repos. Try to clone one of the repos locally e.g. manually running `git clone https://github.com/your_private_org/your_private_repo.git` if this does not work, ghorg will also not work. Your git client must first be setup to clone the target repos. If you normally clone using an ssh key use the `--protocol=ssh` flag with ghorg. This will fetch the ssh clone urls instead of the https clone urls.
 
-- When cloning if you see something like `Username for 'https://gitlab.com': ` and the run won't finish. Make sure you have correctly set your token on the commandline, in your ghorg conf, or in your oskeychain. If this does not work, try cloning via ssh (--protocol=ssh). If this still does not resolve your issue you can try following the process below.
+- When cloning if you see something like `Username for 'https://gitlab.com': ` and the run won't finish. Make sure you have correctly set your token on the commandline, in your ghorg conf. If this does not work, try cloning via ssh (--protocol=ssh). If this still does not resolve your issue you can try following the process below.
 
     1. Make sure that you can clone using SSH with no username/password using "git clone git@gitlab.com:xxx/yyy/zzz.git" (replace the link to the correct git file). If you can't clone or it requires a password, fix this problem first (unrelated to ghorg)
     2. In "git config", make sure that the email is correct
