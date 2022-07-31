@@ -27,6 +27,9 @@ var (
 	// ErrNoGitLabToken error message when token is not found
 	ErrNoGitLabToken = errors.New("Could not find a valid gitlab token. GHORG_GITLAB_TOKEN or (--token, -t) flag must be set. Create a token from gitlab then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'GitLab Setup' in README.md")
 
+	// ErrNoGiteaToken error message when token is not found
+	ErrNoGiteaToken = errors.New("Could not find a valid gitea token. GHORG_GITEA_TOKEN or (--token, -t) flag must be set. Create a token from gitea then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'Gitea Setup' in README.md")
+
 	// ErrNoBitbucketUsername error message when no username found
 	ErrNoBitbucketUsername = errors.New("Could not find bitbucket username. GHORG_BITBUCKET_USERNAME or (--bitbucket-username) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
 
@@ -237,56 +240,29 @@ func getOrSetBitBucketToken() {
 
 // VerifyTokenSet checks to make sure env is set for the correct scm provider
 func VerifyTokenSet() error {
-	var tokenLength int
-	var token string
+
 	scmProvider := os.Getenv("GHORG_SCM_TYPE")
 
-	if scmProvider == "github" {
-		tokenLength = 40
-		token = os.Getenv("GHORG_GITHUB_TOKEN")
+	if scmProvider == "github" && os.Getenv("GHORG_GITHUB_TOKEN") == "" {
+		return ErrNoGitHubToken
 	}
 
-	if scmProvider == "gitlab" {
-		token = os.Getenv("GHORG_GITLAB_TOKEN")
-		if strings.HasPrefix(token, "glpat-") {
-			tokenLength = 26
-		} else if len(token) > 0 {
-			// gitlab admins can change token prefixes so we dont know the exact length
-			tokenLength = len(token)
-		} else {
-			tokenLength = -1
-		}
+	if scmProvider == "gitlab" && os.Getenv("GHORG_GITLAB_TOKEN") == "" {
+		return ErrNoGitLabToken
+	}
+
+	if scmProvider == "gitea" && os.Getenv("GHORG_GITEA_TOKEN") == "" {
+		return ErrNoGiteaToken
 	}
 
 	if scmProvider == "bitbucket" {
-		tokenLength = 20
-		if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" && len(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) == 20 {
+		if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" {
 			return ErrNoBitbucketUsername
 		}
 
-		if isZero(os.Getenv("GHORG_BITBUCKET_USERNAME")) {
-			// todo not sure how long this is so, so just make it pass for now
-			tokenLength = 0
-			token = ""
-		} else {
-			token = os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
-		}
-
-	}
-
-	if len(token) != tokenLength {
-		if scmProvider == "github" {
-			return ErrNoGitHubToken
-		}
-
-		if scmProvider == "gitlab" {
-			return ErrNoGitLabToken
-		}
-
-		if scmProvider == "bitbucket" {
+		if os.Getenv("GHORG_BITBUCKET_APP_PASSWORD") == "" {
 			return ErrNoBitbucketAppPassword
 		}
-
 	}
 
 	return nil

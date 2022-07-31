@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.8.1] - unreleased
 ### Added
 - Reclone command
+- Gitea token check
 ### Changed
+- Simplified token check
 ### Deprecated
 ### Removed
 ### Fixed
