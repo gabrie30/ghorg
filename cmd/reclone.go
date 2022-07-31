@@ -54,6 +54,20 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 		}
 	}
 
+	printFinalOutput(argz, mapOfReClones)
+}
+
+func printFinalOutput(argz []string, reCloneMap map[string]ReClone) {
+	if len(argz) == 0 {
+		for key, value := range reCloneMap {
+			fmt.Printf("%v: %v\n", key, value)
+		}
+	} else {
+		for _, arg := range argz {
+			key, value := reCloneMap[arg]
+			fmt.Printf("%v: %v\n", key, value)
+		}
+	}
 }
 
 func runReClone(rc ReClone) {
@@ -72,17 +86,17 @@ func runReClone(rc ReClone) {
 		colorlog.PrintErrorAndExit(e)
 	}
 
-	err = ghorgClone.Start()
-
-	if err != nil {
-		e := fmt.Sprintf("ERROR: Running ghorg clone cmd: %v, err: %v", rc.Cmd, err)
-		colorlog.PrintErrorAndExit(e)
-	}
+	ghorgClone.Start()
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
 		m := scanner.Text()
 		fmt.Println(m)
 	}
-	ghorgClone.Wait()
+
+	err = ghorgClone.Wait()
+	if err != nil {
+		e := fmt.Sprintf("ERROR: Running ghorg clone cmd: %v, err: %v", rc.Cmd, err)
+		colorlog.PrintErrorAndExit(e)
+	}
 }

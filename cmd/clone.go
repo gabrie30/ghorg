@@ -196,7 +196,6 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 			os.Setenv("GHORG_GITEA_TOKEN", cmd.Flag("token").Value.String())
 		}
 	}
-
 	err := configs.VerifyTokenSet()
 	if err != nil {
 		colorlog.PrintError(err)
@@ -836,7 +835,7 @@ func PrintConfigs() {
 		colorlog.PrintInfo("* Exclude Regex : " + os.Getenv("GHORG_EXCLUDE_MATCH_REGEX"))
 	}
 	if os.Getenv("GHORG_MATCH_PREFIX") != "" {
-		colorlog.PrintInfo("* Prefix Match: " + os.Getenv("GHORG_MATCH_PREFIX"))
+		colorlog.PrintInfo("* Prefix Match  : " + os.Getenv("GHORG_MATCH_PREFIX"))
 	}
 	if os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX") != "" {
 		colorlog.PrintInfo("* Exclude Prefix: " + os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX"))
