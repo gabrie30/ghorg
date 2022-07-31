@@ -42,6 +42,18 @@ func PrintError(msg interface{}) {
 	}
 }
 
+// PrintErrorAndExit prints red colored text to standard out then exits 1
+func PrintErrorAndExit(msg interface{}) {
+	switch os.Getenv("GHORG_COLOR") {
+	case "enabled":
+		color.New(color.FgRed).Println(msg)
+	default:
+		fmt.Println(msg)
+	}
+
+	os.Exit(1)
+}
+
 // PrintSubtleInfo prints magenta colored text to standard out
 func PrintSubtleInfo(msg interface{}) {
 	if os.Getenv("GHORG_QUIET") == "true" {

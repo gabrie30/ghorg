@@ -1,0 +1,10 @@
+# Example format below. You can reclone, one, multiple or all at once just use with no arguments e.g. ghorg reclone
+
+# name-of-reclone:
+#   cmd: "ghorg clone command here"
+# backup-my-org:
+#   cmd: "ghorg clone my-org --backup --clone-wiki"
+# kubernetes-sig:
+#   cmd: "ghorg clone kubernetes --match-regex=^sig- --output-dir=kubernetes-sig-only"
+# gitlab-examples:
+#   cmd: "ghorg clone gitlab-examples --scm=gitlab --preserve-dir --config=/Users/me/.config/ghorg/gitlab-cloud-conf.yaml"

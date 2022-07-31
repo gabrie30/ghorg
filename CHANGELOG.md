@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.8.1] - 6/25/22
+### Added
+- Reclone command
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.8.0] - 6/25/22
 ### Added
 - Exit 1 when any issue messages are produced; thanks @i3v

@@ -273,6 +273,30 @@ git init
 git checkout master
 ```
 
+## ReCloning Multiple Users/Orgs/Configurations
+
+If you have multiple orgs/users to clone that all have different configurations you can use `ghorg reclone` to clone each of these at once or individually.
+
+To use, add a reclone.yaml to your $HOME/.config/ghorg directory. You can use the following command to set it for you with examples to use as a template
+
+```
+curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-reclone.yaml > $HOME/.config/ghorg/reclone.yaml
+```
+
+After updating your reclone.yaml you can run
+
+```
+# To clone all the entries in your reclone.yaml
+ghorg reclone
+```
+
+```
+# To run one or more entries in your reclone.yaml
+ghorg reclone kubernetes-sig gitlab-examples
+```
+
+This will essentially run a for loop over each specified key in your reclone.yaml configuration.
+
 ## Troubleshooting
 
 - If you are having trouble cloning repos. Try to clone one of the repos locally e.g. manually running `git clone https://github.com/your_private_org/your_private_repo.git` if this does not work, ghorg will also not work. Your git client must first be setup to clone the target repos. If you normally clone using an ssh key use the `--protocol=ssh` flag with ghorg. This will fetch the ssh clone urls instead of the https clone urls.

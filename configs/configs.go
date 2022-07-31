@@ -96,7 +96,17 @@ func GhorgIgnoreLocation() string {
 		return ignoreLocation
 	}
 
-	return filepath.Join(GhorgDir(), "ghorgignore")
+	return filepath.Join(GhorgConfDir(), "ghorgignore")
+}
+
+// GhorgReCloneLocation returns the path of users ghorgignore
+func GhorgReCloneLocation() string {
+	recloneConfLocation := os.Getenv("GHORG_RECLONE_PATH")
+	if recloneConfLocation != "" {
+		return recloneConfLocation
+	}
+
+	return filepath.Join(GhorgConfDir(), "reclone.yaml")
 }
 
 // GhorgIgnoreDetected returns true if a ghorgignore file exists.
@@ -105,8 +115,14 @@ func GhorgIgnoreDetected() bool {
 	return !os.IsNotExist(err)
 }
 
-// GhorgDir returns the ghorg directory path
-func GhorgDir() string {
+// GhorgReCloneDetected returns true if a reclone.yaml file exists.
+func GhorgReCloneDetected() bool {
+	_, err := os.Stat(GhorgReCloneLocation())
+	return !os.IsNotExist(err)
+}
+
+// GhorgConfDir returns the ghorg directory path
+func GhorgConfDir() string {
 	if XConfigHomeSet() {
 		xdg := os.Getenv("XDG_CONFIG_HOME")
 		return filepath.Join(xdg, "ghorg")
@@ -125,7 +141,7 @@ func XConfigHomeSet() bool {
 }
 
 func DefaultConfFile() string {
-	return filepath.Join(GhorgDir(), "conf.yaml")
+	return filepath.Join(GhorgConfDir(), "conf.yaml")
 }
 
 // HomeDir finds the users home directory
