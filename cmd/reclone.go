@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -58,14 +59,15 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 }
 
 func printFinalOutput(argz []string, reCloneMap map[string]ReClone) {
+	fmt.Println("")
+	fmt.Println("Completed! The following reclones were ran...")
 	if len(argz) == 0 {
-		for key, value := range reCloneMap {
-			fmt.Printf("%v: %v\n", key, value)
+		for key, _ := range reCloneMap {
+			fmt.Printf("  * %v\n", key)
 		}
 	} else {
 		for _, arg := range argz {
-			key, value := reCloneMap[arg]
-			fmt.Printf("%v: %v\n", key, value)
+			fmt.Printf("  * %v\n", arg)
 		}
 	}
 }
@@ -80,13 +82,25 @@ func runReClone(rc ReClone) {
 	}
 	ghorgClone := exec.Command("ghorg", remainingCommand...)
 
-	stdout, err := ghorgClone.StdoutPipe()
-	if err != nil {
-		e := fmt.Sprintf("ERROR: Problem with piping to stdout, err: %v", err)
-		colorlog.PrintErrorAndExit(e)
+	// have to unset all ghorg envs because root command will set them on initialization of ghorg cmd
+	for _, e := range os.Environ() {
+		keyValue := strings.SplitN(e, "=", 2)
+		ghorgEnv := strings.HasPrefix(keyValue[0], "GHORG_")
+		if ghorgEnv {
+			os.Unsetenv(keyValue[0])
+		}
 	}
 
-	ghorgClone.Start()
+	stdout, err := ghorgClone.StdoutPipe()
+	if err != nil {
+		fmt.Printf("ERROR: Problem with piping to stdout, err: %v", err)
+	}
+
+	err = ghorgClone.Start()
+
+	if err != nil {
+		fmt.Printf("ERROR: Starting ghorg clone cmd: %v, err: %v", rc.Cmd, err)
+	}
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
@@ -96,7 +110,6 @@ func runReClone(rc ReClone) {
 
 	err = ghorgClone.Wait()
 	if err != nil {
-		e := fmt.Sprintf("ERROR: Running ghorg clone cmd: %v, err: %v", rc.Cmd, err)
-		colorlog.PrintErrorAndExit(e)
+		fmt.Printf("ERROR: Running ghorg clone cmd: %v, err: %v", rc.Cmd, err)
 	}
 }
