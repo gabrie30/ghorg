@@ -17,7 +17,7 @@ import (
 var reCloneCmd = &cobra.Command{
 	Use:   "reclone",
 	Short: "Reruns one, multiple, or all preconfigured clones from configuration set in $HOME/.config/ghorg/reclone.yaml",
-	Long:  `Allows you to set preconfigured clone commands for handling multiple users/orgs at once. See README.md at https://github.com/gabrie30/ghorg for setup information.`,
+	Long:  `Allows you to set preconfigured clone commands for handling multiple users/orgs at once. See README.md at https://github.com/gabrie30/ghorg#cloning-multiple-usersorgsconfigurations for setup information.`,
 	Run:   reCloneFunc,
 }
 
