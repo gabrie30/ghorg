@@ -26,6 +26,12 @@ type ReClone struct {
 }
 
 func reCloneFunc(cmd *cobra.Command, argz []string) {
+
+	if cmd.Flags().Changed("reclone-path") {
+		path := cmd.Flag("reclone-path").Value.String()
+		os.Setenv("GHORG_RECLONE_PATH", path)
+	}
+
 	path := configs.GhorgReCloneLocation()
 	yamlBytes, err := ioutil.ReadFile(path)
 	if err != nil {

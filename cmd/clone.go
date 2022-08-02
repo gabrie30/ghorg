@@ -112,11 +112,6 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_IGNORE_PATH", path)
 	}
 
-	if cmd.Flags().Changed("reclone-path") {
-		path := cmd.Flag("reclone-path").Value.String()
-		os.Setenv("GHORG_RECLONE_PATH", path)
-	}
-
 	if cmd.Flags().Changed("skip-archived") {
 		os.Setenv("GHORG_SKIP_ARCHIVED", "true")
 	}
