@@ -1,4 +1,11 @@
-# Example format below. You can reclone, one, multiple or all at once just use with no arguments e.g. ghorg reclone
+## +-+-+-+-+-+-+-+-+-+-+-+-+-+
+## |G|H|O|R|G| |R|E|C|L|O|N|E|
+## +-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+## Example format below. You can reclone, one, multiple or all at once e.g.
+## ghorg reclone (will call all clone cmd's)
+## ghorg reclone gitlab-examples kubernetes-sig (will call both clone cmds)
+## See https://github.com/gabrie30/ghorg#reclone-command for more information
 
 # name-of-reclone:
 #   cmd: "ghorg clone command here"

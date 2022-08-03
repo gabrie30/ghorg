@@ -275,7 +275,7 @@ git init
 git checkout master
 ```
 
-## Cloning Multiple Users/Orgs/Configurations
+## Reclone Command
 
 The `ghorg reclone` command is a way to store all your `ghorg clone` commands in one configuration file and makes calling long or multiple `ghorg clone` commands easier.
 
