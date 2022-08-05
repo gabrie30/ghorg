@@ -49,8 +49,11 @@ type Release struct {
 		AvatarURL string `json:"avatar_url"`
 		WebURL    string `json:"web_url"`
 	} `json:"author"`
-	Commit Commit `json:"commit"`
-	Assets struct {
+	Commit          Commit `json:"commit"`
+	UpcomingRelease bool   `json:"upcoming_release"`
+	CommitPath      string `json:"commit_path"`
+	TagPath         string `json:"tag_path"`
+	Assets          struct {
 		Count   int `json:"count"`
 		Sources []struct {
 			Format string `json:"format"`
@@ -121,9 +124,10 @@ func (s *ReleasesService) GetRelease(pid interface{}, tagName string, options ..
 // GitLab API docs:
 // https://docs.gitlab.com/ce/api/releases/index.html#create-a-release
 type CreateReleaseOptions struct {
-	Name        *string               `url:"name" json:"name"`
-	TagName     *string               `url:"tag_name" json:"tag_name"`
-	Description *string               `url:"description" json:"description"`
+	Name        *string               `url:"name,omitempty" json:"name,omitempty"`
+	TagName     *string               `url:"tag_name,omitempty" json:"tag_name,omitempty"`
+	TagMessage  *string               `url:"tag_message,omitempty" json:"tag_message,omitempty"`
+	Description *string               `url:"description,omitempty" json:"description,omitempty"`
 	Ref         *string               `url:"ref,omitempty" json:"ref,omitempty"`
 	Milestones  *[]string             `url:"milestones,omitempty" json:"milestones,omitempty"`
 	Assets      *ReleaseAssetsOptions `url:"assets,omitempty" json:"assets,omitempty"`
