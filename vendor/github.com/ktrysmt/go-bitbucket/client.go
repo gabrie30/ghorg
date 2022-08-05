@@ -331,8 +331,7 @@ func (c *Client) doRequest(req *http.Request, emptyResponse bool) (interface{}, 
 
 	var result interface{}
 	if err := json.Unmarshal(responseBytes, &result); err != nil {
-		log.Println("Could not unmarshal JSON payload, returning raw response")
-		return responseBytes, nil
+		return responseBytes, err
 	}
 	return result, nil
 }
@@ -388,7 +387,6 @@ func (c *Client) doPaginatedRequest(req *http.Request, emptyResponse bool) (inte
 
 	var result interface{}
 	if err := json.Unmarshal(responseBytes, &result); err != nil {
-		log.Println("Could not unmarshal JSON payload, returning raw response")
 		return resBody, err
 	}
 	return result, nil

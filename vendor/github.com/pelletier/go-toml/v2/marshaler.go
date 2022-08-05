@@ -107,6 +107,13 @@ func (enc *Encoder) SetIndentTables(indent bool) *Encoder {
 // a newline character or a single quote. In that case they are emitted as
 // quoted strings.
 //
+// Unsigned integers larger than math.MaxInt64 cannot be encoded. Doing so
+// results in an error. This rule exists because the TOML specification only
+// requires parsers to support at least the 64 bits integer range. Allowing
+// larger numbers would create non-standard TOML documents, which may not be
+// readable (at best) by other implementations. To encode such numbers, a
+// solution is a custom type that implements encoding.TextMarshaler.
+//
 // When encoding structs, fields are encoded in order of definition, with their
 // exact name.
 //
@@ -303,7 +310,11 @@ func (enc *Encoder) encode(b []byte, ctx encoderCtx, v reflect.Value) ([]byte, e
 			b = append(b, "false"...)
 		}
 	case reflect.Uint64, reflect.Uint32, reflect.Uint16, reflect.Uint8, reflect.Uint:
-		b = strconv.AppendUint(b, v.Uint(), 10)
+		x := v.Uint()
+		if x > uint64(math.MaxInt64) {
+			return nil, fmt.Errorf("toml: not encoding uint (%d) greater than max int64 (%d)", x, int64(math.MaxInt64))
+		}
+		b = strconv.AppendUint(b, x, 10)
 	case reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int8, reflect.Int:
 		b = strconv.AppendInt(b, v.Int(), 10)
 	default:

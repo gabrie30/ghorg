@@ -3,6 +3,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.8.2] - unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+- Updated to go 1.18
+- Updated dependencies
+
 ## [1.8.1] - 7/3/22
 ### Added
 - Reclone command
