@@ -299,7 +299,9 @@ ghorg reclone
 ghorg reclone kubernetes-sig-staging kubernetes-sig
 ```
 
-<center>![ghorg-reclone](https://user-images.githubusercontent.com/1512282/183263986-50e56b86-12b9-479b-9c52-b1c74129228c.png)</center>
+<p align="center">
+  <img width="648" alt="ghorg reclone example" src="https://user-images.githubusercontent.com/1512282/183263986-50e56b86-12b9-479b-9c52-b1c74129228c.png">
+</p>
 
 ## Troubleshooting
 
