@@ -1,18 +1,25 @@
-## +-+-+-+-+-+-+-+-+-+-+-+-+-+
-## |G|H|O|R|G| |R|E|C|L|O|N|E|
-## +-+-+-+-+-+-+-+-+-+-+-+-+-+
+# # +-+-+-+-+-+-+-+-+-+-+-+-+-+
+# # |G|H|O|R|G| |R|E|C|L|O|N|E|
+# # +-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-## Example format below. You can reclone, one, multiple or all at once e.g.
-## ghorg reclone (will call all clone cmd's)
-## ghorg reclone gitlab-examples kubernetes-sig (will call both clone cmds)
-## Note: tokens used in cmd's will be sanitized before being logged to stdout
-## See https://github.com/gabrie30/ghorg#reclone-command for more information
+# # Example format below. You can reclone, one, multiple or all at once e.g.
+# # ghorg reclone (will call all clone cmd's)
+# # ghorg reclone gitlab-examples kubernetes-sig (will call both clone cmds)
+# # Note: tokens used in cmd's will be sanitized before being logged to stdout
+# # See https://github.com/gabrie30/ghorg#reclone-command for more information
 
+# # Example of basic structure
 # name-of-reclone:
 #   cmd: "ghorg clone command here"
-# backup-my-org:
-#   cmd: "ghorg clone my-org --backup --clone-wiki"
-# kubernetes-sig:
-#   cmd: "ghorg clone kubernetes --match-regex=^sig- --output-dir=kubernetes-sig-only"
+
+# # Example for gitlab; update with your gitlab cloud token
 # gitlab-examples:
-#   cmd: "ghorg clone gitlab-examples --scm=gitlab --preserve-dir --config=/Users/me/.config/ghorg/gitlab-cloud-conf.yaml"
+#   cmd: "ghorg clone gitlab-examples --scm=gitlab --preserve-dir --token=XXXXXXX"
+
+# # Examples from README.md; update with your github cloud token
+# kubernetes:
+#   cmd: "ghorg clone kubernetes --token=XXXXXXX"
+# kubernetes-sig:
+#   cmd: "ghorg clone kubernetes --token=XXXXXXX --match-regex=^sig- --output-dir=kubernetes-sig-only"
+# kubernetes-sig-staging:
+#   cmd: "ghorg clone kubernetes --token=XXXXXXX --topics=k8s-sig-staging --output-dir=kubernetes-sig-staging"
