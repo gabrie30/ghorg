@@ -5,6 +5,7 @@
 ## Example format below. You can reclone, one, multiple or all at once e.g.
 ## ghorg reclone (will call all clone cmd's)
 ## ghorg reclone gitlab-examples kubernetes-sig (will call both clone cmds)
+## Note: tokens used in cmd's will be sanitized before being logged to stdout
 ## See https://github.com/gabrie30/ghorg#reclone-command for more information
 
 # name-of-reclone:
