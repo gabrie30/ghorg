@@ -23,11 +23,11 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
 </p>
 
 ## Supported Providers
-- GitHub
+- GitHub (Self Hosted & Cloud)
   - [Install](https://github.com/gabrie30/ghorg#install) | [Setup](https://github.com/gabrie30/ghorg#github-setup) | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/github.md)
-- GitLab
+- GitLab (Self Hosted & Cloud)
   - [Install](https://github.com/gabrie30/ghorg#install) | [Setup](https://github.com/gabrie30/ghorg#gitlab-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md)
-- Bitbucket
+- Bitbucket (Cloud Only)
   - [Install](https://github.com/gabrie30/ghorg#install) | [Setup](https://github.com/gabrie30/ghorg#bitbucket-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/bitbucket.md)
 - Gitea
   - [Install](https://github.com/gabrie30/ghorg#install) | [Setup](https://github.com/gabrie30/ghorg#gitea-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/gitea.md)
