@@ -25,6 +25,14 @@ type ReClone struct {
 	Cmd string `yaml:"cmd"`
 }
 
+func isVerboseReClone() bool {
+	return os.Getenv("GHORG_RECLONE_VERBOSE") == "true"
+}
+
+func isQuietReClone() bool {
+	return os.Getenv("GHORG_RECLONE_QUIET") == "true"
+}
+
 func reCloneFunc(cmd *cobra.Command, argz []string) {
 
 	if cmd.Flags().Changed("reclone-path") {
@@ -32,19 +40,29 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_RECLONE_PATH", path)
 	}
 
+	if cmd.Flags().Changed("verbose") {
+		os.Setenv("GHORG_RECLONE_VERBOSE", "true")
+	}
+
+	if cmd.Flags().Changed("quiet") {
+		os.Setenv("GHORG_RECLONE_QUIET", "true")
+	}
+
 	path := configs.GhorgReCloneLocation()
 	yamlBytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		e := fmt.Sprintf("ERROR: parsing reclone.yaml, error: %v", err)
-		colorlog.PrintErrorAndExit(e)
+		colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: parsing reclone.yaml, error: %v", err))
 	}
 
 	mapOfReClones := make(map[string]ReClone)
 
 	err = yaml.Unmarshal(yamlBytes, &mapOfReClones)
 	if err != nil {
-		e := fmt.Sprintf("ERROR: unmarshaling reclone.yaml, error:%v", err)
-		colorlog.PrintErrorAndExit(e)
+		colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: unmarshaling reclone.yaml, error:%v", err))
+	}
+
+	if !isVerboseReClone() && !isQuietReClone() {
+		asciiTime()
 	}
 
 	if len(argz) == 0 {
@@ -54,8 +72,7 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 	} else {
 		for _, arg := range argz {
 			if _, ok := mapOfReClones[arg]; !ok {
-				e := fmt.Sprintf("ERROR: The key %v was not found in reclone.yaml", arg)
-				colorlog.PrintErrorAndExit(e)
+				colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: The key %v was not found in reclone.yaml", arg))
 			}
 			runReClone(mapOfReClones[arg])
 		}
@@ -66,16 +83,44 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 
 func printFinalOutput(argz []string, reCloneMap map[string]ReClone) {
 	fmt.Println("")
-	fmt.Println("Completed! The following reclones were ran...")
+	colorlog.PrintSuccess("Completed! The following reclones were ran successfully...")
 	if len(argz) == 0 {
 		for key, _ := range reCloneMap {
-			fmt.Printf("  * %v\n", key)
+			colorlog.PrintSuccess(fmt.Sprintf("  * %v", key))
 		}
 	} else {
 		for _, arg := range argz {
-			fmt.Printf("  * %v\n", arg)
+			colorlog.PrintSuccess(fmt.Sprintf("  * %v", arg))
 		}
 	}
+}
+
+func sanitizeCmd(cmd string) string {
+	if strings.Contains(cmd, "-t=") {
+		splitCmd := strings.Split(cmd, "-t=")
+		firstHalf := splitCmd[0]
+		secondHalf := strings.Split(splitCmd[1], " ")[1:]
+		return firstHalf + "-t=XXXXXXX " + strings.Join(secondHalf, " ")
+	}
+	if strings.Contains(cmd, "-t ") {
+		splitCmd := strings.Split(cmd, "-t ")
+		firstHalf := splitCmd[0]
+		secondHalf := strings.Split(splitCmd[1], " ")[1:]
+		return firstHalf + "-t XXXXXXX " + strings.Join(secondHalf, " ")
+	}
+	if strings.Contains(cmd, "--token=") {
+		splitCmd := strings.Split(cmd, "--token=")
+		firstHalf := splitCmd[0]
+		secondHalf := strings.Split(splitCmd[1], " ")[1:]
+		return firstHalf + "--token=XXXXXXX " + strings.Join(secondHalf, " ")
+	}
+	if strings.Contains(cmd, "--token ") {
+		splitCmd := strings.Split(cmd, "--token ")
+		firstHalf := splitCmd[0]
+		secondHalf := strings.Split(splitCmd[1], " ")[1:]
+		return firstHalf + "--token XXXXXXX " + strings.Join(secondHalf, " ")
+	}
+	return cmd
 }
 
 func runReClone(rc ReClone) {
@@ -86,36 +131,51 @@ func runReClone(rc ReClone) {
 	if ghorg != "ghorg" || clone != "clone" {
 		colorlog.PrintErrorAndExit("ERROR: Only ghorg clone commands are permitted in your reclone.yaml")
 	}
+
+	safeToLogCmd := sanitizeCmd(strings.Clone(rc.Cmd))
+
+	if !isQuietReClone() {
+		colorlog.PrintInfo(fmt.Sprintf("$ %v", safeToLogCmd))
+	}
+
 	ghorgClone := exec.Command("ghorg", remainingCommand...)
 
 	// have to unset all ghorg envs because root command will set them on initialization of ghorg cmd
 	for _, e := range os.Environ() {
 		keyValue := strings.SplitN(e, "=", 2)
-		ghorgEnv := strings.HasPrefix(keyValue[0], "GHORG_")
+		env := keyValue[0]
+		ghorgEnv := strings.HasPrefix(env, "GHORG_")
+
+		// skip global flags
+		if env == "GHORG_COLOR" || env == "GHORG_CONFIG" || env == "GHORG_RECLONE_VERBOSE" || env == "GHORG_RECLONE_QUIET" {
+			continue
+		}
 		if ghorgEnv {
-			os.Unsetenv(keyValue[0])
+			os.Unsetenv(env)
 		}
 	}
 
 	stdout, err := ghorgClone.StdoutPipe()
 	if err != nil {
-		fmt.Printf("ERROR: Problem with piping to stdout, err: %v", err)
+		colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: Problem with piping to stdout, err: %v", err))
 	}
 
 	err = ghorgClone.Start()
 
 	if err != nil {
-		fmt.Printf("ERROR: Starting ghorg clone cmd: %v, err: %v", rc.Cmd, err)
+		colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: Starting ghorg clone cmd: %v, err: %v", safeToLogCmd, err))
 	}
 
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		m := scanner.Text()
-		fmt.Println(m)
+	if isVerboseReClone() && !isQuietReClone() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			m := scanner.Text()
+			fmt.Println(m)
+		}
 	}
 
 	err = ghorgClone.Wait()
 	if err != nil {
-		fmt.Printf("ERROR: Running ghorg clone cmd: %v, err: %v", rc.Cmd, err)
+		colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: Running ghorg clone cmd: %v, err: %v", safeToLogCmd, err))
 	}
 }

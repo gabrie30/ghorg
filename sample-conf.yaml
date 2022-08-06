@@ -102,11 +102,6 @@ GHORG_FETCH_ALL: false
 # flag (--ghorgignore-path)
 GHORG_IGNORE_PATH:
 
-# If set allows you to specify the location of your reclone.yaml
-# Defaults to $HOME/.config/ghorg/reclone.yaml
-# flag (--reclone-path)
-GHORG_RECLONE_PATH:
-
 # Only emit critical output.
 # flag (--quiet)
 GHORG_QUIET: false
@@ -191,3 +186,23 @@ GHORG_BITBUCKET_APP_PASSWORD:
 # Used with GHORG_BITBUCKET_APP_PASSWORD. Should not be set when using GHORG_BITBUCKET_OAUTH_TOKEN
 # flag (--bitbucket-username) eg: --bitbucket-username=user123
 GHORG_BITBUCKET_USERNAME:
+
+# +-+-+-+-+-+ +-+-+-+-+-+-+-+
+# |G|H|O|R|G| |R|E|C|L|O|N|E|
+# +-+-+-+-+-+ +-+-+-+-+-+-+-+
+
+# Configuration for ghorg reclone command
+# See https://github.com/gabrie30/ghorg#reclone-command for more information on how to setup and use
+
+# If set allows you to specify the location of your reclone.yaml
+# Defaults to $HOME/.config/ghorg/reclone.yaml
+# flag (--reclone-path)
+GHORG_RECLONE_PATH:
+
+# Get more verbose logging with reclone command
+# flag (--verbose)
+GHORG_RECLONE_VERBOSE: false
+
+# Quiet logging output with reclone command
+# flag (--quiet)
+GHORG_RECLONE_QUIET: false

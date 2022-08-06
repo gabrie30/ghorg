@@ -40,6 +40,8 @@ var (
 	preserveDir                  bool
 	insecureGitlabClient         bool
 	fetchAll                     bool
+	ghorgReCloneVerbose          bool
+	ghorgReCloneQuiet            bool
 	args                         []string
 	cloneErrors                  []string
 	cloneInfos                   []string
@@ -118,6 +120,10 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_INSECURE_GITLAB_CLIENT":
 			os.Setenv(envVar, "false")
 		case "GHORG_BACKUP":
+			os.Setenv(envVar, "false")
+		case "GHORG_RECLONE_VERBOSE":
+			os.Setenv(envVar, "false")
+		case "GHORG_RECLONE_QUIET":
 			os.Setenv(envVar, "false")
 		case "GHORG_COLOR":
 			os.Setenv(envVar, "disabled")
@@ -198,6 +204,8 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_CLONE_WIKI")
 	getOrSetDefaults("GHORG_INSECURE_GITLAB_CLIENT")
 	getOrSetDefaults("GHORG_BACKUP")
+	getOrSetDefaults("GHORG_RECLONE_VERBOSE")
+	getOrSetDefaults("GHORG_RECLONE_QUIET")
 	getOrSetDefaults("GHORG_CONCURRENCY")
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_INFOS")
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_ISSUES")
@@ -273,6 +281,9 @@ func init() {
 	cloneCmd.Flags().StringVarP(&exitCodeOnCloneIssues, "exit-code-on-clone-issues", "", "", "GHORG_EXIT_CODE_ON_CLONE_ISSUES - Allows you to control the exit code when ghorg runs into a problem (issue level message) cloning a repo from the remote. Issue messages will appear after a clone is complete, similar to success messages (default 1)")
 
 	reCloneCmd.Flags().StringVarP(&ghorgReClonePath, "reclone-path", "", "", "GHORG_RECLONE_PATH - If you want to set a path other than $HOME/.config/ghorg/reclone.yaml for your reclone configuration")
+	reCloneCmd.Flags().BoolVar(&ghorgReCloneVerbose, "verbose", false, "GHORG_RECLONE_VERBOSE - Verbose logging output")
+	reCloneCmd.Flags().BoolVar(&ghorgReCloneQuiet, "quiet", false, "GHORG_RECLONE_QUIET - Quiet logging output")
+
 	rootCmd.AddCommand(lsCmd, versionCmd, cloneCmd, reCloneCmd)
 }
 

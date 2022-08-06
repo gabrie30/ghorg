@@ -3,9 +3,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.8.2] - unreleased
+## [1.8.2] - 7/6/22
 ### Added
+- GHORG_RECLONE_VERBOSE flag
+- GHORG_RECLONE_QUIET flag
 ### Changed
+- reclone logging format
 ### Deprecated
 ### Removed
 ### Fixed
