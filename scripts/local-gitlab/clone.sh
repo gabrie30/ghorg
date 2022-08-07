@@ -5,9 +5,6 @@ set -ex
 TOKEN=$1
 GITLAB_URL=$2
 
-# Fail the test if any clones have info messages
-export GHORG_EXIT_CODE_ON_CLONE_INFOS=1
-
 # run twice, once for clone then pull
 
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --output-dir=local-gitlab-v15-repos
