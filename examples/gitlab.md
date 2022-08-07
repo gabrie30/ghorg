@@ -21,7 +21,7 @@
     ghorg clone all-groups --base-url=http://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir --insecure-gitlab-client
 ### Cloning Specific Groups
 
-1. Clone a single **group**, **preserving the directory structure** of subgroups within that group
+1. Clone a single group, **preserving the directory structure** of any subgroups within that group
 
     ```
     ghorg clone <gitlab_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab --preserve-dir
