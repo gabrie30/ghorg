@@ -402,6 +402,7 @@ func getRepoCountOnly(targets []scm.Repo) int {
 	return count
 }
 
+// Needed bc https://github.com/gabrie30/ghorg/issues/225
 func hasRepoNameCollisions(repos []scm.Repo) bool {
 	if os.Getenv("GHORG_GITLAB_TOKEN") == "" {
 		return false
