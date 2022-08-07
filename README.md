@@ -103,25 +103,27 @@ go get github.com/gabrie30/ghorg
 
 > Note: if you are running into issues, read the troubleshooting and known issues section below
 
-### github setup
+### GitHub Setup
 1. Create [Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) with all `repo` scopes. Update `GHORG_GITHUB_TOKEN` in your `ghorg/conf.yaml` or as a cli flag. If your org has Saml SSO in front you will need to give your token those permissions as well, see [this doc](https://docs.github.com/en/github/authenticating-to-github/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on).
 1. For cloning GitHub Enterprise (self hosted github instances) repos you must set `--base-url` e.g. `ghorg clone <github_org> --base-url=https://internal.github.com`
 1. See [examples/github.md](https://github.com/gabrie30/ghorg/blob/master/examples/github.md) on how to run
 
-### gitlab setup
+### GitLab Setup
 
 1. Create [Personal Access Token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) with the `read_api` scope (or `api` for self-managed GitLab older than 12.10). This token can be added to your `ghorg/conf.yaml` or as a cli flag.
 1. Update the `GitLab Specific` config in your `ghorg/conf.yaml` or via cli flags
 1. Update `GHORG_SCM_TYPE` to `gitlab` in your `ghorg/conf.yaml` or via cli flags
 1. See [examples/gitlab.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md) on how to run
 
-#### gitlab specific notes
+#### GitLab Specific Notes
 
-ghorg works differently for hosted gitlab instances vs gitlab cloud read below for the differences
+1. One difference with cloning GitLab repos from other SCM providers is GitLab uses groups and subgroups to organize repos. The default behavior of ghorg is to clone all repos into a single directory. However, if ghorg detects name collisions with the repos being cloned from different groups/subgroups, ghorg will automatically clone each repo into a directory structure that matches the group/subgroup you are cloning, rather than a flat directory structure. This is the same behavior of the `--preserve-dir` flag. You will be notified in the output if this occurs.
 
-##### hosted gitlab instances
+1. Another thing to note is that ghorg works differently for hosted gitlab instances vs gitlab cloud read below for the differences.
 
-1. To clone all the groups at once the keyword "all-groups". **Note, all-groups requires a GitLab 13.0.1 or greater and will only clone from groups/repos your user has permissions to.**
+##### Hosted GitLab Instances
+
+1. To clone all the groups at once the keyword "all-groups". Note, all-groups requires a GitLab 13.0.1 or greater and will only clone from groups/repos your user has permissions to.
 
     ```sh
     $ ghorg clone all-groups --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXX --preserve-dir
@@ -139,7 +141,7 @@ ghorg works differently for hosted gitlab instances vs gitlab cloud read below f
 
 1. You must set `--base-url` which is the url to your instance. If your instance uses self signed certificates you can use the `--insecure-gitlab-client` flag
 
-##### gitlab cloud
+##### GitLab Cloud
 
 To clone all repos you can use the top level group name e.g. to clone `fdroid` on GitLab cloud https://gitlab.com/fdroid
 
@@ -147,16 +149,16 @@ To clone all repos you can use the top level group name e.g. to clone `fdroid` o
 $ ghorg clone fdroid --scm=gitlab --token=XXXX --preserve-dir
 ```
 
-### gitea setup
+### Gitea Setup
 
 1. Create [Access Token](https://docs.gitea.io/en-us/api-usage/) (Settings -> Applications -> Generate Token)
 1. Update `GHORG_GITEA_TOKEN` in your `ghorg/conf.yaml` or use the (--token, -t) flag.
 1. Update `GHORG_SCM_TYPE` to `gitea` in your `ghorg/conf.yaml` or via cli flags
 1. See [examples/gitea.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitea.md) on how to run
 
-### bitbucket setup
+### Bitbucket Setup
 
-#### app passwords
+#### App Passwords
 
 1. To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/.config/ghorg/conf.yaml` or use the (--token, -t) and (--bitbucket-username) flags.
 1. Update [SCM type](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L54-L57) to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
@@ -206,7 +208,7 @@ docker run ghorg-docker ./ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9
 docker run -v $HOME/ghorg/:/root/ghorg/ ghorg-docker ./ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 --output-dir=cloned-from-docker
 ```
 
-## Changing clone directories
+## Changing Clone Directories
 
 1. By default ghorg will clone the org or user repos into a directory like `$HOME/ghorg/org`. If you want to clone the org to a different directory use the `--path` flag or set `GHORG_ABSOLUTE_PATH_TO_CLONE_TO` in your ghorg conf. **This value must be an absolute path**. For example if you wanted to clone the kubernetes org to `/tmp/ghorg` you would run the following command.
 
