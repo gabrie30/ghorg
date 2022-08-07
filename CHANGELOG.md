@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.8.3] - unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- repo name collisions with gitlab clones not using --preserve-dir
+### Security
 ## [1.8.2] - 7/6/22
 ### Added
 - GHORG_RECLONE_VERBOSE flag

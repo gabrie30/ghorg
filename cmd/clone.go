@@ -402,6 +402,28 @@ func getRepoCountOnly(targets []scm.Repo) int {
 	return count
 }
 
+// Needed bc https://github.com/gabrie30/ghorg/issues/225
+func hasRepoNameCollisions(repos []scm.Repo) bool {
+	if os.Getenv("GHORG_GITLAB_TOKEN") == "" {
+		return false
+	}
+
+	if os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
+		return false
+	}
+
+	repoNamesSeen := make(map[string]string)
+
+	for _, repo := range repos {
+		if _, ok := repoNamesSeen[repo.Name]; ok {
+			return true
+		}
+		repoNamesSeen[repo.Name] = "seen"
+	}
+
+	return false
+}
+
 func printDryRun(repos []scm.Repo) {
 	for _, repo := range repos {
 		colorlog.PrintSubtleInfo(repo.URL + "\n")
@@ -461,9 +483,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		// Open the file parse each line and remove cloneTargets containing
 		toIgnore, err := readGhorgIgnore()
 		if err != nil {
-			colorlog.PrintError("Error parsing your ghorgignore, aborting")
-			fmt.Println(err)
-			os.Exit(1)
+			colorlog.PrintErrorAndExit(fmt.Sprintf("Error parsing your ghorgignore, error: %v", err))
 		}
 
 		colorlog.PrintInfo("\nUsing ghorgignore, filtering repos down...\n")
@@ -503,6 +523,9 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	createDirIfNotExist()
 
+	// check for duplicate names will cause issues for some clone types on gitlab
+	hasCollisions := hasRepoNameCollisions(cloneTargets)
+
 	l, err := strconv.Atoi(os.Getenv("GHORG_CONCURRENCY"))
 	if err != nil {
 		log.Fatal("Could not determine GHORG_CONCURRENCY")
@@ -517,6 +540,12 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		repoSlug := getAppNameFromURL(repo.URL)
 		limit.Execute(func() {
 			if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
+				repoSlug = repo.Path
+			}
+
+			// if there are collisions the repos need to be clone like --preserve-dir is enabled
+			if hasCollisions {
+				os.Setenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE", "true")
 				repoSlug = repo.Path
 			}
 
@@ -668,6 +697,11 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	printRemainingMessages()
 	printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount)
+
+	if hasCollisions {
+		fmt.Println("")
+		colorlog.PrintInfo("ATTENTION: ghorg detected collisions in repo names from the groups that were cloned. This occurs when one or more groups share common repo names. Cloning all repos to one flat directoy would cause issues, so the --preserve-dir flag was automatically enabled on your behalf. This will result in the repos being clone into their respective group folders. To prevent this from happening you can clone more specific groups/subgroups or use the --preserve-dir flag when cloning.")
+	}
 
 	// Now, clean up local repos that don't exist in remote, if prune flag is set
 	if os.Getenv("GHORG_PRUNE") == "true" {
@@ -853,6 +887,10 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_DRY_RUN") == "true" {
 		colorlog.PrintInfo("* Dry Run       : " + "true")
+	}
+
+	if os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
+		colorlog.PrintInfo("* Preserve Dir  : " + "true")
 	}
 
 	colorlog.PrintInfo("* Config Used   : " + os.Getenv("GHORG_CONFIG"))
