@@ -139,7 +139,7 @@ go get github.com/gabrie30/ghorg
     $ ghorg clone mygroup/mysubgroup --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXX --preserve-dir
     ```
 
-1. You must set `--base-url` which is the url to your instance. If your instance uses self signed certificates you can use the `--insecure-gitlab-client` flag
+1. You must set `--base-url` which is the url to your instance. If your instance requires an insecure connection you can use the `--insecure-gitlab-client` flag
 
 ##### GitLab Cloud
 
