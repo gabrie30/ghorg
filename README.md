@@ -119,11 +119,11 @@ go get github.com/gabrie30/ghorg
 
 1. One difference with cloning GitLab repos from other SCM providers is GitLab uses groups and subgroups to organize repos. The default behavior of ghorg is to clone all repos into a single directory. However, if ghorg detects name collisions with the repos being cloned from different groups/subgroups, ghorg will automatically clone each repo into a directory structure that matches the group/subgroup you are cloning, rather than a flat directory structure. This is the same behavior of the `--preserve-dir` flag. You will be notified in the output if this occurs.
 
-1. Another thing to note is that ghorg works differently for hosted gitlab instances vs gitlab cloud read below for the differences.
+1. There are different commands for hosted gitlab instances vs gitlab cloud read below for the differences.
 
 ##### Hosted GitLab Instances
 
-1. To clone all the groups at once the keyword "all-groups". Note, all-groups requires a GitLab 13.0.1 or greater and will only clone from groups/repos your user has permissions to.
+1. To clone all the groups at once use the keyword "all-groups". Note, all-groups requires a GitLab 13.0.1 or greater and will only clone from groups/repos your user has permissions to.
 
     ```sh
     $ ghorg clone all-groups --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXX --preserve-dir
