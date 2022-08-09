@@ -14,8 +14,7 @@ if [ "${STOP_GITLAB_WHEN_FINISHED}" == "true" ];then
     export STOP_GITLAB_WHEN_FINISHED=true
 fi
 
-docker stop gitlab
-docker rm gitlab
+docker rm gitlab --force --volumes
 
 echo ""
 echo "To follow gitlab container logs use the following command in a new window"

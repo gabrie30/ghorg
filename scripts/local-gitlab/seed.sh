@@ -16,16 +16,6 @@ curl --request POST --header "PRIVATE-TOKEN: $TOKEN" \
     --data '{"path": "group2", "name": "group2" }' \
     "${GITLAB_URL}/api/v4/groups"
 
-curl --request POST --header "PRIVATE-TOKEN: $TOKEN" \
-    --header "Content-Type: application/json" \
-    --data '{"path": "group3", "name": "group3" }' \
-    "${GITLAB_URL}/api/v4/groups"
-
-curl --request POST --header "PRIVATE-TOKEN: $TOKEN" \
-    --header "Content-Type: application/json" \
-    --data '{"path": "group4", "name": "group4" }' \
-    "${GITLAB_URL}/api/v4/groups"
-
 # create repos for user
 for ((a=0; a <= 10 ; a++))
 do
@@ -42,18 +32,6 @@ done
 for ((a=0; a <= 10 ; a++))
 do
     curl --header "PRIVATE-TOKEN: $TOKEN" -X POST "${GITLAB_URL}/api/v4/projects?name=baz${a}&namespace_id=5&initialize_with_readme=true"
-done
-
-# create repos in group3
-for ((a=0; a <= 10 ; a++))
-do
-    curl --header "PRIVATE-TOKEN: $TOKEN" -X POST "${GITLAB_URL}/api/v4/projects?name=baz${a}&namespace_id=6&initialize_with_readme=true"
-done
-
-# create repos in group3
-for ((a=0; a <= 10 ; a++))
-do
-    curl --header "PRIVATE-TOKEN: $TOKEN" -X POST "${GITLAB_URL}/api/v4/projects?name=baz${a}&namespace_id=7&initialize_with_readme=true&wiki_enabled=true"
 done
 
 ./scripts/local-gitlab/clone.sh "${TOKEN}" "${GITLAB_URL}"
