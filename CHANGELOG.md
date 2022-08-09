@@ -3,13 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.8.3] - unreleased
+## [1.8.3] - 7/8/22
 ### Added
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 - repo name collisions with gitlab clones not using --preserve-dir
+- gitlab cloud clones with --preserve-dir creating nested output dirs; thanks @llama0815
 ### Security
 ## [1.8.2] - 7/6/22
 ### Added

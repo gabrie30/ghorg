@@ -259,7 +259,17 @@ func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
 			r.CloneBranch = os.Getenv("GHORG_BRANCH")
 		}
 
-		r.Path = p.PathWithNamespace
+		path := p.PathWithNamespace
+
+		// For GitLab Cloud, the PathWithNamespace includes the org/group name
+		// https://github.com/gabrie30/ghorg/issues/228
+		if os.Getenv("GHORG_SCM_BASE_URL") == "" {
+			if len(strings.Split(path, "/")) >= 2 {
+				path = strings.Join(strings.Split(path, "/")[1:], "/")
+			}
+		}
+
+		r.Path = path
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			r.CloneURL = c.addTokenToCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))
 			r.URL = p.HTTPURLToRepo
