@@ -43,7 +43,7 @@ github.com/inconshreveable/mousetrap
 # github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
 ## explicit; go 1.17
 github.com/korovkin/limiter
-# github.com/ktrysmt/go-bitbucket v0.9.48
+# github.com/ktrysmt/go-bitbucket v0.9.49
 ## explicit; go 1.14
 github.com/ktrysmt/go-bitbucket
 # github.com/magiconair/properties v1.8.6
