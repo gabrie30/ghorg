@@ -22,7 +22,7 @@ fi
 
 ghorg clone $GITLAB_ORG --token="${GITLAB_TOKEN}" --scm=gitlab --output-dir=examples --preserve-dir
 
-if [ -e "${HOME}"/ghorg/examples/"${GITLAB_SUB_GROUP}"/wayne-industries/microservice ]
+if [ -e "${HOME}"/ghorg/examples/"${GITLAB_SUB_GROUP}"/microservice ]
 then
     echo "Pass: gitlab org clone preserve directories"
 else
@@ -30,9 +30,9 @@ else
     exit 1
 fi
 
-ghorg clone $GITLAB_ORG/$GITLAB_SUB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab
+ghorg clone $GITLAB_ORG/$GITLAB_SUB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab 
 
-if [ -e "${HOME}"/ghorg/"${GITLAB_SUB_GROUP}"/microservice ]
+if [ -e "${HOME}"/ghorg/"${GITLAB_ORG}"/"${GITLAB_SUB_GROUP}"/microservice ]
 then
     echo "Pass: gitlab subgroup clone flat file"
 else
@@ -40,7 +40,7 @@ else
     exit 1
 fi
 
-ghorg clone $GITLAB_ORG --token="${GITLAB_TOKEN}" --scm=gitlab --preserve-dir
+ghorg clone $GITLAB_ORG/$GITLAB_SUB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab --preserve-dir
 
 if [ -e "${HOME}"/ghorg/"${GITLAB_SUB_GROUP}"/wayne-industries/microservice ]
 then
