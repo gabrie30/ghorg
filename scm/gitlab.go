@@ -135,7 +135,7 @@ func (c Gitlab) GetGroupRepos(targetGroup string) ([]Repo, error) {
 		}
 
 		// filter from all the projects we've found so far.
-		repoData = append(repoData, c.filter(ps)...)
+		repoData = append(repoData, c.filter(targetGroup, ps)...)
 
 		// Exit the loop when we've seen all pages.
 		if resp.NextPage == 0 {
@@ -171,7 +171,7 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 		}
 
 		// filter from all the projects we've found so far.
-		cloneData = append(cloneData, c.filter(ps)...)
+		cloneData = append(cloneData, c.filter(targetUsername, ps)...)
 
 		// Exit the loop when we've seen all pages.
 		if resp.NextPage == 0 {
@@ -225,7 +225,7 @@ func (_ Gitlab) addTokenToCloneURL(url string, token string) string {
 	return splitURL[0] + "://oauth2:" + token + "@" + splitURL[1]
 }
 
-func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
+func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 	var repoData []Repo
 	for _, p := range ps {
 
@@ -264,9 +264,7 @@ func (c Gitlab) filter(ps []*gitlab.Project) []Repo {
 		// For GitLab Cloud, the PathWithNamespace includes the org/group name
 		// https://github.com/gabrie30/ghorg/issues/228
 		if os.Getenv("GHORG_SCM_BASE_URL") == "" {
-			if len(strings.Split(path, "/")) >= 2 {
-				path = strings.Join(strings.Split(path, "/")[1:], "/")
-			}
+			path = strings.TrimPrefix(path, group)
 		}
 
 		r.Path = path
