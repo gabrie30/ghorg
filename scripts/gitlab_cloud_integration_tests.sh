@@ -42,7 +42,7 @@ fi
 
 ghorg clone $GITLAB_ORG/$GITLAB_SUB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab --preserve-dir
 
-if [ -e "${HOME}"/ghorg/"${GITLAB_SUB_GROUP}"/wayne-industries/wayne-industries/microservice ]
+if [ -e "${HOME}"/ghorg/"${GITLAB_ORG}"/"${GITLAB_SUB_GROUP}"/wayne-industries/microservice ]
 then
     echo "Pass: gitlab subgroup clone preserve directories"
 else
