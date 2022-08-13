@@ -260,10 +260,10 @@ docker run -v $HOME/ghorg/:/root/ghorg/ ghorg-docker ./ghorg clone kubernetes --
 
 ## Creating Backups
 
-When taking backups the two noteable flags are `--backup` and `--clone-wiki`. The `--backup` flag will clone the repo with [git clone --mirror](https://www.git-scm.com/docs/git-clone#Documentation/git-clone.txt---mirror). The `--clone-wiki` flag will include any wiki pages the repo has.
+When taking backups the two noteable flags are `--backup`, `--clone-wiki`, and `--include-submodules`. The `--backup` flag will clone the repo with [git clone --mirror](https://www.git-scm.com/docs/git-clone#Documentation/git-clone.txt---mirror). The `--clone-wiki` flag will include any wiki pages the repo has. If you want to include any submodules you will need `--include-submodules`.
 
 ```
-ghorg clone kubernetes --backup --clone-wiki
+ghorg clone kubernetes --backup --clone-wiki --include-submodules
 ```
 
 This will create a kubernetes_backup directory for the org. Each folder inside will contain the .git contents for the source repo. To restore the code from the .git contents you would move all contents into a .git dir, then run `git init` inside the dir, then checkout branch e.g.
