@@ -6,7 +6,7 @@ echo "Running GitHub Integration Tests"
 
 cp ./ghorg /usr/local/bin
 
-GITHUB_ORG=forcePushToProduction
+GITHUB_ORG=forcepushtoproduction
 GHORG_TEST_REPO=ghorg-ci-test
 
 ghorg version
