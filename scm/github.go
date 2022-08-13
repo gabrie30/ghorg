@@ -64,7 +64,7 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		}
 
 		if opt.Page%pageToPrintMoreInfo == 0 && opt.Page != 0 {
-			colorlog.PrintSubtleInfo(fmt.Sprintf("Everything is okay, the org just has a lot of repos, %v and counting...", opt.Page*reposPerPage))
+			colorlog.PrintSubtleInfo("Everything is okay, the org just has a lot of repos...")
 		}
 		opt.Page = resp.NextPage
 	}
