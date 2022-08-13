@@ -29,7 +29,7 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
   - [Install](https://github.com/gabrie30/ghorg#install) | [Setup](https://github.com/gabrie30/ghorg#gitlab-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md)
 - Bitbucket (Cloud Only)
   - [Install](https://github.com/gabrie30/ghorg#install) | [Setup](https://github.com/gabrie30/ghorg#bitbucket-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/bitbucket.md)
-- Gitea
+- Gitea (Self Hosted Only)
   - [Install](https://github.com/gabrie30/ghorg#install) | [Setup](https://github.com/gabrie30/ghorg#gitea-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/gitea.md)
 
 > The terminology used in ghorg is that of GitHub, mainly orgs/repos. GitLab and BitBucket use different terminology. There is a handy chart thanks to GitLab that translates terminology [here](https://about.gitlab.com/images/blogimages/gitlab-terminology.png). Note, some features may be different for certain providers.
