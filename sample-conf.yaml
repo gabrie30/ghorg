@@ -42,6 +42,7 @@ GHORG_INCLUDE_SUBMODULES: false
 
 # Allows you to pass arguments to git's filter flag e.g. git clone --filter=<args> this requires git version 2.19 or greater.
 # Useful for filtering out binary objects from repos
+# Few caveats, only works on inital clones, however if done on inital clone all subsequent clones will also honor the settings.
 # More info at https://stackoverflow.com/questions/49917616/what-is-the-git-clone-filter-options-syntax
 # flag (--git-filter) eg: --git-filter=blob:none
 GHORG_GIT_FILTER:
