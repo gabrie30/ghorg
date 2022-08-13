@@ -29,6 +29,7 @@ var (
 	exitCodeOnCloneIssues        string
 	outputDir                    string
 	topics                       string
+	gitFilter                    string
 	includeSubmodules            bool
 	skipArchived                 bool
 	skipForks                    bool
@@ -232,6 +233,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_IGNORE_PATH")
 	getOrSetDefaults("GHORG_RECLONE_PATH")
 	getOrSetDefaults("GHORG_QUIET")
+	getOrSetDefaults("GHORG_GIT_FILTER")
 
 	if os.Getenv("GHORG_DEBUG") != "" {
 		viper.Debug()
@@ -284,6 +286,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&ghorgIgnorePath, "ghorgignore-path", "", "", "GHORG_IGNORE_PATH - If you want to set a path other than $HOME/.config/ghorg/ghorgignore for your ghorgignore")
 	cloneCmd.Flags().StringVarP(&exitCodeOnCloneInfos, "exit-code-on-clone-infos", "", "", "GHORG_EXIT_CODE_ON_CLONE_INFOS - Allows you to control the exit code when ghorg runs into a problem (info level message) cloning a repo from the remote. Info messages will appear after a clone is complete, similar to success messages. (default 0)")
 	cloneCmd.Flags().StringVarP(&exitCodeOnCloneIssues, "exit-code-on-clone-issues", "", "", "GHORG_EXIT_CODE_ON_CLONE_ISSUES - Allows you to control the exit code when ghorg runs into a problem (issue level message) cloning a repo from the remote. Issue messages will appear after a clone is complete, similar to success messages (default 1)")
+	cloneCmd.Flags().StringVarP(&gitFilter, "git-filter", "", "", "GHORG_GIT_FILTER - Allows you to pass arguments to git's filter flag. Useful for filtering out binary objects from repos with --git-filter=blob:none, this requires git version 2.19 or greater.")
 
 	reCloneCmd.Flags().StringVarP(&ghorgReClonePath, "reclone-path", "", "", "GHORG_RECLONE_PATH - If you want to set a path other than $HOME/.config/ghorg/reclone.yaml for your reclone configuration")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneVerbose, "verbose", false, "GHORG_RECLONE_VERBOSE - Verbose logging output")

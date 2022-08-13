@@ -112,6 +112,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_IGNORE_PATH", path)
 	}
 
+	if cmd.Flags().Changed("git-filter") {
+		filter := cmd.Flag("git-filter").Value.String()
+		os.Setenv("GHORG_GIT_FILTER", filter)
+	}
+
 	if cmd.Flags().Changed("skip-archived") {
 		os.Setenv("GHORG_SKIP_ARCHIVED", "true")
 	}
@@ -875,6 +880,9 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
 		colorlog.PrintInfo("* Submodules    : " + os.Getenv("GHORG_INCLUDE_SUBMODULES"))
+	}
+	if os.Getenv("GHORG_GIT_FILTER") != "" {
+		colorlog.PrintInfo("* Git --filter= : " + os.Getenv("GHORG_GIT_FILTER"))
 	}
 	if os.Getenv("GHORG_OUTPUT_DIR") != "" {
 		colorlog.PrintInfo("* Output Dir    : " + outputDirName)

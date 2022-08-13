@@ -1,6 +1,7 @@
 package git
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 
@@ -31,6 +32,12 @@ func (g GitClient) Clone(repo scm.Repo) error {
 		index := 1
 		args = append(args[:index+1], args[index:]...)
 		args[index] = "--recursive"
+	}
+
+	if os.Getenv("GHORG_GIT_FILTER") != "" {
+		index := 1
+		args = append(args[:index+1], args[index:]...)
+		args[index] = fmt.Sprintf("--filter=%v", os.Getenv("GHORG_GIT_FILTER"))
 	}
 
 	if os.Getenv("GHORG_BACKUP") == "true" {
