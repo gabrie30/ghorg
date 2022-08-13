@@ -29,6 +29,7 @@ var (
 	exitCodeOnCloneIssues        string
 	outputDir                    string
 	topics                       string
+	includeSubmodules            bool
 	skipArchived                 bool
 	skipForks                    bool
 	backup                       bool
@@ -102,6 +103,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_SCM_TYPE":
 			os.Setenv(envVar, "github")
 		case "GHORG_SKIP_ARCHIVED":
+			os.Setenv(envVar, "false")
+		case "GHORG_INCLUDE_SUBMODULES":
 			os.Setenv(envVar, "false")
 		case "GHORG_SKIP_FORKS":
 			os.Setenv(envVar, "false")
@@ -207,6 +210,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_RECLONE_VERBOSE")
 	getOrSetDefaults("GHORG_RECLONE_QUIET")
 	getOrSetDefaults("GHORG_CONCURRENCY")
+	getOrSetDefaults("GHORG_INCLUDE_SUBMODULES")
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_INFOS")
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_ISSUES")
 	// Optionally set
@@ -267,6 +271,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&preserveDir, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - Clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/unit/subunit/app, gitlab only")
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP - Backup mode, clone as mirror, no working copy (ignores branch parameter)")
 	cloneCmd.Flags().BoolVar(&quietMode, "quiet", false, "GHORG_QUIET - Emit critical output only")
+	cloneCmd.Flags().BoolVar(&includeSubmodules, "include-submodules", false, "GHORG_INCLUDE_SUBMODULES - Include submodules in all clone and pull operations.")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - Change SCM base url, for on self hosted instances (currently gitlab, gitea and github (use format of https://git.mydomain.com/api/v3))")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - Max goroutines to spin up while cloning (default 25)")
 	cloneCmd.Flags().StringVarP(&topics, "topics", "", "", "GHORG_TOPICS - Comma separated list of github/gitea topics to filter for")

@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.8.4] - 7/12/22
+### Added
+- GHORG_INCLUDE_SUBMODULES flag to clone; thanks @Antfere
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.8.3] - 7/8/22
 ### Added
 ### Changed

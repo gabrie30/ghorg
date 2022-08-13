@@ -26,6 +26,13 @@ func NewGit() GitClient {
 
 func (g GitClient) Clone(repo scm.Repo) error {
 	args := []string{"clone", repo.CloneURL, repo.HostPath}
+
+	if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
+		index := 1
+		args = append(args[:index+1], args[index:]...)
+		args[index] = "--recursive"
+	}
+
 	if os.Getenv("GHORG_BACKUP") == "true" {
 		args = append(args, "--mirror")
 	}
@@ -61,7 +68,15 @@ func (g GitClient) UpdateRemote(repo scm.Repo) error {
 }
 
 func (g GitClient) Pull(repo scm.Repo) error {
-	cmd := exec.Command("git", "pull", "origin", repo.CloneBranch)
+	args := []string{"pull", "origin", repo.CloneBranch}
+
+	if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
+		index := 1
+		args = append(args[:index+1], args[index:]...)
+		args[index] = "--recurse-submodules"
+	}
+
+	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath
 	return cmd.Run()
 }

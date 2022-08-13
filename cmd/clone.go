@@ -132,6 +132,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_FETCH_ALL", "true")
 	}
 
+	if cmd.Flags().Changed("include-submodules") {
+		os.Setenv("GHORG_INCLUDE_SUBMODULES", "true")
+	}
+
 	if cmd.Flags().Changed("dry-run") {
 		os.Setenv("GHORG_DRY_RUN", "true")
 	}
@@ -461,19 +465,19 @@ func printDryRun(repos []scm.Repo) {
 func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	// Filter repos that have attributes that don't need specific scm api calls
 	if os.Getenv("GHORG_MATCH_REGEX") != "" {
-		colorlog.PrintInfo("Filtering repos down by including regex matches...\n")
+		colorlog.PrintInfo("Filtering repos down by including regex matches...")
 		cloneTargets = filterByRegexMatch(cloneTargets)
 	}
 	if os.Getenv("GHORG_EXCLUDE_MATCH_REGEX") != "" {
-		colorlog.PrintInfo("Filtering repos down by excluding regex matches...\n")
+		colorlog.PrintInfo("Filtering repos down by excluding regex matches...")
 		cloneTargets = filterByExcludeRegexMatch(cloneTargets)
 	}
 	if os.Getenv("GHORG_MATCH_PREFIX") != "" {
-		colorlog.PrintInfo("Filtering repos down by including prefix matches...\n")
+		colorlog.PrintInfo("Filtering repos down by including prefix matches...")
 		cloneTargets = filterByMatchPrefix(cloneTargets)
 	}
 	if os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX") != "" {
-		colorlog.PrintInfo("Filtering repos down by excluding prefix matches...\n")
+		colorlog.PrintInfo("Filtering repos down by excluding prefix matches...")
 		cloneTargets = filterByExcludeMatchPrefix(cloneTargets)
 	}
 
@@ -486,7 +490,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			colorlog.PrintErrorAndExit(fmt.Sprintf("Error parsing your ghorgignore, error: %v", err))
 		}
 
-		colorlog.PrintInfo("\nUsing ghorgignore, filtering repos down...\n")
+		colorlog.PrintInfo("Using ghorgignore, filtering repos down...")
 
 		filteredCloneTargets := []scm.Repo{}
 		var flag bool
@@ -868,6 +872,9 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX") != "" {
 		colorlog.PrintInfo("* Exclude Prefix: " + os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX"))
+	}
+	if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
+		colorlog.PrintInfo("* Submodules    : " + os.Getenv("GHORG_INCLUDE_SUBMODULES"))
 	}
 	if os.Getenv("GHORG_OUTPUT_DIR") != "" {
 		colorlog.PrintInfo("* Output Dir    : " + outputDirName)

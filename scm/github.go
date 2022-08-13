@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	_ Client = Github{}
+	_            Client = Github{}
+	reposPerPage        = 100
 )
 
 func init() {
@@ -42,7 +43,7 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	// get all pages of results
 	var allRepos []*github.Repository
 	for {
-
+		pageToPrintMoreInfo := 10
 		repos, resp, err := c.Repositories.ListByOrg(context.Background(), targetOrg, opt)
 
 		if err != nil {
@@ -50,11 +51,20 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		}
 		allRepos = append(allRepos, repos...)
 		if resp.NextPage == 0 {
+			// formatting for "Everything is okay, the org just has a lot of repos..."
+			if opt.Page >= pageToPrintMoreInfo {
+				fmt.Println("")
+			}
+
 			break
 		}
 
-		if opt.Page%12 == 0 && opt.Page != 0 {
-			colorlog.PrintSubtleInfo("\nEverything is okay, the org just has a lot of repos...")
+		if opt.Page == pageToPrintMoreInfo {
+			fmt.Println("")
+		}
+
+		if opt.Page%pageToPrintMoreInfo == 0 && opt.Page != 0 {
+			colorlog.PrintSubtleInfo(fmt.Sprintf("Everything is okay, the org just has a lot of repos, %v and counting...", opt.Page*reposPerPage))
 		}
 		opt.Page = resp.NextPage
 	}
@@ -132,7 +142,7 @@ func (_ Github) NewClient() (Client, error) {
 		c = github.NewClient(tc)
 	}
 
-	client := Github{Client: c, perPage: 100}
+	client := Github{Client: c, perPage: reposPerPage}
 
 	return client, nil
 }
