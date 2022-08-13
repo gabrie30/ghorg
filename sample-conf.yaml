@@ -36,6 +36,10 @@ GHORG_CLONE_TYPE: org
 # flag (--base-url) eg: --base-url=https://my.self.hosted.scm.instance.com
 GHORG_SCM_BASE_URL:
 
+# Include submodules in all clone and pull operations.
+# flag (--include-submodules)
+GHORG_INCLUDE_SUBMODULES: false
+
 # Deletes all files/directories found in your local clone directory that are not found on the remote (e.g., after remote deletion).  With GHORG_SKIP_ARCHIVED set, archived repositories will also be pruned from your local clone.
 # Will prompt before deleting any files unless used in combination with --prune-no-confirm
 # flag (--prune)
