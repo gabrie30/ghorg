@@ -117,7 +117,7 @@ go get github.com/gabrie30/ghorg
 
 #### GitLab Specific Notes
 
-1. With GitLab, if ghorg detects repo naming collisions with repos being cloned from different groups/subgroups, ghorg will automatically add the `--presever-dir` flag on your behalf and all repos will be cloned into a directory structure that matches your groups/subgroups, instead of all repos into one directory. You will be notified in the output if this occurs.
+1. With GitLab, if ghorg detects repo naming collisions with repos being cloned from different groups/subgroups, ghorg will automatically append the group/subgroup path to the repo name. You will be notified in the output if this occurs.
 
 1. There are different commands for hosted gitlab instances vs gitlab cloud read below for the differences.
 
