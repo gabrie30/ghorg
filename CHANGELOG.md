@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 ### Fixed
 ### Security
+
 ## [1.8.5] - 7/13/22
 ### Added
 - GHORG_GIT_FILTER flag to clone command; thanks @ryanaross
