@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.8.6] - unreleased
+### Added
+### Changed
+- Default behavior of gitlab repo naming collisions to append namespace'd path to repo name instead of auto adding preserve dir behavior; thanks @sding3
+### Deprecated
+### Removed
+### Fixed
+### Security
 ## [1.8.5] - 7/13/22
 ### Added
 - GHORG_GIT_FILTER flag to clone command; thanks @ryanaross
