@@ -555,11 +555,9 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
 				repoSlug = repo.Path
 			}
-			fmt.Println(repoNameWithCollisions)
 			// Only GitLab repos can have collisions due to groups and subgroups
 			// If there are collisions and this is a repo with a naming collision change name to avoid collisions
 			if hasCollisions && repoNameWithCollisions[repo.Name] {
-				fmt.Println(repo.Path)
 				repoSlug = strings.Replace(repo.Path, "/", "_", -1)
 			}
 
