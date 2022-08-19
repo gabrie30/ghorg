@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.8.7] - 7/19/22
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- SCM providers prompting for credentials
+### Security
+
 ## [1.8.6] - 7/18/22
 ### Added
 ### Changed

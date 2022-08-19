@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gabrie30/ghorg/scm"
 )
 
@@ -13,6 +14,7 @@ type Gitter interface {
 	Reset(scm.Repo) error
 	Pull(scm.Repo) error
 	SetOrigin(scm.Repo) error
+	SetOriginWithCredentials(scm.Repo) error
 	Clean(scm.Repo) error
 	Checkout(scm.Repo) error
 	UpdateRemote(scm.Repo) error
@@ -23,6 +25,12 @@ type GitClient struct{}
 
 func NewGit() GitClient {
 	return GitClient{}
+}
+
+func printDebugCmd(cmd *exec.Cmd) {
+	fmt.Println("------------- GIT DEBUG -------------")
+	spew.Dump(*cmd)
+	fmt.Println("")
 }
 
 func (g GitClient) Clone(repo scm.Repo) error {
@@ -45,8 +53,20 @@ func (g GitClient) Clone(repo scm.Repo) error {
 	}
 
 	cmd := exec.Command("git", args...)
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		printDebugCmd(cmd)
+	}
+
 	err := cmd.Run()
 	return err
+}
+
+func (g GitClient) SetOriginWithCredentials(repo scm.Repo) error {
+	args := []string{"remote", "set-url", "origin", repo.CloneURL}
+	cmd := exec.Command("git", args...)
+	cmd.Dir = repo.HostPath
+	return cmd.Run()
 }
 
 func (g GitClient) SetOrigin(repo scm.Repo) error {
@@ -85,6 +105,11 @@ func (g GitClient) Pull(repo scm.Repo) error {
 
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		printDebugCmd(cmd)
+	}
+
 	return cmd.Run()
 }
 
