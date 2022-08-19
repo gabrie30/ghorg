@@ -571,6 +571,14 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 			action := "cloning"
 			if repoExistsLocally(repo) {
+				// prevents git from asking for user for credentials, needs to be unset so creds aren't stored
+				err := git.SetOriginWithCredentials(repo)
+				if err != nil {
+					e := fmt.Sprintf("Problem setting remote with credentials Repo: %s Error: %v", repo.Name, err)
+					cloneErrors = append(cloneErrors, e)
+					return
+				}
+
 				if os.Getenv("GHORG_BACKUP") == "true" {
 					err := git.UpdateRemote(repo)
 					action = "updating remote"
@@ -648,6 +656,13 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 							return
 						}
 					}
+				}
+
+				err = git.SetOrigin(repo)
+				if err != nil {
+					e := fmt.Sprintf("Problem resetting remote Repo: %s Error: %v", repo.Name, err)
+					cloneErrors = append(cloneErrors, e)
+					return
 				}
 			} else {
 				// if https clone and github/gitlab add personal access token to url

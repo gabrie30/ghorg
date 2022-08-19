@@ -69,6 +69,10 @@ func (g MockGitClient) SetOrigin(repo scm.Repo) error {
 	return nil
 }
 
+func (g MockGitClient) SetOriginWithCredentials(repo scm.Repo) error {
+	return nil
+}
+
 func (g MockGitClient) Checkout(repo scm.Repo) error {
 	return nil
 }
