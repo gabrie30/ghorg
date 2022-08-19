@@ -33,13 +33,17 @@ pw=$(docker exec -it gitlab grep 'Password:' /etc/gitlab/initial_root_password |
 
 echo "grant_type=password&username=root&password=${pw}" > auth.txt
 
-BEARER_TOKEN=$(curl -s --data "@auth.txt" --request POST "${GITLAB_URL}/oauth/token" | jq -r '.access_token' | tr -d '\n')
+BEARER_TOKEN_JSON=$(curl -s --data "@auth.txt" --request POST "${GITLAB_URL}/oauth/token")
+
+echo "${BEARER_TOKEN_JSON}"
+
+BEARER_TOKEN=$(echo "${BEARER_TOKEN_JSON}" | jq -r '.access_token' | tr -d '\n')
 
 rm auth.txt
 
-TOKEN_NUMS=$(echo $RANDOM)
+TOKEN_NUMS=$(echo "${RANDOM}")
 
-API_TOKEN=$(curl --request POST --header "Authorization: Bearer ${BEARER_TOKEN}" --data "name=admintoken-${TOKEN_NUMS}" --data "expires_at=2050-04-04" --data "scopes[]=api" "${GITLAB_URL}/api/v4/users/1/personal_access_tokens" | jq -r '.token' | tr -d '\n')
+API_TOKEN=$(curl -s --request POST --header "Authorization: Bearer ${BEARER_TOKEN}" --data "name=admintoken-${TOKEN_NUMS}" --data "expires_at=2050-04-04" --data "scopes[]=api" "${GITLAB_URL}/api/v4/users/1/personal_access_tokens" | jq -r '.token' | tr -d '\n')
 
 # seed new instance using
 ./scripts/local-gitlab/seed.sh "${API_TOKEN}" "${GITLAB_URL}"
