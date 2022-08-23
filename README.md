@@ -42,9 +42,9 @@ Windows is supported when built with golang or as a [prebuilt binary](https://gi
 
 Precedence for configuration is first given to the flags set on the command-line, then to what's set in your `$HOME/.config/ghorg/conf.yaml`. This file comes from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml).
 
-Although it's optional, it is recommended to add a `$HOME/.config/ghorg/conf.yaml` following the instructions in the install section.
+If no configuration is found ghorg will use its defaults and try to clone a GitHub Org, however an api token is always required.
 
-You can have multiple configuration files which is useful if you clone from multiple SCM providers. Alternative configuration files can only be referenced as a command-line flag `--config`.
+You can have multiple configuration files which is useful if you clone from multiple SCM providers with different tokens and settings. Alternative configuration files can only be referenced as a command-line flag `--config`.
 
 If you have multiple different orgs/users/configurations to clone see the `ghorg reclone` command as a way to manage them.
 
