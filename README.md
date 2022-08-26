@@ -46,7 +46,7 @@ If you have multiple different orgs/users/configurations to clone see the `ghorg
 
 Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wiki.archlinux.org/title/XDG_Base_Directory) if set.
 
-### Windows support
+## Windows support
 
 Windows is supported when built with golang or as a [prebuilt binary](https://github.com/gabrie30/ghorg/releases/latest) however, the readme and other documentation is not geared towards Windows users.
 
