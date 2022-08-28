@@ -26,7 +26,7 @@ baseurl: "/ghorg" # the subpath of your site, e.g. /blog
 url: "https://gabrie30.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 # twitter_username: jekyllrb
 github_username: gabrie30
-markdown: kramdown
+markdown: GFM
 # Build settings
 theme: minima
 # plugins:
