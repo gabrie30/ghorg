@@ -470,6 +470,15 @@ func printDryRun(repos []scm.Repo) {
 	}
 }
 
+func trimCollisionFilename(filename string) string {
+	maxLen := 248
+	if len(filename) > maxLen {
+		return filename[:strings.LastIndex(filename[:maxLen], "_")]
+	}
+
+	return filename
+}
+
 // CloneAllRepos clones all repos
 func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	// Filter repos that have attributes that don't need specific scm api calls
@@ -558,7 +567,14 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			// Only GitLab repos can have collisions due to groups and subgroups
 			// If there are collisions and this is a repo with a naming collision change name to avoid collisions
 			if hasCollisions && repoNameWithCollisions[repo.Name] {
-				repoSlug = strings.Replace(repo.Path, "/", "_", -1)
+				repoSlug = trimCollisionFilename(strings.Replace(repo.Path, "/", "_", -1))
+
+				// If a collision has another collision with trimmed name append a number
+				if _, ok := repoNameWithCollisions[repoSlug]; ok {
+					repoSlug = fmt.Sprintf("_%v_%v", strconv.Itoa(i), repoSlug)
+				} else {
+					repoNameWithCollisions[repoSlug] = true
+				}
 			}
 
 			repo.HostPath = filepath.Join(outputDirAbsolutePath, repoSlug)
