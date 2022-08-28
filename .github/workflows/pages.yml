@@ -29,6 +29,9 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Pages
         uses: actions/configure-pages@v2
+      - name: Copy README.md
+        run: |
+          cat README.md >> ./site/index.markdown
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
