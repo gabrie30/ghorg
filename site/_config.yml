@@ -22,8 +22,8 @@ title: ghorg
 # email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
   Quickly clone an entire org/users repositories into one directory - Supports GitHub, GitLab, Bitbucket, and more 🥚
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "https://gabrie30.github.io/ghorg" # the base hostname & protocol for your site, e.g. http://example.com
+baseurl: "/ghorg" # the subpath of your site, e.g. /blog
+url: "https://gabrie30.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 # twitter_username: jekyllrb
 github_username: gabrie30
 
