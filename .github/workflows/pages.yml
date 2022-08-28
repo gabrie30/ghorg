@@ -31,7 +31,7 @@ jobs:
         uses: actions/configure-pages@v2
       - name: Copy README.md
         run: |
-          cat README.md >> ./site/index.markdown
+          cat README.md | tail -n +2 >> ./site/index.markdown
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
