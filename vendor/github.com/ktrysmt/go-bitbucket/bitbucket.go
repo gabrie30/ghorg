@@ -476,6 +476,20 @@ type RepositoryEnvironmentsOptions struct {
 	RepoSlug string `json:"repo_slug"`
 }
 
+type RepositoryGroupPermissionsOptions struct {
+	Owner      string `json:"owner"`
+	RepoSlug   string `json:"repo_slug"`
+	Group      string `json:"group"`
+	Permission string `json:"permission"`
+}
+
+type RepositoryUserPermissionsOptions struct {
+	Owner      string `json:"owner"`
+	RepoSlug   string `json:"repo_slug"`
+	User       string `json:"user"`
+	Permission string `json:"permission"`
+}
+
 type RepositoryEnvironmentTypeOption int
 
 const (
