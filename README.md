@@ -57,7 +57,7 @@ Alternatively, Windows users can also install ghorg using [scoop](https://scoop.
   scoop install ghorg
   ```
 
-## Install
+## Installation
 
 ### Prebuilt Binaries
 
