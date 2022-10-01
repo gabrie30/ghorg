@@ -139,6 +139,28 @@ func NewOAuthWithCode(i, s, c string) (*Client, string) {
 	return injectClient(a), tok.AccessToken
 }
 
+// NewOAuthWithRefreshToken obtains a new access token with a given refresh token
+// and returns a *Client
+func NewOAuthWithRefreshToken(i, s, rt string) (*Client, string) {
+	a := &auth{appID: i, secret: s}
+	ctx := context.Background()
+	conf := &oauth2.Config{
+		ClientID:     i,
+		ClientSecret: s,
+		Endpoint:     bitbucket.Endpoint,
+	}
+
+	tokenSource := conf.TokenSource(ctx, &oauth2.Token{
+		RefreshToken: rt,
+	})
+	tok, err := tokenSource.Token()
+	if err != nil {
+		log.Fatal(err)
+	}
+	a.token = *tok
+	return injectClient(a), tok.AccessToken
+}
+
 func NewOAuthbearerToken(t string) *Client {
 	a := &auth{bearerToken: t}
 	return injectClient(a)
