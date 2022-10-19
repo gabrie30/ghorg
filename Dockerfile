@@ -9,3 +9,6 @@ COPY . .
 # Fetching dependencies and build the app
 RUN go get -d -v ./...
 RUN CGO_ENABLED=0 go build -a --mod vendor -o ghorg .
+
+# Needed for reclone command
+RUN cp ./ghorg /go/bin/ghorg

@@ -206,13 +206,13 @@ $ ghorg ls someorg
 
 ```bash
 # using your local ghorg configuration file, cloning in container
-docker run -v $HOME/.config/ghorg/conf.yaml:/root/.config/ghorg/conf.yaml ghorg-docker ./ghorg clone kubernetes
+docker run -v $HOME/.config/ghorg:/root/.config/ghorg ghorg-docker ghorg clone kubernetes
 
 # using flags, cloning in container
-docker run ghorg-docker ./ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+docker run ghorg-docker ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 
 # using flags, cloning to your machine
-docker run -v $HOME/ghorg/:/root/ghorg/ ghorg-docker ./ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 --output-dir=cloned-from-docker
+docker run -v $HOME/ghorg/:/root/ghorg/ ghorg-docker ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 --output-dir=cloned-from-docker
 ```
 
 ## Changing Clone Directories
