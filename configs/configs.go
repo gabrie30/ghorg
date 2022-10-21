@@ -3,7 +3,6 @@ package configs
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -12,7 +11,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/scm"
 	"github.com/gabrie30/ghorg/utils"
 
@@ -180,10 +178,7 @@ func getOrSetGitHubToken() {
 			return
 		}
 		cmd := `security find-internet-password -s github.com | grep "acct" | awk -F\" '{ print $4 }'`
-		out, err := exec.Command("bash", "-c", cmd).Output()
-		if err != nil {
-			colorlog.PrintError(fmt.Sprintf("Failed to execute command: %s", cmd))
-		}
+		out, _ := exec.Command("bash", "-c", cmd).Output()
 
 		token = strings.TrimSuffix(string(out), "\n")
 
@@ -205,10 +200,7 @@ func getOrSetGitLabToken() {
 			return
 		}
 		cmd := `security find-internet-password -s gitlab.com | grep "acct" | awk -F\" '{ print $4 }'`
-		out, err := exec.Command("bash", "-c", cmd).Output()
-		if err != nil {
-			colorlog.PrintError(fmt.Sprintf("Failed to execute command: %s", cmd))
-		}
+		out, _ := exec.Command("bash", "-c", cmd).Output()
 
 		token = strings.TrimSuffix(string(out), "\n")
 
@@ -223,10 +215,7 @@ func getOrSetBitBucketToken() {
 			return
 		}
 		cmd := `security find-internet-password -s bitbucket.com | grep "acct" | awk -F\" '{ print $4 }'`
-		out, err := exec.Command("bash", "-c", cmd).Output()
-		if err != nil {
-			colorlog.PrintError(fmt.Sprintf("Failed to execute command: %s", cmd))
-		}
+		out, _ := exec.Command("bash", "-c", cmd).Output()
 
 		token = strings.TrimSuffix(string(out), "\n")
 
