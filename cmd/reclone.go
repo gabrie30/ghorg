@@ -146,8 +146,8 @@ func runReClone(rc ReClone) {
 		env := keyValue[0]
 		ghorgEnv := strings.HasPrefix(env, "GHORG_")
 
-		// skip global flags
-		if env == "GHORG_COLOR" || env == "GHORG_CONFIG" || env == "GHORG_RECLONE_VERBOSE" || env == "GHORG_RECLONE_QUIET" {
+		// skip global flags and reclone flags which are set in the conf.yaml
+		if env == "GHORG_COLOR" || env == "GHORG_CONFIG" || env == "GHORG_RECLONE_VERBOSE" || env == "GHORG_RECLONE_QUIET" || env == "GHORG_RECLONE_PATH" {
 			continue
 		}
 		if ghorgEnv {

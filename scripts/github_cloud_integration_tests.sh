@@ -8,6 +8,7 @@ cp ./ghorg /usr/local/bin
 
 GITHUB_ORG=forcepushtoproduction
 GHORG_TEST_REPO=ghorg-ci-test
+REPO_WITH_TESTING_TOPIC=ghorg-repo-with-topic-of-testing
 
 ghorg version
 
@@ -66,3 +67,47 @@ fi
 # Move back to original conf but keep updated_conf if we want to use it again
 mv $HOME/.config/ghorg/conf.yaml $HOME/.config/ghorg/updated_conf.yaml
 mv $HOME/.config/ghorg/conf-bak.yaml $HOME/.config/ghorg/conf.yaml
+
+# RECLONE BASIC
+
+# hack to allow sed to be ran on both mac and ubuntu
+sed "s/XTOKEN/${GITHUB_TOKEN}/g" $PWD/scripts/testing_confs/reclone-basic.yaml > $PWD/scripts/testing_confs/updated_reclone.yaml
+
+ghorg reclone --reclone-path=$PWD/scripts/testing_confs/updated_reclone.yaml --verbose
+
+if [ -e /tmp/testing_reclone_with_tag/$REPO_WITH_TESTING_TOPIC ]
+then
+    echo "Pass: github reclone testing-topic-in-tmp-dir file exists"
+else
+    echo "Fail: github reclone testing-topic-in-tmp-dir file does not exist"
+    exit 1
+fi
+
+COUNT=$(ls /tmp/testing_reclone_with_tag | wc -l)
+
+if [ "${COUNT}" -eq 1 ]
+then
+    echo "Pass: github reclone testing_reclone_with_tag"
+else
+    echo "Fail: github reclone testing_reclone_with_tag too many files found"
+    exit 1
+fi
+
+if [ -e /tmp/all-repos/$REPO_WITH_TESTING_TOPIC ]
+then
+    echo "Pass: github reclone all-repos"
+else
+    echo "Fail: github reclone all-repos"
+    exit 1
+fi
+
+COUNT=$(ls /tmp/all-repos | wc -l)
+
+if [ "${COUNT}" -ge 3 ]
+then
+    echo "Pass: github reclone all-repos count"
+else
+    echo "Fail: github reclone all-repos count too low"
+    exit 1
+fi
+

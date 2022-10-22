@@ -8,8 +8,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Changed
 ### Deprecated
 ### Removed
-- Logging errors from security commands
+- Logging errors from security command
 ### Fixed
+- GHORG_RECLONE_PATH from getting unset
 ### Security
 
 ## [1.8.8] - 10/11/22
