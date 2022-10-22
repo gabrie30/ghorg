@@ -1,0 +1,5 @@
+testing_reclone_with_tag:
+  cmd: "ghorg clone forcepushtoproduction --token=XTOKEN --output-dir=testing_reclone_with_tag --topics=testing --path=/tmp"
+
+all-repos:
+  cmd: "ghorg clone forcepushtoproduction --token=XTOKEN --output-dir=all-repos --path=/tmp"
