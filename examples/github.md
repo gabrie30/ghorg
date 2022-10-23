@@ -12,7 +12,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     ghorg clone <github_org> --token=XXXXXX
     ```
 
-1. Clone all repos from a **github org** that are **prefixed** with "frontend" **into a folder** called "design_only", assumes ghorg conf.yaml is setup with a token
+1. Clone all repos from a **github org** that are **prefixed** with "frontend" **into a folder** called "design_only"
 
     ```
     ghorg clone <github_org> --match-regex=^frontend --output-dir=design_only --token=XXXXXX
