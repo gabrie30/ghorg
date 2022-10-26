@@ -140,6 +140,13 @@ func runReClone(rc ReClone) {
 
 	ghorgClone := exec.Command("ghorg", remainingCommand...)
 
+	if os.Getenv("GHORG_CONFIG") == "none" {
+		os.Setenv("GHORG_CONFIG", "")
+	}
+
+	os.Setenv("GHORG_RECLONE_RUNNING", "true")
+	defer os.Setenv("GHORG_RECLONE_RUNNING", "false")
+
 	// have to unset all ghorg envs because root command will set them on initialization of ghorg cmd
 	for _, e := range os.Environ() {
 		keyValue := strings.SplitN(e, "=", 2)
@@ -147,7 +154,7 @@ func runReClone(rc ReClone) {
 		ghorgEnv := strings.HasPrefix(env, "GHORG_")
 
 		// skip global flags and reclone flags which are set in the conf.yaml
-		if env == "GHORG_COLOR" || env == "GHORG_CONFIG" || env == "GHORG_RECLONE_VERBOSE" || env == "GHORG_RECLONE_QUIET" || env == "GHORG_RECLONE_PATH" {
+		if env == "GHORG_COLOR" || env == "GHORG_CONFIG" || env == "GHORG_RECLONE_VERBOSE" || env == "GHORG_RECLONE_QUIET" || env == "GHORG_RECLONE_PATH" || env == "GHORG_RECLONE_RUNNING" {
 			continue
 		}
 		if ghorgEnv {

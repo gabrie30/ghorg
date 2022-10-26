@@ -938,6 +938,10 @@ func PrintConfigs() {
 		colorlog.PrintInfo("* Dry Run       : " + "true")
 	}
 
+	if os.Getenv("GHORG_RECLONE_PATH") != "" && os.Getenv("GHORG_RECLONE_RUNNING") == "true" {
+		colorlog.PrintInfo("* Reclone Conf  : " + os.Getenv("GHORG_RECLONE_PATH"))
+	}
+
 	if os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
 		colorlog.PrintInfo("* Preserve Dir  : " + "true")
 	}
