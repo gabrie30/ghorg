@@ -41,6 +41,7 @@ var (
 	cloneWiki                    bool
 	preserveDir                  bool
 	insecureGitlabClient         bool
+	insecureGiteaClient          bool
 	fetchAll                     bool
 	ghorgReCloneVerbose          bool
 	ghorgReCloneQuiet            bool
@@ -122,6 +123,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_PRUNE_NO_CONFIRM":
 			os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_GITLAB_CLIENT":
+			os.Setenv(envVar, "false")
+		case "GHORG_INSECURE_GITEA_CLIENT":
 			os.Setenv(envVar, "false")
 		case "GHORG_BACKUP":
 			os.Setenv(envVar, "false")
@@ -207,6 +210,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_DRY_RUN")
 	getOrSetDefaults("GHORG_CLONE_WIKI")
 	getOrSetDefaults("GHORG_INSECURE_GITLAB_CLIENT")
+	getOrSetDefaults("GHORG_INSECURE_GITEA_CLIENT")
 	getOrSetDefaults("GHORG_BACKUP")
 	getOrSetDefaults("GHORG_RECLONE_VERBOSE")
 	getOrSetDefaults("GHORG_RECLONE_QUIET")
@@ -268,6 +272,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&fetchAll, "fetch-all", false, "GHORG_FETCH_ALL - Fetches all remote branches for each repo by running a git fetch --all")
 	cloneCmd.Flags().BoolVar(&dryRun, "dry-run", false, "GHORG_DRY_RUN - Perform a dry run of the clone; fetches repos but does not clone them")
 	cloneCmd.Flags().BoolVar(&insecureGitlabClient, "insecure-gitlab-client", false, "GHORG_INSECURE_GITLAB_CLIENT - Skip TLS certificate verification for hosted gitlab instances")
+	cloneCmd.Flags().BoolVar(&insecureGiteaClient, "insecure-gitea-client", false, "GHORG_INSECURE_GITEA_CLIENT - Must be set to clone from a Gitea instance using http")
 	cloneCmd.Flags().BoolVar(&cloneWiki, "clone-wiki", false, "GHORG_CLONE_WIKI - Additionally clone the wiki page for repo")
 	cloneCmd.Flags().BoolVar(&skipForks, "skip-forks", false, "GHORG_SKIP_FORKS - Skips repo if its a fork, github/gitlab/gitea only")
 	cloneCmd.Flags().BoolVar(&preserveDir, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - Clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/unit/subunit/app, gitlab only")

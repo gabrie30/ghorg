@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"code.gitea.io/sdk/gitea"
+	"github.com/gabrie30/ghorg/colorlog"
 )
 
 var (
@@ -117,6 +118,21 @@ func (_ Gitea) NewClient() (Client, error) {
 	return client, nil
 }
 
+func (_ Gitea) addTokenToCloneURL(url string, token string) string {
+	isHTTP := strings.HasPrefix(url, "http://")
+
+	if isHTTP {
+		if os.Getenv("GHORG_INSECURE_GITEA_CLIENT") == "true" {
+			splitURL := strings.Split(url, "http://")
+			return "http://" + token + "@" + splitURL[1]
+		}
+		colorlog.PrintErrorAndExit("You are attempting clone from an insecure Gitea instance. You must set the (--insecure-gitea-client) flag to proceed.")
+	}
+
+	splitURL := strings.Split(url, "https://")
+	return "https://" + token + "@" + splitURL[1]
+}
+
 func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 	for _, rp := range rps {
 
@@ -159,7 +175,7 @@ func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			cloneURL := rp.CloneURL
 			if rp.Private {
-				cloneURL = "https://" + os.Getenv("GHORG_GITEA_TOKEN") + strings.TrimPrefix(cloneURL, "https://")
+				cloneURL = c.addTokenToCloneURL(cloneURL, os.Getenv("GHORG_GITEA_TOKEN"))
 			}
 			r.CloneURL = cloneURL
 			r.URL = cloneURL

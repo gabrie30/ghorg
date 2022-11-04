@@ -5,13 +5,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.8.9] - unreleased
 ### Added
+- GHORG_INSECURE_GITEA_CLIENT to allow cloning from Gitea instances using http; thanks @zerrol
 ### Changed
 ### Deprecated
 ### Removed
 - Logging errors from security command
 ### Fixed
-- GHORG_RECLONE_PATH from getting unset
+- GHORG_RECLONE_PATH from getting unset; thanks @afonsoc12
 ### Security
+- Bump github.com/xanzy/go-gitlab from 0.73.1 to 0.74.0
+- Bump github.com/spf13/cobra from 1.5.0 to 1.6.1
 
 ## [1.8.8] - 10/11/22
 ### Added
