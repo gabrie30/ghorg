@@ -153,6 +153,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_INSECURE_GITLAB_CLIENT", "true")
 	}
 
+	if cmd.Flags().Changed("insecure-gitea-client") {
+		os.Setenv("GHORG_INSECURE_GITEA_CLIENT", "true")
+	}
+
 	if cmd.Flags().Changed("skip-forks") {
 		os.Setenv("GHORG_SKIP_FORKS", "true")
 	}

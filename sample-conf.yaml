@@ -165,7 +165,7 @@ GHORG_PRESERVE_DIRECTORY_STRUCTURE: false
 
 # Skip TLS certificate verification for hosted gitlab instances
 # flag (--insecure-gitlab-client)
-GHORG_INSECURE_GITLAB_CLIENT:
+GHORG_INSECURE_GITLAB_CLIENT: false
 
 # Exclude gitlab groups by regex
 # flag (--gitlab-group-exclude-match-regex)
@@ -179,6 +179,10 @@ GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX:
 # Settings -> Applications -> Generate Token
 # flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 GHORG_GITEA_TOKEN:
+
+# Must be present if your gitea instance uses http
+# flag (--insecure-gitea-client)
+GHORG_INSECURE_GITEA_CLIENT: false
 
 # +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 # |B|I|T|B|U|C|K|E|T| |S|P|E|C|I|F|I|C|
