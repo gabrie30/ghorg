@@ -3,9 +3,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.8.9] - unreleased
+## [1.9.0] - unreleased
 ### Added
-- GHORG_INSECURE_GITEA_CLIENT to allow cloning from Gitea instances using http; thanks @zerrol
+- GHORG_INSECURE_GITEA_CLIENT to be explicit when cloning from Gitea instances using http; thanks @zerrol
 ### Changed
 ### Deprecated
 ### Removed

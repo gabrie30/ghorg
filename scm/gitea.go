@@ -102,6 +102,12 @@ func (_ Gitea) NewClient() (Client, error) {
 		baseURL = "https://gitea.com"
 	}
 
+	isHTTP := strings.HasPrefix(baseURL, "http://")
+
+	if isHTTP && (os.Getenv("GHORG_INSECURE_GITEA_CLIENT") != "true") {
+		colorlog.PrintErrorAndExit("You are attempting clone from an insecure Gitea instance. You must set the (--insecure-gitea-client) flag to proceed.")
+	}
+
 	c, err := gitea.NewClient(baseURL, gitea.SetToken(token))
 	if err != nil {
 		return nil, err
