@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.9.0] - unreleased
+## [1.9.0] - 11/5/22
 ### Added
 - GHORG_INSECURE_GITEA_CLIENT to be explicit when cloning from Gitea instances using http; thanks @zerrol
 ### Changed
