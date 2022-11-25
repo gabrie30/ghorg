@@ -122,40 +122,6 @@ go get github.com/gabrie30/ghorg
 1. Update `GHORG_SCM_TYPE` to `gitlab` in your `ghorg/conf.yaml` or via cli flags
 1. See [examples/gitlab.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md) on how to run
 
-#### GitLab Specific Notes
-
-1. With GitLab, if ghorg detects repo naming collisions with repos being cloned from different groups/subgroups, ghorg will automatically append the group/subgroup path to the repo name. You will be notified in the output if this occurs.
-
-1. There are different commands for hosted gitlab instances vs gitlab cloud read below for the differences.
-
-##### Hosted GitLab Instances
-
-1. To clone all the groups at once use the keyword "all-groups". Note, all-groups requires a GitLab 13.0.1 or greater and will only clone from groups/repos your user has permissions to.
-
-    ```sh
-    $ ghorg clone all-groups --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXX --preserve-dir
-    ```
-
-1. For all versions of GitLab you can clone groups or sub groups individually
-
-    ```sh
-    # cloning a top level group
-    $ ghorg clone mygroup --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXX --preserve-dir
-
-    # cloning a subgroup
-    $ ghorg clone mygroup/mysubgroup --base-url=https://${your.hosted.gitlab.com} --scm=gitlab --token=XXXX --preserve-dir
-    ```
-
-1. You must set `--base-url` which is the url to your instance. If your instance requires an insecure connection you can use the `--insecure-gitlab-client` flag
-
-##### GitLab Cloud
-
-To clone all repos you can use the top level group name e.g. to clone `gitlab-examples` on GitLab cloud https://gitlab.com/gitlab-examples
-
-```sh
-$ ghorg clone gitlab-examples --scm=gitlab --token=XXXX --preserve-dir
-```
-
 ### Gitea Setup
 
 1. Create [Access Token](https://docs.gitea.io/en-us/api-usage/) (Settings -> Applications -> Generate Token)
@@ -184,7 +150,6 @@ $ ghorg clone gitlab-examples --scm=gitlab --token=XXXX --preserve-dir
 See [examples](https://github.com/gabrie30/ghorg/tree/master/examples) dir for more SCM specific docs
 
 ```bash
-# note: to view/set all available flags/features see sample-conf.yaml
 $ ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 $ ghorg clone davecheney --clone-type=user --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 $ ghorg clone gitlab-examples --scm=gitlab --preserve-dir --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
