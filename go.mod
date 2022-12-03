@@ -12,7 +12,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
-	github.com/xanzy/go-gitlab v0.74.0
+	github.com/xanzy/go-gitlab v0.76.0
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783
 	gopkg.in/yaml.v2 v2.4.0
 )
