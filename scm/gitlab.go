@@ -84,6 +84,7 @@ func (c Gitlab) GetTopLevelGroups() ([]string, error) {
 			Page:    1,
 		},
 		TopLevelOnly: gitlab.Bool(true),
+		AllAvailable: gitlab.Bool(true),
 	}
 
 	for {
