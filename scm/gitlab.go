@@ -153,34 +153,65 @@ func (c Gitlab) GetGroupRepos(targetGroup string) ([]Repo, error) {
 // GetUserRepos gets all of a users gitlab repos
 func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 	cloneData := []Repo{}
+	targetUsers := []string{}
 
-	opt := &gitlab.ListProjectsOptions{
+	projectOpts := &gitlab.ListProjectsOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: perPage,
 			Page:    1,
 		},
 	}
 
-	for {
-		// Get the first page with projects.
-		ps, resp, err := c.Projects.ListUserProjects(targetUsername, opt)
-		if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
-				return nil, fmt.Errorf("user '%s' does not exist", targetUsername)
+	userOpts := &gitlab.ListUsersOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: perPage,
+			Page:    1,
+		},
+	}
+
+	if targetUsername == "all-users" {
+		for {
+			allUsers, resp, err := c.Users.ListUsers(userOpts)
+			if err != nil {
+				return nil, fmt.Errorf("error getting all users, err: %v", err)
 			}
-			return []Repo{}, err
+
+			for _, u := range allUsers {
+				targetUsers = append(targetUsers, u.Username)
+			}
+
+			if resp.NextPage == 0 {
+				break
+			}
+
+			// Update the page number to get the next page.
+			userOpts.Page = resp.NextPage
 		}
+	} else {
+		targetUsers = append(targetUsers, targetUsername)
+	}
 
-		// filter from all the projects we've found so far.
-		cloneData = append(cloneData, c.filter(targetUsername, ps)...)
+	for _, targetUser := range targetUsers {
+		for {
+			// Get the first page with projects.
+			ps, resp, err := c.Projects.ListUserProjects(targetUser, projectOpts)
+			if err != nil {
+				fmt.Printf("Error getting repo for user: %v", targetUser)
+				colorlog.PrintError(fmt.Sprintf("Error getting repo for user: %v", targetUser))
+				continue
+			}
 
-		// Exit the loop when we've seen all pages.
-		if resp.NextPage == 0 {
-			break
+			// filter from all the projects we've found so far.
+			cloneData = append(cloneData, c.filter(targetUser, ps)...)
+
+			// Exit the loop when we've seen all pages.
+			if resp.NextPage == 0 {
+				break
+			}
+
+			// Update the page number to get the next page.
+			userOpts.Page = resp.NextPage
 		}
-
-		// Update the page number to get the next page.
-		opt.Page = resp.NextPage
 	}
 
 	return cloneData, nil

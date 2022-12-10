@@ -9,12 +9,6 @@ GITLAB_HOME=${4:-"$HOME/Desktop/ghorg/local-gitlab-ee-data-${GITLAB_IMAGE_TAG}"}
 GITLAB_HOST=${5:-'gitlab.example.com'}
 GITLAB_URL=${6:-'http://gitlab.example.com'}
 
-function cleanup()
-{
-    docker rm gitlab --force --volumes
-}
-trap cleanup EXIT
-
 if [ "${ENV}" == "ci" ];then
     echo "127.0.0.1 gitlab.example.com" >> /etc/hosts
 fi

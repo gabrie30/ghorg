@@ -25,3 +25,5 @@ ghorg clone group1 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --
 
 ghorg clone group1 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-group1
 ghorg clone group1 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-group1
+
+ghorg clone all-users --scm=gitlab --clone-type=user --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-all-users
