@@ -16,6 +16,15 @@ curl --request POST --header "PRIVATE-TOKEN: $TOKEN" \
     --data '{"path": "group2", "name": "group2" }' \
     "${GITLAB_URL}/api/v4/groups"
 
+# Create 2 users
+curl --request POST --header "PRIVATE-TOKEN: $TOKEN" \
+    --header "Content-Type: application/json" \
+    --data '{"email": "testuser1@example.com", "password": "adminadmin1","name": "testuser1","reset_password": "true" }'
+
+curl --request POST --header "PRIVATE-TOKEN: $TOKEN" \
+    --header "Content-Type: application/json" \
+    --data '{"email": "testuser2@example.com", "password": "adminadmin1","name": "testuser2","reset_password": "true" }'
+
 sleep 1
 
 # create repos for user

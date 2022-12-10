@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+## [1.9.1] - unreleased
+### Added
+- Ability to clone all users repos on hosted GitLab instances; thanks @mlaily
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Top level GitLab groups on hosted GitLab instances now fetch all groups; thanks @mlaily
+### Security
+- Bump github.com/xanzy/go-gitlab from 0.74.0 to 0.76.0
+- Bump github.com/spf13/viper from 1.13.0 to 1.14.0
 
 ## [1.9.0] - 11/5/22
 ### Added

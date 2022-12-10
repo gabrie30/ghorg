@@ -49,13 +49,30 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     ```
     ghorg clone <gitlab_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab --match-regex=^frontend --output-dir=design_only
     ```
-#### Cloning User Repos
+#### Cloning a Specific Users Repos
 
 1. Clone a **user** on a **hosted gitlab** instance using a **token** for auth
 
     ```
     ghorg clone <gitlab_username> --clone-type=user --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
     ```
+
+#### Cloning All Users Repos
+
+> Note: "all-users" only works on hosted GitLab instances running 13.0.1 or greater
+
+> Note: You must set `--base-url` which is the url to your instance. If your instance requires an insecure connection you can use the `--insecure-gitlab-client` flag
+
+1. Clone all users repos **into a directory called all-users-repos**
+
+    ```
+    ghorg clone all-users --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --clone-type=user --output-dir=all-users-repos
+    ```
+
+1. Clone all users repos on an **insecure** instance
+
+    ```
+    ghorg clone all-users --base-url=http://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --clone-type=user --insecure-gitlab-client
 
 ## Cloud GitLab Orgs
 
