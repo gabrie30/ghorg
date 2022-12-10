@@ -49,7 +49,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     ```
     ghorg clone <gitlab_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab --match-regex=^frontend --output-dir=design_only
     ```
-#### Cloning User Repos
+#### Cloning a Specific Users Repos
 
 1. Clone a **user** on a **hosted gitlab** instance using a **token** for auth
 
