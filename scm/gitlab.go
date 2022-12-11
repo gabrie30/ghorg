@@ -36,6 +36,10 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	repoData := []Repo{}
 	longFetch := false
 
+	if targetOrg == "all-users" {
+		colorlog.PrintErrorAndExit("When using the 'all-users' keyword the '--clone-type=user' flag should be set")
+	}
+
 	if targetOrg == "all-groups" {
 		longFetch = true
 
