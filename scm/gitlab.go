@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	_       Client = Gitlab{}
-	perPage        = 100
+	_               Client = Gitlab{}
+	perPage                = 100
+	gitLabAllGroups        = false
 )
 
 func init() {
@@ -41,6 +42,7 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	}
 
 	if targetOrg == "all-groups" {
+		gitLabAllGroups = true
 		longFetch = true
 
 		grps, err := c.GetTopLevelGroups()
@@ -300,7 +302,9 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 		// The PathWithNamespace includes the org/group name
 		// https://github.com/gabrie30/ghorg/issues/228
 		// https://github.com/gabrie30/ghorg/issues/267
-		path = strings.TrimPrefix(path, group)
+		if !gitLabAllGroups {
+			path = strings.TrimPrefix(path, group)
+		}
 
 		r.Path = path
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
