@@ -297,11 +297,10 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 
 		path := p.PathWithNamespace
 
-		// For GitLab Cloud, the PathWithNamespace includes the org/group name
+		// The PathWithNamespace includes the org/group name
 		// https://github.com/gabrie30/ghorg/issues/228
-		if os.Getenv("GHORG_SCM_BASE_URL") == "" {
-			path = strings.TrimPrefix(path, group)
-		}
+		// https://github.com/gabrie30/ghorg/issues/267
+		path = strings.TrimPrefix(path, group)
 
 		r.Path = path
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
