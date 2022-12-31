@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+
+## [1.9.2] - 12/31/22
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- GitLab nested group names; thanks @MaxG87
+### Security
+
 ## [1.9.1] - 12/11/22
 ### Added
 - Ability to clone all users repos on hosted GitLab instances; thanks @mlaily
