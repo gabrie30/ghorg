@@ -84,6 +84,7 @@ type Group struct {
 	PreventForkingOutsideGroup     bool             `json:"prevent_forking_outside_group"`
 	MarkedForDeletionOn            *ISOTime         `json:"marked_for_deletion_on"`
 	CreatedAt                      *time.Time       `json:"created_at"`
+	IPRestrictionRanges            string           `json:"ip_restriction_ranges"`
 }
 
 // GroupAvatar represents a GitLab group avatar.
@@ -131,7 +132,7 @@ type ListGroupsOptions struct {
 	OrderBy              *string           `url:"order_by,omitempty" json:"order_by,omitempty"`
 	Owned                *bool             `url:"owned,omitempty" json:"owned,omitempty"`
 	Search               *string           `url:"search,omitempty" json:"search,omitempty"`
-	SkipGroups           *[]int            `url:"skip_groups,omitempty" json:"skip_groups,omitempty"`
+	SkipGroups           *[]int            `url:"skip_groups,omitempty" del:"," json:"skip_groups,omitempty"`
 	Sort                 *string           `url:"sort,omitempty" json:"sort,omitempty"`
 	Statistics           *bool             `url:"statistics,omitempty" json:"statistics,omitempty"`
 	TopLevelOnly         *bool             `url:"top_level_only,omitempty" json:"top_level_only,omitempty"`
@@ -351,6 +352,7 @@ type CreateGroupOptions struct {
 	ParentID                       *int                        `url:"parent_id,omitempty" json:"parent_id,omitempty"`
 	SharedRunnersMinutesLimit      *int                        `url:"shared_runners_minutes_limit,omitempty" json:"shared_runners_minutes_limit,omitempty"`
 	ExtraSharedRunnersMinutesLimit *int                        `url:"extra_shared_runners_minutes_limit,omitempty" json:"extra_shared_runners_minutes_limit,omitempty"`
+	IPRestrictionRanges            *string                     `url:"ip_restriction_ranges,omitempty" json:"ip_restriction_ranges,omitempty"`
 }
 
 // CreateGroup creates a new project group. Available only for users who can
@@ -478,6 +480,7 @@ type UpdateGroupOptions struct {
 	PreventForkingOutsideGroup           *bool                       `url:"prevent_forking_outside_group,omitempty" json:"prevent_forking_outside_group,omitempty"`
 	SharedRunnersSetting                 *SharedRunnersSettingValue  `url:"shared_runners_setting,omitempty" json:"shared_runners_setting,omitempty"`
 	PreventSharingGroupsOutsideHierarchy *bool                       `url:"prevent_sharing_groups_outside_hierarchy,omitempty" json:"prevent_sharing_groups_outside_hierarchy,omitempty"`
+	IPRestrictionRanges                  *string                     `url:"ip_restriction_ranges,omitempty" json:"ip_restriction_ranges,omitempty"`
 }
 
 // UpdateGroup updates an existing group; only available to group owners and
