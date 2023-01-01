@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   goreleaser:
+    environment: actions
     runs-on: ubuntu-latest
     steps:
       -
