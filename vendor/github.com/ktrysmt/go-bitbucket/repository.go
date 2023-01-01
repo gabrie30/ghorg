@@ -309,17 +309,13 @@ func (r *Repository) GetFileContent(ro *RepositoryFilesOptions) ([]byte, error) 
 		return nil, err
 	}
 
-	response, err := r.c.execute("GET", urlStr, "")
+	resBody, err := r.c.executeRaw("GET", urlStr, "")
 	if err != nil {
 		return nil, err
 	}
+	defer resBody.Close()
 
-	content, ok := response.([]byte)
-	if !ok {
-		return nil, fmt.Errorf("requested path is not a file")
-	}
-
-	return content, nil
+	return ioutil.ReadAll(resBody)
 }
 
 func (r *Repository) ListFiles(ro *RepositoryFilesOptions) ([]RepositoryFile, error) {
