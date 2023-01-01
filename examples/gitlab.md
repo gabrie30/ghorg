@@ -12,6 +12,8 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
 1. For all versions of GitLab you can clone groups or sub groups individually
 
+1. The `--preserve-dir` flag will mirror the nested directory structure of the groups/subgroups/projects locally to what is on GitLab. This prevents any name collisions with project names. If this flag is ommited all projects will be cloned into a single directory. If there are collisions with project names and `--preserve-dir` is not used the group/subgroup name will be prepended to those projects. An informational message will also be displayed during the clone to let you know if this happens.
+
 ## Hosted GitLab Instances
 
 #### Cloning All Groups
