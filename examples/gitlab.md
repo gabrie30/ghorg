@@ -20,10 +20,74 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
 > Note: You must set `--base-url` which is the url to your instance. If your instance requires an insecure connection you can use the `--insecure-gitlab-client` flag
 
-1. Clone all groups **preserving the directory structure** of subgroups
+1. Clone **all groups**, **preserving the directory structure** of subgroups
 
     ```
     ghorg clone all-groups --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir
+    ```
+
+    This would produce a directory structure like
+
+    ```
+    /configured/ghorg-dir
+    └── your.instance.gitlab
+        ├── group1
+        │   └── project1
+        ├── group2
+        │   └── project2
+        └── group3
+            └── subgroup1
+                ├── project3
+                └── project4
+    ```
+1. Clone **all groups**, **WITHOUT preserving the directory structure** of subgroups
+
+    ```
+    ghorg clone all-groups --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX
+    ```
+
+    This would produce a directory structure like
+
+    ```
+    /configured/ghorg-dir
+    └── your.instance.gitlab
+        ├── project1
+        ├── project2
+        ├── project3
+        └── project4
+    ```
+
+1. Clone **a specific group**, **preserving the directory structure** of subgroups
+
+    ```
+    ghorg clone group3 --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir
+    ```
+
+    This would produce a directory structure like
+
+    ```
+    /configured/ghorg-dir
+    └── your.instance.gitlab
+        └── group3
+            └── subgroup1
+                ├── project3
+                └── project4
+    ```
+
+1. Clone **a specific group**, **WITHOUT preserving the directory structure** of subgroups
+
+    ```
+    ghorg clone group3 --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX
+    ```
+
+    This would produce a directory structure like
+
+    ```
+    /configured/ghorg-dir
+    └── your.instance.gitlab
+        └── group3
+            ├── project3
+            └── project4
     ```
 
 1. Clone all groups on an **insecure** instance **preserving the directory structure** of subgroups
