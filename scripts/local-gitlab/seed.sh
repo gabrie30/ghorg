@@ -97,4 +97,4 @@ done
 
 sleep 5
 
-./scripts/local-gitlab/clone.sh "${TOKEN}" "${GITLAB_URL}" "${LOCAL_GITLAB_GHORG_DIR}"
+./scripts/local-gitlab/integration-tests.sh "${TOKEN}" "${GITLAB_URL}" "${LOCAL_GITLAB_GHORG_DIR}"

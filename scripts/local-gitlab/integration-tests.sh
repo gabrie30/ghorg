@@ -8,11 +8,20 @@ LOCAL_GITLAB_GHORG_DIR=${3:-"${HOME}/Desktop/ghorg"}
 
 export GHORG_INSECURE_GITLAB_CLIENT=true
 
-############                                                          ############
-############ CLONE AND TEST ALL-GROUPS PRESERVING DIRECTORY STRUCTURE ############
-############                                                          ############
+# NOTE run all clones twice to test once for clone then pull
 
-# run twice, once for clone then pull
+
+
+   ##   #      #             ####  #####   ####  #    # #####   ####
+  #  #  #      #            #    # #    # #    # #    # #    # #
+ #    # #      #      ##### #      #    # #    # #    # #    #  ####
+ ###### #      #            #  ### #####  #    # #    # #####       #
+ #    # #      #            #    # #   #  #    # #    # #      #    #
+ #    # ###### ######        ####  #    #  ####   ####  #       ####
+
+
+
+############ CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR ############
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --output-dir=local-gitlab-v15-repos
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --output-dir=local-gitlab-v15-repos
 
@@ -27,7 +36,7 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "ALL_GROUPS GROUP1 PRESERVE DIR TEST FAILED"
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR TEST FAILED"
 exit 1
 fi
 
@@ -42,7 +51,7 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "ALL_GROUPS GROUP2 PRESERVE DIR TEST FAILED"
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR TEST FAILED"
 exit 1
 fi
 
@@ -58,14 +67,11 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "ALL_GROUPS GROUP3/SUBGROUP-A PRESERVE DIR TEST FAILED"
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR TEST FAILED"
 exit 1
 fi
 
-############                            ############
-############ CLONE AND TEST ALL-GROUPS  ############
-############                            ############
-
+############ CLONE AND TEST ALL-GROUPS, OUTPUT DIR  ############
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-repos-flat
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-repos-flat
 
@@ -93,26 +99,69 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "ALL_GROUPS FLAT TEST FAILED"
+echo "CLONE AND TEST ALL-GROUPS, OUTPUT DIR"
 exit 1
 fi
 
-ghorg clone root --clone-type=user --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-root-user-repos --prune --prune-no-confirm
-ghorg clone root --clone-type=user --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-root-user-repos --prune --prune-no-confirm
-
+############ CLONE ALL-GROUPS, BACKUP, CLONE WIKI, OUTPUT DIR  ############
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --backup --clone-wiki --output-dir=local-gitlab-v15-backup
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --backup --clone-wiki --output-dir=local-gitlab-v15-backup
 
+  #####  ### #     #  #####  #       #######    #     #  #####  ####### ######
+ #     #  #  ##    # #     # #       #          #     # #     # #       #     #
+ #        #  # #   # #       #       #          #     # #       #       #     #
+  #####   #  #  #  # #  #### #       #####      #     #  #####  #####   ######
+       #  #  #   # # #     # #       #          #     #       # #       #   #
+ #     #  #  #    ## #     # #       #          #     # #     # #       #    #
+  #####  ### #     #  #####  ####### #######     #####   #####  ####### #     #
+
+
+############ CLONE SINGLE USER, OUTPUT DIR, PRUNE, PRUNE NO CONFIRM ############
+ghorg clone root --clone-type=user --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-root-user-repos --prune --prune-no-confirm
+ghorg clone root --clone-type=user --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-root-user-repos --prune --prune-no-confirm
+
+ ####### ####### ######     #       ####### #     # ####### #           #####  ######  ####### #     # ######
+    #    #     # #     #    #       #       #     # #       #          #     # #     # #     # #     # #     #
+    #    #     # #     #    #       #       #     # #       #          #       #     # #     # #     # #     #
+    #    #     # ######     #       #####   #     # #####   #          #  #### ######  #     # #     # ######
+    #    #     # #          #       #        #   #  #       #          #     # #   #   #     # #     # #
+    #    #     # #          #       #         # #   #       #          #     # #    #  #     # #     # #
+    #    ####### #          ####### #######    #    ####### #######     #####  #     # #######  #####  #
+
+
+############ CLONE TOP LEVEL GROUP, BACKUP, OUTPUT DIR ############
 ghorg clone local-gitlab-group1 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --backup --output-dir=local-gitlab-v15-group1-backup
 ghorg clone local-gitlab-group1 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --backup --output-dir=local-gitlab-v15-group1-backup
 
+############ CLONE TOP LEVEL GROUP, OUTPUT DIR ############
 ghorg clone local-gitlab-group1 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-group1
 ghorg clone local-gitlab-group1 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-group1
 
-############                                                     ############
-############ CLONE AND TEST GROUP WITH SUBGROUP AND PRESERVE DIR ############
-############                                                     ############
+############ CLONE AND TEST TOP LEVEL GROUP  ############
+ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}"
+ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}"
 
+GOT=$(ghorg ls local-gitlab-group3 | grep -o 'local-gitlab-group3.*')
+WANT=$(cat <<EOF
+local-gitlab-group3/subgroup_a_repo_0
+local-gitlab-group3/subgroup_a_repo_1
+local-gitlab-group3/subgroup_a_repo_2
+local-gitlab-group3/subgroup_a_repo_3
+local-gitlab-group3/subgroup_b_repo_0
+local-gitlab-group3/subgroup_b_repo_1
+local-gitlab-group3/subgroup_b_repo_2
+local-gitlab-group3/subgroup_b_repo_3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST TOP LEVEL GROUP FAILED"
+exit 1
+fi
+
+# FAILING
+############ CLONE AND TEST TOP LEVEL GROUP WITH NESTED SUBGROUP, PRESERVE DIR, OUTPUT DIR ############
 ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-group3-preserve
 ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-group3-preserve
 
@@ -128,14 +177,11 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "TEST GROUP WITH SUBGROUP AND PRESERVE DIR TEST FAILED"
+echo "CLONE AND TEST TOP LEVEL GROUP WITH NESTED SUBGROUP, PRESERVE DIR, OUTPUT DIR TEST FAILED"
 exit 1
 fi
 
-############                                                         ############
-############ CLONE AND TEST GROUP WITH SUBGROUP WITHOUT PRESERVE DIR ############
-############                                                         ###########
-
+############ CLONE AND TEST TOP LEVEL GROUP WITH NESTED SUBGROUP, OUTPUT DIR ############
 ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-group3
 ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-group3
 
@@ -154,14 +200,11 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "TEST GROUP WITH SUBGROUP AND PRESERVE DIR TEST FAILED"
+echo "CLONE AND TEST TOP LEVEL GROUP WITH NESTED SUBGROUP, OUTPUT DIR FAILED"
 exit 1
 fi
 
-############                                                                    ############
-############ CLONE AND TEST GROUP WITH SUBGROUP WITH PRESERVE DIR NO OUTPUT DIR ############
-############                                                                    ###########
-
+############ CLONE AND TEST TOP LEVEL GROUP WITH NESTED SUBGROUP, PRESERVE DIR ############
 ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir
 ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir
 
@@ -183,10 +226,17 @@ fi
 
 rm -rf "${LOCAL_GITLAB_GHORG_DIR}"/local-gitlab-group3
 
-############                                                                                 ############
-############ CLONE AND TEST SUBGROUP WITH NESTED SUBGROUP WITH NO PRESERVE DIR NO OUTPUT DIR ############
-############                                                                                 ###########
 
+  #####  #     # ######      #####  ######  ####### #     # ######
+ #     # #     # #     #    #     # #     # #     # #     # #     #
+ #       #     # #     #    #       #     # #     # #     # #     #
+  #####  #     # ######     #  #### ######  #     # #     # ######
+       # #     # #     #    #     # #   #   #     # #     # #
+ #     # #     # #     #    #     # #    #  #     # #     # #
+  #####   #####  ######      #####  #     # #######  #####  #
+
+
+############ CLONE AND TEST SUBGROUP WITH NESTED SUBGROUP  ############
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}"
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}"
 
@@ -205,16 +255,13 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "TEST SUBGROUP WITH NESTED SUBGROUP WITH NO PRESERVE DIR NO OUTPUT DIR FAILED"
+echo "CLONE AND TEST SUBGROUP WITH NESTED SUBGROUP FAILED"
 exit 1
 fi
 
 rm -rf "${LOCAL_GITLAB_GHORG_DIR}"/local-gitlab-group3
 
-############                                                                              ############
-############ CLONE AND TEST SUBGROUP WITH NESTED SUBGROUP WITH PRESERVE DIR NO OUTPUT DIR ############
-############                                                                              ###########
-
+############ CLONE AND TEST SUBGROUP WITH NESTED SUBGROUB, PRESERVE DIR ############
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir
 
@@ -230,39 +277,13 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "TEST SUBGROUP WITH NESTED SUBGROUP WITH PRESERVE DIR NO OUTPUT DIR FAILED"
+echo "CLONE AND TEST SUBGROUP WITH NESTED SUBGROUB, PRESERVE DIR FAILED"
 exit 1
 fi
 
 rm -rf "${LOCAL_GITLAB_GHORG_DIR}"/local-gitlab-group3
 
-############                                                                    ############
-############ CLONE AND TEST GROUP WITH SUBGROUP WITH PRESERVE AND OUTPUT DIR    ############
-############                                                                    ############
-
-ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-group3-opd
-ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-group3-opd
-
-GOT=$(ghorg ls local-gitlab-group3-opd/local-gitlab-group3/subgroup-a | grep -o 'local-gitlab-group3/subgroup-a.*')
-WANT=$(cat <<EOF
-local-gitlab-group3/subgroup-a/subgroup-b
-local-gitlab-group3/subgroup-a/subgroup_a_repo_0
-local-gitlab-group3/subgroup-a/subgroup_a_repo_1
-local-gitlab-group3/subgroup-a/subgroup_a_repo_2
-local-gitlab-group3/subgroup-a/subgroup_a_repo_3
-EOF
-)
-
-if [ "${WANT}" != "${GOT}" ]
-then
-echo "TEST GROUP WITH SUBGROUP WITH PRESERVE AND OUTPUT DIR FAILED"
-exit 1
-fi
-
-############                                          ############
-############ CLONE AND TEST SUBGROUP AND PRESERVE DIR ############
-############                                          ###########
-
+############ CLONE AND TEST SUBGROUP, PRESERVE DIR, OUTPUT DIR ############
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-group3-subgroup-a-preserve
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-group3-subgroup-a-preserve
 
@@ -278,14 +299,11 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "TEST SUBGROUP AND PRESERVE DIR FAILED"
+echo "CLONE AND TEST SUBGROUP, PRESERVE DIR, OUTPUT DIR FAILED"
 exit 1
 fi
 
-############                                              ############
-############ CLONE AND TEST SUBGROUP WITHOUT PRESERVE DIR ############
-############                                              ############
-
+############ CLONE AND TEST SUBGROUP, OUTPUT DIR ############
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-group3-subgroup-a
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-group3-subgroup-a
 
@@ -304,15 +322,20 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "TEST SUBGROUP WITHOUT PRESERVE DIR FAILED"
+echo "CLONE AND TEST SUBGROUP, OUTPUT DIR FAILED"
 exit 1
 fi
 
+    #    #       #             #     #  #####  ####### ######   #####
+   # #   #       #             #     # #     # #       #     # #     #
+  #   #  #       #             #     # #       #       #     # #
+ #     # #       #       ##### #     #  #####  #####   ######   #####
+ ####### #       #             #     #       # #       #   #         #
+ #     # #       #             #     # #     # #       #    #  #     #
+ #     # ####### #######        #####   #####  ####### #     #  #####
 
-############                                                         ############
-############ CLONE AND TEST ALL-USERS PRESERVING DIRECTORY STRUCTURE ############
-############                                                         ############
 
+############ CLONE AND TEST ALL-USERS, PRESERVE DIR, OUTPUT DIR ############
 ghorg clone all-users --scm=gitlab --clone-type=user --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-all-users-preserve --preserve-dir
 
 GOT=$(ghorg ls local-gitlab-v15-all-users-preserve/root | grep -o 'local-gitlab-v15-all-users-preserve/root.*')
@@ -326,14 +349,11 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "ALL_USERS PRESERVE DIR TEST FAILED"
+echo "CLONE AND TEST ALL-USERS, PRESERVE DIR, OUTPUT DIR"
 exit 1
 fi
 
-############                          ############
-############ CLONE AND TEST ALL-USERS ############
-############                          ############
-
+############ CLONE AND TEST ALL-USERS, OUTPUT DIR ############
 ghorg clone all-users --scm=gitlab --clone-type=user --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-all-users
 
 TEST_ALL_USERS_GOT=$(ghorg ls local-gitlab-v15-all-users | grep -o 'local-gitlab-v15-all-users.*')
@@ -347,6 +367,8 @@ EOF
 
 if [ "${TEST_ALL_USERS_WANT}" != "${TEST_ALL_USERS_GOT}" ]
 then
-echo "ALL_USERS TEST FAILED"
+echo "CLONE AND TEST ALL-USERS, OUTPUT DIR FAILED"
 exit 1
 fi
+
+echo "INTEGRATOIN TESTS FINISHED..."
