@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/configs"
@@ -561,6 +562,9 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	var cloneCount, pulledCount, updateRemoteCount int
 
+	// maps in go are not safe for concurrent use
+	var mutex = &sync.RWMutex{}
+
 	for i := range cloneTargets {
 		repo := cloneTargets[i]
 		repoSlug := getAppNameFromURL(repo.URL)
@@ -568,16 +572,24 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
 				repoSlug = repo.Path
 			}
+			mutex.Lock()
+			inHash := repoNameWithCollisions[repo.Name]
+			mutex.Unlock()
 			// Only GitLab repos can have collisions due to groups and subgroups
 			// If there are collisions and this is a repo with a naming collision change name to avoid collisions
-			if hasCollisions && repoNameWithCollisions[repo.Name] {
+			if hasCollisions && inHash {
 				repoSlug = trimCollisionFilename(strings.Replace(repo.Path, "/", "_", -1))
 
+				mutex.Lock()
+				slugCollision := repoNameWithCollisions[repoSlug]
+				mutex.Unlock()
 				// If a collision has another collision with trimmed name append a number
-				if _, ok := repoNameWithCollisions[repoSlug]; ok {
+				if ok := slugCollision; ok {
 					repoSlug = fmt.Sprintf("_%v_%v", strconv.Itoa(i), repoSlug)
 				} else {
+					mutex.Lock()
 					repoNameWithCollisions[repoSlug] = true
+					mutex.Unlock()
 				}
 			}
 

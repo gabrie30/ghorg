@@ -46,14 +46,21 @@ func listGhorgHome() {
 
 func listGhorgDir(arg string) {
 
-	arg = strings.ReplaceAll(arg, "-", "_")
-
 	path := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + arg
 
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
-		colorlog.PrintError("No clone found with that name. Please check spelling or reclone.")
+		// ghorg natively uses underscores in folder names, but a user can specify an output dir with underscores
+		// so first try what the user types if not then try replace
+		arg = strings.ReplaceAll(arg, "-", "_")
+		path = os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + arg
 	}
+
+	files, err = ioutil.ReadDir(path)
+	if err != nil {
+		colorlog.PrintError("No clones found. Please clone some and try again.")
+	}
+
 
 	for _, f := range files {
 		if f.IsDir() {
