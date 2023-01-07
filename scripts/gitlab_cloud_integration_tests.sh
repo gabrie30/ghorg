@@ -41,10 +41,10 @@ fi
 # OUTPUT DIR
 ghorg clone $GITLAB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab --output-dir=examples
 
-if [ -e "${HOME}"/ghorg/"${GITLAB_GROUP}"/microservice ]
+if [ -e "${HOME}"/ghorg/examples/microservice ]
 then
     echo "Pass: gitlab org clone output dir"
-    rm -rf "${HOME}/ghorg/${GITLAB_GROUP}"
+    rm -rf "${HOME}/ghorg/examples"
 else
     echo "Fail: gitlab org clone output dir"
     exit 1
