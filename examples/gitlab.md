@@ -29,7 +29,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     This would produce a directory structure like
 
     ```
-    /configured/ghorg-dir
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
     └── your.instance.gitlab
         ├── group1
         │   └── project1
@@ -50,7 +50,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     This would produce a directory structure like
 
     ```
-    /configured/ghorg-dir
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
     └── your.instance.gitlab
         ├── project1
         ├── project2
@@ -69,7 +69,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     This would produce a directory structure like
 
     ```
-    /configured/ghorg-dir
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
     └── group3
         └── subgroup1
             ├── project3
@@ -85,7 +85,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     This would produce a directory structure like
 
     ```
-    /configured/ghorg-dir
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
     └── group3
         ├── project3
         └── project4
@@ -100,7 +100,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     This would produce a directory structure like
 
     ```
-    /configured/ghorg-dir
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
     └── group3
         └── subgroup1
             ├── project3
@@ -118,7 +118,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     This would produce a directory structure like
 
     ```
-    /configured/ghorg-dir
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
     └── gitlab_username
         ├── project3
         └── project4
@@ -139,7 +139,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     This would produce a directory structure like
 
     ```
-    /configured/ghorg-dir
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
     └── your.instance.gitlab_users
         ├── user1
         │   └── project1
@@ -158,7 +158,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     This would produce a directory structure like
 
     ```
-    /configured/ghorg-dir
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
     └── your.instance.gitlab_users
         ├── project1
         ├── project2
@@ -179,7 +179,7 @@ Examples below use the `gitlab-examples` GitLab cloud organization https://gitla
     This would produce a directory structure like
 
     ```
-    /configured/ghorg-dir
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
     └── gitlab-examples
         ├── aws-sam
         ├── ci-debug-trace
@@ -201,7 +201,7 @@ Examples below use the `gitlab-examples` GitLab cloud organization https://gitla
     This would produce a directory structure like
 
     ```
-    /configured/ghorg-dir
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
     └── gitlab-examples
         └── wayne-enterprises
             ├── wayne-aerospace
@@ -227,7 +227,7 @@ Examples below use the `gitlab-examples` GitLab cloud organization https://gitla
     This would produce a directory structure like
 
     ```
-    /configured/ghorg-dir
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
         └── wayne-enterprises
             ├── backend-controller
             ├── corporate-website
