@@ -10,7 +10,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
 1. With GitLab, if ghorg detects repo naming collisions with repos being cloned from different groups/subgroups, ghorg will automatically append the group/subgroup path to the repo name. You will be notified in the output if this occurs.
 
-1. For all versions of GitLab you can clone groups or sub groups individually
+1. For all versions of GitLab you can clone groups or subgroups individually although the behavior is slightly different on hosted vs cloud GitLab
 
 ## Hosted GitLab Instances
 
@@ -40,6 +40,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
                 ├── project3
                 └── project4
     ```
+
 1. Clone **all groups**, **WITHOUT preserving the directory structure** of subgroups
 
     ```
@@ -57,6 +58,8 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
         └── project4
     ```
 
+#### Cloning Specific Groups
+
 1. Clone **a specific group**, **preserving the directory structure** of subgroups
 
     ```
@@ -67,11 +70,10 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
     ```
     /configured/ghorg-dir
-    └── your.instance.gitlab
-        └── group3
-            └── subgroup1
-                ├── project3
-                └── project4
+    └── group3
+        └── subgroup1
+            ├── project3
+            └── project4
     ```
 
 1. Clone **a specific group**, **WITHOUT preserving the directory structure** of subgroups
@@ -84,35 +86,27 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
     ```
     /configured/ghorg-dir
-    └── your.instance.gitlab
-        └── group3
+    └── group3
+        ├── project3
+        └── project4
+    ```
+
+1. Clone **a specific subgroup**
+
+    ```
+    ghorg clone group3/subgroup1 --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX
+    ```
+
+    This would produce a directory structure like
+
+    ```
+    /configured/ghorg-dir
+    └── group3
+        └── subgroup1
             ├── project3
             └── project4
     ```
 
-1. Clone all groups on an **insecure** instance **preserving the directory structure** of subgroups
-
-    ```
-    ghorg clone all-groups --base-url=http://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir --insecure-gitlab-client
-#### Cloning Specific Groups
-
-1. Clone a single group, **preserving the directory structure** of any subgroups within that group
-
-    ```
-    ghorg clone <gitlab_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab --preserve-dir
-    ```
-
-1. Clone only a **subgroup**
-
-    ```
-    ghorg clone <gitlab_group>/<gitlab_sub_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab
-    ```
-
-1. clone all repos that are **prefixed** with "frontend" **into a folder** called "design_only"
-
-    ```
-    ghorg clone <gitlab_group> --base-url=https://<your.instance.gitlab.com> --scm=gitlab --match-regex=^frontend --output-dir=design_only
-    ```
 #### Cloning a Specific Users Repos
 
 1. Clone a **user** on a **hosted gitlab** instance using a **token** for auth
@@ -121,22 +115,56 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     ghorg clone <gitlab_username> --clone-type=user --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
     ```
 
+    This would produce a directory structure like
+
+    ```
+    /configured/ghorg-dir
+    └── gitlab_username
+        ├── project3
+        └── project4
+    ```
+
 #### Cloning All Users Repos
 
 > Note: "all-users" only works on hosted GitLab instances running 13.0.1 or greater
 
 > Note: You must set `--base-url` which is the url to your instance. If your instance requires an insecure connection you can use the `--insecure-gitlab-client` flag
 
-1. Clone all users repos **into a directory called all-users-repos**
+1. Clone **all users**, **preserving the directory structure** of users
 
     ```
-    ghorg clone all-users --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --clone-type=user --output-dir=all-users-repos
+    ghorg clone all-users --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir
     ```
 
-1. Clone all users repos on an **insecure** instance
+    This would produce a directory structure like
 
     ```
-    ghorg clone all-users --base-url=http://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --clone-type=user --insecure-gitlab-client
+    /configured/ghorg-dir
+    └── your.instance.gitlab_users
+        ├── user1
+        │   └── project1
+        ├── user2
+        │   └── project2
+        └── user3
+            ├── project3
+            └── project4
+    ```
+1. Clone **all users**, **WITHOUT preserving the directory structure** of users
+
+    ```
+    ghorg clone all-users --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX
+    ```
+
+    This would produce a directory structure like
+
+    ```
+    /configured/ghorg-dir
+    └── your.instance.gitlab_users
+        ├── project1
+        ├── project2
+        ├── project3
+        └── project4
+    ```
 
 ## Cloud GitLab Orgs
 
@@ -148,8 +176,67 @@ Examples below use the `gitlab-examples` GitLab cloud organization https://gitla
     ghorg clone gitlab-examples --scm=gitlab --token=XXXXXX --preserve-dir
     ```
 
-1. clone only a **subgroup**
+    This would produce a directory structure like
+
+    ```
+    /configured/ghorg-dir
+    └── gitlab-examples
+        ├── aws-sam
+        ├── ci-debug-trace
+        ├── clojure-web-application
+        ├── cpp-example
+        ├── cross-branch-pipelines
+        ├── docker
+        ├── docker-cloud
+        ├── functions
+        └── ...
+    ```
+
+1. clone only a **subgroup**, **preserving the directory structure** of subgroups
+
+    ```
+    ghorg clone gitlab-examples/wayne-enterprises --scm=gitlab --token=XXXXXX --preserve-dir
+    ```
+
+    This would produce a directory structure like
+
+    ```
+    /configured/ghorg-dir
+    └── gitlab-examples
+        └── wayne-enterprises
+            ├── wayne-aerospace
+            │   └── mission-control
+            ├── wayne-financial
+            │   ├── corporate-website
+            │   ├── customer-upload-tool
+            │   ├── customer-web-portal
+            │   ├── customer-web-portal-security-policy-project
+            │   ├── datagenerator
+            │   ├── mobile-app
+            │   └── wayne-financial-security-policy-project
+            └── wayne-industries
+                ├── backend-controller
+                └── microservice
+
+1. clone only a **subgroup**, **WITHOUT preserving the directory structure** of subgroups
 
     ```
     ghorg clone gitlab-examples/wayne-enterprises --scm=gitlab --token=XXXXXX
+    ```
+
+    This would produce a directory structure like
+
+    ```
+    /configured/ghorg-dir
+        └── wayne-enterprises
+            ├── backend-controller
+            ├── corporate-website
+            ├── customer-upload-tool
+            ├── customer-web-portal
+            ├── customer-web-portal-security-policy-project
+            ├── datagenerator
+            ├── microservice
+            ├── mission-control
+            ├── mobile-app
+            └── wayne-financial-security-policy-project
     ```

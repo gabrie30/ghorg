@@ -15,6 +15,8 @@ fi
 
 docker rm gitlab --force --volumes
 
+rm -rf $HOME/Desktop/ghorg/local-gitlab-v15-*
+
 echo ""
 echo "To follow gitlab container logs use the following command in a new window"
 echo "$ docker logs -f gitlab"

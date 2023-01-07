@@ -28,7 +28,7 @@ done
 
 set -x
 
-docker exec -it gitlab gitlab-rails runner "token = User.find_by_username('root').personal_access_tokens.create(scopes: [:api, :read_api], name: 'CI Test Token'); token.set_token('password'); token.save!"
+docker exec -it gitlab gitlab-rails runner "token = User.find_by_username('root').personal_access_tokens.create(scopes: [:api, :read_api, :sudo], name: 'CI Test Token'); token.set_token('password'); token.save!"
 
 API_TOKEN="password"
 

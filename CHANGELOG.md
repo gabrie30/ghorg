@@ -5,10 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.9.3] - unreleased
 ### Added
+- Better examples for GitLab
+- Better tests for local gitlab enterprise
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+- gitlab hash concurrency issues
+- all-users command directory nesting
+- ls command to work with output dirs
 ### Security
 - Bump github.com/ktrysmt/go-bitbucket from 0.9.54 to 0.9.55
 - Bump github.com/xanzy/go-gitlab from 0.76.0 to 0.77.0

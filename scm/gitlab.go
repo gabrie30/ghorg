@@ -16,6 +16,7 @@ var (
 	_               Client = Gitlab{}
 	perPage                = 100
 	gitLabAllGroups        = false
+	gitLabAllUsers         = false
 )
 
 func init() {
@@ -176,6 +177,7 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 	}
 
 	if targetUsername == "all-users" {
+		gitLabAllUsers = true
 		for {
 			allUsers, resp, err := c.Users.ListUsers(userOpts)
 			if err != nil {
@@ -302,7 +304,7 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 		// The PathWithNamespace includes the org/group name
 		// https://github.com/gabrie30/ghorg/issues/228
 		// https://github.com/gabrie30/ghorg/issues/267
-		if !gitLabAllGroups {
+		if !gitLabAllGroups && !gitLabAllUsers {
 			path = strings.TrimPrefix(path, group)
 		}
 
