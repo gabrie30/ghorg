@@ -309,13 +309,13 @@ fi
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-subgroups-preserve-output
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-subgroups-preserve-output
 
-GOT=$(ghorg ls local-gitlab-v15-subgroups-preserve-output | grep -o 'local-gitlab-v15-subgroups-preserve-output.*')
+GOT=$(ghorg ls local-gitlab-v15-subgroups-preserve-output/local-gitlab-group3/subgroup-a | grep -o 'local-gitlab-v15-subgroups-preserve-output/local-gitlab-group3.*')
 WANT=$(cat <<EOF
-local-gitlab-v15-subgroups-preserve-output/subgroup-a/subgroup-b
-local-gitlab-v15-subgroups-preserve-output/subgroup-a/subgroup_a_repo_0
-local-gitlab-v15-subgroups-preserve-output/subgroup-a/subgroup_a_repo_1
-local-gitlab-v15-subgroups-preserve-output/subgroup-a/subgroup_a_repo_2
-local-gitlab-v15-subgroups-preserve-output/subgroup-a/subgroup_a_repo_3
+local-gitlab-v15-subgroups-preserve-output/local-gitlab-group3/subgroup-a/subgroup-b
+local-gitlab-v15-subgroups-preserve-output/local-gitlab-group3/subgroup-a/subgroup_a_repo_0
+local-gitlab-v15-subgroups-preserve-output/local-gitlab-group3/subgroup-a/subgroup_a_repo_1
+local-gitlab-v15-subgroups-preserve-output/local-gitlab-group3/subgroup-a/subgroup_a_repo_2
+local-gitlab-v15-subgroups-preserve-output/local-gitlab-group3/subgroup-a/subgroup_a_repo_3
 EOF
 )
 
