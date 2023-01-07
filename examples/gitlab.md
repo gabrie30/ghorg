@@ -217,6 +217,7 @@ Examples below use the `gitlab-examples` GitLab cloud organization https://gitla
             └── wayne-industries
                 ├── backend-controller
                 └── microservice
+    ```
 
 1. clone only a **subgroup**, **WITHOUT preserving the directory structure** of subgroups
 
