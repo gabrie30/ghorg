@@ -305,8 +305,13 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 		// https://github.com/gabrie30/ghorg/issues/228
 		// https://github.com/gabrie30/ghorg/issues/267
 		if !gitLabAllGroups && !gitLabAllUsers {
-			if os.Getenv("GHORG_OUTPUT_DIR") == "" {
+			// cloud instance of gitlab
+			if os.Getenv("GHORG_SCM_BASE_URL") == "" {
 				path = strings.TrimPrefix(path, group)
+			} else {
+				if os.Getenv("GHORG_OUTPUT_DIR") == "" {
+					path = strings.TrimPrefix(path, group)
+				}
 			}
 		}
 
