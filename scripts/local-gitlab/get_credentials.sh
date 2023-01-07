@@ -5,6 +5,7 @@ set -e
 # poll until gitlab has started
 
 GITLAB_URL=$1
+LOCAL_GITLAB_GHORG_DIR=$2
 started="0"
 counter=0
 
@@ -33,4 +34,4 @@ docker exec -it gitlab gitlab-rails runner "token = User.find_by_username('root'
 API_TOKEN="password"
 
 # seed new instance using
-./scripts/local-gitlab/seed.sh "${API_TOKEN}" "${GITLAB_URL}"
+./scripts/local-gitlab/seed.sh "${API_TOKEN}" "${GITLAB_URL}" "${LOCAL_GITLAB_GHORG_DIR}"
