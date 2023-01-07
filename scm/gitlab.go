@@ -267,6 +267,9 @@ func (_ Gitlab) addTokenToCloneURL(url string, token string) string {
 
 func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 	var repoData []Repo
+
+	isSubgroup := strings.Contains(group, "/")
+
 	for _, p := range ps {
 
 		if os.Getenv("GHORG_SKIP_ARCHIVED") == "true" {
@@ -305,7 +308,11 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 		// https://github.com/gabrie30/ghorg/issues/228
 		// https://github.com/gabrie30/ghorg/issues/267
 		if !gitLabAllGroups && !gitLabAllUsers {
-			if os.Getenv("GHORG_OUTPUT_DIR") == "" {
+			if isSubgroup {
+				if os.Getenv("GHORG_OUTPUT_DIR") == "" {
+					path = strings.TrimPrefix(path, group)
+				}
+			} else {
 				path = strings.TrimPrefix(path, group)
 			}
 		}
