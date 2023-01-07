@@ -307,6 +307,7 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 		// The PathWithNamespace includes the org/group name
 		// https://github.com/gabrie30/ghorg/issues/228
 		// https://github.com/gabrie30/ghorg/issues/267
+		// https://github.com/gabrie30/ghorg/issues/271
 		if !gitLabAllGroups && !gitLabAllUsers {
 			if isSubgroup {
 				if os.Getenv("GHORG_OUTPUT_DIR") == "" {
