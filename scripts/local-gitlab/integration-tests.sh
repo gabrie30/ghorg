@@ -282,27 +282,7 @@ fi
 
 rm -rf "${LOCAL_GITLAB_GHORG_DIR}"/local-gitlab-group3
 
-############ CLONE AND TEST SUBGROUP, PRESERVE DIR, OUTPUT DIR ############
-ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-group3-subgroup-a-preserve
-ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-group3-subgroup-a-preserve
-
-GOT=$(ghorg ls local-gitlab-v15-group3-subgroup-a-preserve/local-gitlab-group3/subgroup-a | grep -o 'local-gitlab-v15-group3-subgroup-a-preserve/local-gitlab-group3.*')
-WANT=$(cat <<EOF
-local-gitlab-v15-group3-subgroup-a-preserve/local-gitlab-group3/subgroup-a/subgroup-b
-local-gitlab-v15-group3-subgroup-a-preserve/local-gitlab-group3/subgroup-a/subgroup_a_repo_0
-local-gitlab-v15-group3-subgroup-a-preserve/local-gitlab-group3/subgroup-a/subgroup_a_repo_1
-local-gitlab-v15-group3-subgroup-a-preserve/local-gitlab-group3/subgroup-a/subgroup_a_repo_2
-local-gitlab-v15-group3-subgroup-a-preserve/local-gitlab-group3/subgroup-a/subgroup_a_repo_3
-EOF
-)
-
-if [ "${WANT}" != "${GOT}" ]
-then
-echo "CLONE AND TEST SUBGROUP, PRESERVE DIR, OUTPUT DIR FAILED"
-exit 1
-fi
-
-############ CLONE AND TEST SUBGROUP, OUTPUT DIR ############
+############ CLONE AND TEST SUBGROUP, NESTED SUBGROUB, OUTPUT DIR ############
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-group3-subgroup-a
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-group3-subgroup-a
 
@@ -321,7 +301,27 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "CLONE AND TEST SUBGROUP, OUTPUT DIR FAILED"
+echo "CLONE AND TEST SUBGROUP, NESTED SUBGROUB, OUTPUT DIR FAILED"
+exit 1
+fi
+
+############ CLONE AND TEST SUBGROUP, NESTED SUBGROUPS, PRESERVE DIR, OUTPUT DIR ############
+ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-subgroups-preserve-output
+ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-subgroups-preserve-output
+
+GOT=$(ghorg ls local-gitlab-v15-subgroups-preserve-output | grep -o 'local-gitlab-v15-subgroups-preserve-output.*')
+WANT=$(cat <<EOF
+local-gitlab-v15-subgroups-preserve-output/subgroup-a/subgroup-b
+local-gitlab-v15-subgroups-preserve-output/subgroup-a/subgroup_a_repo_0
+local-gitlab-v15-subgroups-preserve-output/subgroup-a/subgroup_a_repo_1
+local-gitlab-v15-subgroups-preserve-output/subgroup-a/subgroup_a_repo_2
+local-gitlab-v15-subgroups-preserve-output/subgroup-a/subgroup_a_repo_3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST SUBGROUP, NESTED SUBGROUPS, PRESERVE DIR, OUTPUT DIR  FAILED"
 exit 1
 fi
 
