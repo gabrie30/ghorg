@@ -137,9 +137,10 @@ fi
 # OUTPUT DIR AND PRESERVE DIR
 ghorg clone $GITLAB_GROUP/$GITLAB_SUB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab --preserve-dir --output-dir=examples-subgroup-preserve-output
 
-if [ -e "${HOME}"/ghorg/examples-subgroup-preserve-output/"${GITLAB_SUB_GROUP}"/wayne-industries/microservice ]
+if [ -e "${HOME}"/ghorg/examples-subgroup-preserve-output/"${GITLAB_GROUP}"/"${GITLAB_SUB_GROUP}"/wayne-industries/microservice ]
 then
     echo "Pass: gitlab subgroup clone preserve directories and output dir"
+    rm -rf "${HOME}/ghorg/examples-subgroup-preserve-output"
 else
     echo "Fail: gitlab subgroup clone preserve directories and output dir"
     exit 1
