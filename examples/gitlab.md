@@ -91,10 +91,27 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
         └── project4
     ```
 
-1. Clone **a specific subgroup**
+1. Clone **a specific subgroup**, **WITHOUT preserving the directory structure** of subgroups
 
     ```
     ghorg clone group3/subgroup1 --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX
+    ```
+
+    This would produce a directory structure like, where `projectX` is a project in a subgroup nested inside `subgroup1`
+
+    ```
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
+    └── group3
+        └── subgroup1
+            ├── projectX
+            ├── project3
+            └── project4
+    ```
+
+1. Clone **a specific subgroup**, **preserving the directory structure** of subgroups
+
+    ```
+    ghorg clone group3/subgroup1 --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir
     ```
 
     This would produce a directory structure like
@@ -105,6 +122,9 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
         └── subgroup1
             ├── project3
             └── project4
+                └── subgroup2
+                    └── projectX
+
     ```
 
 #### Cloning a Specific Users Repos
