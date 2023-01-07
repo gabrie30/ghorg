@@ -160,18 +160,17 @@ echo "CLONE AND TEST TOP LEVEL GROUP FAILED"
 exit 1
 fi
 
-# FAILING
 ############ CLONE AND TEST TOP LEVEL GROUP WITH NESTED SUBGROUP, PRESERVE DIR, OUTPUT DIR ############
 ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-group3-preserve
 ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-group3-preserve
 
-GOT=$(ghorg ls local-gitlab-v15-group3-preserve/local-gitlab-group3/subgroup-a | grep -o 'local-gitlab-v15-group3-preserve/local-gitlab-group3/subgroup-a.*')
+GOT=$(ghorg ls local-gitlab-v15-group3-preserve/subgroup-a | grep -o 'local-gitlab-v15-group3-preserve/subgroup-a.*')
 WANT=$(cat <<EOF
-local-gitlab-v15-group3-preserve/local-gitlab-group3/subgroup-a/subgroup-b
-local-gitlab-v15-group3-preserve/local-gitlab-group3/subgroup-a/subgroup_a_repo_0
-local-gitlab-v15-group3-preserve/local-gitlab-group3/subgroup-a/subgroup_a_repo_1
-local-gitlab-v15-group3-preserve/local-gitlab-group3/subgroup-a/subgroup_a_repo_2
-local-gitlab-v15-group3-preserve/local-gitlab-group3/subgroup-a/subgroup_a_repo_3
+local-gitlab-v15-group3-preserve/subgroup-a/subgroup-b
+local-gitlab-v15-group3-preserve/subgroup-a/subgroup_a_repo_0
+local-gitlab-v15-group3-preserve/subgroup-a/subgroup_a_repo_1
+local-gitlab-v15-group3-preserve/subgroup-a/subgroup_a_repo_2
+local-gitlab-v15-group3-preserve/subgroup-a/subgroup_a_repo_3
 EOF
 )
 
