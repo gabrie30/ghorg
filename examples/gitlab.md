@@ -12,6 +12,8 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
 1. For all versions of GitLab you can clone groups or subgroups.
 
+1. The `--output-dir` flag overrides the default name given to the folder ghorg creates to clone repos into. The default will be the instance name when cloning `all-groups` or `all-users` or the `group` name when cloning a specific group. The exception is when you are cloning a subgroup and preserving the directory structure, then it will preserve the parent groups of the subgroup.
+
 ## Hosted GitLab Instances
 
 #### Cloning All Groups
