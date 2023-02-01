@@ -23,10 +23,25 @@ import (
 	"time"
 )
 
+// StateID identifies the state of an issue or merge request.
+//
+// There are no GitLab API docs on the subject, but the mappings can be found in
+// GitLab's codebase:
+// https://gitlab.com/gitlab-org/gitlab-foss/-/blob/ba5be4989e/app/models/concerns/issuable.rb#L39-42
+type StateID int
+
+const (
+	StateIDNone   StateID = 0
+	StateIDOpen   StateID = 1
+	StateIDClosed StateID = 2
+	StateIDMerged StateID = 3
+	StateIDLocked StateID = 4
+)
+
 // BuildEvent represents a build event.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/user/project/integrations/webhooks.html#build-events
+// https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html#job-events
 type BuildEvent struct {
 	ObjectKind        string     `json:"object_kind"`
 	Ref               string     `json:"ref"`
@@ -62,7 +77,7 @@ type BuildEvent struct {
 // CommitCommentEvent represents a comment on a commit event.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/user/project/integrations/webhook_events.html#comment-on-a-commit
+// https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html#comment-on-a-commit
 type CommitCommentEvent struct {
 	ObjectKind string `json:"object_kind"`
 	User       *User  `json:"user"`
@@ -126,7 +141,7 @@ type CommitCommentEvent struct {
 // DeploymentEvent represents a deployment event
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/user/project/integrations/webhook_events.html#deployment-events
+// https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html#deployment-events
 type DeploymentEvent struct {
 	ObjectKind    string `json:"object_kind"`
 	Status        string `json:"status"`
@@ -162,7 +177,7 @@ type DeploymentEvent struct {
 // IssueCommentEvent represents a comment on an issue event.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/user/project/integrations/webhook_events.html#comment-on-an-issue
+// https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html#comment-on-an-issue
 type IssueCommentEvent struct {
 	ObjectKind string `json:"object_kind"`
 	User       *User  `json:"user"`
@@ -233,7 +248,7 @@ type IssueCommentEvent struct {
 // IssueEvent represents a issue event.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/user/project/integrations/webhook_events.html#issue-events
+// https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html#issue-events
 type IssueEvent struct {
 	ObjectKind string     `json:"object_kind"`
 	User       *EventUser `json:"user"`
@@ -292,6 +307,18 @@ type IssueEvent struct {
 			Previous string `json:"previous"`
 			Current  string `json:"current"`
 		} `json:"title"`
+		ClosedAt struct {
+			Previous string `json:"previous"`
+			Current  string `json:"current"`
+		} `json:"closed_at"`
+		StateID struct {
+			Previous StateID `json:"previous"`
+			Current  StateID `json:"current"`
+		} `json:"state_id"`
+		UpdatedAt struct {
+			Previous string `json:"previous"`
+			Current  string `json:"current"`
+		} `json:"updated_at"`
 		UpdatedByID struct {
 			Previous int `json:"previous"`
 			Current  int `json:"current"`
@@ -317,17 +344,20 @@ type JobEvent struct {
 	BuildName          string     `json:"build_name"`
 	BuildStage         string     `json:"build_stage"`
 	BuildStatus        string     `json:"build_status"`
+	BuildCreatedAt     string     `json:"build_created_at"`
 	BuildStartedAt     string     `json:"build_started_at"`
 	BuildFinishedAt    string     `json:"build_finished_at"`
 	BuildDuration      float64    `json:"build_duration"`
 	BuildAllowFailure  bool       `json:"build_allow_failure"`
 	BuildFailureReason string     `json:"build_failure_reason"`
+	RetriesCount       int        `json:"retries_count"`
 	PipelineID         int        `json:"pipeline_id"`
 	ProjectID          int        `json:"project_id"`
 	ProjectName        string     `json:"project_name"`
 	User               *EventUser `json:"user"`
 	Commit             struct {
 		ID          int    `json:"id"`
+		Name        string `json:"name"`
 		SHA         string `json:"sha"`
 		Message     string `json:"message"`
 		AuthorName  string `json:"author_name"`
@@ -474,7 +504,7 @@ type MergeCommentEvent struct {
 // MergeEvent represents a merge event.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/user/project/integrations/webhook_events.html#merge-request-events
+// https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html#merge-request-events
 type MergeEvent struct {
 	ObjectKind string     `json:"object_kind"`
 	User       *EventUser `json:"user"`
@@ -580,8 +610,8 @@ type MergeEvent struct {
 			Current  int `json:"current"`
 		} `json:"source_project_id"`
 		StateID struct {
-			Previous int `json:"previous"`
-			Current  int `json:"current"`
+			Previous StateID `json:"previous"`
+			Current  StateID `json:"current"`
 		} `json:"state_id"`
 		TargetBranch struct {
 			Previous string `json:"previous"`
@@ -595,6 +625,10 @@ type MergeEvent struct {
 			Previous string `json:"previous"`
 			Current  string `json:"current"`
 		} `json:"title"`
+		UpdatedAt struct {
+			Previous string `json:"previous"`
+			Current  string `json:"current"`
+		} `json:"updated_at"`
 		UpdatedByID struct {
 			Previous int `json:"previous"`
 			Current  int `json:"current"`
@@ -657,7 +691,7 @@ func (p *MergeParams) UnmarshalJSON(b []byte) error {
 // PipelineEvent represents a pipeline event.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/user/project/integrations/webhook_events.html#pipeline-events
+// https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html#pipeline-events
 type PipelineEvent struct {
 	ObjectKind       string `json:"object_kind"`
 	ObjectAttributes struct {
@@ -712,6 +746,7 @@ type PipelineEvent struct {
 	Commit struct {
 		ID        string     `json:"id"`
 		Message   string     `json:"message"`
+		Title     string     `json:"title"`
 		Timestamp *time.Time `json:"timestamp"`
 		URL       string     `json:"url"`
 		Author    struct {
@@ -729,6 +764,7 @@ type PipelineEvent struct {
 		FinishedAt     string     `json:"finished_at"`
 		Duration       float64    `json:"duration"`
 		QueuedDuration float64    `json:"queued_duration"`
+		FailureReason  string     `json:"failure_reason"`
 		When           string     `json:"when"`
 		Manual         bool       `json:"manual"`
 		AllowFailure   bool       `json:"allow_failure"`
@@ -756,7 +792,7 @@ type PipelineEvent struct {
 // PushEvent represents a push event.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/user/project/integrations/webhook_events.html#push-events
+// https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html#push-events
 type PushEvent struct {
 	ObjectKind   string `json:"object_kind"`
 	Before       string `json:"before"`
@@ -806,7 +842,7 @@ type PushEvent struct {
 // ReleaseEvent represents a release event
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/user/project/integrations/webhook_events.html#release-events
+// https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html#release-events
 type ReleaseEvent struct {
 	ID          int    `json:"id"`
 	CreatedAt   string `json:"created_at"` // Should be *time.Time (see Gitlab issue #21468)
@@ -943,7 +979,7 @@ type SubGroupEvent struct {
 // TagEvent represents a tag event.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/user/project/integrations/webhook_events.html#tag-events
+// https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html#tag-events
 type TagEvent struct {
 	ObjectKind   string `json:"object_kind"`
 	Before       string `json:"before"`
@@ -994,7 +1030,7 @@ type TagEvent struct {
 // WikiPageEvent represents a wiki page event.
 //
 // GitLab API docs:
-// https://docs.gitlab.com/ce/user/project/integrations/webhook_events.html#wiki-page-events
+// https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html#wiki-page-events
 type WikiPageEvent struct {
 	ObjectKind string     `json:"object_kind"`
 	User       *EventUser `json:"user"`
