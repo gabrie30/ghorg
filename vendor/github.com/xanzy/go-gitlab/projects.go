@@ -70,8 +70,6 @@ type Project struct {
 	LastActivityAt                            *time.Time                 `json:"last_activity_at,omitempty"`
 	CreatorID                                 int                        `json:"creator_id"`
 	Namespace                                 *ProjectNamespace          `json:"namespace"`
-	ImportStatus                              string                     `json:"import_status"`
-	ImportError                               string                     `json:"import_error"`
 	Permissions                               *Permissions               `json:"permissions"`
 	MarkedForDeletionAt                       *ISOTime                   `json:"marked_for_deletion_at"`
 	EmptyRepo                                 bool                       `json:"empty_repo"`
@@ -83,7 +81,6 @@ type Project struct {
 	ForksCount                                int                        `json:"forks_count"`
 	StarCount                                 int                        `json:"star_count"`
 	RunnersToken                              string                     `json:"runners_token"`
-	PublicJobs                                bool                       `json:"public_jobs"`
 	AllowMergeOnSkippedPipeline               bool                       `json:"allow_merge_on_skipped_pipeline"`
 	OnlyAllowMergeIfPipelineSucceeds          bool                       `json:"only_allow_merge_if_pipeline_succeeds"`
 	OnlyAllowMergeIfAllDiscussionsAreResolved bool                       `json:"only_allow_merge_if_all_discussions_are_resolved"`
@@ -115,8 +112,6 @@ type Project struct {
 	AnalyticsAccessLevel                      AccessControlValue         `json:"analytics_access_level"`
 	AutocloseReferencedIssues                 bool                       `json:"autoclose_referenced_issues"`
 	SuggestionCommitMessage                   string                     `json:"suggestion_commit_message"`
-	AutoCancelPendingPipelines                string                     `json:"auto_cancel_pending_pipelines"`
-	CIForwardDeploymentEnabled                bool                       `json:"ci_forward_deployment_enabled"`
 	SquashOption                              SquashOptionValue          `json:"squash_option"`
 	EnforceAuthChecksOnUploads                bool                       `json:"enforce_auth_checks_on_uploads,omitempty"`
 	SharedWithGroups                          []struct {
@@ -127,13 +122,20 @@ type Project struct {
 	} `json:"shared_with_groups"`
 	Statistics                               *Statistics        `json:"statistics"`
 	Links                                    *Links             `json:"_links,omitempty"`
-	CIConfigPath                             string             `json:"ci_config_path"`
+	ImportURL                                string             `json:"import_url"`
+	ImportType                               string             `json:"import_type"`
+	ImportStatus                             string             `json:"import_status"`
+	ImportError                              string             `json:"import_error"`
 	CIDefaultGitDepth                        int                `json:"ci_default_git_depth"`
+	CIForwardDeploymentEnabled               bool               `json:"ci_forward_deployment_enabled"`
 	CISeperateCache                          bool               `json:"ci_separated_caches"`
+	PublicJobs                               bool               `json:"public_jobs"`
+	BuildTimeout                             int                `json:"build_timeout"`
+	AutoCancelPendingPipelines               string             `json:"auto_cancel_pending_pipelines"`
+	CIConfigPath                             string             `json:"ci_config_path"`
 	CustomAttributes                         []*CustomAttribute `json:"custom_attributes"`
 	ComplianceFrameworks                     []string           `json:"compliance_frameworks"`
 	BuildCoverageRegex                       string             `json:"build_coverage_regex"`
-	BuildTimeout                             int                `json:"build_timeout"`
 	IssuesTemplate                           string             `json:"issues_template"`
 	MergeRequestsTemplate                    string             `json:"merge_requests_template"`
 	KeepLatestArtifact                       bool               `json:"keep_latest_artifact"`
@@ -171,6 +173,7 @@ type ContainerExpirationPolicy struct {
 	Cadence         string     `json:"cadence"`
 	KeepN           int        `json:"keep_n"`
 	OlderThan       string     `json:"older_than"`
+	NameRegex       string     `json:"name_regex"`
 	NameRegexDelete string     `json:"name_regex_delete"`
 	NameRegexKeep   string     `json:"name_regex_keep"`
 	Enabled         bool       `json:"enabled"`
@@ -742,8 +745,7 @@ func (s *ProjectsService) CreateProject(opt *CreateProjectOptions, options ...Re
 	if opt.ContainerExpirationPolicyAttributes != nil {
 		// This is needed to satisfy the API. Should be deleted
 		// when NameRegex is removed (it's now deprecated).
-		opt.ContainerExpirationPolicyAttributes.NameRegex =
-			opt.ContainerExpirationPolicyAttributes.NameRegexDelete
+		opt.ContainerExpirationPolicyAttributes.NameRegex = opt.ContainerExpirationPolicyAttributes.NameRegexDelete
 	}
 
 	var err error
@@ -791,8 +793,7 @@ func (s *ProjectsService) CreateProjectForUser(user int, opt *CreateProjectForUs
 	if opt.ContainerExpirationPolicyAttributes != nil {
 		// This is needed to satisfy the API. Should be deleted
 		// when NameRegex is removed (it's now deprecated).
-		opt.ContainerExpirationPolicyAttributes.NameRegex =
-			opt.ContainerExpirationPolicyAttributes.NameRegexDelete
+		opt.ContainerExpirationPolicyAttributes.NameRegex = opt.ContainerExpirationPolicyAttributes.NameRegexDelete
 	}
 
 	var err error
@@ -922,8 +923,7 @@ func (s *ProjectsService) EditProject(pid interface{}, opt *EditProjectOptions, 
 	if opt.ContainerExpirationPolicyAttributes != nil {
 		// This is needed to satisfy the API. Should be deleted
 		// when NameRegex is removed (it's now deprecated).
-		opt.ContainerExpirationPolicyAttributes.NameRegex =
-			opt.ContainerExpirationPolicyAttributes.NameRegexDelete
+		opt.ContainerExpirationPolicyAttributes.NameRegex = opt.ContainerExpirationPolicyAttributes.NameRegexDelete
 	}
 
 	project, err := parseID(pid)
@@ -1772,11 +1772,16 @@ func (s *ProjectsService) ChangeApprovalConfiguration(pid interface{}, opt *Chan
 	return pa, resp, err
 }
 
-// GetProjectApprovalRules looks up the list of project level approvers.
+// GetProjectApprovalRulesListsOptions represents the available GetProjectApprovalRules() options.
+//
+// GitLab API docs: https://docs.gitlab.com/ee/api/merge_request_approvals.html#get-project-level-rules
+type GetProjectApprovalRulesListsOptions ListOptions
+
+// GetProjectApprovalRules looks up the list of project level approver rules.
 //
 // GitLab API docs:
 // https://docs.gitlab.com/ee/api/merge_request_approvals.html#get-project-level-rules
-func (s *ProjectsService) GetProjectApprovalRules(pid interface{}, options ...RequestOptionFunc) ([]*ProjectApprovalRule, *Response, error) {
+func (s *ProjectsService) GetProjectApprovalRules(pid interface{}, opt *GetProjectApprovalRulesListsOptions, options ...RequestOptionFunc) ([]*ProjectApprovalRule, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
