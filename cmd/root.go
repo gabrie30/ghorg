@@ -238,6 +238,8 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_RECLONE_PATH")
 	getOrSetDefaults("GHORG_QUIET")
 	getOrSetDefaults("GHORG_GIT_FILTER")
+	getOrSetDefaults("GHORG_GITEA_TOKEN")
+	getOrSetDefaults("GHORG_INSECURE_GITEA_CLIENT")
 
 	if os.Getenv("GHORG_DEBUG") != "" {
 		viper.Debug()
