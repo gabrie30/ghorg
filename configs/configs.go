@@ -169,7 +169,6 @@ func GetOrSetToken() {
 	case "bitbucket":
 		getOrSetBitBucketToken()
 	default:
-		os.Stderr.WriteString("test")
 		getOrSetGiteaToken()
 	}
 }
@@ -232,14 +231,12 @@ func getOrSetBitBucketToken() {
 
 func getOrSetGiteaToken() {
 	var token string
-	os.Stderr.WriteString("Getting in func: " + token + "\n")
 	token = os.Getenv("GHORG_GITEA_TOKEN")
 
 	if isZero(token) || len(token) != 40 {
 		if runtime.GOOS == "windows" {
 			return
 		}
-		os.Stderr.WriteString("Setting in func\n")
 		os.Setenv("GHORG_GITEA_TOKEN", token)
 	}
 }
