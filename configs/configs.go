@@ -168,6 +168,8 @@ func GetOrSetToken() {
 		getOrSetGitLabToken()
 	case "bitbucket":
 		getOrSetBitBucketToken()
+	default:
+		getOrSetGiteaToken()
 	}
 }
 
@@ -224,6 +226,18 @@ func getOrSetBitBucketToken() {
 		} else {
 			os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", token)
 		}
+	}
+}
+
+func getOrSetGiteaToken() {
+	var token string
+	token = os.Getenv("GHORG_GITEA_TOKEN")
+
+	if isZero(token) || len(token) != 40 {
+		if runtime.GOOS == "windows" {
+			return
+		}
+		os.Setenv("GHORG_GITEA_TOKEN", token)
 	}
 }
 
