@@ -168,7 +168,7 @@ func GetOrSetToken() {
 		getOrSetGitLabToken()
 	case "bitbucket":
 		getOrSetBitBucketToken()
-	default:
+	case "gitea":
 		getOrSetGiteaToken()
 	}
 }

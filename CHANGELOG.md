@@ -9,10 +9,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- Gitea tokens from not being found in config.yaml; thanks @Antfere
 ### Security
 - Bump github.com/spf13/viper from 1.14.0 to 1.15.0
 - Bump github.com/fatih/color from 1.13.0 to 1.14.1
 - Bump github.com/xanzy/go-gitlab from 0.77.0 to 0.79.1
+- Bump golang.org/x/net from 0.4.0 to 0.7.0
+- Bump golang.org/x/oauth2 from 0.3.0 to 0.5.0
+- Bump github.com/xanzy/go-gitlab from 0.79.1 to 0.80.2
 
 ## [1.9.3] - 1/7/23
 ### Added
