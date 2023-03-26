@@ -175,7 +175,7 @@ func GetOrSetToken() {
 
 func getOrSetGitHubToken() {
 	var token string
-	if isZero(os.Getenv("GHORG_GITHUB_TOKEN")) || len(os.Getenv("GHORG_GITHUB_TOKEN")) != 40 {
+	if isZero(os.Getenv("GHORG_GITHUB_TOKEN")) {
 		if runtime.GOOS == "windows" {
 			return
 		}
@@ -189,15 +189,9 @@ func getOrSetGitHubToken() {
 }
 
 func getOrSetGitLabToken() {
-	var token string
+	token := os.Getenv("GHORG_GITLAB_TOKEN")
 
-	token = os.Getenv("GHORG_GITLAB_TOKEN")
-
-	if strings.HasPrefix(token, "glpat-") && len(token) == 26 {
-		return
-	}
-
-	if isZero(token) || len(token) != 20 {
+	if isZero(token) {
 		if runtime.GOOS == "windows" {
 			return
 		}
@@ -230,10 +224,9 @@ func getOrSetBitBucketToken() {
 }
 
 func getOrSetGiteaToken() {
-	var token string
-	token = os.Getenv("GHORG_GITEA_TOKEN")
+	token := os.Getenv("GHORG_GITEA_TOKEN")
 
-	if isZero(token) || len(token) != 40 {
+	if isZero(token) {
 		if runtime.GOOS == "windows" {
 			return
 		}
