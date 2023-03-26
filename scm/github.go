@@ -13,9 +13,9 @@ import (
 )
 
 var (
-	_                 Client = Github{}
-	reposPerPage             = 100
-	selfCloneUsername        = ""
+	_             Client = Github{}
+	reposPerPage         = 100
+	tokenUsername        = ""
 )
 
 func init() {
@@ -40,6 +40,8 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		Type:        "all",
 		ListOptions: github.ListOptions{PerPage: c.perPage},
 	}
+
+	c.SetTokensUsername()
 
 	// get all pages of results
 	var allRepos []*github.Repository
@@ -75,12 +77,9 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 // GetUserRepos gets user repos
 func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
-
-	userToken, _, _ := c.Users.Get(context.Background(), "")
-
-	if targetUser == userToken.GetLogin() {
+	c.SetTokensUsername()
+	if targetUser == tokenUsername {
 		colorlog.PrintSubtleInfo("\nCloning all your public/private repos. This process may take a bit longer than other clones, please be patient...")
-		selfCloneUsername = targetUser
 		targetUser = ""
 	}
 
@@ -151,12 +150,7 @@ func (_ Github) NewClient() (Client, error) {
 
 func (_ Github) addTokenToHTTPSCloneURL(url string, token string) string {
 	splitURL := strings.Split(url, "https://")
-
-	// When a user is cloning themselves add the username
-	if selfCloneUsername != "" {
-		return "https://" + selfCloneUsername + ":" + token + "@" + splitURL[1]
-	}
-	return "https://" + token + "@" + splitURL[1]
+	return "https://" + tokenUsername + ":" + token + "@" + splitURL[1]
 }
 
 func (c Github) filter(allRepos []*github.Repository) []Repo {
@@ -217,4 +211,12 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 	}
 
 	return repoData
+}
+
+// Sets the GitHub username tied to the github token to the package variable tokenUsername
+// Then if https clone method is used the clone url will be https://username:token@github.com/org/repo.git
+// The username is now needed when using the new fine-grained tokens for github
+func (c Github) SetTokensUsername() {
+	userToken, _, _ := c.Users.Get(context.Background(), "")
+	tokenUsername = userToken.GetLogin()
 }
