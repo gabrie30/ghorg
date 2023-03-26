@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Token length checks
 ### Fixed
 - Gitea tokens from not being found in config.yaml; thanks @Antfere
+- Self clone with new GH fine grain tokens; thanks @verybadsoldier
 ### Security
 - Bump github.com/spf13/viper from 1.14.0 to 1.15.0
 - Bump github.com/fatih/color from 1.13.0 to 1.14.1
