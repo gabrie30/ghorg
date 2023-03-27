@@ -9,7 +9,6 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
-      - GITHUB_TOKEN="{{ .Env.GHORG_GITHUB_TOKEN }}"
     goos:
       - linux
       - windows
