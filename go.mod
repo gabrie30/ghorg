@@ -5,7 +5,7 @@ go 1.18
 require (
 	code.gitea.io/sdk/gitea v0.15.1
 	github.com/davecgh/go-spew v1.1.1
-	github.com/fatih/color v1.14.1
+	github.com/fatih/color v1.15.0
 	github.com/google/go-github/v41 v41.0.0
 	github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
 	github.com/ktrysmt/go-bitbucket v0.9.55
