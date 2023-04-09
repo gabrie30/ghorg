@@ -166,6 +166,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_QUIET", "true")
 	}
 
+	if cmd.Flags().Changed("no-token") {
+		os.Setenv("GHORG_NO_TOKEN", "true")
+	}
+
 	if cmd.Flags().Changed("preserve-dir") {
 		os.Setenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE", "true")
 	}

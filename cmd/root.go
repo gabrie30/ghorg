@@ -30,6 +30,15 @@ var (
 	outputDir                    string
 	topics                       string
 	gitFilter                    string
+	targetCloneSource            string
+	matchPrefix                  string
+	excludeMatchPrefix           string
+	matchRegex                   string
+	excludeMatchRegex            string
+	config                       string
+	gitlabGroupExcludeMatchRegex string
+	ghorgIgnorePath              string
+	ghorgReClonePath             string
 	includeSubmodules            bool
 	skipArchived                 bool
 	skipForks                    bool
@@ -45,19 +54,11 @@ var (
 	fetchAll                     bool
 	ghorgReCloneVerbose          bool
 	ghorgReCloneQuiet            bool
+	noToken                      bool
+	quietMode                    bool
 	args                         []string
 	cloneErrors                  []string
 	cloneInfos                   []string
-	targetCloneSource            string
-	matchPrefix                  string
-	excludeMatchPrefix           string
-	matchRegex                   string
-	excludeMatchRegex            string
-	config                       string
-	gitlabGroupExcludeMatchRegex string
-	ghorgIgnorePath              string
-	ghorgReClonePath             string
-	quietMode                    bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -127,6 +128,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_INSECURE_GITEA_CLIENT":
 			os.Setenv(envVar, "false")
 		case "GHORG_BACKUP":
+			os.Setenv(envVar, "false")
+		case "GHORG_NO_TOKEN":
 			os.Setenv(envVar, "false")
 		case "GHORG_RECLONE_VERBOSE":
 			os.Setenv(envVar, "false")
@@ -204,6 +207,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_SKIP_ARCHIVED")
 	getOrSetDefaults("GHORG_SKIP_FORKS")
 	getOrSetDefaults("GHORG_NO_CLEAN")
+	getOrSetDefaults("GHORG_NO_TOKEN")
 	getOrSetDefaults("GHORG_FETCH_ALL")
 	getOrSetDefaults("GHORG_PRUNE")
 	getOrSetDefaults("GHORG_PRUNE_NO_CONFIRM")
@@ -277,6 +281,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&insecureGiteaClient, "insecure-gitea-client", false, "GHORG_INSECURE_GITEA_CLIENT - Must be set to clone from a Gitea instance using http")
 	cloneCmd.Flags().BoolVar(&cloneWiki, "clone-wiki", false, "GHORG_CLONE_WIKI - Additionally clone the wiki page for repo")
 	cloneCmd.Flags().BoolVar(&skipForks, "skip-forks", false, "GHORG_SKIP_FORKS - Skips repo if its a fork, github/gitlab/gitea only")
+	cloneCmd.Flags().BoolVar(&noToken, "no-token", false, "GHORG_NO_TOKEN - Allows you to run ghorg with no token (GHORG_<SCM>_TOKEN), SCM server needs to specify no auth required for api calls")
 	cloneCmd.Flags().BoolVar(&preserveDir, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - Clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/unit/subunit/app, gitlab only")
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP - Backup mode, clone as mirror, no working copy (ignores branch parameter)")
 	cloneCmd.Flags().BoolVar(&quietMode, "quiet", false, "GHORG_QUIET - Emit critical output only")

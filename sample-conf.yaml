@@ -137,6 +137,10 @@ GHORG_EXIT_CODE_ON_CLONE_INFOS: 0
 # flag (--exit-code-on-clone-issues)
 GHORG_EXIT_CODE_ON_CLONE_ISSUES: 1
 
+# Allows you to run ghorg with no token (GHORG_<SCM>_TOKEN), SCM server needs to specify no auth required for api calls
+# flag (--no-token)
+GHORG_NO_TOKEN: false
+
 # Specifies the location of your ghorg conf.yaml, allowing you to have many configuration files, or none at all
 # default: ghorg looks in $HOME/.config/ghorg/conf.yaml, if not set in that location nor as a commandline flag, ghorg will use all default values
 # NOTE: this cannot be set in the configuration file. Its supported through CLI flag and ENV var only.
