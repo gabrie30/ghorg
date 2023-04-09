@@ -237,6 +237,10 @@ func getOrSetGiteaToken() {
 // VerifyTokenSet checks to make sure env is set for the correct scm provider
 func VerifyTokenSet() error {
 
+	if os.Getenv("GHORG_NO_TOKEN") == "true" {
+		return nil
+	}
+
 	scmProvider := os.Getenv("GHORG_SCM_TYPE")
 
 	if scmProvider == "github" && os.Getenv("GHORG_GITHUB_TOKEN") == "" {
