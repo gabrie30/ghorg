@@ -4,7 +4,7 @@ set -ex
 
 TOKEN=${1:-'password'}
 GITLAB_URL=${2:-'http://gitlab.example.com'}
-LOCAL_GITLAB_GHORG_DIR=${3:-"${HOME}/Desktop/ghorg"}
+LOCAL_GITLAB_GHORG_DIR=${3:-"${HOME}/ghorg"}
 
 export GHORG_INSECURE_GITLAB_CLIENT=true
 

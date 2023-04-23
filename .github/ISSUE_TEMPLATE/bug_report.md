@@ -22,7 +22,7 @@ Steps to reproduce the behavior:
       * SCM           : github
       * Type          : org
       * Protocol      : https
-      * Location      : /Users/user/Desktop/ghorg/
+      * Location      : $HOME/ghorg
       * Concurrency   : 25
       * Ghorgignore   : /Users/user/.config/ghorg/ghorgignore
       * Config Used   : /Users/user.config/ghorg/conf.yaml
@@ -32,7 +32,7 @@ Steps to reproduce the behavior:
 
       75 repos found in my-org
     ```
-  
+
 1. Details on the user/org you tried to clone e.g. is it your user, a public org, etc.
 
 **Screenshots**

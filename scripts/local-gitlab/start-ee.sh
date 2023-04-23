@@ -5,10 +5,10 @@ set -e
 STOP_GITLAB_WHEN_FINISHED=${1:-'true'}
 PERSIST_GITLAB_LOCALLY=${2:-'false'}
 GITLAB_IMAGE_TAG=${3:-'latest'}
-GITLAB_HOME=${4:-"$HOME/Desktop/ghorg/local-gitlab-ee-data-${GITLAB_IMAGE_TAG}"}
+GITLAB_HOME=${4:-"$HOME/ghorg/local-gitlab-ee-data-${GITLAB_IMAGE_TAG}"}
 GITLAB_HOST=${5:-'gitlab.example.com'}
 GITLAB_URL=${6:-'http://gitlab.example.com'}
-LOCAL_GITLAB_GHORG_DIR=${7:-"${HOME}/Desktop/ghorg"}
+LOCAL_GITLAB_GHORG_DIR=${7:-"${HOME}/ghorg"}
 
 if [ "${ENV}" == "ci" ];then
     echo "127.0.0.1 gitlab.example.com" >> /etc/hosts
@@ -16,7 +16,7 @@ fi
 
 docker rm gitlab --force --volumes
 
-rm -rf $HOME/Desktop/ghorg/local-gitlab-*
+rm -rf $HOME/ghorg/local-gitlab-*
 
 echo ""
 echo "To follow gitlab container logs use the following command in a new window"
