@@ -46,7 +46,7 @@ github.com/inconshreveable/mousetrap
 # github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
 ## explicit; go 1.17
 github.com/korovkin/limiter
-# github.com/ktrysmt/go-bitbucket v0.9.55
+# github.com/ktrysmt/go-bitbucket v0.9.56
 ## explicit; go 1.14
 github.com/ktrysmt/go-bitbucket
 # github.com/magiconair/properties v1.8.7
@@ -114,21 +114,21 @@ golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
-# golang.org/x/net v0.8.0
+# golang.org/x/net v0.9.0
 ## explicit; go 1.17
 golang.org/x/net/context
-# golang.org/x/oauth2 v0.6.0
+# golang.org/x/oauth2 v0.7.0
 ## explicit; go 1.17
 golang.org/x/oauth2
 golang.org/x/oauth2/bitbucket
 golang.org/x/oauth2/clientcredentials
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.6.0
+# golang.org/x/sys v0.7.0
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.8.0
+# golang.org/x/text v0.9.0
 ## explicit; go 1.17
 golang.org/x/text/runes
 golang.org/x/text/transform
