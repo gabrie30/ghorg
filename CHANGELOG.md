@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.9.5] - unreleased
 ### Added
 - GHORG_NO_TOKEN to allow cloning no token present; thanks @6543
+- GitHub App authentication; thanks @duizabojul
 ### Changed
 ### Deprecated
 ### Removed
