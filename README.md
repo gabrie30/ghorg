@@ -115,6 +115,14 @@ go get github.com/gabrie30/ghorg
 1. For cloning GitHub Enterprise (self hosted github instances) repos you must set `--base-url` e.g. `ghorg clone <github_org> --base-url=https://internal.github.com`
 1. See [examples/github.md](https://github.com/gabrie30/ghorg/blob/master/examples/github.md) on how to run
 
+#### GitHub App Authentication (Advanced)
+
+1. [Create a GitHub App](https://docs.github.com/en/apps/creating-github-apps/setting-up-a-github-app/creating-a-github-app) in your Organization. You only need to fill out the required fields. Make sure to give Repository Permissions ->  contents -> read only permissions
+1. Install the GitHub App into your Organization
+1. Generate a a private key from the GitHub App, set the location of the key to `GHORG_GITHUB_APP_PEM_PATH`
+1. Locate the GitHub App ID from the GitHub App, set the value to `GHORG_GITHUB_APP_ID`
+1. Locate the GitHub Installation ID from the URL of the GitHub app, set the value to `GHORG_GITHUB_APP_INSTALLATION_ID`. NOTE: you will need to use the actual GitHub url to get this ID, go to your GitHub Organization Settings Page -> Third Party Access -> GitHub Apps -> Configure -> Get ID from URL
+
 ### GitLab Setup
 
 1. Create [Personal Access Token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) with the `read_api` scope (or `api` for self-managed GitLab older than 12.10). This token can be added to your `ghorg/conf.yaml` or as a cli flag.

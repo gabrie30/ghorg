@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
@@ -143,38 +144,48 @@ func (_ Github) NewClient() (Client, error) {
 	// Authenticate as a GitHub App
 	// If the user has set GHORG_GITHUB_APP_PEM_PATH, we assume they want to use a GitHub App
 	if os.Getenv("GHORG_GITHUB_APP_PEM_PATH") != "" {
-		// If the user has set GHORG_GITHUB_APP_ID, we assume they want to use a GitHub App
-		if os.Getenv("GHORG_GITHUB_APP_ID") != "" {
+		// If the user has set GHORG_GITHUB_APP_INSTALLATION_ID, we assume they want to use a GitHub App
+		installID, err := strconv.ParseInt(os.Getenv("GHORG_GITHUB_APP_INSTALLATION_ID"), 10, 64)
 
-			installID, err := strconv.Atoi(os.Getenv("GHORG_GITHUB_APP_INSTALLATION_ID"))
-			if err != nil {
-				panic(err)
-			}
+		if err != nil {
+			return nil, fmt.Errorf("GHORG_GITHUB_APP_INSTALLATION_ID must be set if GHORG_GITHUB_APP_PEM_PATH is set")
+		}
 
-			itr, err := ghinstallation.NewKeyFromFile(
-				http.DefaultTransport,
-				1,
-				installID,
-				os.Getenv("GHORG_GITHUB_APP_PEM_PATH"),
-			)
-			if err != nil {
-				return nil, err
-			}
-			tc = github.NewClient(&http.Client{Transport: itr})
+		appID, err := strconv.ParseInt(os.Getenv("GHORG_GITHUB_APP_ID"), 10, 64)
+
+		if err != nil {
 			return nil, fmt.Errorf("GHORG_GITHUB_APP_ID must be set if GHORG_GITHUB_APP_PEM_PATH is set")
 		}
+
+		itr, err := ghinstallation.NewKeyFromFile(
+			http.DefaultTransport,
+			appID,
+			installID,
+			os.Getenv("GHORG_GITHUB_APP_PEM_PATH"),
+		)
+		if err != nil {
+			return nil, err
+		}
+		tc = &http.Client{Transport: itr}
+		// get the token from the itr and update the GHORT_GITHUB_TOKEN env var
+		token, err := itr.Token(ctx)
+
+		if err != nil {
+			return nil, err
+		}
+		os.Setenv("GHORG_GITHUB_TOKEN", token)
 	}
 
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
-	var c *github.Client
+	var ghClient *github.Client
 
 	if baseURL != "" {
-		c, _ = github.NewEnterpriseClient(baseURL, baseURL, tc)
+		ghClient, _ = github.NewEnterpriseClient(baseURL, baseURL, tc)
 	} else {
-		c = github.NewClient(tc)
+		ghClient = github.NewClient(tc)
 	}
 
-	client := Github{Client: c, perPage: reposPerPage}
+	client := Github{Client: ghClient, perPage: reposPerPage}
 
 	return client, nil
 }
@@ -220,7 +231,7 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 			r.CloneBranch = os.Getenv("GHORG_BRANCH")
 		}
 
-		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
+		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" || os.Getenv("GHORG_GITHUB_APP_PEM_PATH") != "" {
 			r.CloneURL = c.addTokenToHTTPSCloneURL(*ghRepo.CloneURL, os.Getenv("GHORG_GITHUB_TOKEN"))
 			r.URL = *ghRepo.CloneURL
 			repoData = append(repoData, r)
@@ -248,10 +259,9 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 // Then if https clone method is used the clone url will be https://username:token@github.com/org/repo.git
 // The username is now needed when using the new fine-grained tokens for github
 func (c Github) SetTokensUsername() {
-	// if GHORG_GITHUB_APP_PEM_PATH is set we assume the user wants to use a GitHub App which uses x-access-token as the user
-	// https://stackoverflow.com/a/62852444/4476182
-	if os.Getenv("GHORG_GITHUB_APP_PEM_PATH") != "" && os.Getenv("GHORG_GITHUB_APP_ID") != "" {
-		return "x-access-token"
+	if os.Getenv("GHORG_GITHUB_APP_PEM_PATH") != "" {
+		tokenUsername = "x-access-token"
+		return
 	}
 	userToken, _, _ := c.Users.Get(context.Background(), "")
 	tokenUsername = userToken.GetLogin()

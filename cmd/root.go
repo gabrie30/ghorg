@@ -40,6 +40,9 @@ var (
 	gitlabGroupExcludeMatchRegex string
 	ghorgIgnorePath              string
 	ghorgReClonePath             string
+	githubAppID                  string
+	githubAppPemPath             string
+	githubAppInstallationID      string
 	includeSubmodules            bool
 	skipArchived                 bool
 	skipForks                    bool
@@ -245,6 +248,9 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_GIT_FILTER")
 	getOrSetDefaults("GHORG_GITEA_TOKEN")
 	getOrSetDefaults("GHORG_INSECURE_GITEA_CLIENT")
+	getOrSetDefaults("GHORG_GITHUB_APP_PEM_PATH")
+	getOrSetDefaults("GHORG_GITHUB_APP_INSTALLATION_ID")
+	getOrSetDefaults("GHORG_GITHUB_APP_ID")
 
 	if os.Getenv("GHORG_DEBUG") != "" {
 		viper.Debug()
@@ -300,6 +306,9 @@ func init() {
 	cloneCmd.Flags().StringVarP(&exitCodeOnCloneInfos, "exit-code-on-clone-infos", "", "", "GHORG_EXIT_CODE_ON_CLONE_INFOS - Allows you to control the exit code when ghorg runs into a problem (info level message) cloning a repo from the remote. Info messages will appear after a clone is complete, similar to success messages. (default 0)")
 	cloneCmd.Flags().StringVarP(&exitCodeOnCloneIssues, "exit-code-on-clone-issues", "", "", "GHORG_EXIT_CODE_ON_CLONE_ISSUES - Allows you to control the exit code when ghorg runs into a problem (issue level message) cloning a repo from the remote. Issue messages will appear after a clone is complete, similar to success messages (default 1)")
 	cloneCmd.Flags().StringVarP(&gitFilter, "git-filter", "", "", "GHORG_GIT_FILTER - Allows you to pass arguments to git's filter flag. Useful for filtering out binary objects from repos with --git-filter=blob:none, this requires git version 2.19 or greater.")
+	cloneCmd.Flags().StringVarP(&githubAppPemPath, "github-app-pem-path", "", "", "GHORG_GITHUB_APP_PEM_PATH - Path to your GitHub App PEM file, for authenticating with GitHub App.")
+	cloneCmd.Flags().StringVarP(&githubAppInstallationID, "github-app-installation-id", "", "", "GHORG_GITHUB_APP_INSTALLATION_ID - GitHub App Installation ID, for authenticating with GitHub App.")
+	cloneCmd.Flags().StringVarP(&githubAppID, "github-app-id", "", "", "GHORG_GITHUB_APP_ID -  GitHub App ID, for authenticating with GitHub App")
 
 	reCloneCmd.Flags().StringVarP(&ghorgReClonePath, "reclone-path", "", "", "GHORG_RECLONE_PATH - If you want to set a path other than $HOME/.config/ghorg/reclone.yaml for your reclone configuration")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneVerbose, "verbose", false, "GHORG_RECLONE_VERBOSE - Verbose logging output")
