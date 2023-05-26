@@ -44,6 +44,18 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_BRANCH", cmd.Flag("branch").Value.String())
 	}
 
+	if cmd.Flags().Changed("github-app-pem-path") {
+		os.Setenv("GHORG_GITHUB_APP_PEM_PATH", cmd.Flag("github-app-pem-path").Value.String())
+	}
+
+	if cmd.Flags().Changed("github-app-installation-id") {
+		os.Setenv("GHORG_GITHUB_APP_INSTALLATION_ID", cmd.Flag("github-app-installation-id").Value.String())
+	}
+
+	if cmd.Flags().Changed("github-app-id") {
+		os.Setenv("GHORG_GITHUB_APP_ID", cmd.Flag("github-app-id").Value.String())
+	}
+
 	if cmd.Flags().Changed("bitbucket-username") {
 		os.Setenv("GHORG_BITBUCKET_USERNAME", cmd.Flag("bitbucket-username").Value.String())
 	}
@@ -964,6 +976,10 @@ func PrintConfigs() {
 
 	if os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
 		colorlog.PrintInfo("* Preserve Dir  : " + "true")
+	}
+
+	if os.Getenv("GHORG_GITHUB_APP_PEM_PATH") != "" {
+		colorlog.PrintInfo("* GH App Auth   : " + "true")
 	}
 
 	colorlog.PrintInfo("* Config Used   : " + os.Getenv("GHORG_CONFIG"))

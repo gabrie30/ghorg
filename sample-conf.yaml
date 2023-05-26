@@ -155,6 +155,19 @@ GHORG_NO_TOKEN: false
 # flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 GHORG_GITHUB_TOKEN:
 
+# Path to your GitHub App PEM file, for authenticating with GitHub App
+# e.g. /home/user/foo/ghorg-app.pem
+# flag (--github-app-pem-path)
+GHORG_GITHUB_APP_PEM_PATH:
+
+# GitHub App Installation ID, for authenticating with GitHub App
+# flag (--github-app-installation-id)
+GHORG_GITHUB_APP_INSTALLATION_ID:
+
+# GitHub App ID, for authenticating with GitHub App
+# flag (--github-app-id)
+GHORG_GITHUB_APP_ID:
+
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 # |G|I|T|L|A|B| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
