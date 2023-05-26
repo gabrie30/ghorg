@@ -3,10 +3,12 @@ package scm
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
+	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/google/go-github/v41/github"
 	"golang.org/x/oauth2"
@@ -129,10 +131,39 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 // NewClient create new github scm client
 func (_ Github) NewClient() (Client, error) {
 	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
-	)
-	tc := oauth2.NewClient(ctx, ts)
+	var tc *http.Client
+
+	if os.Getenv("GHORG_GITHUB_TOKEN") != "" {
+		ts := oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: os.Getenv("GHORG_GITHUB_TOKEN")},
+		)
+		tc = oauth2.NewClient(ctx, ts)
+	}
+
+	// Authenticate as a GitHub App
+	// If the user has set GHORG_GITHUB_APP_PEM_PATH, we assume they want to use a GitHub App
+	if os.Getenv("GHORG_GITHUB_APP_PEM_PATH") != "" {
+		// If the user has set GHORG_GITHUB_APP_ID, we assume they want to use a GitHub App
+		if os.Getenv("GHORG_GITHUB_APP_ID") != "" {
+
+			installID, err := strconv.Atoi(os.Getenv("GHORG_GITHUB_APP_INSTALLATION_ID"))
+			if err != nil {
+				panic(err)
+			}
+
+			itr, err := ghinstallation.NewKeyFromFile(
+				http.DefaultTransport,
+				1,
+				installID,
+				os.Getenv("GHORG_GITHUB_APP_PEM_PATH"),
+			)
+			if err != nil {
+				return nil, err
+			}
+			tc = github.NewClient(&http.Client{Transport: itr})
+			return nil, fmt.Errorf("GHORG_GITHUB_APP_ID must be set if GHORG_GITHUB_APP_PEM_PATH is set")
+		}
+	}
 
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
 	var c *github.Client
@@ -217,6 +248,11 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 // Then if https clone method is used the clone url will be https://username:token@github.com/org/repo.git
 // The username is now needed when using the new fine-grained tokens for github
 func (c Github) SetTokensUsername() {
+	// if GHORG_GITHUB_APP_PEM_PATH is set we assume the user wants to use a GitHub App which uses x-access-token as the user
+	// https://stackoverflow.com/a/62852444/4476182
+	if os.Getenv("GHORG_GITHUB_APP_PEM_PATH") != "" && os.Getenv("GHORG_GITHUB_APP_ID") != "" {
+		return "x-access-token"
+	}
 	userToken, _, _ := c.Users.Get(context.Background(), "")
 	tokenUsername = userToken.GetLogin()
 }
