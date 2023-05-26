@@ -10,7 +10,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- Gitea SCM x509: certificate signed by unknown authority (#307); thanks @oligot
 ### Security
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.55 to 0.9.56 (#305)
+- Bump github.com/spf13/cobra from 1.6.1 to 1.7.0 (#303)
+- Bump github.com/xanzy/go-gitlab from 0.81.0 to 0.83.0 (#302)
 
 
 ## [1.9.4] - 2/26/23
