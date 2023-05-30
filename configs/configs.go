@@ -244,6 +244,9 @@ func VerifyTokenSet() error {
 	scmProvider := os.Getenv("GHORG_SCM_TYPE")
 
 	if scmProvider == "github" && os.Getenv("GHORG_GITHUB_TOKEN") == "" {
+		if os.Getenv("GHORG_GITHUB_APP_PEM_PATH") != "" {
+			return nil
+		}
 		return ErrNoGitHubToken
 	}
 
