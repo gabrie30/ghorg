@@ -80,6 +80,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_CONCURRENCY", f)
 	}
 
+	if cmd.Flags().Changed("clone-depth") {
+		f := cmd.Flag("clone-depth").Value.String()
+		os.Setenv("GHORG_CLONE_DEPTH", f)
+	}
+
 	if cmd.Flags().Changed("exit-code-on-clone-infos") {
 		f := cmd.Flag("exit-code-on-clone-infos").Value.String()
 		os.Setenv("GHORG_EXIT_CODE_ON_CLONE_INFOS", f)
@@ -980,6 +985,10 @@ func PrintConfigs() {
 
 	if os.Getenv("GHORG_GITHUB_APP_PEM_PATH") != "" {
 		colorlog.PrintInfo("* GH App Auth   : " + "true")
+	}
+
+	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
+		colorlog.PrintInfo("* Clone Depth   : " + os.Getenv("GHORG_CLONE_DEPTH"))
 	}
 
 	colorlog.PrintInfo("* Config Used   : " + os.Getenv("GHORG_CONFIG"))

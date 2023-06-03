@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.9.6] - unreleased
 ### Added
+- GHORG_CLONE_DEPTH; thanks @elliot-wasem
 ### Changed
 ### Deprecated
 ### Removed

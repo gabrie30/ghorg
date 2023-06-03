@@ -42,6 +42,12 @@ func (g GitClient) Clone(repo scm.Repo) error {
 		args[index] = "--recursive"
 	}
 
+	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
+		index := 1
+		args = append(args[:index+1], args[index:]...)
+		args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
+	}
+
 	if os.Getenv("GHORG_GIT_FILTER") != "" {
 		index := 1
 		args = append(args[:index+1], args[index:]...)
@@ -103,6 +109,12 @@ func (g GitClient) Pull(repo scm.Repo) error {
 		args[index] = "--recurse-submodules"
 	}
 
+	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
+		index := 1
+		args = append(args[:index+1], args[index:]...)
+		args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
+	}
+
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath
 
@@ -120,7 +132,14 @@ func (g GitClient) Reset(repo scm.Repo) error {
 }
 
 func (g GitClient) FetchAll(repo scm.Repo) error {
-	cmd := exec.Command("git", "fetch", "--all")
+	args := []string{"fetch", "--all"}
+
+	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
+		index := 1
+		args = append(args[:index+1], args[index:]...)
+		args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
+	}
+	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath
 	return cmd.Run()
 }
