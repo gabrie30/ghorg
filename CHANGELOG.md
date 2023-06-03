@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 ### Fixed
 ### Security
+- Bump github.com/spf13/viper from 1.15.0 to 1.16.0 (#314)
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.56 to 0.9.58 (#312)
+- Bump golang.org/x/oauth2 from 0.7.0 to 0.8.0 (#311)
 
 ## [1.9.5] - 3/29/23
 ### Added
