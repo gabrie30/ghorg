@@ -76,6 +76,11 @@ GHORG_BACKUP: false
 # flag (--concurrency)
 GHORG_CONCURRENCY: 25
 
+# Create a shallow clone with a history truncated to the specified number of commits
+# https://git-scm.com/docs/git-clone#Documentation/git-clone.txt---depthltdepthgt
+# flag (--clone-depth) eg: --clone-depth=1
+GHORG_CLONE_DEPTH:
+
 # A comma separated list of topics to filter by, currently github/gitlab/gitea only
 # flag (--topics) eg: --topics=frontend
 # If any topics exist here, ghorg will only clone repos that match at least one of these topics
