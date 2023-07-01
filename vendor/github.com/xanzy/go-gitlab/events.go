@@ -102,7 +102,7 @@ func (s *UsersService) ListUserContributionEvents(uid interface{}, opt *ListCont
 		return nil, resp, err
 	}
 
-	return cs, resp, err
+	return cs, resp, nil
 }
 
 // ListCurrentUserContributionEvents gets a list currently authenticated user's events
@@ -120,7 +120,7 @@ func (s *EventsService) ListCurrentUserContributionEvents(opt *ListContributionE
 		return nil, resp, err
 	}
 
-	return cs, resp, err
+	return cs, resp, nil
 }
 
 // ProjectEvent represents a GitLab project event.
@@ -196,7 +196,14 @@ func (s ProjectEvent) String() string {
 //
 // GitLab API docs:
 // https://docs.gitlab.com/ee/api/events.html#list-a-projects-visible-events
-type ListProjectVisibleEventsOptions ListOptions
+type ListProjectVisibleEventsOptions struct {
+	ListOptions
+	Action     *EventTypeValue       `url:"action,omitempty" json:"action,omitempty"`
+	TargetType *EventTargetTypeValue `url:"target_type,omitempty" json:"target_type,omitempty"`
+	Before     *ISOTime              `url:"before,omitempty" json:"before,omitempty"`
+	After      *ISOTime              `url:"after,omitempty" json:"after,omitempty"`
+	Sort       *string               `url:"sort,omitempty" json:"sort,omitempty"`
+}
 
 // ListProjectVisibleEvents gets the events for the specified project.
 //
@@ -220,5 +227,5 @@ func (s *EventsService) ListProjectVisibleEvents(pid interface{}, opt *ListProje
 		return nil, resp, err
 	}
 
-	return p, resp, err
+	return p, resp, nil
 }

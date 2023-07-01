@@ -56,6 +56,7 @@ func (b Branch) String() string {
 type ListBranchesOptions struct {
 	ListOptions
 	Search *string `url:"search,omitempty" json:"search,omitempty"`
+	Regex  *string `url:"regex,omitempty" json:"regex,omitempty"`
 }
 
 // ListBranches gets a list of repository branches from a project, sorted by
@@ -81,7 +82,7 @@ func (s *BranchesService) ListBranches(pid interface{}, opts *ListBranchesOption
 		return nil, resp, err
 	}
 
-	return b, resp, err
+	return b, resp, nil
 }
 
 // GetBranch gets a single project repository branch.
@@ -106,7 +107,7 @@ func (s *BranchesService) GetBranch(pid interface{}, branch string, options ...R
 		return nil, resp, err
 	}
 
-	return b, resp, err
+	return b, resp, nil
 }
 
 // ProtectBranchOptions represents the available ProtectBranch() options.
@@ -145,7 +146,7 @@ func (s *BranchesService) ProtectBranch(pid interface{}, branch string, opts *Pr
 		return nil, resp, err
 	}
 
-	return b, resp, err
+	return b, resp, nil
 }
 
 // UnprotectBranch unprotects a single project repository branch. This is an
@@ -175,7 +176,7 @@ func (s *BranchesService) UnprotectBranch(pid interface{}, branch string, option
 		return nil, resp, err
 	}
 
-	return b, resp, err
+	return b, resp, nil
 }
 
 // CreateBranchOptions represents the available CreateBranch() options.
@@ -209,7 +210,7 @@ func (s *BranchesService) CreateBranch(pid interface{}, opt *CreateBranchOptions
 		return nil, resp, err
 	}
 
-	return b, resp, err
+	return b, resp, nil
 }
 
 // DeleteBranch deletes an existing branch.
