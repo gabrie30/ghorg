@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 ### Fixed
 ### Security
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.58 to 0.9.60 (#320)
+- Bump github.com/bradleyfalzon/ghinstallation/v2 from 2.4.0 to 2.5.0 (#319)
+- Bump golang.org/x/oauth2 from 0.8.0 to 0.9.0 (#318)
+- Bump github.com/xanzy/go-gitlab from 0.83.0 to 0.86.0 (#317)
 
 ## [1.9.6] - 6/10/23
 ### Added
