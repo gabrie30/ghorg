@@ -21,7 +21,7 @@ github.com/ProtonMail/go-crypto/openpgp/internal/ecc
 github.com/ProtonMail/go-crypto/openpgp/internal/encoding
 github.com/ProtonMail/go-crypto/openpgp/packet
 github.com/ProtonMail/go-crypto/openpgp/s2k
-# github.com/bradleyfalzon/ghinstallation/v2 v2.4.0
+# github.com/bradleyfalzon/ghinstallation/v2 v2.5.0
 ## explicit; go 1.13
 github.com/bradleyfalzon/ghinstallation/v2
 # github.com/cloudflare/circl v1.3.3
@@ -56,9 +56,9 @@ github.com/golang/protobuf/proto
 # github.com/google/go-github/v41 v41.0.0
 ## explicit; go 1.16
 github.com/google/go-github/v41/github
-# github.com/google/go-github/v52 v52.0.0
+# github.com/google/go-github/v53 v53.0.0
 ## explicit; go 1.17
-github.com/google/go-github/v52/github
+github.com/google/go-github/v53/github
 # github.com/google/go-querystring v1.1.0
 ## explicit; go 1.10
 github.com/google/go-querystring/query
