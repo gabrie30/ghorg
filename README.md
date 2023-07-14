@@ -261,15 +261,7 @@ git checkout master
 
 The `ghorg reclone` command is a way to store all your `ghorg clone` commands in one configuration file and makes calling long or multiple `ghorg clone` commands easier.
 
-Once your [reclone.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-reclone.yaml) configuration is set you can call `ghorg reclone` to clone each entry individually or clone all at once.
-
-To use, add a [reclone.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-reclone.yaml) to your `$HOME/.config/ghorg` directory. You can use the following command to set it for you with examples to use as a template
-
-```
-curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-reclone.yaml > $HOME/.config/ghorg/reclone.yaml
-```
-
-After updating your `reclone.yaml` you can run
+Once your [reclone.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-reclone.yaml) configuration is set you can call `ghorg reclone` to clone each entry individually or clone all at once, see examples below.
 
 ```
 # To clone all the entries in your reclone.yaml omit any arguments
@@ -281,9 +273,25 @@ ghorg reclone
 ghorg reclone kubernetes-sig-staging kubernetes-sig
 ```
 
+```
+# To view all your reclone commands
+# NOTE: This command prints tokens to stdout
+ghorg reclone --list
+```
+
 <p align="center">
   <img width="648" alt="ghorg reclone example" src="https://user-images.githubusercontent.com/1512282/183263986-50e56b86-12b9-479b-9c52-b1c74129228c.png">
 </p>
+
+#### Setup
+
+Add a [reclone.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-reclone.yaml) to your `$HOME/.config/ghorg` directory. You can use the following command to set it for you with examples to use as a template
+
+```
+curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-reclone.yaml > $HOME/.config/ghorg/reclone.yaml
+```
+
+Update file with the commands you wish to run.
 
 ## Troubleshooting
 
