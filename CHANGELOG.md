@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- Clone help text referencing old default config path; thanks @MaxG87
 ### Security
 - Bump github.com/ktrysmt/go-bitbucket from 0.9.58 to 0.9.60 (#320)
 - Bump github.com/bradleyfalzon/ghinstallation/v2 from 2.4.0 to 2.5.0 (#319)

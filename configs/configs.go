@@ -1,4 +1,4 @@
-// Package configs sets up the environment. First it sets a number of default envs, then looks in the $HOME/ghorg/conf.yaml to overwrite the defaults. These values will be superseded by any command line flags used
+// Package configs sets up the environment. First it sets a number of default envs, then looks in the $HOME/.config/ghorg/conf.yaml to overwrite the defaults. These values will be superseded by any command line flags used
 package configs
 
 import (
