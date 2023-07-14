@@ -22,7 +22,8 @@ var reCloneCmd = &cobra.Command{
 }
 
 type ReClone struct {
-	Cmd string `yaml:"cmd"`
+	Cmd         string `yaml:"cmd"`
+	Description string `yaml:"description"`
 }
 
 func isVerboseReClone() bool {
@@ -59,6 +60,22 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 	err = yaml.Unmarshal(yamlBytes, &mapOfReClones)
 	if err != nil {
 		colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: unmarshaling reclone.yaml, error:%v", err))
+	}
+
+	if cmd.Flags().Changed("list") {
+		colorlog.PrintInfo("**************************************************************")
+		colorlog.PrintInfo("**** Available reclone commands and optional descriptions ****")
+		colorlog.PrintInfo("**************************************************************")
+		fmt.Println("")
+		for key, value := range mapOfReClones {
+			colorlog.PrintInfo(fmt.Sprintf("- %s", key))
+			if value.Description != "" {
+				colorlog.PrintSubtleInfo(fmt.Sprintf("    description: %s", value.Description))
+			}
+			colorlog.PrintSubtleInfo(fmt.Sprintf("    cmd: %s", value.Cmd))
+			fmt.Println("")
+		}
+		os.Exit(0)
 	}
 
 	if !isVerboseReClone() && !isQuietReClone() {

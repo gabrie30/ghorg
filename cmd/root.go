@@ -59,6 +59,7 @@ var (
 	fetchAll                     bool
 	ghorgReCloneVerbose          bool
 	ghorgReCloneQuiet            bool
+	ghorgReCloneList             bool
 	noToken                      bool
 	quietMode                    bool
 	args                         []string
@@ -316,6 +317,7 @@ func init() {
 	reCloneCmd.Flags().StringVarP(&ghorgReClonePath, "reclone-path", "", "", "GHORG_RECLONE_PATH - If you want to set a path other than $HOME/.config/ghorg/reclone.yaml for your reclone configuration")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneVerbose, "verbose", false, "GHORG_RECLONE_VERBOSE - Verbose logging output")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneQuiet, "quiet", false, "GHORG_RECLONE_QUIET - Quiet logging output")
+	reCloneCmd.Flags().BoolVar(&ghorgReCloneList, "list", false, "Prints reclone commands and optional descriptions to stdout then will exit 0. Does not obsfucate tokens, and is only available as a commandline argument")
 
 	rootCmd.AddCommand(lsCmd, versionCmd, cloneCmd, reCloneCmd)
 }
