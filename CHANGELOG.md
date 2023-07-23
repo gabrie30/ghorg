@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.9.7] - unreleased
+## [1.9.7] - 7/23/23
 ### Added
 - Reclone list flag
 ### Changed
