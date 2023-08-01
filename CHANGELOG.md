@@ -3,6 +3,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.9.8] - unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.60 to 0.9.63 (#329)
+- Bump github.com/bradleyfalzon/ghinstallation/v2 from 2.5.0 to 2.6.0 (#327)
+- Bump github.com/xanzy/go-gitlab from 0.86.0 to 0.89.0 (#326)
+
 ## [1.9.7] - 7/23/23
 ### Added
 - Reclone list flag
