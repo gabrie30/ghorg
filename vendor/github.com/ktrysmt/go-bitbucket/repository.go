@@ -200,6 +200,7 @@ type DefaultReviewer struct {
 	Links       map[string]map[string]string
 }
 
+
 type DefaultReviewers struct {
 	Page             int
 	Pagelen          int
@@ -207,6 +208,20 @@ type DefaultReviewers struct {
 	Size             int
 	Next             string
 	DefaultReviewers []DefaultReviewer
+}
+type EffectiveDefaultReviewer struct {
+	User         DefaultReviewer
+	Type         string
+	ReviewerType string `mapstructure:"reviewer_type"`
+}
+
+type EffectiveDefaultReviewers struct {
+	Page             int
+	Pagelen          int
+	MaxDepth         int
+	Size             int
+	Next             string
+	EffectiveDefaultReviewers []EffectiveDefaultReviewer
 }
 
 type Group struct {
@@ -624,6 +639,16 @@ func (r *Repository) AddDefaultReviewer(rdro *RepositoryDefaultReviewerOptions) 
 func (r *Repository) DeleteDefaultReviewer(rdro *RepositoryDefaultReviewerOptions) (interface{}, error) {
 	urlStr := r.c.requestUrl("/repositories/%s/%s/default-reviewers/%s", rdro.Owner, rdro.RepoSlug, rdro.Username)
 	return r.c.execute("DELETE", urlStr, "")
+}
+
+func (r *Repository) ListEffectiveDefaultReviewers(ro *RepositoryOptions) (*EffectiveDefaultReviewers, error) {
+	urlStr := r.c.requestUrl("/repositories/%s/%s/effective-default-reviewers", ro.Owner, ro.RepoSlug)
+
+	res, err := r.c.executePaginated("GET", urlStr, "", nil)
+	if err != nil {
+		return nil, err
+	}
+	return decodeEffectiveDefaultReviewers(res)
 }
 
 func (r *Repository) GetPipelineConfig(rpo *RepositoryPipelineOptions) (*Pipeline, error) {
@@ -1757,6 +1782,53 @@ func decodeDefaultReviewers(response interface{}) (*DefaultReviewers, error) {
 		Size:             int(size),
 		Next:             next,
 		DefaultReviewers: variables,
+	}
+	return &defaultReviewerVariables, nil
+}
+
+
+func decodeEffectiveDefaultReviewers(response interface{}) (*EffectiveDefaultReviewers, error) {
+	responseMap := response.(map[string]interface{})
+	values := responseMap["values"].([]interface{})
+	var variables []EffectiveDefaultReviewer
+	for _, variable := range values {
+		var defaultReviewerVariable EffectiveDefaultReviewer
+		err := mapstructure.Decode(variable, &defaultReviewerVariable)
+		if err == nil {
+			variables = append(variables, defaultReviewerVariable)
+		}
+	}
+
+	page, ok := responseMap["page"].(float64)
+	if !ok {
+		page = 0
+	}
+
+	pagelen, ok := responseMap["pagelen"].(float64)
+	if !ok {
+		pagelen = 0
+	}
+	max_depth, ok := responseMap["max_depth"].(float64)
+	if !ok {
+		max_depth = 0
+	}
+	size, ok := responseMap["size"].(float64)
+	if !ok {
+		size = 0
+	}
+
+	next, ok := responseMap["next"].(string)
+	if !ok {
+		next = ""
+	}
+
+	defaultReviewerVariables := EffectiveDefaultReviewers{
+		Page:             int(page),
+		Pagelen:          int(pagelen),
+		MaxDepth:         int(max_depth),
+		Size:             int(size),
+		Next:             next,
+		EffectiveDefaultReviewers: variables,
 	}
 	return &defaultReviewerVariables, nil
 }
