@@ -32,6 +32,8 @@ $ ghorg examples github
 $ ghorg examples gitlab
 $ ghorg examples bitbucket
 $ ghorg examples gitea
+
+Or see examples directory at https://github.com/gabrie30/ghorg/tree/master/examples
 `,
 	Run: cloneFunc,
 }
