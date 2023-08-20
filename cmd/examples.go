@@ -10,7 +10,7 @@ import (
 )
 
 var examplesCmd = &cobra.Command{
-	Use:   "examples",
+	Use:   "examples [github, gitlab, bitbucket, gitea]",
 	Short: "Documentation and examples for each SCM provider",
 	Long:  `Get documentation and examples for each SCM provider in the terminal`,
 	Run:   examplesFunc,
