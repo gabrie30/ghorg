@@ -155,7 +155,7 @@ go get github.com/gabrie30/ghorg
 
 ## How to Use
 
-See [examples](https://github.com/gabrie30/ghorg/tree/master/examples) dir for more SCM specific docs
+See [examples](https://github.com/gabrie30/ghorg/tree/master/examples) dir for more SCM specific docs or use the examples command built into ghorg.
 
 ```bash
 $ ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
@@ -167,6 +167,10 @@ $ ghorg clone --help
 # view cloned resources
 $ ghorg ls
 $ ghorg ls someorg
+$ ghorg ls someorg | xargs -I %s mv %s bar/
+# view examples of how to use with gitlab
+$ ghorg examples gitlab
+$ ghorg exmaples github
 ```
 
 ### With Docker

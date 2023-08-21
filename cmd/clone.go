@@ -23,10 +23,19 @@ import (
 )
 
 var cloneCmd = &cobra.Command{
-	Use:   "clone",
+	Use:   "clone [org/user]",
 	Short: "Clone user or org repos from GitHub, GitLab, Gitea or Bitbucket",
-	Long:  `Clone user or org repos from GitHub, GitLab, Gitea or Bitbucket. See $HOME/.config/ghorg/conf.yaml for defaults, its likely you will need to update some of these values of use the flags to overwrite them. Values are set first by a default value, then based off what is set in $HOME/.config/ghorg/conf.yaml, finally the cli flags, which have the highest level of precedence.`,
-	Run:   cloneFunc,
+	Long: `Clone user or org repos from GitHub, GitLab, Gitea or Bitbucket. See $HOME/.config/ghorg/conf.yaml for defaults, its likely you will need to update some of these values of use the flags to overwrite them. Values are set first by a default value, then based off what is set in $HOME/.config/ghorg/conf.yaml, finally the cli flags, which have the highest level of precedence.
+
+For complete examples of how to clone repos from each SCM provider, run one of the following examples commands:
+$ ghorg examples github
+$ ghorg examples gitlab
+$ ghorg examples bitbucket
+$ ghorg examples gitea
+
+Or see examples directory at https://github.com/gabrie30/ghorg/tree/master/examples
+`,
+	Run: cloneFunc,
 }
 
 func cloneFunc(cmd *cobra.Command, argz []string) {
