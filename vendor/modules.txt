@@ -220,8 +220,6 @@ github.com/subosito/gotenv
 # github.com/xanzy/go-gitlab v0.89.0
 ## explicit; go 1.18
 github.com/xanzy/go-gitlab
-# github.com/yuin/goldmark v1.5.6
-## explicit; go 1.18
 # golang.org/x/crypto v0.11.0
 ## explicit; go 1.17
 golang.org/x/crypto/cast5
@@ -233,7 +231,7 @@ golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
 golang.org/x/crypto/sha3
-# golang.org/x/image v0.0.0-20220302094943-723b81ca9867
+# golang.org/x/image v0.5.0
 ## explicit; go 1.12
 golang.org/x/image/bmp
 golang.org/x/image/ccitt
