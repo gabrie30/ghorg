@@ -60,6 +60,7 @@ var (
 	ghorgReCloneVerbose          bool
 	ghorgReCloneQuiet            bool
 	ghorgReCloneList             bool
+	ghorgReCloneEnvConfigOnly    bool
 	noToken                      bool
 	quietMode                    bool
 	args                         []string
@@ -138,6 +139,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_NO_TOKEN":
 			os.Setenv(envVar, "false")
 		case "GHORG_RECLONE_VERBOSE":
+			os.Setenv(envVar, "false")
+		case "GHORG_RECLONE_ENV_CONFIG_ONLY":
 			os.Setenv(envVar, "false")
 		case "GHORG_RECLONE_QUIET":
 			os.Setenv(envVar, "false")
@@ -223,6 +226,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_INSECURE_GITEA_CLIENT")
 	getOrSetDefaults("GHORG_BACKUP")
 	getOrSetDefaults("GHORG_RECLONE_VERBOSE")
+	getOrSetDefaults("GHORG_RECLONE_ENV_CONFIG_ONLY")
 	getOrSetDefaults("GHORG_RECLONE_QUIET")
 	getOrSetDefaults("GHORG_CONCURRENCY")
 	getOrSetDefaults("GHORG_INCLUDE_SUBMODULES")
@@ -318,6 +322,7 @@ func init() {
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneVerbose, "verbose", false, "GHORG_RECLONE_VERBOSE - Verbose logging output")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneQuiet, "quiet", false, "GHORG_RECLONE_QUIET - Quiet logging output")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneList, "list", false, "Prints reclone commands and optional descriptions to stdout then will exit 0. Does not obsfucate tokens, and is only available as a commandline argument")
+	reCloneCmd.Flags().BoolVar(&ghorgReCloneEnvConfigOnly, "env-config-only", false, "GHORG_RECLONE_ENV_CONFIG_ONLY - Only use environment variables to set the configuration for all reclones.")
 
 	rootCmd.AddCommand(lsCmd, versionCmd, cloneCmd, reCloneCmd, examplesCmd)
 }
