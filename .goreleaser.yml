@@ -14,21 +14,22 @@ builds:
       - windows
       - darwin
 archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
+  - id: ghorg
+    name_template: >-
+      {{- .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end -}}
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 changelog:
   skip: true
 brews:
-  -
-    tap:
+  - tap:
       owner: gabrie30
       name: homebrew-utils
 
@@ -53,14 +54,14 @@ brews:
       system "#{bin}/ghorg version"
 
     post_install: |
-        ohai ""
-        ohai "***************************"
-        ohai "For examples on how to use ghorg see: https://github.com/gabrie30/ghorg/tree/master/examples"
-        ohai ""
-        ohai "Remember to set your $HOME/.config/ghorg/conf.yaml"
-        ohai ""
-        ohai "Here's all you need to do..."
-        ohai "1) mkdir -p $HOME/.config/ghorg"
-        ohai "2) curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml"
-        ohai "***************************"
-        ohai ""
+      ohai ""
+      ohai "***************************"
+      ohai "For examples on how to use ghorg see: https://github.com/gabrie30/ghorg/tree/master/examples"
+      ohai ""
+      ohai "Remember to set your $HOME/.config/ghorg/conf.yaml"
+      ohai ""
+      ohai "Here's all you need to do..."
+      ohai "1) mkdir -p $HOME/.config/ghorg"
+      ohai "2) curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml"
+      ohai "***************************"
+      ohai ""
