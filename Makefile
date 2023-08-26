@@ -18,3 +18,8 @@ fmt:
 .PHONY: release
 release:
 		goreleaser release
+
+
+.PHONY: examples
+examples:
+		cp -rf examples/* cmd/examples-copy/

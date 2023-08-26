@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.9.9] - 8/26/23
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Examples command; thanks @vlcinsky
+### Security
+
 ## [1.9.8] - 8/25/23
 ### Added
 - Examples command; thanks @MaxG87

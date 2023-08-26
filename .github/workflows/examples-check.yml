@@ -1,0 +1,20 @@
+name: Check Folder Content
+
+on:
+  pull_request:
+
+jobs:
+  check-folders:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Compare folders
+        run: |
+          shopt -s dotglob
+          if ! diff -r examples/ cmd/examples-copy; then
+            echo "Examples folder is not up to date. Please run 'make examples' and commit the changes."
+            exit 1
+          fi
