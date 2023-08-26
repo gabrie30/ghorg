@@ -1,4 +1,4 @@
-name: Check Folder Content
+name: Check Examples Copy Folder Content
 
 on:
   pull_request:
