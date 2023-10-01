@@ -58,10 +58,9 @@ type runner struct {
 
 	runmatch *Match // result object
 
-	ignoreTimeout       bool
-	timeout             time.Duration // timeout in milliseconds (needed for actual)
-	timeoutChecksToSkip int
-	timeoutAt           time.Time
+	ignoreTimeout bool
+	timeout       time.Duration // timeout in milliseconds (needed for actual)
+	deadline      fasttime
 
 	operator        syntax.InstOp
 	codepos         int
@@ -566,9 +565,22 @@ func (r *runner) execute() error {
 			continue
 
 		case syntax.EndZ:
-			if r.rightchars() > 1 || r.rightchars() == 1 && r.charAt(r.textPos()) != '\n' {
+			rchars := r.rightchars()
+			if rchars > 1 {
 				break
 			}
+			// RE2 and EcmaScript define $ as "asserts position at the end of the string"
+			// PCRE/.NET adds "or before the line terminator right at the end of the string (if any)"
+			if (r.re.options & (RE2 | ECMAScript)) != 0 {
+				// RE2/Ecmascript mode
+				if rchars > 0 {
+					break
+				}
+			} else if rchars == 1 && r.charAt(r.textPos()) != '\n' {
+				// "regular" mode
+				break
+			}
+
 			r.advance(0)
 			continue
 
@@ -938,8 +950,8 @@ func (r *runner) advance(i int) {
 }
 
 func (r *runner) goTo(newpos int) {
-	// when branching backward, ensure storage
-	if newpos < r.codepos {
+	// when branching backward or in place, ensure storage
+	if newpos <= r.codepos {
 		r.ensureStorage()
 	}
 
@@ -1538,39 +1550,15 @@ func (r *runner) isECMABoundary(index, startpos, endpos int) bool {
 		(index < endpos && syntax.IsECMAWordChar(r.runtext[index]))
 }
 
-// this seems like a comment to justify randomly picking 1000 :-P
-// We have determined this value in a series of experiments where x86 retail
-// builds (ono-lab-optimized) were run on different pattern/input pairs. Larger values
-// of TimeoutCheckFrequency did not tend to increase performance; smaller values
-// of TimeoutCheckFrequency tended to slow down the execution.
-const timeoutCheckFrequency int = 1000
-
 func (r *runner) startTimeoutWatch() {
 	if r.ignoreTimeout {
 		return
 	}
-
-	r.timeoutChecksToSkip = timeoutCheckFrequency
-	r.timeoutAt = time.Now().Add(r.timeout)
+	r.deadline = makeDeadline(r.timeout)
 }
 
 func (r *runner) checkTimeout() error {
-	if r.ignoreTimeout {
-		return nil
-	}
-	r.timeoutChecksToSkip--
-	if r.timeoutChecksToSkip != 0 {
-		return nil
-	}
-
-	r.timeoutChecksToSkip = timeoutCheckFrequency
-	return r.doCheckTimeout()
-}
-
-func (r *runner) doCheckTimeout() error {
-	current := time.Now()
-
-	if current.Before(r.timeoutAt) {
+	if r.ignoreTimeout || !r.deadline.reached() {
 		return nil
 	}
 
