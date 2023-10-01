@@ -217,7 +217,7 @@ github.com/spf13/viper/internal/encoding/yaml
 # github.com/subosito/gotenv v1.4.2
 ## explicit; go 1.18
 github.com/subosito/gotenv
-# github.com/xanzy/go-gitlab v0.90.0
+# github.com/xanzy/go-gitlab v0.92.3
 ## explicit; go 1.18
 github.com/xanzy/go-gitlab
 # golang.org/x/crypto v0.12.0

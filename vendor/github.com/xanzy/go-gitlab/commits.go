@@ -77,6 +77,7 @@ type ListCommitsOptions struct {
 	Since       *time.Time `url:"since,omitempty" json:"since,omitempty"`
 	Until       *time.Time `url:"until,omitempty" json:"until,omitempty"`
 	Path        *string    `url:"path,omitempty" json:"path,omitempty"`
+	Author      *string    `url:"author,omitempty" json:"author,omitempty"`
 	All         *bool      `url:"all,omitempty" json:"all,omitempty"`
 	WithStats   *bool      `url:"with_stats,omitempty" json:"with_stats,omitempty"`
 	FirstParent *bool      `url:"first_parent,omitempty" json:"first_parent,omitempty"`
@@ -402,6 +403,7 @@ type CommitStatus struct {
 	Name         string     `json:"name"`
 	AllowFailure bool       `json:"allow_failure"`
 	Coverage     float64    `json:"coverage"`
+	PipelineId   int        `json:"pipeline_id"`
 	Author       Author     `json:"author"`
 	Description  string     `json:"description"`
 	TargetURL    string     `json:"target_url"`
@@ -571,10 +573,10 @@ type GPGSignature struct {
 	KeySubkeyID        int    `json:"gpg_key_subkey_id"`
 }
 
-// GetGPGSiganature gets a GPG signature of a commit.
+// GetGPGSignature gets a GPG signature of a commit.
 //
 // GitLab API docs: https://docs.gitlab.com/ee/api/commits.html#get-gpg-signature-of-a-commit
-func (s *CommitsService) GetGPGSiganature(pid interface{}, sha string, options ...RequestOptionFunc) (*GPGSignature, *Response, error) {
+func (s *CommitsService) GetGPGSignature(pid interface{}, sha string, options ...RequestOptionFunc) (*GPGSignature, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
