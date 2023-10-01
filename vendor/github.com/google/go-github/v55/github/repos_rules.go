@@ -14,8 +14,10 @@ import (
 // BypassActor represents the bypass actors from a ruleset.
 type BypassActor struct {
 	ActorID *int64 `json:"actor_id,omitempty"`
-	// Possible values for ActorType are: Team, Integration
+	// Possible values for ActorType are: RepositoryRole, Team, Integration, OrganizationAdmin
 	ActorType *string `json:"actor_type,omitempty"`
+	// Possible values for BypassMode are: always, pull_request
+	BypassMode *string `json:"bypass_mode,omitempty"`
 }
 
 // RulesetLink represents a single link object from GitHub ruleset request _links.
@@ -34,17 +36,24 @@ type RulesetRefConditionParameters struct {
 	Exclude []string `json:"exclude"`
 }
 
-// RulesetRepositoryConditionParameters represents the conditions object for repository_names.
-type RulesetRepositoryConditionParameters struct {
-	Include   []string `json:"include,omitempty"`
-	Exclude   []string `json:"exclude,omitempty"`
+// RulesetRepositoryNamesConditionParameters represents the conditions object for repository_names.
+type RulesetRepositoryNamesConditionParameters struct {
+	Include   []string `json:"include"`
+	Exclude   []string `json:"exclude"`
 	Protected *bool    `json:"protected,omitempty"`
 }
 
+// RulesetRepositoryIDsConditionParameters represents the conditions object for repository_ids.
+type RulesetRepositoryIDsConditionParameters struct {
+	RepositoryIDs []int64 `json:"repository_ids,omitempty"`
+}
+
 // RulesetCondition represents the conditions object in a ruleset.
+// Set either RepositoryName or RepositoryID, not both.
 type RulesetConditions struct {
-	RefName        *RulesetRefConditionParameters        `json:"ref_name,omitempty"`
-	RepositoryName *RulesetRepositoryConditionParameters `json:"repository_name,omitempty"`
+	RefName        *RulesetRefConditionParameters             `json:"ref_name,omitempty"`
+	RepositoryName *RulesetRepositoryNamesConditionParameters `json:"repository_name,omitempty"`
+	RepositoryID   *RulesetRepositoryIDsConditionParameters   `json:"repository_id,omitempty"`
 }
 
 // RulePatternParameters represents the rule pattern parameters.
@@ -109,6 +118,10 @@ func (r *RepositoryRule) UnmarshalJSON(data []byte) error {
 	case "creation", "deletion", "required_linear_history", "required_signatures", "non_fast_forward":
 		r.Parameters = nil
 	case "update":
+		if RepositoryRule.Parameters == nil {
+			r.Parameters = nil
+			return nil
+		}
 		params := UpdateAllowsFetchAndMergeRuleParameters{}
 		if err := json.Unmarshal(*RepositoryRule.Parameters, &params); err != nil {
 			return err
@@ -118,6 +131,7 @@ func (r *RepositoryRule) UnmarshalJSON(data []byte) error {
 		rawParams := json.RawMessage(bytes)
 
 		r.Parameters = &rawParams
+
 	case "required_deployments":
 		params := RequiredDeploymentEnvironmentsRuleParameters{}
 		if err := json.Unmarshal(*RepositoryRule.Parameters, &params); err != nil {
@@ -176,13 +190,18 @@ func NewCreationRule() (rule *RepositoryRule) {
 
 // NewUpdateRule creates a rule to only allow users with bypass permission to update matching refs.
 func NewUpdateRule(params *UpdateAllowsFetchAndMergeRuleParameters) (rule *RepositoryRule) {
-	bytes, _ := json.Marshal(params)
+	if params != nil {
+		bytes, _ := json.Marshal(params)
 
-	rawParams := json.RawMessage(bytes)
+		rawParams := json.RawMessage(bytes)
 
+		return &RepositoryRule{
+			Type:       "update",
+			Parameters: &rawParams,
+		}
+	}
 	return &RepositoryRule{
-		Type:       "update",
-		Parameters: &rawParams,
+		Type: "update",
 	}
 }
 
@@ -312,7 +331,7 @@ func NewTagNamePatternRule(params *RulePatternParameters) (rule *RepositoryRule)
 
 // Ruleset represents a GitHub ruleset object.
 type Ruleset struct {
-	ID   int64  `json:"id"`
+	ID   *int64 `json:"id,omitempty"`
 	Name string `json:"name"`
 	// Possible values for Target are branch, tag
 	Target *string `json:"target,omitempty"`
@@ -320,9 +339,7 @@ type Ruleset struct {
 	SourceType *string `json:"source_type,omitempty"`
 	Source     string  `json:"source"`
 	// Possible values for Enforcement are: disabled, active, evaluate
-	Enforcement string `json:"enforcement"`
-	// Possible values for BypassMode are: none, repository, organization
-	BypassMode   *string            `json:"bypass_mode,omitempty"`
+	Enforcement  string             `json:"enforcement"`
 	BypassActors []*BypassActor     `json:"bypass_actors,omitempty"`
 	NodeID       *string            `json:"node_id,omitempty"`
 	Links        *RulesetLinks      `json:"_links,omitempty"`
