@@ -197,13 +197,14 @@ type ContainerExpirationPolicy struct {
 
 // ForkParent represents the parent project when this is a fork.
 type ForkParent struct {
-	HTTPURLToRepo     string `json:"http_url_to_repo"`
 	ID                int    `json:"id"`
 	Name              string `json:"name"`
 	NameWithNamespace string `json:"name_with_namespace"`
 	Path              string `json:"path"`
 	PathWithNamespace string `json:"path_with_namespace"`
+	HTTPURLToRepo     string `json:"http_url_to_repo"`
 	WebURL            string `json:"web_url"`
+	RepositoryStorage string `json:"repository_storage"`
 }
 
 // GroupAccess represents group access.
@@ -375,6 +376,31 @@ func (s *ProjectsService) ListUserProjects(uid interface{}, opt *ListProjectsOpt
 		return nil, nil, err
 	}
 	u := fmt.Sprintf("users/%s/projects", user)
+
+	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var p []*Project
+	resp, err := s.client.Do(req, &p)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return p, resp, nil
+}
+
+// ListUserContributedProjects gets a list of visible projects a given user has contributed to.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ee/api/projects.html#list-projects-a-user-has-contributed-to
+func (s *ProjectsService) ListUserContributedProjects(uid interface{}, opt *ListProjectsOptions, options ...RequestOptionFunc) ([]*Project, *Response, error) {
+	user, err := parseID(uid)
+	if err != nil {
+		return nil, nil, err
+	}
+	u := fmt.Sprintf("users/%s/contributed_projects", user)
 
 	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
 	if err != nil {
@@ -1809,6 +1835,7 @@ func (s *ProjectsService) GetProjectApprovalRule(pid interface{}, ruleID int, op
 type CreateProjectLevelRuleOptions struct {
 	Name                          *string `url:"name,omitempty" json:"name,omitempty"`
 	ApprovalsRequired             *int    `url:"approvals_required,omitempty" json:"approvals_required,omitempty"`
+	ReportType                    *string `url:"report_type,omitempty" json:"report_type,omitempty"`
 	RuleType                      *string `url:"rule_type,omitempty" json:"rule_type,omitempty"`
 	UserIDs                       *[]int  `url:"user_ids,omitempty" json:"user_ids,omitempty"`
 	GroupIDs                      *[]int  `url:"group_ids,omitempty" json:"group_ids,omitempty"`
