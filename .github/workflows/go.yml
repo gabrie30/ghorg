@@ -70,7 +70,7 @@ jobs:
         GITLAB_TOKEN: ${{ secrets.GHORG_GITLAB_TOKEN }}
 
   docker:
-    needs: [build_and_test, build_and_test_windows]
+    # needs: [build_and_test, build_and_test_windows]
     uses: ./.github/workflows/docker.yml
     permissions:
       packages: write
