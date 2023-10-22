@@ -175,15 +175,15 @@ $ ghorg exmaples github
 
 ### Docker Setup Instalation
 
-The image can be pulled only from Github Container Registry [ghcr.io](https://github.com/gabrie30/ghorg/pkgs/container/ghorg).
-
-<!-- TAGS -->
+The image is built for both `amd64` and `arm64` architectures and is available solely on Github Container Registry [ghcr.io](https://github.com/gabrie30/ghorg/pkgs/container/ghorg).
 
 ```shell
 # Should print help message
 # You can also specify a version as the tag, such as ghcr.io/gabrie30/ghorg:v1.9.9
 docker run --rm ghcr.io/gabrie30/ghorg:latest
 ```
+
+> Note: There are also tags available for the latest on trunk, such as `master` or `master-<commit SHA 7 chars>`, but these are **not recommended**.
 
 The commands for ghorg are parsed as docker commands. The entrypoint is the `ghorg` binary, hence you only need to enter remaining arguments as follows:
 
