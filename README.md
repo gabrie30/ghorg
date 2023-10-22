@@ -230,7 +230,6 @@ $ ghorg examples gitlab
 $ ghorg exmaples github
 ```
 
-
 ## Changing Clone Directories
 
 1. By default ghorg will clone the org or user repos into a directory like `$HOME/ghorg/org`. If you want to clone the org to a different directory use the `--path` flag or set `GHORG_ABSOLUTE_PATH_TO_CLONE_TO` in your ghorg conf. **This value must be an absolute path**. For example if you wanted to clone the kubernetes org to `/tmp/ghorg` you would run the following command.
