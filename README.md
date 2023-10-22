@@ -173,23 +173,59 @@ $ ghorg examples gitlab
 $ ghorg exmaples github
 ```
 
-### With Docker
+### Docker Setup Instalation
 
-> This is only recommended for testing due to resource constraints
+The image can be pulled only from Github Container Registry [ghcr.io](https://github.com/gabrie30/ghorg/pkgs/container/ghorg).
 
-1. Clone repo then `cd ghorg`
-1. Build the image `docker build . -t ghorg-docker`
-1. Run in docker
+<!-- TAGS -->
 
-```bash
-# using your local ghorg configuration file, cloning in container
-docker run -v $HOME/.config/ghorg:/root/.config/ghorg ghorg-docker ghorg clone kubernetes
+```shell
+# Should print help message
+# You can also specify a version as the tag, such as ghcr.io/gabrie30/ghorg:v1.9.9
+docker run --rm ghcr.io/gabrie30/ghorg:latest
+```
 
-# using flags, cloning in container
-docker run ghorg-docker ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+The commands for ghorg are parsed as docker commands. The entrypoint is the `ghorg` binary, hence you only need to enter remaining arguments as follows:
 
-# using flags, cloning to your machine
-docker run -v $HOME/ghorg/:/root/ghorg/ ghorg-docker ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 --output-dir=cloned-from-docker
+```shell
+docker run --rm ghcr.io/gabrie30/ghorg \
+    clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+```
+
+The image ships with the following environment variables set:
+
+```shell
+GHORG_CONFIG=/config/conf.yaml
+GHORG_RECLONE_PATH=/config/reclone.yaml
+GHORG_ABSOLUTE_PATH_TO_CLONE_TO=/data
+```
+
+These can be overriden, if necessary, by including the `-e` flag to the Docker run comand, e.g. `-e GHORG_GITHUB_TOKEN=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2`.
+
+#### Persisting Data on the Host
+
+In order to store data on the host, it is required to bind mount a volume:
+- `$HOME/.config/ghorg:/config`: Mounts your config directory inside the container, to access `config.yaml` and `reclone.yaml`.
+- `$HOME/repositories:/data`: Mounts your local data directory inside the container, where repos will be downloaded by default.
+
+```shell
+docker run --rm \
+        -e GHORG_GITHUB_TOKEN=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 \
+        -v $HOME/.config/ghorg:/config `# optional` \
+        -v $HOME/repositories:/data \
+        ghcr.io/gabrie30/ghorg:latest \
+        clone kubernetes --match-regex=^sig
+```
+
+> Note: Altering `GHORG_ABSOLUTE_PATH_TO_CLONE_TO` will require changing the mount location from `/data` to the new location inside the container.
+
+A shell alias might make this more practical:
+
+```shell
+alias ghorg="docker run --rm -v $HOME/.config/ghorg:/config -v $HOME/repositories:/data ghcr.io/gabrie30/ghorg:latest"
+
+# Use the alias: creates and cleans up the container
+ghorg clone kubernetes --match-regex=^sig
 ```
 
 ## Changing Clone Directories
