@@ -157,7 +157,7 @@ GHORG_NO_TOKEN: false
 # +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 
 # Add your GitHub token
-# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 or --token=~/path/to/file/containing/token
 GHORG_GITHUB_TOKEN:
 
 # Path to your GitHub App PEM file, for authenticating with GitHub App
@@ -178,7 +178,7 @@ GHORG_GITHUB_APP_ID:
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 # Add your GitLab token
-# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 or --token=~/path/to/file/containing/token
 GHORG_GITLAB_TOKEN:
 
 # clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/org/unit/subunit/app
@@ -199,7 +199,7 @@ GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX:
 
 # Add your Gitea token
 # Settings -> Applications -> Generate Token
-# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 or --token=~/path/to/file/containing/token
 GHORG_GITEA_TOKEN:
 
 # Must be present if your gitea instance uses http
