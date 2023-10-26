@@ -2,7 +2,7 @@ name: docker-build-release
 
 on:
   release:
-    types: created
+    types: published
   workflow_dispatch:
     inputs:
       is_release:
