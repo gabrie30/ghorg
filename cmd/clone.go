@@ -221,10 +221,14 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	configs.GetOrSetToken()
 
 	if cmd.Flags().Changed("token") {
+		token := cmd.Flag("token").Value.String()
+		if configs.IsFilePath(token) {
+			token = configs.GetTokenFromFile(token)
+		}
 		if os.Getenv("GHORG_SCM_TYPE") == "github" {
-			os.Setenv("GHORG_GITHUB_TOKEN", cmd.Flag("token").Value.String())
+			os.Setenv("GHORG_GITHUB_TOKEN", token)
 		} else if os.Getenv("GHORG_SCM_TYPE") == "gitlab" {
-			os.Setenv("GHORG_GITLAB_TOKEN", cmd.Flag("token").Value.String())
+			os.Setenv("GHORG_GITLAB_TOKEN", token)
 		} else if os.Getenv("GHORG_SCM_TYPE") == "bitbucket" {
 			if cmd.Flags().Changed("bitbucket-username") {
 				os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
@@ -232,7 +236,7 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 				os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", cmd.Flag("token").Value.String())
 			}
 		} else if os.Getenv("GHORG_SCM_TYPE") == "gitea" {
-			os.Setenv("GHORG_GITEA_TOKEN", cmd.Flag("token").Value.String())
+			os.Setenv("GHORG_GITEA_TOKEN", token)
 		}
 	}
 	err := configs.VerifyTokenSet()

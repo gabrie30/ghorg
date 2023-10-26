@@ -159,6 +159,31 @@ func GhorgQuiet() bool {
 	return os.Getenv("GHORG_QUIET") != ""
 }
 
+func IsFilePath(path string) bool {
+	pathValue, err := homedir.Expand(path)
+	if err != nil {
+		log.Fatal("Error while expanding tilde to user home directory")
+	}
+	info, err := os.Stat(pathValue)
+	if err != nil {
+		return false
+	}
+	// Check if it's a regular file (not a directory or a symbolic link)
+	if !info.IsDir() && (info.Mode()&os.ModeType == 0) {
+		return true
+	}
+	return false
+}
+
+func GetTokenFromFile(path string) string {
+	expandedPath, _ := homedir.Expand(path)
+	fileContents, err := os.ReadFile(expandedPath)
+	if err != nil {
+		log.Fatal("Error while reading file")
+	}
+	return strings.TrimSpace(string(fileContents))
+}
+
 // GetOrSetToken will set token based on scm
 func GetOrSetToken() {
 	switch os.Getenv("GHORG_SCM_TYPE") {
@@ -174,8 +199,12 @@ func GetOrSetToken() {
 }
 
 func getOrSetGitHubToken() {
-	var token string
-	if isZero(os.Getenv("GHORG_GITHUB_TOKEN")) {
+	var token = os.Getenv("GHORG_GITHUB_TOKEN")
+	if IsFilePath(token) {
+		os.Setenv("GHORG_GITHUB_TOKEN", GetTokenFromFile(token))
+	}
+
+	if isZero(token) {
 		if runtime.GOOS == "windows" {
 			return
 		}
@@ -190,6 +219,10 @@ func getOrSetGitHubToken() {
 
 func getOrSetGitLabToken() {
 	token := os.Getenv("GHORG_GITLAB_TOKEN")
+
+	if IsFilePath(token) {
+		os.Setenv("GHORG_GITLAB_TOKEN", GetTokenFromFile(token))
+	}
 
 	if isZero(token) {
 		if runtime.GOOS == "windows" {
@@ -225,6 +258,10 @@ func getOrSetBitBucketToken() {
 
 func getOrSetGiteaToken() {
 	token := os.Getenv("GHORG_GITEA_TOKEN")
+
+	if IsFilePath(token) {
+		os.Setenv("GHORG_GITEA_TOKEN", GetTokenFromFile(token))
+	}
 
 	if isZero(token) {
 		if runtime.GOOS == "windows" {
