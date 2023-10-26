@@ -1,0 +1,58 @@
+name: docker-build-release
+
+on:
+  release:
+    types: created
+  workflow_dispatch:
+    inputs:
+      is_release:
+        required: false
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      is_release:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  docker:
+    name: Build and deploy to ghcr.io
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Compute Docker tags
+        run: |
+          echo "github.ref_name=${{ github.ref_name }}"
+          echo "github.sha=${{ github.sha }}"
+          ref_name=$(echo "${{ github.ref_name }}" | tr -c 'a-zA-Z0-9.' '-' | sed 's/^-//;s/-$//')
+          commit_sha=$(git rev-parse --short HEAD)
+          echo "ref_name=$ref_name"
+          echo "commit_sha=$commit_sha"
+
+          echo "Setting Docker tag for a release"
+          echo "docker_latest_tag=latest" >> $GITHUB_ENV
+          echo "docker_tag=$ref_name" >> $GITHUB_ENV
+
+          echo "Tag docker_latest_tag=${{ env.docker_latest_tag }}"
+          echo "Tag docker_tag=${{ env.docker_tag }}"
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/arm64,linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ env.docker_latest_tag }}
+            ghcr.io/${{ github.repository }}:${{ env.docker_tag }}

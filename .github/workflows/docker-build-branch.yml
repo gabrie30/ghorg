@@ -1,18 +1,8 @@
-name: docker
+name: docker-build-branch
 
 on:
-  workflow_dispatch:
-    inputs:
-      is_release:
-        required: false
-        type: boolean
-        default: false
-  workflow_call:
-    inputs:
-      is_release:
-        required: false
-        type: boolean
-        default: false
+  push:
+    branches: master
 
 jobs:
   docker:
@@ -40,15 +30,10 @@ jobs:
           echo "ref_name=$ref_name"
           echo "commit_sha=$commit_sha"
 
-          if [ "${{ inputs.is_release }}" = "true" ]; then
-            echo "Setting Docker tag for a release"
-            echo "docker_latest_tag=latest" >> $GITHUB_ENV
-            echo "docker_tag=$ref_name" >> $GITHUB_ENV
-          else
-            echo "Setting Docker tag for a regular push"
-            echo "docker_latest_tag=$ref_name" >> $GITHUB_ENV
-            echo "docker_tag=$ref_name-$commit_sha" >> $GITHUB_ENV
-          fi
+          echo "Setting Docker tag for a regular push"
+          echo "docker_latest_tag=$ref_name" >> $GITHUB_ENV
+          echo "docker_tag=$ref_name-$commit_sha" >> $GITHUB_ENV
+
           echo "Tag docker_latest_tag=${{ env.docker_latest_tag }}"
           echo "Tag docker_tag=${{ env.docker_tag }}"
       - name: Build and push
