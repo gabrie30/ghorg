@@ -5,7 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.9.10] - unreleased
 ### Added
+- Automated docker images (#354); thanks @afonsoc12
 ### Changed
+- Allow using file paths in --token (#358); thanks @dvonessen
 ### Deprecated
 ### Removed
 ### Fixed
