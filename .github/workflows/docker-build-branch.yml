@@ -39,7 +39,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          platforms: linux/arm64,linux/amd64, linux/arm/v7
+          platforms: linux/arm64,linux/amd64,linux/arm/v7
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:${{ env.docker_latest_tag }}
