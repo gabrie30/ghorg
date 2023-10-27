@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.9.10] - unreleased
 ### Added
 - Automated docker images (#354); thanks @afonsoc12
+- Docker support for armv7 (#361); thanks @LuckyTurtleDev
 ### Changed
 - Allow using file paths in --token (#358); thanks @dvonessen
 ### Deprecated
