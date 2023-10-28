@@ -34,18 +34,6 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
 
 > The terminology used in ghorg is that of GitHub, mainly orgs/repos. GitLab and BitBucket use different terminology. There is a handy chart thanks to GitLab that translates terminology [here](https://about.gitlab.com/images/blogimages/gitlab-terminology.png). Note, some features may be different for certain providers.
 
-## Configuration
-
-Precedence for configuration is first given to the flags set on the command-line, then to what's set in your `$HOME/.config/ghorg/conf.yaml`. This file comes from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml).
-
-If no configuration is found ghorg will use its defaults and try to clone a GitHub Org, however an api token is always required.
-
-You can have multiple configuration files which is useful if you clone from multiple SCM providers with different tokens and settings. Alternative configuration files can only be referenced as a command-line flag `--config`.
-
-If you have multiple different orgs/users/configurations to clone see the `ghorg reclone` command as a way to manage them.
-
-Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wiki.archlinux.org/title/XDG_Base_Directory) if set.
-
 ## Installation
 
 There are a installation methods available, please choose the one that suits your fancy:
@@ -97,6 +85,18 @@ See [latest release](https://github.com/gabrie30/ghorg/releases/latest) to downl
 - Linux
 
 If you don't know which to choose its likely going to be the x86_64 version for your operating system.
+
+## Configuration
+
+Precedence for configuration is first given to the flags set on the command-line, then to what's set in your `$HOME/.config/ghorg/conf.yaml`. This file comes from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml).
+
+If no configuration is found ghorg will use its defaults and try to clone a GitHub Org, however an api token is always required.
+
+You can have multiple configuration files which is useful if you clone from multiple SCM providers with different tokens and settings. Alternative configuration files can only be referenced as a command-line flag `--config`.
+
+If you have multiple different orgs/users/configurations to clone see the `ghorg reclone` command as a way to manage them.
+
+Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wiki.archlinux.org/title/XDG_Base_Directory) if set.
 
 ## SCM Provider Setup
 
