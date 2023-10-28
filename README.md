@@ -62,8 +62,8 @@ Alternatively, Windows users can also install ghorg using [scoop](https://scoop.
 There are 4 installation methods available, please choose the one that suits your fancy:
 - [Homebrew](#homebrew)
 - [Golang](#golang)
-- [Docker](#docker)
 - [Prebuilt Binaries](#prebuilt-binaries)
+- [Docker](#docker)
 
 ### Homebrew
 
@@ -96,61 +96,6 @@ go install github.com/gabrie30/ghorg@latest
 
 # older go versions can run
 go get github.com/gabrie30/ghorg
-```
-
-### Docker
-
-The provided images are built for both `amd64` and `arm64` architectures and are available solely on Github Container Registry [ghcr.io](https://github.com/gabrie30/ghorg/pkgs/container/ghorg).
-
-```shell
-# Should print help message
-# You can also specify a version as the tag, such as ghcr.io/gabrie30/ghorg:v1.9.9
-docker run --rm ghcr.io/gabrie30/ghorg:latest
-```
-
-> Note: There are also tags available for the latest on trunk, such as `master` or `master-<commit SHA 7 chars>`, but these **are not recommended**.
-
-The commands for ghorg are parsed as docker commands. The entrypoint is the `ghorg` binary, hence you only need to enter remaining arguments as follows:
-
-```shell
-docker run --rm ghcr.io/gabrie30/ghorg \
-    clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
-```
-
-The image ships with the following environment variables set:
-
-```shell
-GHORG_CONFIG=/config/conf.yaml
-GHORG_RECLONE_PATH=/config/reclone.yaml
-GHORG_ABSOLUTE_PATH_TO_CLONE_TO=/data
-```
-
-These can be overriden, if necessary, by including the `-e` flag to the docker run comand, e.g. `-e GHORG_GITHUB_TOKEN=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2`.
-
-#### Persisting Data on the Host
-
-In order to store data on the host, it is required to bind mount a volume:
-- `$HOME/.config/ghorg:/config`: Mounts your config directory inside the container, to access `config.yaml` and `reclone.yaml`.
-- `$HOME/repositories:/data`: Mounts your local data directory inside the container, where repos will be downloaded by default.
-
-```shell
-docker run --rm \
-        -e GHORG_GITHUB_TOKEN=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 \
-        -v $HOME/.config/ghorg:/config `# optional` \
-        -v $HOME/repositories:/data \
-        ghcr.io/gabrie30/ghorg:latest \
-        clone kubernetes --match-regex=^sig
-```
-
-> Note: Altering `GHORG_ABSOLUTE_PATH_TO_CLONE_TO` will require changing the mount location from `/data` to the new location inside the container.
-
-A shell alias might make this more practical:
-
-```shell
-alias ghorg="docker run --rm -v $HOME/.config/ghorg:/config -v $HOME/repositories:/data ghcr.io/gabrie30/ghorg:latest"
-
-# Using the alias: creates and cleans up the container
-ghorg clone kubernetes --match-regex=^sig
 ```
 
 ### Prebuilt Binaries
@@ -336,6 +281,61 @@ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-reclone.yaml
 ```
 
 Update file with the commands you wish to run.
+
+### Docker
+
+The provided images are built for both `amd64` and `arm64` architectures and are available solely on Github Container Registry [ghcr.io](https://github.com/gabrie30/ghorg/pkgs/container/ghorg).
+
+```shell
+# Should print help message
+# You can also specify a version as the tag, such as ghcr.io/gabrie30/ghorg:v1.9.9
+docker run --rm ghcr.io/gabrie30/ghorg:latest
+```
+
+> Note: There are also tags available for the latest on trunk, such as `master` or `master-<commit SHA 7 chars>`, but these **are not recommended**.
+
+The commands for ghorg are parsed as docker commands. The entrypoint is the `ghorg` binary, hence you only need to enter remaining arguments as follows:
+
+```shell
+docker run --rm ghcr.io/gabrie30/ghorg \
+    clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+```
+
+The image ships with the following environment variables set:
+
+```shell
+GHORG_CONFIG=/config/conf.yaml
+GHORG_RECLONE_PATH=/config/reclone.yaml
+GHORG_ABSOLUTE_PATH_TO_CLONE_TO=/data
+```
+
+These can be overriden, if necessary, by including the `-e` flag to the docker run comand, e.g. `-e GHORG_GITHUB_TOKEN=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2`.
+
+#### Persisting Data on the Host
+
+In order to store data on the host, it is required to bind mount a volume:
+- `$HOME/.config/ghorg:/config`: Mounts your config directory inside the container, to access `config.yaml` and `reclone.yaml`.
+- `$HOME/repositories:/data`: Mounts your local data directory inside the container, where repos will be downloaded by default.
+
+```shell
+docker run --rm \
+        -e GHORG_GITHUB_TOKEN=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 \
+        -v $HOME/.config/ghorg:/config `# optional` \
+        -v $HOME/repositories:/data \
+        ghcr.io/gabrie30/ghorg:latest \
+        clone kubernetes --match-regex=^sig
+```
+
+> Note: Altering `GHORG_ABSOLUTE_PATH_TO_CLONE_TO` will require changing the mount location from `/data` to the new location inside the container.
+
+A shell alias might make this more practical:
+
+```shell
+alias ghorg="docker run --rm -v $HOME/.config/ghorg:/config -v $HOME/repositories:/data ghcr.io/gabrie30/ghorg:latest"
+
+# Using the alias: creates and cleans up the container
+ghorg clone kubernetes --match-regex=^sig
+```
 
 ## Troubleshooting
 
