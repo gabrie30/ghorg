@@ -16,7 +16,7 @@ jobs:
         go-version: 1.20
       id: go
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Test
       run: go test -v ./...
     - name: Build
@@ -46,7 +46,7 @@ jobs:
         go-version: 1.20
       id: go
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Set configuration file
       run: |
         mkdir C:\Users\runneradmin\.config\ghorg
