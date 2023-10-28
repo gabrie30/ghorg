@@ -30,10 +30,3 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GHORG_GITHUB_TOKEN }}
-
-  docker:
-    uses: ./.github/workflows/docker.yml
-    permissions:
-      packages: write
-    with:
-      is_release: true
