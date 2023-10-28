@@ -46,24 +46,14 @@ If you have multiple different orgs/users/configurations to clone see the `ghorg
 
 Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wiki.archlinux.org/title/XDG_Base_Directory) if set.
 
-## Windows support
-
-Windows is supported when built with golang or as a [prebuilt binary](https://github.com/gabrie30/ghorg/releases/latest) however, the readme and other documentation is not geared towards Windows users.
-
-Alternatively, Windows users can also install ghorg using [scoop](https://scoop.sh/#/)
-
-  ```
-  scoop bucket add main
-  scoop install ghorg
-  ```
-
 ## Installation
 
-There are 4 installation methods available, please choose the one that suits your fancy:
+There are a installation methods available, please choose the one that suits your fancy:
 - [Homebrew](#homebrew)
 - [Golang](#golang)
 - [Prebuilt Binaries](#prebuilt-binaries)
 - [Docker](#docker)
+- [Windows Support](#windows-support)
 
 ### Homebrew
 
@@ -336,6 +326,17 @@ alias ghorg="docker run --rm -v $HOME/.config/ghorg:/config -v $HOME/repositorie
 # Using the alias: creates and cleans up the container
 ghorg clone kubernetes --match-regex=^sig
 ```
+
+## Windows support
+
+Windows is supported when built with golang or as a [prebuilt binary](https://github.com/gabrie30/ghorg/releases/latest) however, the readme and other documentation is not geared towards Windows users.
+
+Alternatively, Windows users can also install ghorg using [scoop](https://scoop.sh/#/)
+
+  ```
+  scoop bucket add main
+  scoop install ghorg
+  ```
 
 ## Troubleshooting
 
