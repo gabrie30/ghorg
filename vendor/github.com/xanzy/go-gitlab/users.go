@@ -1159,14 +1159,15 @@ func (s *UsersService) RejectUser(user int, options ...RequestOptionFunc) error 
 // GitLab API docs:
 // https://docs.gitlab.com/ee/api/users.html#get-all-impersonation-tokens-of-a-user
 type ImpersonationToken struct {
-	ID        int        `json:"id"`
-	Name      string     `json:"name"`
-	Active    bool       `json:"active"`
-	Token     string     `json:"token"`
-	Scopes    []string   `json:"scopes"`
-	Revoked   bool       `json:"revoked"`
-	CreatedAt *time.Time `json:"created_at"`
-	ExpiresAt *ISOTime   `json:"expires_at"`
+	ID         int        `json:"id"`
+	Name       string     `json:"name"`
+	Active     bool       `json:"active"`
+	Token      string     `json:"token"`
+	Scopes     []string   `json:"scopes"`
+	Revoked    bool       `json:"revoked"`
+	CreatedAt  *time.Time `json:"created_at"`
+	ExpiresAt  *ISOTime   `json:"expires_at"`
+	LastUsedAt *time.Time `json:"last_used_at"`
 }
 
 // GetAllImpersonationTokensOptions represents the available
@@ -1285,6 +1286,38 @@ type CreatePersonalAccessTokenOptions struct {
 // https://docs.gitlab.com/ee/api/users.html#create-a-personal-access-token
 func (s *UsersService) CreatePersonalAccessToken(user int, opt *CreatePersonalAccessTokenOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error) {
 	u := fmt.Sprintf("users/%d/personal_access_tokens", user)
+
+	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	t := new(PersonalAccessToken)
+	resp, err := s.client.Do(req, &t)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return t, resp, nil
+}
+
+// CreatePersonalAccessTokenForCurrentUserOptions represents the available
+// CreatePersonalAccessTokenForCurrentUser() options.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ee/api/users.html#create-a-personal-access-token-with-limited-scopes-for-the-currently-authenticated-user
+type CreatePersonalAccessTokenForCurrentUserOptions struct {
+	Name      *string   `url:"name,omitempty" json:"name,omitempty"`
+	Scopes    *[]string `url:"scopes,omitempty" json:"scopes,omitempty"`
+	ExpiresAt *ISOTime  `url:"expires_at,omitempty" json:"expires_at,omitempty"`
+}
+
+// CreatePersonalAccessTokenForCurrentUser creates a personal access token with limited scopes for the currently authenticated user.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ee/api/users.html#create-a-personal-access-token-with-limited-scopes-for-the-currently-authenticated-user
+func (s *UsersService) CreatePersonalAccessTokenForCurrentUser(opt *CreatePersonalAccessTokenForCurrentUserOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error) {
+	u := "user/personal_access_tokens"
 
 	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
 	if err != nil {

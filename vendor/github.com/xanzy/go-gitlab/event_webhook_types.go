@@ -652,6 +652,7 @@ type MergeEvent struct {
 		} `json:"last_commit"`
 		BlockingDiscussionsResolved bool          `json:"blocking_discussions_resolved"`
 		WorkInProgress              bool          `json:"work_in_progress"`
+		Draft                       bool          `json:"draft"`
 		TotalTimeSpent              int           `json:"total_time_spent"`
 		TimeChange                  int           `json:"time_change"`
 		HumanTotalTimeSpent         string        `json:"human_total_time_spent"`
@@ -679,6 +680,10 @@ type MergeEvent struct {
 			Previous string `json:"previous"`
 			Current  string `json:"current"`
 		} `json:"description"`
+		Draft struct {
+			Previous bool `json:"previous"`
+			Current  bool `json:"current"`
+		} `json:"draft"`
 		Labels struct {
 			Previous []*EventLabel `json:"previous"`
 			Current  []*EventLabel `json:"current"`
@@ -789,6 +794,7 @@ type PipelineEvent struct {
 	ObjectAttributes struct {
 		ID             int      `json:"id"`
 		IID            int      `json:"iid"`
+		Name           string   `json:"name"`
 		Ref            string   `json:"ref"`
 		Tag            bool     `json:"tag"`
 		SHA            string   `json:"sha"`
