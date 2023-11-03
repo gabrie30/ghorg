@@ -5,7 +5,7 @@ go 1.20
 require (
 	code.gitea.io/sdk/gitea v0.16.0
 	github.com/MichaelMure/go-term-markdown v0.1.4
-	github.com/bradleyfalzon/ghinstallation/v2 v2.6.0
+	github.com/bradleyfalzon/ghinstallation/v2 v2.8.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/fatih/color v1.15.0
 	github.com/google/go-github/v41 v41.0.0
@@ -21,9 +21,7 @@ require (
 
 require (
 	github.com/MichaelMure/go-term-text v0.3.1 // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
 	github.com/alecthomas/chroma v0.7.1 // indirect
-	github.com/cloudflare/circl v1.3.3 // indirect
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
 	github.com/davidmz/go-pageant v1.0.2 // indirect
 	github.com/disintegration/imaging v1.6.2 // indirect
@@ -34,7 +32,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/gomarkdown/markdown v0.0.0-20191123064959-2c17d62f5098 // indirect
-	github.com/google/go-github/v53 v53.2.0 // indirect
+	github.com/google/go-github/v56 v56.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.2 // indirect
