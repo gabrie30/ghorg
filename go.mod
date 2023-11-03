@@ -10,12 +10,12 @@ require (
 	github.com/fatih/color v1.15.0
 	github.com/google/go-github/v41 v41.0.0
 	github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
-	github.com/ktrysmt/go-bitbucket v0.9.66
+	github.com/ktrysmt/go-bitbucket v0.9.70
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.17.0
 	github.com/xanzy/go-gitlab v0.90.0
-	golang.org/x/oauth2 v0.12.0
+	golang.org/x/oauth2 v0.13.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
