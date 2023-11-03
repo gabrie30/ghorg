@@ -387,9 +387,19 @@ func (r *Repository) WriteFileBlob(ro *RepositoryBlobWriteOptions) error {
 		m["branch"] = ro.Branch
 	}
 
+	if ro.FileName != "" {
+		if len(ro.Files) > 0 {
+			return fmt.Errorf("can't specify both files and filename")
+		}
+		ro.Files = []File{{
+			Path: ro.FileName,
+			Name: ro.FileName,
+		}}
+	}
+
 	urlStr := r.c.requestUrl("/repositories/%s/%s/src", ro.Owner, ro.RepoSlug)
 
-	_, err := r.c.executeFileUpload("POST", urlStr, ro.FilePath, ro.FileName, ro.FileName, m)
+	_, err := r.c.executeFileUpload("POST", urlStr, ro.Files, m)
 	return err
 }
 

@@ -279,28 +279,30 @@ func (c *Client) executePaginated(method string, urlStr string, text string, pag
 	return result, nil
 }
 
-func (c *Client) executeFileUpload(method string, urlStr string, filePath string, fileName string, fieldname string, params map[string]string) (interface{}, error) {
-	fileReader, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer fileReader.Close()
-
+func (c *Client) executeFileUpload(method string, urlStr string, files []File, params map[string]string) (interface{}, error) {
 	// Prepare a form that you will submit to that URL.
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 
 	var fw io.Writer
-	if fw, err = w.CreateFormFile(fieldname, fileName); err != nil {
-		return nil, err
-	}
+	for _, file := range files {
+		fileReader, err := os.Open(file.Path)
+		if err != nil {
+			return nil, err
+		}
+		defer fileReader.Close()
 
-	if _, err = io.Copy(fw, fileReader); err != nil {
-		return nil, err
+		if fw, err = w.CreateFormFile(file.Name, file.Name); err != nil {
+			return nil, err
+		}
+
+		if _, err = io.Copy(fw, fileReader); err != nil {
+			return nil, err
+		}
 	}
 
 	for key, value := range params {
-		err = w.WriteField(key, value)
+		err := w.WriteField(key, value)
 		if err != nil {
 			return nil, err
 		}
