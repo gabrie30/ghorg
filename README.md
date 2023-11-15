@@ -37,11 +37,21 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
 ## Installation
 
 There are a installation methods available, please choose the one that suits your fancy:
+- [Prebuilt Binaries](#prebuilt-binaries)
 - [Homebrew](#homebrew)
 - [Golang](#golang)
-- [Prebuilt Binaries](#prebuilt-binaries)
 - [Docker](#docker)
 - [Windows Support](#windows-support)
+
+### Prebuilt Binaries
+
+See [latest release](https://github.com/gabrie30/ghorg/releases/latest) to download directly for
+
+- Mac (Darwin)
+- Windows
+- Linux
+
+If you don't know which to choose its likely going to be the x86_64 version for your operating system.
 
 ### Homebrew
 
@@ -75,16 +85,6 @@ go install github.com/gabrie30/ghorg@latest
 # older go versions can run
 go get github.com/gabrie30/ghorg
 ```
-
-### Prebuilt Binaries
-
-See [latest release](https://github.com/gabrie30/ghorg/releases/latest) to download directly for
-
-- Mac (Darwin)
-- Windows
-- Linux
-
-If you don't know which to choose its likely going to be the x86_64 version for your operating system.
 
 ## Configuration
 
