@@ -43,6 +43,14 @@ There are a installation methods available, please choose the one that suits you
 - [Docker](#docker)
 - [Windows Support](#windows-support)
 
+For each installation method, optionally create a ghorg configuration file. See the [configuration](#configuration) section for more details.
+
+```bash
+mkdir -p $HOME/.config/ghorg
+curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
+vi $HOME/.config/ghorg/conf.yaml # To update your configuration
+```
+
 ### Prebuilt Binaries
 
 See [latest release](https://github.com/gabrie30/ghorg/releases/latest) to download directly for
@@ -56,25 +64,10 @@ If you don't know which to choose its likely going to be the x86_64 version for 
 ### Homebrew
 
 ```bash
-mkdir -p $HOME/.config/ghorg
-curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
-vi $HOME/.config/ghorg/conf.yaml # To update your configuration
-```
-> required
-
-```bash
 brew install gabrie30/utils/ghorg
 ```
 
 ### Golang
-
-```bash
-mkdir -p $HOME/.config/ghorg
-curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
-vi $HOME/.config/ghorg/conf.yaml # To update your configuration
-```
-
-> required
 
 ```bash
 # ensure $HOME/go/bin is in your path ($ echo $PATH | grep $HOME/go/bin)
@@ -88,9 +81,15 @@ go get github.com/gabrie30/ghorg
 
 ## Configuration
 
-Precedence for configuration is first given to the flags set on the command-line, then to what's set in your `$HOME/.config/ghorg/conf.yaml`. This file comes from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml).
+Precedence for configuration is first given to the flags set on the command-line, then to what's set in your `$HOME/.config/ghorg/conf.yaml`. This file comes from the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) and can be installed by performing the following.
 
-If no configuration is found ghorg will use its defaults and try to clone a GitHub Org, however an api token is always required.
+```bash
+mkdir -p $HOME/.config/ghorg
+curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-conf.yaml > $HOME/.config/ghorg/conf.yaml
+vi $HOME/.config/ghorg/conf.yaml # To update your configuration
+```
+
+If no configuration file is found ghorg will use its defaults and try to clone a GitHub Org, however an api token is always required.
 
 You can have multiple configuration files which is useful if you clone from multiple SCM providers with different tokens and settings. Alternative configuration files can only be referenced as a command-line flag `--config`.
 
