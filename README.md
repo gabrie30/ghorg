@@ -163,7 +163,7 @@ $ ghorg ls someorg
 $ ghorg ls someorg | xargs -I %s mv %s bar/
 # view examples of how to use with gitlab
 $ ghorg examples gitlab
-$ ghorg exmaples github
+$ ghorg examples github
 ```
 
 ## Changing Clone Directories
