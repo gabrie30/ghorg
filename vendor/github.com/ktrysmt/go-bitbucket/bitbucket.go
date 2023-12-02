@@ -395,6 +395,7 @@ type WebhooksOptions struct {
 	Owner       string   `json:"owner"`
 	RepoSlug    string   `json:"repo_slug"`
 	Uuid        string   `json:"uuid"`
+	Secret      string   `json:"secret"`
 	Description string   `json:"description"`
 	Url         string   `json:"url"`
 	Active      bool     `json:"active"`
