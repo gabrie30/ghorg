@@ -14,6 +14,7 @@ type Webhook struct {
 	Owner       string   `json:"owner"`
 	RepoSlug    string   `json:"repo_slug"`
 	Uuid        string   `json:"uuid"`
+	Secret      string   `json:"secret"`
 	Description string   `json:"description"`
 	Url         string   `json:"url"`
 	Active      bool     `json:"active"`
@@ -60,6 +61,9 @@ func (r *Webhooks) buildWebhooksBody(ro *WebhooksOptions) (string, error) {
 	}
 	if ro.Active == true || ro.Active == false {
 		body["active"] = ro.Active
+	}
+	if ro.Secret != "" {
+		body["secret"] = ro.Secret
 	}
 
 	body["events"] = ro.Events
