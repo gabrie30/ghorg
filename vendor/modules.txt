@@ -1,4 +1,4 @@
-# code.gitea.io/sdk/gitea v0.16.0
+# code.gitea.io/sdk/gitea v0.17.1
 ## explicit; go 1.13
 code.gitea.io/sdk/gitea
 # github.com/MichaelMure/go-term-markdown v0.1.4
