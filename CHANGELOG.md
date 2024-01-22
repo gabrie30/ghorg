@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.9.10] - unreleased
+## [1.9.10] - 1/21/24
 ### Added
 - Automated docker images (#354); thanks @afonsoc12
 - Docker support for armv7 (#361); thanks @LuckyTurtleDev
@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - Release version name; thanks @gbloquel
 ### Security
+- Various dependency updates
 
 ## [1.9.9] - 8/26/23
 ### Added
