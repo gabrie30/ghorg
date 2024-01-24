@@ -1010,6 +1010,9 @@ func PrintConfigs() {
 	if configs.GhorgIgnoreDetected() {
 		colorlog.PrintInfo("* Ghorgignore   : " + configs.GhorgIgnoreLocation())
 	}
+	if os.Getenv("GHORG_TARGET_REPOS_PATH") != "" {
+		colorlog.PrintInfo("* Target Repos  : " + os.Getenv("GHORG_TARGET_REPOS_PATH"))
+	}
 	if os.Getenv("GHORG_MATCH_REGEX") != "" {
 		colorlog.PrintInfo("* Regex Match   : " + os.Getenv("GHORG_MATCH_REGEX"))
 	}
