@@ -40,6 +40,7 @@ var (
 	config                       string
 	gitlabGroupExcludeMatchRegex string
 	ghorgIgnorePath              string
+	targetReposPath              string
 	ghorgReClonePath             string
 	githubAppID                  string
 	githubAppPemPath             string
@@ -233,6 +234,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_INFOS")
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_ISSUES")
 	// Optionally set
+	getOrSetDefaults("GHORG_TARGET_REPOS_PATH")
 	getOrSetDefaults("GHORG_CLONE_DEPTH")
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
 	getOrSetDefaults("GHORG_COLOR")
@@ -278,6 +280,7 @@ func init() {
 	_ = viper.BindPFlag("color", rootCmd.PersistentFlags().Lookup("color"))
 	_ = viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
 
+	cloneCmd.Flags().StringVar(&targetReposPath, "target-repos-path", "", "GHORG_TARGET_REPOS_PATH - Path to file with list of repo names to clone, file should contain one repo name per line")
 	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "GHORG_CLONE_PROTOCOL - Protocol to clone with, ssh or https, (default https)")
 	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "GHORG_ABSOLUTE_PATH_TO_CLONE_TO - Absolute path to the home for ghorg clones. Must start with / (default $HOME/ghorg)")
 	cloneCmd.Flags().StringVarP(&branch, "branch", "b", "", "GHORG_BRANCH - Branch left checked out for each repo cloned (default master)")

@@ -81,6 +81,11 @@ GHORG_CONCURRENCY: 25
 # flag (--clone-depth) eg: --clone-depth=1
 GHORG_CLONE_DEPTH:
 
+# Path to file with list of repo names to clone, file should contain one repo name per line
+# This allows you to only clone a specific list of repos
+# flag (--target-repos-path)
+GHORG_TARGET_REPOS_PATH:
+
 # A comma separated list of topics to filter by, currently github/gitlab/gitea only
 # flag (--topics) eg: --topics=frontend
 # If any topics exist here, ghorg will only clone repos that match at least one of these topics
