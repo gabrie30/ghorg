@@ -139,6 +139,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_IGNORE_PATH", path)
 	}
 
+	if cmd.Flags().Changed("target-repos-path") {
+		path := cmd.Flag("target-repos-path").Value.String()
+		os.Setenv("GHORG_TARGET_REPOS_PATH", path)
+	}
+
 	if cmd.Flags().Changed("git-filter") {
 		filter := cmd.Flag("git-filter").Value.String()
 		os.Setenv("GHORG_GIT_FILTER", filter)
@@ -353,6 +358,23 @@ func printRemainingMessages() {
 	}
 }
 
+func readTargetReposFile() ([]string, error) {
+	file, err := os.Open(os.Getenv("GHORG_TARGET_REPOS_PATH"))
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if scanner.Text() != "" {
+			lines = append(lines, scanner.Text())
+		}
+	}
+	return lines, scanner.Err()
+}
+
 func readGhorgIgnore() ([]string, error) {
 	file, err := os.Open(configs.GhorgIgnoreLocation())
 	if err != nil {
@@ -536,6 +558,44 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	if os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX") != "" {
 		colorlog.PrintInfo("Filtering repos down by excluding prefix matches...")
 		cloneTargets = filterByExcludeMatchPrefix(cloneTargets)
+	}
+
+	// filter down repos based on target repos flag file path
+	if os.Getenv("GHORG_TARGET_REPOS_PATH") != "" {
+		_, err := os.Stat(os.Getenv("GHORG_TARGET_REPOS_PATH"))
+
+		if err != nil {
+			colorlog.PrintErrorAndExit(fmt.Sprintf("Error finding your GHORG_TARGET_REPOS_PATH file, error: %v", err))
+		}
+
+		if !os.IsNotExist(err) {
+			// Open the file parse each line and remove cloneTargets containing
+			toTarget, err := readTargetReposFile()
+			if err != nil {
+				colorlog.PrintErrorAndExit(fmt.Sprintf("Error parsing your GHORG_TARGET_REPOS_PATH file, error: %v", err))
+			}
+
+			colorlog.PrintInfo("Using GHORG_TARGET_REPOS_PATH, filtering repos down...")
+
+			filteredCloneTargets := []scm.Repo{}
+			var flag bool
+			for _, cloned := range cloneTargets {
+				flag = false
+				for _, targetRepo := range toTarget {
+					clonedRepoName := strings.TrimSuffix(filepath.Base(cloned.URL), ".git")
+					if strings.EqualFold(clonedRepoName, targetRepo) {
+						flag = true
+					}
+				}
+
+				if flag {
+					filteredCloneTargets = append(filteredCloneTargets, cloned)
+				}
+			}
+
+			cloneTargets = filteredCloneTargets
+
+		}
 	}
 
 	// filter repos down based on ghorgignore if one exists
