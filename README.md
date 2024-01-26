@@ -146,7 +146,7 @@ Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wi
 
 ## How to Use
 
-See [examples](https://github.com/gabrie30/ghorg/tree/master/examples) dir for more SCM specific docs or use the examples command built into ghorg.
+See [examples](https://github.com/gabrie30/ghorg/tree/master/examples) directory for more SCM specific docs or use the examples command e.g. `ghorg examples gitlab`
 
 ```bash
 $ ghorg clone kubernetes --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
@@ -161,9 +161,6 @@ $ ghorg clone --help
 $ ghorg ls
 $ ghorg ls someorg
 $ ghorg ls someorg | xargs -I %s mv %s bar/
-# view examples of how to use with gitlab
-$ ghorg examples gitlab
-$ ghorg examples github
 ```
 
 ## Changing Clone Directories
@@ -200,14 +197,14 @@ $ ghorg examples github
         ├── sig-security
         └── sig-testing
     ```
-## Filtering Repos
+## Selective Repository Cloning
 - To only clone repos that match regex use `--match-regex` flag or exclude cloning repos that match regex with `--exclude-match-regex`
 - To only clone repos that match prefix(s) use `--match-prefix` flag or exclude cloning repos that match prefix(s) with `--exclude-match-prefix`
 - To filter out any archived repos while cloning use the `--skip-archived` flag (not bitbucket)
 - To filter out any forked repos while cloning use the `--skip-forks` flag
 - Filter by specific repo [topics](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/classifying-your-repository-with-topics) `GHORG_TOPICS` or `--topics` will clone only repos with a matching topic. GitHub/GitLab/Gitea only
-- To ignore specific repos create a `ghorgignore` file inside `$HOME/.config/ghorg`. Each line in this file is considered a substring and will be compared against each repos clone url. If the clone url contains a substring in the `ghorgignore` it will be excluded from cloning. To prevent accidentally excluding a repo, you should make each line as specific as possible, eg. `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git` depending on how you clone. This is useful for permanently ignoring certain repos.
-
+- To clone a specific set of repositories, create a file listing the names of these repositories, one per line. Then, use the `GHORG_TARGET_REPOS` or `--target-repos-path` flag to specify the path to this file.
+- To exclude specific repositories from being cloned, you can create a `ghorgignore` file in the `$HOME/.config/ghorg` directory. Each line in this file should contain a unique identifier of the repository, which is considered a substring. This substring is then compared against each repository's clone URL during the cloning process. If the clone URL contains the substring listed in the `ghorgignore` file, that repository will be skipped and not cloned. To avoid unintentionally excluding a repository, ensure that each line in the `ghorgignore` file is as specific as possible. For instance, you could use `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git`, depending on your cloning method. This feature is particularly useful for permanently excluding certain repositories from the cloning process. If you wish to use multiple `ghorgignore` files or store them in a different location, you can use the `--ghorgignore-path` flag to specify an alternative path.
   ```bash
   # Create ghorgignore
   touch $HOME/.config/ghorg/ghorgignore
