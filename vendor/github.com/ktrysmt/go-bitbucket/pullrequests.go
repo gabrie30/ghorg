@@ -255,6 +255,12 @@ func (p *PullRequests) buildPullRequestCommentBody(co *PullRequestCommentOptions
 		"raw": co.Content,
 	}
 
+	if co.Parent != nil {
+		body["parent"] = map[string]interface{}{
+			"id": co.Parent,
+		}
+	}
+
 	data, err := json.Marshal(body)
 	if err != nil {
 		return "", err
