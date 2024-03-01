@@ -399,7 +399,7 @@ func (r *Repository) WriteFileBlob(ro *RepositoryBlobWriteOptions) error {
 
 	urlStr := r.c.requestUrl("/repositories/%s/%s/src", ro.Owner, ro.RepoSlug)
 
-	_, err := r.c.executeFileUpload("POST", urlStr, ro.Files, m)
+	_, err := r.c.executeFileUpload("POST", urlStr, ro.Files, ro.FilesToDelete, m)
 	return err
 }
 

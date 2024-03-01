@@ -279,7 +279,7 @@ func (c *Client) executePaginated(method string, urlStr string, text string, pag
 	return result, nil
 }
 
-func (c *Client) executeFileUpload(method string, urlStr string, files []File, params map[string]string) (interface{}, error) {
+func (c *Client) executeFileUpload(method string, urlStr string, files []File, filesToDelete []string, params map[string]string) (interface{}, error) {
 	// Prepare a form that you will submit to that URL.
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
@@ -303,6 +303,13 @@ func (c *Client) executeFileUpload(method string, urlStr string, files []File, p
 
 	for key, value := range params {
 		err := w.WriteField(key, value)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, filename := range filesToDelete {
+		err := w.WriteField("files", filename)
 		if err != nil {
 			return nil, err
 		}
