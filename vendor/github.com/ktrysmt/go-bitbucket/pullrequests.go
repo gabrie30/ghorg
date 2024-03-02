@@ -156,6 +156,11 @@ func (p *PullRequests) UpdateComment(co *PullRequestCommentOptions) (interface{}
 	return p.c.execute("PUT", urlStr, data)
 }
 
+func (p *PullRequests) DeleteComment(co *PullRequestCommentOptions) (interface{}, error) {
+	urlStr := p.c.requestUrl("/repositories/%s/%s/pullrequests/%s/comments/%s", co.Owner, co.RepoSlug, co.PullRequestID, co.CommentId)
+	return p.c.execute("DELETE", urlStr, "")
+}
+
 func (p *PullRequests) GetComments(po *PullRequestsOptions) (interface{}, error) {
 	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/comments/"
 	return p.c.executePaginated("GET", urlStr, "", nil)
