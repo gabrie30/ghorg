@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
@@ -103,7 +104,7 @@ func (c Gitlab) GetTopLevelGroups() ([]string, error) {
 		}
 
 		for _, g := range groups {
-			allGroups = append(allGroups, g.Path)
+			allGroups = append(allGroups, strconv.FormatInt(int64(g.ID), 10))
 		}
 
 		// Exit the loop when we've seen all pages.
