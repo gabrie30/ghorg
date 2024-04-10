@@ -10,7 +10,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- GitLab group calls by id instead of by name; thanks @angelabad (#400)
 ### Security
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.76 to 0.9.77 (#398)
+- Bump github.com/xanzy/go-gitlab from 0.98.0 to 0.101.0 (#396) (9 days ago)
+- Bump github.com/bradleyfalzon/ghinstallation/v2 from 2.9.0 to 2.10.0 (#397)
+- Bump golang.org/x/oauth2 from 0.17.0 to 0.18.0 (#395)
+- Bump google.golang.org/protobuf from 1.31.0 to 1.33.0 (#394)
+- Bump golang.org/x/oauth2 from 0.16.0 to 0.17.0 (#392)
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.74 to 0.9.76 (#393)
+- Bump github.com/xanzy/go-gitlab from 0.96.0 to 0.98.0 (#391)
+- Bump github.com/xanzy/go-gitlab from 0.95.2 to 0.96.0 (#386)
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.73 to 0.9.74 (#387)
+- Bump github.com/bradleyfalzon/ghinstallation/v2 from 2.8.0 to 2.9.0 (#388)
 
 ## [1.9.10] - 1/21/24
 ### Added
