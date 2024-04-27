@@ -3,7 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.9.11] - Unreleased
+## [1.9.12] - Unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## [1.9.11] - 4/27/24
 ### Added
 - GHORG_TARGET_REPOS_PATH
 ### Changed
@@ -12,6 +20,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - GitLab group calls by id instead of by name; thanks @angelabad (#400)
 ### Security
+- Bump golang.org/x/net from 0.22.0 to 0.23.0 (#401)
 - Bump github.com/ktrysmt/go-bitbucket from 0.9.76 to 0.9.77 (#398)
 - Bump github.com/xanzy/go-gitlab from 0.98.0 to 0.101.0 (#396) (9 days ago)
 - Bump github.com/bradleyfalzon/ghinstallation/v2 from 2.9.0 to 2.10.0 (#397)
