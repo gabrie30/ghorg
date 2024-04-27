@@ -28,9 +28,9 @@ checksum:
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 changelog:
-  skip: true
+  disable: true
 brews:
-  - tap:
+  - repository:
       owner: gabrie30
       name: homebrew-utils
 
