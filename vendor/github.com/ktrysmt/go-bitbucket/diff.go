@@ -44,11 +44,15 @@ func (d *Diff) GetPatch(do *DiffOptions) (interface{}, error) {
 func (d *Diff) GetDiffStat(dso *DiffStatOptions) (*DiffStatRes, error) {
 
 	params := url.Values{}
-	if dso.Whitespace == true {
+	if dso.FromPullRequestID > 0 {
+		params.Add("from_pullrequest_id", strconv.Itoa(dso.FromPullRequestID))
+	}
+
+	if dso.Whitespace {
 		params.Add("ignore_whitespace", strconv.FormatBool(dso.Whitespace))
 	}
 
-	if dso.Merge == false {
+	if !dso.Merge {
 		params.Add("merge", strconv.FormatBool(dso.Merge))
 	}
 
@@ -56,8 +60,12 @@ func (d *Diff) GetDiffStat(dso *DiffStatOptions) (*DiffStatRes, error) {
 		params.Add("path", dso.Path)
 	}
 
-	if dso.Renames == false {
+	if !dso.Renames {
 		params.Add("renames", strconv.FormatBool(dso.Renames))
+	}
+
+	if dso.Topic {
+		params.Add("topic", strconv.FormatBool(dso.Topic))
 	}
 
 	if dso.PageNum > 0 {

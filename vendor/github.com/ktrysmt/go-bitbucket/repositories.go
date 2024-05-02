@@ -57,6 +57,17 @@ func (r *Repositories) ListForTeam(ro *RepositoriesOptions) (*RepositoriesRes, e
 	return r.ListForAccount(ro)
 }
 
+// Return all repositories that belong to a project
+func (r *Repositories) ListProject(ro *RepositoriesOptions) (*RepositoriesRes, error) {
+	urlPath := r.c.requestUrl("/repositories")
+	urlPath += fmt.Sprintf("/%s/?q=project.key=\"%s\"", ro.Owner, ro.Project)
+	repos, err := r.c.executePaginated("GET", urlPath, "", nil)
+	if err != nil {
+		return nil, err
+	}
+	return decodeRepositories(repos)
+}
+
 func (r *Repositories) ListPublic() (*RepositoriesRes, error) {
 	urlStr := r.c.requestUrl("/repositories/")
 	repos, err := r.c.executePaginated("GET", urlStr, "", nil)

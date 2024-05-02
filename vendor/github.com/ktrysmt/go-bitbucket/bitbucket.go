@@ -85,6 +85,7 @@ type repository interface {
 type repositories interface {
 	ListForAccount(opt RepositoriesOptions) (interface{}, error)
 	ListForTeam(opt RepositoriesOptions) (interface{}, error)
+	ListProject(opt RepositoriesOptions) (interface{}, error)
 	ListPublic() (interface{}, error)
 }
 
@@ -140,6 +141,7 @@ type pipelines interface {
 
 type RepositoriesOptions struct {
 	Owner   string  `json:"owner"`
+	Project string  `json:"project"`
 	Role    string  `json:"role"` // role=[owner|admin|contributor|member]
 	Page    *int    `json:"page"`
 	Keyword *string `json:"keyword"`
@@ -247,7 +249,7 @@ type RepositoryBranchDeleteOptions struct {
 	RepoSlug string `json:"repo_slug"`
 	RepoUUID string `json:"uuid"`
 	RefName  string `json:"name"`
-	RefUUID  string `json:uuid`
+	RefUUID  string `json:"uuid"`
 }
 
 type RepositoryBranchTarget struct {
@@ -380,17 +382,19 @@ type DiffOptions struct {
 }
 
 type DiffStatOptions struct {
-	Owner      string `json:"owner"`
-	RepoSlug   string `json:"repo_slug"`
-	Spec       string `json:"spec"`
-	Whitespace bool   `json:"ignore_whitespace"`
-	Merge      bool   `json:"merge"`
-	Path       string `json:"path"`
-	Renames    bool   `json:"renames"`
-	PageNum    int    `json:"page"`
-	Pagelen    int    `json:"pagelen"`
-	MaxDepth   int    `json:"max_depth"`
-	Fields     []string
+	Owner             string `json:"owner"`
+	RepoSlug          string `json:"repo_slug"`
+	Spec              string `json:"spec"`
+	FromPullRequestID int    `json:"from_pullrequest_id"`
+	Whitespace        bool   `json:"ignore_whitespace"`
+	Merge             bool   `json:"merge"`
+	Path              string `json:"path"`
+	Renames           bool   `json:"renames"`
+	Topic             bool   `json:"topic"`
+	PageNum           int    `json:"page"`
+	Pagelen           int    `json:"pagelen"`
+	MaxDepth          int    `json:"max_depth"`
+	Fields            []string
 }
 
 type WebhooksOptions struct {
