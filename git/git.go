@@ -27,10 +27,19 @@ func NewGit() GitClient {
 	return GitClient{}
 }
 
-func printDebugCmd(cmd *exec.Cmd) {
+func printDebugCmd(cmd *exec.Cmd, repo scm.Repo) error {
 	fmt.Println("------------- GIT DEBUG -------------")
+	fmt.Print("Repo Data: ")
+	spew.Dump(repo)
+	fmt.Print("Command Ran: ")
 	spew.Dump(*cmd)
 	fmt.Println("")
+	output, err := cmd.CombinedOutput()
+	fmt.Printf("Command Output: %s\n", string(output))
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+	return err
 }
 
 func (g GitClient) Clone(repo scm.Repo) error {
@@ -61,7 +70,7 @@ func (g GitClient) Clone(repo scm.Repo) error {
 	cmd := exec.Command("git", args...)
 
 	if os.Getenv("GHORG_DEBUG") != "" {
-		printDebugCmd(cmd)
+		return printDebugCmd(cmd, repo)
 	}
 
 	err := cmd.Run()
@@ -72,6 +81,9 @@ func (g GitClient) SetOriginWithCredentials(repo scm.Repo) error {
 	args := []string{"remote", "set-url", "origin", repo.CloneURL}
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		return printDebugCmd(cmd, repo)
+	}
 	return cmd.Run()
 }
 
@@ -79,24 +91,38 @@ func (g GitClient) SetOrigin(repo scm.Repo) error {
 	args := []string{"remote", "set-url", "origin", repo.URL}
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		return printDebugCmd(cmd, repo)
+	}
 	return cmd.Run()
 }
 
 func (g GitClient) Checkout(repo scm.Repo) error {
 	cmd := exec.Command("git", "checkout", repo.CloneBranch)
 	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		return printDebugCmd(cmd, repo)
+	}
+
 	return cmd.Run()
 }
 
 func (g GitClient) Clean(repo scm.Repo) error {
 	cmd := exec.Command("git", "clean", "-f", "-d")
 	cmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		return printDebugCmd(cmd, repo)
+	}
 	return cmd.Run()
 }
 
 func (g GitClient) UpdateRemote(repo scm.Repo) error {
 	cmd := exec.Command("git", "remote", "update")
 	cmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		return printDebugCmd(cmd, repo)
+	}
 	return cmd.Run()
 }
 
@@ -119,7 +145,7 @@ func (g GitClient) Pull(repo scm.Repo) error {
 	cmd.Dir = repo.HostPath
 
 	if os.Getenv("GHORG_DEBUG") != "" {
-		printDebugCmd(cmd)
+		return printDebugCmd(cmd, repo)
 	}
 
 	return cmd.Run()
@@ -128,6 +154,9 @@ func (g GitClient) Pull(repo scm.Repo) error {
 func (g GitClient) Reset(repo scm.Repo) error {
 	cmd := exec.Command("git", "reset", "--hard", "origin/"+repo.CloneBranch)
 	cmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		return printDebugCmd(cmd, repo)
+	}
 	return cmd.Run()
 }
 
@@ -141,5 +170,8 @@ func (g GitClient) FetchAll(repo scm.Repo) error {
 	}
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		return printDebugCmd(cmd, repo)
+	}
 	return cmd.Run()
 }
