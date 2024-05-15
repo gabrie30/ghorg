@@ -586,6 +586,13 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					if strings.EqualFold(clonedRepoName, targetRepo) {
 						flag = true
 					}
+
+					if os.Getenv("GHORG_CLONE_WIKI") == "true" {
+						targetRepoWiki := targetRepo + ".wiki"
+						if strings.EqualFold(targetRepoWiki, clonedRepoName) {
+							flag = true
+						}
+					}
 				}
 
 				if flag {
