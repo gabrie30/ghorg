@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- GHORG_TARGET_REPOS_PATH working with GHORG_CLONE_WIKI; thanks @han911976
 ### Security
 
 ## [1.9.11] - 4/27/24
