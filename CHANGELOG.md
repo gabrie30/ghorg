@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - GHORG_TARGET_REPOS_PATH working with GHORG_CLONE_WIKI; thanks @han911976
 ### Security
+- Bump github.com/xanzy/go-gitlab from 0.101.0 to 0.103.0 (#405)
+- Bump code.gitea.io/sdk/gitea from 0.17.1 to 0.18.0 (#403)
+- Bump golang.org/x/oauth2 from 0.18.0 to 0.19.0 (#402)
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.77 to 0.9.79 (#404)
 
 ## [1.9.11] - 4/27/24
 ### Added
