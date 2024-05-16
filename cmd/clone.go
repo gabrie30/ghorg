@@ -579,24 +579,39 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 			filteredCloneTargets := []scm.Repo{}
 			var flag bool
-			for _, cloned := range cloneTargets {
+
+			targetRepoSeenOnOrg := make(map[string]bool)
+
+			for _, cloneTarget := range cloneTargets {
 				flag = false
 				for _, targetRepo := range toTarget {
-					clonedRepoName := strings.TrimSuffix(filepath.Base(cloned.URL), ".git")
+					if _, ok := targetRepoSeenOnOrg[targetRepo]; !ok {
+						targetRepoSeenOnOrg[targetRepo] = false
+					}
+					clonedRepoName := strings.TrimSuffix(filepath.Base(cloneTarget.URL), ".git")
 					if strings.EqualFold(clonedRepoName, targetRepo) {
 						flag = true
+						targetRepoSeenOnOrg[targetRepo] = true
 					}
 
 					if os.Getenv("GHORG_CLONE_WIKI") == "true" {
 						targetRepoWiki := targetRepo + ".wiki"
 						if strings.EqualFold(targetRepoWiki, clonedRepoName) {
 							flag = true
+							targetRepoSeenOnOrg[targetRepo] = true
 						}
 					}
 				}
 
 				if flag {
-					filteredCloneTargets = append(filteredCloneTargets, cloned)
+					filteredCloneTargets = append(filteredCloneTargets, cloneTarget)
+				}
+			}
+
+			// Print all the repos in the file that were not in the org so users know the entry is not being cloned
+			for targetRepo, seen := range targetRepoSeenOnOrg {
+				if !seen {
+					cloneInfos = append(cloneInfos, fmt.Sprintf("Target in GHORG_TARGET_REPOS_PATH was not found in the org, repo: %v", targetRepo))
 				}
 			}
 
