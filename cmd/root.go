@@ -207,6 +207,10 @@ func InitConfig() {
 
 	if os.Getenv("GHORG_DEBUG") != "" {
 		fmt.Println("-------- Setting Default ENV values ---------")
+		if os.Getenv("GHORG_CONCURRENCY_DEBUG") == "" {
+			fmt.Println("Setting concurrency to 1, this can be overwritten by setting GHORG_CONCURRENCY_DEBUG; however when using concurrency with GHORG_DEBUG, not all debugging output will be printed in serial order.")
+			os.Setenv("GHORG_CONCURRENCY", "1")
+		}
 	}
 
 	getOrSetDefaults("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")

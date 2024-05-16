@@ -342,5 +342,5 @@ Alternatively, Windows users can also install ghorg using [scoop](https://scoop.
 - If your GitHub Personal Access Token is only finding public repos, give your token all the repos permissions
 - Make sure your `$ git --version` is >= 2.19.0
 - Check for other software, such as anti-malware, that could interfere with ghorgs ability to create large number of connections, see [issue 132](https://github.com/gabrie30/ghorg/issues/132#issuecomment-889357960). You can also lower the concurrency with `--concurrency=n` default is 25.
-- To debug yourself you can call ghorg with the GHORG_DEBUG=true env e.g `GHORG_DEBUG=true ghorg clone kubernetes --concurrency=1`
+- To debug yourself you can call ghorg with the GHORG_DEBUG=true env e.g `GHORG_DEBUG=true ghorg clone kubernetes`. Note, when this env is set concurrency is set to a value of 1
 - If you've gotten this far and still have an issue feel free to raise an issue

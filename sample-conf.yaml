@@ -157,6 +157,12 @@ GHORG_NO_TOKEN: false
 # flag (--config)
 # GHORG_CONFIG:
 
+# Get verbose debugging output
+# NOTE: This setting cannot be configured through the configuration file or the CLI. It can only be set as an environment variable.
+# For example: GHORG_DEBUG=true ghorg clone kubernetes
+# When using this env concurrency is set to a value of 1, this behavior can be overwritten for debugging concurrency issues by setting GHORG_CONCURRENCY_DEBUG=true in addition to setting GHORG_DEBUG=true
+# GHORG_DEBUG:
+
 # +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 # |G|I|T|H|U|B| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
