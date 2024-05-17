@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.9.13] - Unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- refs to deprecated io/ioutil (#415); thanks @testwill
+### Security
+
 ## [1.9.12] - 5/15/24
 ### Added
 - Additional info to git commands when debug is enabled; thanks @fey
