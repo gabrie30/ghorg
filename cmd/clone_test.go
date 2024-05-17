@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -58,7 +57,7 @@ func NewMockGit() MockGitClient {
 }
 
 func (g MockGitClient) Clone(repo scm.Repo) error {
-	_, err := ioutil.TempDir(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), repo.Name)
+	_, err := os.MkdirTemp(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), repo.Name)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -99,7 +98,7 @@ func (g MockGitClient) FetchAll(repo scm.Repo) error {
 
 func TestInitialClone(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	dir, err := ioutil.TempDir("", "ghorg_test_initial")
+	dir, err := os.MkdirTemp("", "ghorg_test_initial")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -126,7 +125,7 @@ func TestInitialClone(t *testing.T) {
 
 func TestMatchPrefix(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	dir, err := ioutil.TempDir("", "ghorg_test_match_prefix")
+	dir, err := os.MkdirTemp("", "ghorg_test_match_prefix")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -163,7 +162,7 @@ func TestMatchPrefix(t *testing.T) {
 
 func TestExcludeMatchPrefix(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	dir, err := ioutil.TempDir("", "ghorg_test_exclude_match_prefix")
+	dir, err := os.MkdirTemp("", "ghorg_test_exclude_match_prefix")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -200,7 +199,7 @@ func TestExcludeMatchPrefix(t *testing.T) {
 
 func TestMatchRegex(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	dir, err := ioutil.TempDir("", "ghorg_test_match_regex")
+	dir, err := os.MkdirTemp("", "ghorg_test_match_regex")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -238,7 +237,7 @@ func TestMatchRegex(t *testing.T) {
 func TestExcludeMatchRegex(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 	testDescriptor := "ghorg_test_exclude_match_regex"
-	dir, err := ioutil.TempDir("", testDescriptor)
+	dir, err := os.MkdirTemp("", testDescriptor)
 	if err != nil {
 		log.Fatal(err)
 	}

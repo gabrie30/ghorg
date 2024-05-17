@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -32,7 +31,7 @@ func lsFunc(cmd *cobra.Command, argz []string) {
 
 func listGhorgHome() {
 	path := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		colorlog.PrintError("No clones found. Please clone some and try again.")
 	}
@@ -48,7 +47,7 @@ func listGhorgDir(arg string) {
 
 	path := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + arg
 
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		// ghorg natively uses underscores in folder names, but a user can specify an output dir with underscores
 		// so first try what the user types if not then try replace
@@ -56,7 +55,7 @@ func listGhorgDir(arg string) {
 		path = os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO") + arg
 	}
 
-	files, err = ioutil.ReadDir(path)
+	files, err = os.ReadDir(path)
 	if err != nil {
 		colorlog.PrintError("No clones found. Please clone some and try again.")
 	}
