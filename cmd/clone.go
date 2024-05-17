@@ -4,7 +4,6 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -512,7 +511,7 @@ func printDryRun(repos []scm.Repo) {
 			// to do.
 			colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
-			files, err := ioutil.ReadDir(outputDirAbsolutePath)
+			files, err := os.ReadDir(outputDirAbsolutePath)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -912,7 +911,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 func pruneRepos(cloneTargets []scm.Repo) {
 	colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
-	files, err := ioutil.ReadDir(outputDirAbsolutePath)
+	files, err := os.ReadDir(outputDirAbsolutePath)
 	if err != nil {
 		log.Fatal(err)
 	}
