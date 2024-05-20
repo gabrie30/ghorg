@@ -144,6 +144,43 @@ func (c Gitlab) GetTopLevelGroups() ([]string, error) {
 	return allGroups, nil
 }
 
+// In this case take the cloneURL from the cloneTartet repo and just inject /snippets/:id before the .git
+// cloud example
+// http clone target url https://gitlab.com/ghorg-test-group/subgroup-2/foobar.git
+// http snippet clone url https://gitlab.com/ghorg-test-group/subgroup-2/foobar/snippets/3711587.git
+// ssh clone target url git@gitlab.com:ghorg-test-group/subgroup-2/foobar.git
+// ssh snippet clone url git@gitlab.com:ghorg-test-group/subgroup-2/foobar/snippets/3711587.git
+func (c Gitlab) createRepoSnippetCloneURL(cloneTargetURL string, snippetID string) string {
+	// Split the cloneTargetURL into two parts at the ".git"
+	parts := strings.Split(cloneTargetURL, ".git")
+
+	// Insert the "/snippets/:id" before the ".git"
+	snippetCloneURL := parts[0] + "/snippets/" + snippetID + ".git"
+
+	return snippetCloneURL
+}
+
+// hosted example
+// root snippet ssh clone url git@gitlab.example.com:snippets/1.git
+// root snippet http clone url http://gitlab.example.com/snippets/1.git
+func (c Gitlab) createRootLevelSnippetCloneURL(snippetWebURL string) string {
+
+	// Web URL example, http://gitlab.example.com/-/snippets/1
+	// Both http and ssh clone urls do not have the /-/ in them so just remove it first and add the .git extention
+	cloneURL := strings.Replace(snippetWebURL, "/-/", "/", -1) + ".git"
+
+	if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
+		return c.addTokenToCloneURL(cloneURL, os.Getenv("GHORG_GITLAB_TOKEN"))
+	} else {
+		// http://gitlab.example.com/snippets/1.git
+		sshCloneURL := strings.Replace(cloneURL, "http://", "git@", 1)
+		// git@gitlab.example.com/snippets/1.git
+		sshCloneURL = strings.Replace(sshCloneURL, "/", ":", 1)
+		// git@gitlab.example.com:snippets/1.git
+		return sshCloneURL
+	}
+}
+
 func (c Gitlab) GetSnippets(cloneData []Repo) ([]Repo, error) {
 
 	if os.Getenv("GHORG_CLONE_SNIPPETS") != "true" {
@@ -216,7 +253,6 @@ func (c Gitlab) GetSnippets(cloneData []Repo) ([]Repo, error) {
 
 	for _, snippet := range allSnippets {
 		snippetAtRootLevel := c.rootLevelSnippet(snippet.WebURL)
-		snippetCloneURL := strings.Replace(snippet.WebURL, "/-/", "/", -1) + ".git"
 		snippetID := strconv.Itoa(snippet.ID)
 		snippetTitle := strings.ToLower(snippet.Title)
 		s := Repo{}
@@ -225,7 +261,7 @@ func (c Gitlab) GetSnippets(cloneData []Repo) ([]Repo, error) {
 		// If the snippet is not made on any repo its a root level snippet, this works for cloud
 		if snippetAtRootLevel {
 			s.IsGitLabRootLevelSnippet = true
-			s.CloneURL = snippetCloneURL
+			s.CloneURL = c.createRootLevelSnippetCloneURL(snippet.WebURL, snippetID)
 			s.URL = snippet.WebURL
 			s.Name = snippetTitle
 			s.GitLabSnippetInfo.ID = snippetID
@@ -235,11 +271,9 @@ func (c Gitlab) GetSnippets(cloneData []Repo) ([]Repo, error) {
 			for _, cloneTarget := range cloneData {
 				// determine if the snippet was created on the repo if it is then create a new Repo{} using the cloneTarget data
 
-				// clone target url https://gitlab.com/gabrie30/group/group/test-this
-				// snippet url https://gitlab.com/gabrie30/group/group/test-this/-/snippets/3711349
 				snippetRepoURL := strings.Split(snippet.WebURL, "/-/")
 				if cloneTarget.URL == snippetRepoURL[0]+".git" {
-					s.CloneURL = snippetCloneURL
+					s.CloneURL = c.createRepoSnippetCloneURL(cloneTarget.CloneURL, snippetID)
 					s.URL = snippet.WebURL
 					s.Name = snippetTitle
 					s.Path = cloneTarget.Path
