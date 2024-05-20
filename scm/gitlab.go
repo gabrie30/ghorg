@@ -33,6 +33,25 @@ func (_ Gitlab) GetType() string {
 	return "gitlab"
 }
 
+func (_ Gitlab) rootLevelSnippet(url string) bool {
+	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
+	if baseURL != "" {
+		customSnippetPattern := regexp.MustCompile(`^` + baseURL + `/-/snippets/\d+$`)
+		if customSnippetPattern.MatchString(url) {
+			return true
+		}
+		return false
+	} else {
+		// cloud instances
+		// Check if the URL follows the pattern of a root level snippet
+		rootLevelSnippetPattern := regexp.MustCompile(`^https://gitlab\.com/-/snippets/\d+$`)
+		if rootLevelSnippetPattern.MatchString(url) {
+			return true
+		}
+		return false
+	}
+}
+
 // GetOrgRepos fetches repo data from a specific group
 func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	allGroups := []string{}
@@ -79,6 +98,12 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 	}
 
+	snippets, err := c.GetSnippets(repoData)
+	if err != nil {
+		colorlog.PrintError(fmt.Sprintf("Error getting snippets, error: %v", err))
+	}
+	repoData = append(repoData, snippets...)
+
 	return repoData, nil
 }
 
@@ -117,6 +142,82 @@ func (c Gitlab) GetTopLevelGroups() ([]string, error) {
 	}
 
 	return allGroups, nil
+}
+
+func (c Gitlab) GetSnippets(cloneData []Repo) ([]Repo, error) {
+
+	if os.Getenv("GHORG_CLONE_SNIPPETS") != "true" {
+		return []Repo{}, nil
+	}
+
+	snippetsToClone := []Repo{}
+	opt := &gitlab.ListAllSnippetsOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: perPage,
+			Page:    1,
+		},
+	}
+
+	var allSnippets []*gitlab.Snippet
+
+	for {
+		snippets, resp, err := c.Snippets.ListAllSnippets(opt)
+		if err != nil {
+			return snippetsToClone, fmt.Errorf("fetching snippets: %v", err)
+		}
+
+		allSnippets = append(allSnippets, snippets...)
+
+		// Exit the loop when we've seen all pages.
+		if resp.NextPage == 0 {
+			break
+		}
+
+		// Update the page number to get the next page.
+		opt.Page = resp.NextPage
+	}
+
+	for _, snippet := range allSnippets {
+		snippetAtRootLevel := c.rootLevelSnippet(snippet.WebURL)
+		snippetCloneURL := strings.Replace(snippet.WebURL, "/-/", "/", -1) + ".git"
+		snippetID := strconv.Itoa(snippet.ID)
+		snippetTitle := strings.ToLower(snippet.Title)
+		s := Repo{}
+		s.IsGitLabSnippet = true
+		s.CloneBranch = "main"
+		// If the snippet is not made on any repo its a root level snippet, this works for cloud
+		if snippetAtRootLevel {
+			s.IsGitLabRootLevelSnippet = true
+			s.CloneURL = snippetCloneURL
+			s.URL = snippet.WebURL
+			s.Name = snippetTitle
+			s.GitLabSnippetInfo.ID = snippetID
+			s.GitLabSnippetInfo.Title = snippetTitle
+			cloneData = append(cloneData, s)
+		} else {
+			for _, cloneTarget := range cloneData {
+				// determine if the snippet was created on the repo if it is then create a new Repo{} using the cloneTarget data
+
+				// clone target url https://gitlab.com/gabrie30/group/group/test-this
+				// snippet url https://gitlab.com/gabrie30/group/group/test-this/-/snippets/3711349
+				snippetRepoURL := strings.Split(snippet.WebURL, "/-/")
+				if cloneTarget.URL == snippetRepoURL[0]+".git" {
+					s.CloneURL = snippetCloneURL
+					s.URL = snippet.WebURL
+					s.Name = snippetTitle
+					s.Path = cloneTarget.Path
+					s.GitLabSnippetInfo.ID = snippetID
+					s.GitLabSnippetInfo.Title = snippetTitle
+					s.GitLabSnippetInfo.URLOfRepo = cloneTarget.URL
+					cloneData = append(cloneData, s)
+				}
+			}
+		}
+
+		snippetsToClone = append(snippetsToClone, s)
+	}
+
+	return snippetsToClone, nil
 }
 
 // GetGroupRepos fetches repo data from a specific group
@@ -223,6 +324,11 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 		}
 	}
 
+	snippets, err := c.GetSnippets(cloneData)
+	if err != nil {
+		colorlog.PrintError(fmt.Sprintf("Error getting snippets, error: %v", err))
+	}
+	cloneData = append(cloneData, snippets...)
 	return cloneData, nil
 }
 

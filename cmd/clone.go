@@ -180,6 +180,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_CLONE_WIKI", "true")
 	}
 
+	if cmd.Flags().Changed("clone-snippets") {
+		os.Setenv("GHORG_CLONE_SNIPPETS", "true")
+	}
+
 	if cmd.Flags().Changed("insecure-gitlab-client") {
 		os.Setenv("GHORG_INSECURE_GITLAB_CLIENT", "true")
 	}
@@ -314,6 +318,7 @@ func getCloneUrls(isOrg bool) ([]scm.Repo, error) {
 	if isOrg {
 		return client.GetOrgRepos(targetCloneSource)
 	}
+
 	return client.GetUserRepos(targetCloneSource)
 }
 
@@ -486,6 +491,12 @@ func hasRepoNameCollisions(repos []scm.Repo) (map[string]bool, bool) {
 	hasCollisions := false
 
 	for _, repo := range repos {
+
+		// Snippets should never have collions because we append the snippet id to the directory name
+		if repo.IsGitLabSnippet {
+			continue
+		}
+
 		if _, ok := repoNameWithCollisions[repo.Name]; ok {
 			repoNameWithCollisions[repo.Name] = true
 			hasCollisions = true
@@ -600,6 +611,14 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 							targetRepoSeenOnOrg[targetRepo] = true
 						}
 					}
+
+					if os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
+						targetRepoSnippets := targetRepo + ".snippets"
+						if strings.EqualFold(targetRepoSnippets, clonedRepoName) {
+							flag = true
+							targetRepoSeenOnOrg[targetRepo] = true
+						}
+					}
 				}
 
 				if flag {
@@ -682,11 +701,22 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	for i := range cloneTargets {
 		repo := cloneTargets[i]
+
+		// we use this because we dont want spaces in the final directory, using the web address makes it more file friendly
 		repoSlug := getAppNameFromURL(repo.URL)
+
+		if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
+			repoSlug = getAppNameFromURL(repo.GitLabSnippetInfo.URLOfRepo)
+		} else {
+			repoSlug = repo.Name
+		}
+
+		// repoSlug := repo.Name
 		limit.Execute(func() {
 			if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
 				repoSlug = repo.Path
 			}
+
 			mutex.Lock()
 			inHash := repoNameWithCollisions[repo.Name]
 			mutex.Unlock()
@@ -709,6 +739,12 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			}
 
 			repo.HostPath = filepath.Join(outputDirAbsolutePath, repoSlug)
+
+			if repo.IsGitLabRootLevelSnippet {
+				repo.HostPath = filepath.Join(outputDirAbsolutePath, "_ghorg_root_level_snippets", repo.GitLabSnippetInfo.Title+"-"+repo.GitLabSnippetInfo.ID)
+			} else if repo.IsGitLabSnippet {
+				repo.HostPath = filepath.Join(outputDirAbsolutePath, repoSlug+".snippets", repo.GitLabSnippetInfo.Title+"-"+repo.GitLabSnippetInfo.ID)
+			}
 
 			if repo.IsWiki {
 				if !strings.HasSuffix(repo.HostPath, ".wiki") {
@@ -862,7 +898,14 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				}
 			}
 
-			colorlog.PrintSuccess("Success " + action + " repo: " + repo.URL + " -> branch: " + repo.CloneBranch)
+			clonedResource := "repo"
+			if repo.IsWiki {
+				clonedResource = "wiki"
+			} else if repo.IsGitLabSnippet {
+				clonedResource = "snippet"
+			}
+
+			colorlog.PrintSuccess("Success " + action + " " + clonedResource + ": " + repo.URL + " -> branch: " + repo.CloneBranch)
 		})
 
 	}
@@ -944,11 +987,11 @@ func pruneRepos(cloneTargets []scm.Repo) {
 
 func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount int) {
 	if updateRemoteCount > 0 {
-		colorlog.PrintSuccess(fmt.Sprintf("New repos cloned: %v, existing repos pulled: %v, remotes updated: %v", cloneCount, pulledCount, updateRemoteCount))
+		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, remotes updated: %v", cloneCount, pulledCount, updateRemoteCount))
 		return
 	}
 
-	colorlog.PrintSuccess(fmt.Sprintf("New repos cloned: %v, existing repos pulled: %v", cloneCount, pulledCount))
+	colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v", cloneCount, pulledCount))
 }
 
 func interactiveYesNoPrompt(prompt string) bool {
@@ -1027,6 +1070,9 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_CLONE_WIKI") == "true" {
 		colorlog.PrintInfo("* Wikis         : " + os.Getenv("GHORG_CLONE_WIKI"))
+	}
+	if os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
+		colorlog.PrintInfo("* Snippets      : " + os.Getenv("GHORG_CLONE_SNIPPETS"))
 	}
 	if configs.GhorgIgnoreDetected() {
 		colorlog.PrintInfo("* Ghorgignore   : " + configs.GhorgIgnoreLocation())
