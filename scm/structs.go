@@ -2,6 +2,8 @@ package scm
 
 // Repo represents an SCM repo, should probably be renamed to "cloneable" since we clone wikis and snippets with this
 type Repo struct {
+	// The ID of the repo that is assigned via the SCM provider. This is used for example with gitlab snippets on cloud gropus where we need to know the repo id to look up all he snippets it has.
+	ID string
 	// Name is the name of the repo https://www.github.com/gabrie30/ghorg.git the Name would be ghorg
 	Name string
 	// HostPath is the path on the users machine that the repo will be cloned to. Its used in all the git commands to locate the directory of the repo. HostPath is updated for wikis and snippets because the folder for the clone is appended with .wiki and .snippet

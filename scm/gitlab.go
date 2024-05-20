@@ -14,10 +14,10 @@ import (
 )
 
 var (
-	_               Client = Gitlab{}
-	perPage                = 100
-	gitLabAllGroups        = false
-	gitLabAllUsers         = false
+	_Client         = Gitlab{}
+	perPage         = 100
+	gitLabAllGroups = false
+	gitLabAllUsers  = false
 )
 
 func init() {
@@ -150,35 +150,68 @@ func (c Gitlab) GetSnippets(cloneData []Repo) ([]Repo, error) {
 		return []Repo{}, nil
 	}
 
-	if os.Getenv("GHORG_CLONE_TYPE") != "user" && os.Getenv("GHORG_SCM_BASE_URL") == "" {
-		colorlog.PrintErrorAndExit("Cannot currently use GHORG_CLONE_SNIPPETS (--clone-snippets) on a public gitlab project.")
-	}
-
-	snippetsToClone := []Repo{}
-	opt := &gitlab.ListAllSnippetsOptions{
-		ListOptions: gitlab.ListOptions{
-			PerPage: perPage,
-			Page:    1,
-		},
-	}
-
 	var allSnippets []*gitlab.Snippet
+	snippetsToClone := []Repo{}
 
-	for {
-		snippets, resp, err := c.Snippets.ListAllSnippets(opt)
-		if err != nil {
-			return snippetsToClone, fmt.Errorf("fetching snippets: %v", err)
+	// If it is a cloud group clone iterate over each project and try to get its snippets. We have to do this because if you use the /snippets/all endpoint it will return every public snippet from the cloud.
+	if os.Getenv("GHORG_CLONE_TYPE") != "user" && os.Getenv("GHORG_SCM_BASE_URL") == "" {
+		// Iterate over all projects in the group. If it has snippets add them
+
+		colorlog.PrintInfo("Note: only snippets you have access to will be cloned. This process may take a while depending on the size of group you are trying to clone, please be patient.")
+		for _, repo := range cloneData {
+			opt := &gitlab.ListProjectSnippetsOptions{
+				PerPage: perPage,
+				Page:    1,
+			}
+
+			for {
+				snippets, resp, err := c.ProjectSnippets.ListSnippets(repo.ID, opt)
+
+				if resp.StatusCode == 403 {
+					break
+				}
+
+				if err != nil {
+					colorlog.PrintError(fmt.Sprintf("Error fetching snippets for project %s: %v, ignoring error and proceeding to next project", repo.Name, err))
+					break
+				}
+
+				allSnippets = append(allSnippets, snippets...)
+
+				// Exit the loop when we've seen all pages.
+				if resp.NextPage == 0 {
+					break
+				}
+
+				// Update the page number to get the next page.
+				opt.Page = resp.NextPage
+			}
 		}
 
-		allSnippets = append(allSnippets, snippets...)
-
-		// Exit the loop when we've seen all pages.
-		if resp.NextPage == 0 {
-			break
+	} else {
+		opt := &gitlab.ListAllSnippetsOptions{
+			ListOptions: gitlab.ListOptions{
+				PerPage: perPage,
+				Page:    1,
+			},
 		}
 
-		// Update the page number to get the next page.
-		opt.Page = resp.NextPage
+		for {
+			snippets, resp, err := c.Snippets.ListAllSnippets(opt)
+			if err != nil {
+				return snippetsToClone, fmt.Errorf("fetching snippets: %v", err)
+			}
+
+			allSnippets = append(allSnippets, snippets...)
+
+			// Exit the loop when we've seen all pages.
+			if resp.NextPage == 0 {
+				break
+			}
+
+			// Update the page number to get the next page.
+			opt.Page = resp.NextPage
+		}
 	}
 
 	for _, snippet := range allSnippets {
@@ -402,6 +435,7 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 		r := Repo{}
 
 		r.Name = p.Name
+		r.ID = strconv.Itoa(p.ID)
 
 		if os.Getenv("GHORG_BRANCH") == "" {
 			defaultBranch := p.DefaultBranch
