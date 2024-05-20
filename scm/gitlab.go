@@ -150,6 +150,10 @@ func (c Gitlab) GetSnippets(cloneData []Repo) ([]Repo, error) {
 		return []Repo{}, nil
 	}
 
+	if os.Getenv("GHORG_CLONE_TYPE") != "user" && os.Getenv("GHORG_SCM_BASE_URL") == "" {
+		colorlog.PrintErrorAndExit("Cannot currently use GHORG_CLONE_SNIPPETS (--clone-snippets) on a public gitlab project.")
+	}
+
 	snippetsToClone := []Repo{}
 	opt := &gitlab.ListAllSnippetsOptions{
 		ListOptions: gitlab.ListOptions{
