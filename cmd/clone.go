@@ -550,6 +550,21 @@ func trimCollisionFilename(filename string) string {
 	return filename
 }
 
+func getCloneableInventory(allRepos []scm.Repo) (int, int, int, int) {
+	var wikis, snippets, repos, total int
+	for _, repo := range allRepos {
+		if repo.IsGitLabSnippet {
+			snippets++
+		} else if repo.IsWiki {
+			wikis++
+		} else {
+			repos++
+		}
+	}
+	total = repos + snippets + wikis
+	return total, repos, snippets, wikis
+}
+
 // CloneAllRepos clones all repos
 func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	// Filter repos that have attributes that don't need specific scm api calls
@@ -668,13 +683,15 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	}
 
-	repoCount := getRepoCountOnly(cloneTargets)
-
+	totalResourcesToClone, reposToCloneCount, snippetToCloneCount, wikisToCloneCount := getCloneableInventory(cloneTargets)
 	if os.Getenv("GHORG_CLONE_WIKI") == "true" {
-		wikiCount := strconv.Itoa(len(cloneTargets) - repoCount)
-		colorlog.PrintInfo(strconv.Itoa(repoCount) + " repos found in " + targetCloneSource + ", including " + wikiCount + " enabled wikis\n")
+		m := fmt.Sprintf("%v resources to clone found in %v, %v repos and %v wikis\n", totalResourcesToClone, targetCloneSource, reposToCloneCount, wikisToCloneCount)
+		colorlog.PrintInfo(m)
+	} else if os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
+		m := fmt.Sprintf("%v resources to clone found in %v, %v repos and %v snippets\n", totalResourcesToClone, targetCloneSource, reposToCloneCount, snippetToCloneCount)
+		colorlog.PrintInfo(m)
 	} else {
-		colorlog.PrintInfo(strconv.Itoa(repoCount) + " repos found in " + targetCloneSource + "\n")
+		colorlog.PrintInfo(strconv.Itoa(reposToCloneCount) + " repos found in " + targetCloneSource + "\n")
 	}
 
 	if os.Getenv("GHORG_DRY_RUN") == "true" {
@@ -711,7 +728,6 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			repoSlug = repo.Name
 		}
 
-		// repoSlug := repo.Name
 		limit.Execute(func() {
 			if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
 				repoSlug = repo.Path
@@ -757,7 +773,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				// prevents git from asking for user for credentials, needs to be unset so creds aren't stored
 				err := git.SetOriginWithCredentials(repo)
 				if err != nil {
-					e := fmt.Sprintf("Problem setting remote with credentials Repo: %s Error: %v", repo.Name, err)
+					e := fmt.Sprintf("Problem setting remote with credentials on: %s Error: %v", repo.Name, err)
 					cloneErrors = append(cloneErrors, e)
 					return
 				}
@@ -767,13 +783,13 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					action = "updating remote"
 					// Theres no way to tell if a github repo has a wiki to clone
 					if err != nil && repo.IsWiki {
-						e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on Repo: %s Error: %v", repo.URL, err)
+						e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on: %s Error: %v", repo.URL, err)
 						cloneInfos = append(cloneInfos, e)
 						return
 					}
 
 					if err != nil {
-						e := fmt.Sprintf("Could not update remotes in Repo: %s Error: %v", repo.URL, err)
+						e := fmt.Sprintf("Could not update remotes: %s Error: %v", repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
@@ -784,13 +800,13 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 					// Theres no way to tell if a github repo has a wiki to clone
 					if err != nil && repo.IsWiki {
-						e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on Repo: %s Error: %v", repo.URL, err)
+						e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on: %s Error: %v", repo.URL, err)
 						cloneInfos = append(cloneInfos, e)
 						return
 					}
 
 					if err != nil {
-						e := fmt.Sprintf("Could not fetch remotes in Repo: %s Error: %v", repo.URL, err)
+						e := fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
@@ -798,7 +814,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				} else {
 					err := git.Checkout(repo)
 					if err != nil {
-						e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents, no changes made Repo: %s Error: %v", repo.CloneBranch, repo.URL, err)
+						e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents, no changes made on: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneInfos = append(cloneInfos, e)
 						return
 					}
@@ -814,7 +830,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					err = git.Reset(repo)
 
 					if err != nil {
-						e := fmt.Sprintf("Problem resetting %s Repo: %s Error: %v", repo.CloneBranch, repo.URL, err)
+						e := fmt.Sprintf("Problem resetting branch: %s for: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
@@ -822,7 +838,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					err = git.Pull(repo)
 
 					if err != nil {
-						e := fmt.Sprintf("Problem trying to pull %v Repo: %s Error: %v", repo.CloneBranch, repo.URL, err)
+						e := fmt.Sprintf("Problem trying to pull branch: %v for: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
@@ -834,7 +850,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						err = git.FetchAll(repo)
 
 						if err != nil {
-							e := fmt.Sprintf("Could not fetch remotes in Repo: %s Error: %v", repo.URL, err)
+							e := fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, err)
 							cloneErrors = append(cloneErrors, e)
 							return
 						}
@@ -843,7 +859,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 				err = git.SetOrigin(repo)
 				if err != nil {
-					e := fmt.Sprintf("Problem resetting remote Repo: %s Error: %v", repo.Name, err)
+					e := fmt.Sprintf("Problem resetting remote: %s Error: %v", repo.Name, err)
 					cloneErrors = append(cloneErrors, e)
 					return
 				}
@@ -854,13 +870,13 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 				// Theres no way to tell if a github repo has a wiki to clone
 				if err != nil && repo.IsWiki {
-					e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on Repo: %s Error: %v", repo.URL, err)
+					e := fmt.Sprintf("Wiki may be enabled but there was no content to clone: %s Error: %v", repo.URL, err)
 					cloneInfos = append(cloneInfos, e)
 					return
 				}
 
 				if err != nil {
-					e := fmt.Sprintf("Problem trying to clone Repo: %s Error: %v", repo.URL, err)
+					e := fmt.Sprintf("Problem trying to clone: %s Error: %v", repo.URL, err)
 					cloneErrors = append(cloneErrors, e)
 					return
 				}
@@ -868,7 +884,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				if os.Getenv("GHORG_BRANCH") != "" {
 					err := git.Checkout(repo)
 					if err != nil {
-						e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents, no changes made Repo: %s Error: %v", repo.CloneBranch, repo.URL, err)
+						e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents, no changes to: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneInfos = append(cloneInfos, e)
 						return
 					}
@@ -882,7 +898,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 				// if repo has wiki, but content does not exist this is going to error
 				if err != nil {
-					e := fmt.Sprintf("Problem trying to set remote on Repo: %s Error: %v", repo.URL, err)
+					e := fmt.Sprintf("Problem trying to set remote: %s Error: %v", repo.URL, err)
 					cloneErrors = append(cloneErrors, e)
 					return
 				}
@@ -891,7 +907,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					err = git.FetchAll(repo)
 
 					if err != nil {
-						e := fmt.Sprintf("Could not fetch remotes in Repo: %s Error: %v", repo.URL, err)
+						e := fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
