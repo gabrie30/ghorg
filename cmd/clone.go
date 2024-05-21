@@ -628,10 +628,12 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					}
 
 					if os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
-						targetRepoSnippets := targetRepo + ".snippets"
-						if strings.EqualFold(targetRepoSnippets, clonedRepoName) {
-							flag = true
-							targetRepoSeenOnOrg[targetRepo] = true
+						if cloneTarget.IsGitLabSnippet {
+							targetSnippetOriginalRepo := strings.TrimSuffix(filepath.Base(cloneTarget.GitLabSnippetInfo.URLOfRepo), ".git")
+							if strings.EqualFold(targetSnippetOriginalRepo, targetRepo) {
+								flag = true
+								targetRepoSeenOnOrg[targetRepo] = true
+							}
 						}
 					}
 				}
