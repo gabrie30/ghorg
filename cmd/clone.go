@@ -726,7 +726,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 		if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
 			repoSlug = getAppNameFromURL(repo.GitLabSnippetInfo.URLOfRepo)
-		} else {
+		} else if repo.IsGitLabRootLevelSnippet {
 			repoSlug = repo.Name
 		}
 
