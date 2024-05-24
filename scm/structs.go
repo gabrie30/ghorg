@@ -27,7 +27,12 @@ type Repo struct {
 }
 
 type GitLabSnippet struct {
-	ID        string
-	Title     string
+	// GitLab ID of the snippet
+	ID string
+	// Title of the snippet
+	Title string
+	// URL of the repo that snippet was made on
 	URLOfRepo string
+	// Name of the repo that the snippet was made on
+	NameOfRepo string
 }

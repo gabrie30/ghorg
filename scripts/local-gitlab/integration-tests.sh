@@ -2,11 +2,21 @@
 
 set -ex
 
-TOKEN=${1:-'password'}
-GITLAB_URL=${2:-'http://gitlab.example.com'}
-LOCAL_GITLAB_GHORG_DIR=${3:-"${HOME}/ghorg"}
+LOCAL_GITLAB_GHORG_DIR=${1:-"${HOME}/ghorg"}
+TOKEN=${2:-'password'}
+GITLAB_URL=${3:-'http://gitlab.example.com'}
+
+
+# Delete all folders that start with local-gitlab-v15- in the LOCAL_GITLAB_GHORG_DIR
+for dir in "${LOCAL_GITLAB_GHORG_DIR}"/local-gitlab-*; do
+    if [ -d "$dir" ]; then
+        rm -rf "$dir"
+    fi
+done
+
 
 export GHORG_INSECURE_GITLAB_CLIENT=true
+# export GHORG_DEBUG=true
 
 # NOTE run all clones twice to test once for clone then pull
 
@@ -36,7 +46,7 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR TEST FAILED"
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR TEST FAILED local-gitlab-group1"
 exit 1
 fi
 
@@ -51,7 +61,7 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR TEST FAILED"
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR TEST FAILED local-gitlab-group2"
 exit 1
 fi
 
@@ -67,7 +77,7 @@ EOF
 
 if [ "${WANT}" != "${GOT}" ]
 then
-echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR TEST FAILED"
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR TEST FAILED local-gitlab-group3/subgroup-a"
 exit 1
 fi
 
@@ -77,7 +87,6 @@ ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}
 
 GOT=$( ghorg ls local-gitlab-v15-repos-flat | grep -o 'local-gitlab-v15-repos-flat.*')
 WANT=$(cat <<EOF
-local-gitlab-v15-repos-flat/Monitoring
 local-gitlab-v15-repos-flat/local-gitlab-group1_baz0
 local-gitlab-v15-repos-flat/local-gitlab-group1_baz1
 local-gitlab-v15-repos-flat/local-gitlab-group1_baz2
@@ -100,6 +109,71 @@ EOF
 if [ "${WANT}" != "${GOT}" ]
 then
 echo "CLONE AND TEST ALL-GROUPS, OUTPUT DIR"
+exit 1
+fi
+
+########### CLONE AND TEST ALL-GROUPS, OUTPUT DIR, WIKI  ############
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --clone-wiki --output-dir=local-gitlab-v15-repos-flat-wiki
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --clone-wiki --output-dir=local-gitlab-v15-repos-flat-wiki
+
+GOT=$( ghorg ls local-gitlab-v15-repos-flat-wiki | grep -o 'local-gitlab-v15-repos-flat-wiki.*')
+WANT=$(cat <<EOF
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group1_baz0
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group1_baz0.wiki
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group1_baz1
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group1_baz1.wiki
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group1_baz2
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group1_baz2.wiki
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group1_baz3
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group1_baz3.wiki
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group2_baz0
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group2_baz0.wiki
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group2_baz1
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group2_baz1.wiki
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group2_baz2
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group2_baz2.wiki
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group2_baz3
+local-gitlab-v15-repos-flat-wiki/local-gitlab-group2_baz3.wiki
+local-gitlab-v15-repos-flat-wiki/subgroup_a_repo_0
+local-gitlab-v15-repos-flat-wiki/subgroup_a_repo_0.wiki
+local-gitlab-v15-repos-flat-wiki/subgroup_a_repo_1
+local-gitlab-v15-repos-flat-wiki/subgroup_a_repo_1.wiki
+local-gitlab-v15-repos-flat-wiki/subgroup_a_repo_2
+local-gitlab-v15-repos-flat-wiki/subgroup_a_repo_2.wiki
+local-gitlab-v15-repos-flat-wiki/subgroup_a_repo_3
+local-gitlab-v15-repos-flat-wiki/subgroup_a_repo_3.wiki
+local-gitlab-v15-repos-flat-wiki/subgroup_b_repo_0
+local-gitlab-v15-repos-flat-wiki/subgroup_b_repo_0.wiki
+local-gitlab-v15-repos-flat-wiki/subgroup_b_repo_1
+local-gitlab-v15-repos-flat-wiki/subgroup_b_repo_1.wiki
+local-gitlab-v15-repos-flat-wiki/subgroup_b_repo_2
+local-gitlab-v15-repos-flat-wiki/subgroup_b_repo_2.wiki
+local-gitlab-v15-repos-flat-wiki/subgroup_b_repo_3
+local-gitlab-v15-repos-flat-wiki/subgroup_b_repo_3.wiki
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-GROUPS, OUTPUT DIR"
+exit 1
+fi
+
+############ CLONE AND TEST ALL-GROUPS, OUTPUT DIR, SNIPPETS, ROOT LEVEL  ############
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --clone-snippets --output-dir=local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --clone-snippets --output-dir=local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups
+
+# Test root level snippets
+GOT=$( ghorg ls local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups/_ghorg_root_level_snippets | grep -o 'local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups.*')
+WANT=$(cat <<EOF
+local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups/_ghorg_root_level_snippets/snippet1-1
+local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups/_ghorg_root_level_snippets/snippet2-2
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-GROUPS, OUTPUT DIR, SNIPPETS, ROOT LEVEL FAILED"
 exit 1
 fi
 
@@ -138,19 +212,19 @@ ghorg clone local-gitlab-group1 --scm=gitlab --base-url="${GITLAB_URL}" --token=
 ghorg clone local-gitlab-group1 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-group1
 
 ############ CLONE AND TEST TOP LEVEL GROUP  ############
-ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}"
-ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}"
+ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-top-level-group
+ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-top-level-group
 
-GOT=$(ghorg ls local-gitlab-group3 | grep -o 'local-gitlab-group3.*')
+GOT=$(ghorg ls local-gitlab-v15-top-level-group | grep -o 'local-gitlab-v15-top-level-group.*')
 WANT=$(cat <<EOF
-local-gitlab-group3/subgroup_a_repo_0
-local-gitlab-group3/subgroup_a_repo_1
-local-gitlab-group3/subgroup_a_repo_2
-local-gitlab-group3/subgroup_a_repo_3
-local-gitlab-group3/subgroup_b_repo_0
-local-gitlab-group3/subgroup_b_repo_1
-local-gitlab-group3/subgroup_b_repo_2
-local-gitlab-group3/subgroup_b_repo_3
+local-gitlab-v15-top-level-group/subgroup_a_repo_0
+local-gitlab-v15-top-level-group/subgroup_a_repo_1
+local-gitlab-v15-top-level-group/subgroup_a_repo_2
+local-gitlab-v15-top-level-group/subgroup_a_repo_3
+local-gitlab-v15-top-level-group/subgroup_b_repo_0
+local-gitlab-v15-top-level-group/subgroup_b_repo_1
+local-gitlab-v15-top-level-group/subgroup_b_repo_2
+local-gitlab-v15-top-level-group/subgroup_b_repo_3
 EOF
 )
 

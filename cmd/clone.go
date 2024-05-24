@@ -497,6 +497,10 @@ func hasRepoNameCollisions(repos []scm.Repo) (map[string]bool, bool) {
 			continue
 		}
 
+		if repo.IsWiki {
+			continue
+		}
+
 		if _, ok := repoNameWithCollisions[repo.Name]; ok {
 			repoNameWithCollisions[repo.Name] = true
 			hasCollisions = true
@@ -686,7 +690,10 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	}
 
 	totalResourcesToClone, reposToCloneCount, snippetToCloneCount, wikisToCloneCount := getCloneableInventory(cloneTargets)
-	if os.Getenv("GHORG_CLONE_WIKI") == "true" {
+	if os.Getenv("GHORG_CLONE_WIKI") == "true" && os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
+		m := fmt.Sprintf("%v resources to clone found in %v, %v repos, %v snippets, and %v wikis\n", totalResourcesToClone, targetCloneSource, snippetToCloneCount, reposToCloneCount, wikisToCloneCount)
+		colorlog.PrintInfo(m)
+	} else if os.Getenv("GHORG_CLONE_WIKI") == "true" {
 		m := fmt.Sprintf("%v resources to clone found in %v, %v repos and %v wikis\n", totalResourcesToClone, targetCloneSource, reposToCloneCount, wikisToCloneCount)
 		colorlog.PrintInfo(m)
 	} else if os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
@@ -721,7 +728,9 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	for i := range cloneTargets {
 		repo := cloneTargets[i]
 
-		// we use this because we dont want spaces in the final directory, using the web address makes it more file friendly
+		// We use this because we dont want spaces in the final directory, using the web address makes it more file friendly
+		// In the case of root level snippets we use the title which will have spaces in it, the url uses an ID so its not possible to use name from url
+		// With snippets that originate on repos, we use that repo name
 		repoSlug := getAppNameFromURL(repo.URL)
 
 		if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
@@ -736,13 +745,28 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			}
 
 			mutex.Lock()
-			inHash := repoNameWithCollisions[repo.Name]
+			var inHash bool
+			if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
+				inHash = repoNameWithCollisions[repo.GitLabSnippetInfo.NameOfRepo]
+			} else {
+				inHash = repoNameWithCollisions[repo.Name]
+			}
+
 			mutex.Unlock()
 			// Only GitLab repos can have collisions due to groups and subgroups
 			// If there are collisions and this is a repo with a naming collision change name to avoid collisions
 			if hasCollisions && inHash {
-				repoSlug = trimCollisionFilename(strings.Replace(repo.Path, "/", "_", -1))
-
+				repoSlug = trimCollisionFilename(strings.Replace(repo.Path, string(os.PathSeparator), "_", -1))
+				if repo.IsWiki {
+					if !strings.HasSuffix(repoSlug, ".wiki") {
+						repoSlug = repoSlug + ".wiki"
+					}
+				}
+				if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
+					if !strings.HasSuffix(repoSlug, ".snippets") {
+						repoSlug = repoSlug + ".snippets"
+					}
+				}
 				mutex.Lock()
 				slugCollision := repoNameWithCollisions[repoSlug]
 				mutex.Unlock()
@@ -756,18 +780,21 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				}
 			}
 
+			if repo.IsWiki {
+				if !strings.HasSuffix(repoSlug, ".wiki") {
+					repoSlug = repoSlug + ".wiki"
+				}
+			}
+			if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
+				if !strings.HasSuffix(repoSlug, ".snippets") {
+					repoSlug = repoSlug + ".snippets"
+				}
+			}
+
 			repo.HostPath = filepath.Join(outputDirAbsolutePath, repoSlug)
 
 			if repo.IsGitLabRootLevelSnippet {
 				repo.HostPath = filepath.Join(outputDirAbsolutePath, "_ghorg_root_level_snippets", repo.GitLabSnippetInfo.Title+"-"+repo.GitLabSnippetInfo.ID)
-			} else if repo.IsGitLabSnippet {
-				repo.HostPath = filepath.Join(outputDirAbsolutePath, repoSlug+".snippets", repo.GitLabSnippetInfo.Title+"-"+repo.GitLabSnippetInfo.ID)
-			}
-
-			if repo.IsWiki {
-				if !strings.HasSuffix(repo.HostPath, ".wiki") {
-					repo.HostPath = repo.HostPath + ".wiki"
-				}
 			}
 
 			action := "cloning"

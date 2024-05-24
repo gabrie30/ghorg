@@ -275,6 +275,7 @@ func (c Gitlab) GetSnippets(cloneData []Repo) ([]Repo, error) {
 					s.GitLabSnippetInfo.ID = snippetID
 					s.GitLabSnippetInfo.Title = snippetTitle
 					s.GitLabSnippetInfo.URLOfRepo = cloneTarget.URL
+					s.GitLabSnippetInfo.NameOfRepo = cloneTarget.Name
 					cloneData = append(cloneData, s)
 				}
 			}
@@ -505,6 +506,8 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 
 		if p.WikiEnabled && os.Getenv("GHORG_CLONE_WIKI") == "true" {
 			wiki := Repo{}
+			// wiki needs name for gitlab name collisions
+			wiki.Name = p.Name
 			wiki.IsWiki = true
 			wiki.CloneURL = strings.Replace(r.CloneURL, ".git", ".wiki.git", 1)
 			wiki.URL = strings.Replace(r.URL, ".git", ".wiki.git", 1)
