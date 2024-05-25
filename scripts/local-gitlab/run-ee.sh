@@ -27,7 +27,7 @@ if [ "${PERSIST_GITLAB_LOCALLY}" == "true" ];then
   docker run \
     -d=true \
     --hostname "${GITLAB_HOST}" \
-    --publish 443:443 --publish 80:80 --publish 22:22 \
+    --publish 443:443 --publish 80:80 --publish 2222:22 \
     --name gitlab \
     gitlab/gitlab-ee:"${GITLAB_IMAGE_TAG}"
 else
@@ -35,7 +35,7 @@ else
   docker run \
     -d=true \
     --hostname "${GITLAB_HOST}" \
-    --publish 443:443 --publish 80:80 --publish 22:22 \
+    --publish 443:443 --publish 80:80 --publish 2222:22 \
     --name gitlab \
     gitlab/gitlab-ee:"${GITLAB_IMAGE_TAG}"
 fi
