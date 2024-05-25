@@ -1,0 +1,12 @@
+name: Run GitLab Integration Test
+on: [push, pull_request]
+jobs:
+  gitlab_integration_test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Set up Docker
+      uses: docker-practice/actions-setup-docker@master
+    - name: Run GitLab Integration Test
+      run: ./scripts/local-gitlab/start-ee.sh
