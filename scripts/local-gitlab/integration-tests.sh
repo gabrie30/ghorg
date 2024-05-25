@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -xv
 
 LOCAL_GITLAB_GHORG_DIR=${1:-"${HOME}/ghorg"}
 TOKEN=${2:-'password'}

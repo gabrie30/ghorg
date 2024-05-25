@@ -1,6 +1,6 @@
 #! /bin/bash
 
-set -x
+set -xv
 
 # https://docs.gitlab.com/ee/install/docker.html#install-gitlab-using-docker-engine
 

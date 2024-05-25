@@ -1,5 +1,7 @@
 #! /bin/bash
 
+set -xv
+
 # Note: you will need to stop manually
 # docker stop gitlab
 # docker rm gitlab
