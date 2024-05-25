@@ -510,7 +510,7 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 		}
 
 		r.Path = path
-		r.ID = string(p.ID)
+		r.ID = fmt.Sprint(p.ID)
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			r.CloneURL = c.addTokenToCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))
 			r.URL = p.HTTPURLToRepo
