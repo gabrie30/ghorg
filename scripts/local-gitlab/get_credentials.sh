@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -x
 
 # poll until gitlab has started
 
