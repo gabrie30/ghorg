@@ -9,4 +9,6 @@ jobs:
     - name: Set up Docker
       uses: docker-practice/actions-setup-docker@master
     - name: Run GitLab Integration Test
-      run: ./scripts/local-gitlab/start-ee.sh
+      run: |
+        export ENV=ci
+        ./scripts/local-gitlab/start-ee.sh
