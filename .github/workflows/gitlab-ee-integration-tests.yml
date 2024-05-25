@@ -24,4 +24,5 @@ jobs:
       - name: Run GitLab Integration Test
         run: |
           echo "Using ghorg version: $(ghorg version)"
+          export GHORG_GHA_CI=true
           ./scripts/local-gitlab/start-ee.sh
