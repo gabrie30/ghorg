@@ -97,7 +97,7 @@ func (r *Webhooks) Create(ro *WebhooksOptions) (*Webhook, error) {
 		return nil, err
 	}
 	urlStr := r.c.requestUrl("/repositories/%s/%s/hooks", ro.Owner, ro.RepoSlug)
-	response, err := r.c.execute("POST", urlStr, data)
+	response, err := r.c.executeWithContext("POST", urlStr, data, ro.ctx)
 	if err != nil {
 		return nil, err
 	}
