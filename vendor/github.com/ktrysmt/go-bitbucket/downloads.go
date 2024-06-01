@@ -18,7 +18,7 @@ func (dl *Downloads) Create(do *DownloadsOptions) (interface{}, error) {
 			Name: do.FileName,
 		}}
 	}
-	return dl.c.executeFileUpload("POST", urlStr, do.Files, []string{}, make(map[string]string))
+	return dl.c.executeFileUpload("POST", urlStr, do.Files, []string{}, make(map[string]string), do.ctx)
 }
 
 func (dl *Downloads) List(do *DownloadsOptions) (interface{}, error) {

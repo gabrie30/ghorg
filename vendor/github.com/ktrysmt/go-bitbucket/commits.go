@@ -42,7 +42,7 @@ func (cm *Commits) GetCommitStatus(cmo *CommitsOptions, commitStatusKey string) 
 
 func (cm *Commits) GiveApprove(cmo *CommitsOptions) (interface{}, error) {
 	urlStr := cm.c.requestUrl("/repositories/%s/%s/commit/%s/approve", cmo.Owner, cmo.RepoSlug, cmo.Revision)
-	return cm.c.execute("POST", urlStr, "")
+	return cm.c.executeWithContext("POST", urlStr, "", cmo.ctx)
 }
 
 func (cm *Commits) RemoveApprove(cmo *CommitsOptions) (interface{}, error) {
@@ -56,7 +56,7 @@ func (cm *Commits) CreateCommitStatus(cmo *CommitsOptions, cso *CommitStatusOpti
 	if err != nil {
 		return nil, err
 	}
-	return cm.c.execute("POST", urlStr, string(data))
+	return cm.c.executeWithContext("POST", urlStr, string(data), cmo.ctx)
 }
 
 func (cm *Commits) buildCommitsQuery(include, exclude string) string {
