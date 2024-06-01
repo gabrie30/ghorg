@@ -64,7 +64,7 @@ github.com/dlclark/regexp2/syntax
 # github.com/eliukblau/pixterm/pkg/ansimage v0.0.0-20191210081756-9fb6cf8c2f75
 ## explicit; go 1.13
 github.com/eliukblau/pixterm/pkg/ansimage
-# github.com/fatih/color v1.16.0
+# github.com/fatih/color v1.17.0
 ## explicit; go 1.17
 github.com/fatih/color
 # github.com/fsnotify/fsnotify v1.7.0
