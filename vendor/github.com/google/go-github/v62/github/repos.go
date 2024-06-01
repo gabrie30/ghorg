@@ -1003,6 +1003,14 @@ type Branch struct {
 	Name      *string           `json:"name,omitempty"`
 	Commit    *RepositoryCommit `json:"commit,omitempty"`
 	Protected *bool             `json:"protected,omitempty"`
+
+	// Protection will always be included in APIs which return the
+	// 'Branch With Protection' schema such as 'Get a branch', but may
+	// not be included in APIs that return the `Short Branch` schema
+	// such as 'List branches'. In such cases, if branch protection is
+	// enabled, Protected will be `true` but this will be nil, and
+	// additional protection details can be obtained by calling GetBranch().
+	Protection *Protection `json:"protection,omitempty"`
 }
 
 // Protection represents a repository branch's protection.
@@ -2393,4 +2401,28 @@ func (s *RepositoriesService) DisablePrivateReporting(ctx context.Context, owner
 	}
 
 	return resp, nil
+}
+
+// checkPrivateReporting represents whether private vulnerability reporting is enabled.
+type checkPrivateReporting struct {
+	Enabled bool `json:"enabled,omitempty"`
+}
+
+// IsPrivateReportingEnabled checks if private vulnerability reporting is enabled
+// for the repository and returns a boolean indicating the status.
+//
+// GitHub API docs: https://docs.github.com/rest/repos/repos#check-if-private-vulnerability-reporting-is-enabled-for-a-repository
+//
+//meta:operation GET /repos/{owner}/{repo}/private-vulnerability-reporting
+func (s *RepositoriesService) IsPrivateReportingEnabled(ctx context.Context, owner, repo string) (bool, *Response, error) {
+	u := fmt.Sprintf("repos/%v/%v/private-vulnerability-reporting", owner, repo)
+
+	req, err := s.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return false, nil, err
+	}
+
+	privateReporting := new(checkPrivateReporting)
+	resp, err := s.client.Do(ctx, req, privateReporting)
+	return privateReporting.Enabled, resp, err
 }

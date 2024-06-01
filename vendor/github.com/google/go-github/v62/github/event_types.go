@@ -232,6 +232,7 @@ type DeploymentProtectionRuleEvent struct {
 //
 // GitHub API docs: https://docs.github.com/developers/webhooks-and-events/webhook-events-and-payloads#deployment_status
 type DeploymentStatusEvent struct {
+	Action           *string           `json:"action,omitempty"`
 	Deployment       *Deployment       `json:"deployment,omitempty"`
 	DeploymentStatus *DeploymentStatus `json:"deployment_status,omitempty"`
 	Repo             *Repository       `json:"repository,omitempty"`
@@ -689,14 +690,34 @@ type MarketplacePurchaseEvent struct {
 	Org *Organization `json:"organization,omitempty"`
 }
 
-// MemberEvent is triggered when a user is added as a collaborator to a repository.
+// MemberChangesPermission represents changes to a repository collaborator's permissions.
+type MemberChangesPermission struct {
+	From *string `json:"from,omitempty"`
+	To   *string `json:"to,omitempty"`
+}
+
+// MemberChangesRoleName represents changes to a repository collaborator's role.
+type MemberChangesRoleName struct {
+	From *string `json:"from,omitempty"`
+	To   *string `json:"to,omitempty"`
+}
+
+// MemberChanges represents changes to a repository collaborator's role or permission.
+type MemberChanges struct {
+	Permission *MemberChangesPermission `json:"permission,omitempty"`
+	RoleName   *MemberChangesRoleName   `json:"role_name,omitempty"`
+}
+
+// MemberEvent is triggered when a user's membership as a collaborator to a repository changes.
 // The Webhook event name is "member".
 //
 // GitHub API docs: https://docs.github.com/developers/webhooks-and-events/webhook-events-and-payloads#member
 type MemberEvent struct {
-	// Action is the action that was performed. Possible value is: "added".
-	Action *string `json:"action,omitempty"`
-	Member *User   `json:"member,omitempty"`
+	// Action is the action that was performed. Possible values are:
+	//"added", "edited", "removed".
+	Action  *string        `json:"action,omitempty"`
+	Member  *User          `json:"member,omitempty"`
+	Changes *MemberChanges `json:"changes,omitempty"`
 
 	// The following fields are only populated by Webhook events.
 	Repo         *Repository   `json:"repository,omitempty"`
