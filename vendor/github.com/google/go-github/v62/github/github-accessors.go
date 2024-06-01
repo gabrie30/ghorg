@@ -1574,6 +1574,14 @@ func (b *Branch) GetProtected() bool {
 	return *b.Protected
 }
 
+// GetProtection returns the Protection field.
+func (b *Branch) GetProtection() *Protection {
+	if b == nil {
+		return nil
+	}
+	return b.Protection
+}
+
 // GetCommit returns the Commit field.
 func (b *BranchCommit) GetCommit() *Commit {
 	if b == nil {
@@ -5198,6 +5206,166 @@ func (d *Dependency) GetScope() string {
 	return *d.Scope
 }
 
+// GetDetector returns the Detector field.
+func (d *DependencyGraphSnapshot) GetDetector() *DependencyGraphSnapshotDetector {
+	if d == nil {
+		return nil
+	}
+	return d.Detector
+}
+
+// GetJob returns the Job field.
+func (d *DependencyGraphSnapshot) GetJob() *DependencyGraphSnapshotJob {
+	if d == nil {
+		return nil
+	}
+	return d.Job
+}
+
+// GetRef returns the Ref field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshot) GetRef() string {
+	if d == nil || d.Ref == nil {
+		return ""
+	}
+	return *d.Ref
+}
+
+// GetScanned returns the Scanned field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshot) GetScanned() Timestamp {
+	if d == nil || d.Scanned == nil {
+		return Timestamp{}
+	}
+	return *d.Scanned
+}
+
+// GetSha returns the Sha field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshot) GetSha() string {
+	if d == nil || d.Sha == nil {
+		return ""
+	}
+	return *d.Sha
+}
+
+// GetCreatedAt returns the CreatedAt field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotCreationData) GetCreatedAt() Timestamp {
+	if d == nil || d.CreatedAt == nil {
+		return Timestamp{}
+	}
+	return *d.CreatedAt
+}
+
+// GetMessage returns the Message field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotCreationData) GetMessage() string {
+	if d == nil || d.Message == nil {
+		return ""
+	}
+	return *d.Message
+}
+
+// GetResult returns the Result field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotCreationData) GetResult() string {
+	if d == nil || d.Result == nil {
+		return ""
+	}
+	return *d.Result
+}
+
+// GetName returns the Name field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotDetector) GetName() string {
+	if d == nil || d.Name == nil {
+		return ""
+	}
+	return *d.Name
+}
+
+// GetURL returns the URL field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotDetector) GetURL() string {
+	if d == nil || d.URL == nil {
+		return ""
+	}
+	return *d.URL
+}
+
+// GetVersion returns the Version field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotDetector) GetVersion() string {
+	if d == nil || d.Version == nil {
+		return ""
+	}
+	return *d.Version
+}
+
+// GetCorrelator returns the Correlator field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotJob) GetCorrelator() string {
+	if d == nil || d.Correlator == nil {
+		return ""
+	}
+	return *d.Correlator
+}
+
+// GetHTMLURL returns the HTMLURL field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotJob) GetHTMLURL() string {
+	if d == nil || d.HTMLURL == nil {
+		return ""
+	}
+	return *d.HTMLURL
+}
+
+// GetID returns the ID field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotJob) GetID() string {
+	if d == nil || d.ID == nil {
+		return ""
+	}
+	return *d.ID
+}
+
+// GetFile returns the File field.
+func (d *DependencyGraphSnapshotManifest) GetFile() *DependencyGraphSnapshotManifestFile {
+	if d == nil {
+		return nil
+	}
+	return d.File
+}
+
+// GetName returns the Name field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotManifest) GetName() string {
+	if d == nil || d.Name == nil {
+		return ""
+	}
+	return *d.Name
+}
+
+// GetSourceLocation returns the SourceLocation field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotManifestFile) GetSourceLocation() string {
+	if d == nil || d.SourceLocation == nil {
+		return ""
+	}
+	return *d.SourceLocation
+}
+
+// GetPackageURL returns the PackageURL field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotResolvedDependency) GetPackageURL() string {
+	if d == nil || d.PackageURL == nil {
+		return ""
+	}
+	return *d.PackageURL
+}
+
+// GetRelationship returns the Relationship field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotResolvedDependency) GetRelationship() string {
+	if d == nil || d.Relationship == nil {
+		return ""
+	}
+	return *d.Relationship
+}
+
+// GetScope returns the Scope field if it's non-nil, zero value otherwise.
+func (d *DependencyGraphSnapshotResolvedDependency) GetScope() string {
+	if d == nil || d.Scope == nil {
+		return ""
+	}
+	return *d.Scope
+}
+
 // GetAction returns the Action field if it's non-nil, zero value otherwise.
 func (d *DeployKeyEvent) GetAction() string {
 	if d == nil || d.Action == nil {
@@ -5708,6 +5876,14 @@ func (d *DeploymentStatus) GetURL() string {
 		return ""
 	}
 	return *d.URL
+}
+
+// GetAction returns the Action field if it's non-nil, zero value otherwise.
+func (d *DeploymentStatusEvent) GetAction() string {
+	if d == nil || d.Action == nil {
+		return ""
+	}
+	return *d.Action
 }
 
 // GetDeployment returns the Deployment field.
@@ -8678,6 +8854,14 @@ func (i *InstallationPermissions) GetOrganizationAdministration() string {
 	return *i.OrganizationAdministration
 }
 
+// GetOrganizationCustomProperties returns the OrganizationCustomProperties field if it's non-nil, zero value otherwise.
+func (i *InstallationPermissions) GetOrganizationCustomProperties() string {
+	if i == nil || i.OrganizationCustomProperties == nil {
+		return ""
+	}
+	return *i.OrganizationCustomProperties
+}
+
 // GetOrganizationCustomRoles returns the OrganizationCustomRoles field if it's non-nil, zero value otherwise.
 func (i *InstallationPermissions) GetOrganizationCustomRoles() string {
 	if i == nil || i.OrganizationCustomRoles == nil {
@@ -9044,6 +9228,14 @@ func (i *InstallationToken) GetToken() string {
 		return ""
 	}
 	return *i.Token
+}
+
+// GetPermissions returns the Permissions field.
+func (i *InstallationTokenListRepoOptions) GetPermissions() *InstallationPermissions {
+	if i == nil {
+		return nil
+	}
+	return i.Permissions
 }
 
 // GetPermissions returns the Permissions field.
@@ -10742,6 +10934,14 @@ func (l *ListRepositories) GetTotalCount() int {
 	return *l.TotalCount
 }
 
+// GetName returns the Name field if it's non-nil, zero value otherwise.
+func (l *ListRunnersOptions) GetName() string {
+	if l == nil || l.Name == nil {
+		return ""
+	}
+	return *l.Name
+}
+
 // GetCount returns the Count field if it's non-nil, zero value otherwise.
 func (l *ListSCIMProvisionedIdentitiesOptions) GetCount() int {
 	if l == nil || l.Count == nil {
@@ -11190,12 +11390,68 @@ func (m *Match) GetText() string {
 	return *m.Text
 }
 
+// GetPermission returns the Permission field.
+func (m *MemberChanges) GetPermission() *MemberChangesPermission {
+	if m == nil {
+		return nil
+	}
+	return m.Permission
+}
+
+// GetRoleName returns the RoleName field.
+func (m *MemberChanges) GetRoleName() *MemberChangesRoleName {
+	if m == nil {
+		return nil
+	}
+	return m.RoleName
+}
+
+// GetFrom returns the From field if it's non-nil, zero value otherwise.
+func (m *MemberChangesPermission) GetFrom() string {
+	if m == nil || m.From == nil {
+		return ""
+	}
+	return *m.From
+}
+
+// GetTo returns the To field if it's non-nil, zero value otherwise.
+func (m *MemberChangesPermission) GetTo() string {
+	if m == nil || m.To == nil {
+		return ""
+	}
+	return *m.To
+}
+
+// GetFrom returns the From field if it's non-nil, zero value otherwise.
+func (m *MemberChangesRoleName) GetFrom() string {
+	if m == nil || m.From == nil {
+		return ""
+	}
+	return *m.From
+}
+
+// GetTo returns the To field if it's non-nil, zero value otherwise.
+func (m *MemberChangesRoleName) GetTo() string {
+	if m == nil || m.To == nil {
+		return ""
+	}
+	return *m.To
+}
+
 // GetAction returns the Action field if it's non-nil, zero value otherwise.
 func (m *MemberEvent) GetAction() string {
 	if m == nil || m.Action == nil {
 		return ""
 	}
 	return *m.Action
+}
+
+// GetChanges returns the Changes field.
+func (m *MemberEvent) GetChanges() *MemberChanges {
+	if m == nil {
+		return nil
+	}
+	return m.Changes
 }
 
 // GetInstallation returns the Installation field.
@@ -11964,6 +12220,14 @@ func (n *NewTeam) GetLDAPDN() string {
 		return ""
 	}
 	return *n.LDAPDN
+}
+
+// GetNotificationSetting returns the NotificationSetting field if it's non-nil, zero value otherwise.
+func (n *NewTeam) GetNotificationSetting() string {
+	if n == nil || n.NotificationSetting == nil {
+		return ""
+	}
+	return *n.NotificationSetting
 }
 
 // GetParentTeamID returns the ParentTeamID field if it's non-nil, zero value otherwise.
@@ -17532,6 +17796,14 @@ func (r *RateLimits) GetActionsRunnerRegistration() *Rate {
 		return nil
 	}
 	return r.ActionsRunnerRegistration
+}
+
+// GetAuditLog returns the AuditLog field.
+func (r *RateLimits) GetAuditLog() *Rate {
+	if r == nil {
+		return nil
+	}
+	return r.AuditLog
 }
 
 // GetCodeScanningUpload returns the CodeScanningUpload field.
