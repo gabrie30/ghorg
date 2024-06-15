@@ -111,8 +111,7 @@ func (_ Bitbucket) filter(resp []bitbucket.Repository) (repoData []Repo, err err
 }
 
 func insertAppPasswordCredentialsIntoURL(url string) string {
-	password := os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
-	credentials := ":" + password + "@"
+	credentials := ":" + os.Getenv("GHORG_BITBUCKET_APP_PASSWORD") + "@"
 	urlWithCredentials := strings.Replace(url, "@", credentials, 1)
 
 	return urlWithCredentials
