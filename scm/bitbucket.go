@@ -1,7 +1,6 @@
 package scm
 
 import (
-	"fmt"
 	"net/url"
 	"strings"
 
