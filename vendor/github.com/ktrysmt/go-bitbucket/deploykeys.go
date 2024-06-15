@@ -52,7 +52,7 @@ func (dk *DeployKeys) Create(opt *DeployKeyOptions) (*DeployKey, error) {
 		return nil, err
 	}
 	urlStr := dk.c.requestUrl("/repositories/%s/%s/deploy-keys", opt.Owner, opt.RepoSlug)
-	response, err := dk.c.execute("POST", urlStr, data)
+	response, err := dk.c.executeWithContext("POST", urlStr, data, opt.ctx)
 	if err != nil {
 		return nil, err
 	}

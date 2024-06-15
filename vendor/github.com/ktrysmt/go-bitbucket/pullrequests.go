@@ -15,7 +15,7 @@ func (p *PullRequests) Create(po *PullRequestsOptions) (interface{}, error) {
 		return nil, err
 	}
 	urlStr := p.c.requestUrl("/repositories/%s/%s/pullrequests/", po.Owner, po.RepoSlug)
-	return p.c.execute("POST", urlStr, data)
+	return p.c.executeWithContext("POST", urlStr, data, po.ctx)
 }
 
 func (p *PullRequests) Update(po *PullRequestsOptions) (interface{}, error) {
@@ -104,7 +104,7 @@ func (p *PullRequests) Merge(po *PullRequestsOptions) (interface{}, error) {
 		return nil, err
 	}
 	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/merge"
-	return p.c.execute("POST", urlStr, data)
+	return p.c.executeWithContext("POST", urlStr, data, po.ctx)
 }
 
 func (p *PullRequests) Decline(po *PullRequestsOptions) (interface{}, error) {
@@ -113,12 +113,12 @@ func (p *PullRequests) Decline(po *PullRequestsOptions) (interface{}, error) {
 		return nil, err
 	}
 	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/decline"
-	return p.c.execute("POST", urlStr, data)
+	return p.c.executeWithContext("POST", urlStr, data, po.ctx)
 }
 
 func (p *PullRequests) Approve(po *PullRequestsOptions) (interface{}, error) {
 	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/approve"
-	return p.c.execute("POST", urlStr, "")
+	return p.c.executeWithContext("POST", urlStr, "", po.ctx)
 }
 
 func (p *PullRequests) UnApprove(po *PullRequestsOptions) (interface{}, error) {
@@ -128,7 +128,7 @@ func (p *PullRequests) UnApprove(po *PullRequestsOptions) (interface{}, error) {
 
 func (p *PullRequests) RequestChanges(po *PullRequestsOptions) (interface{}, error) {
 	urlStr := p.c.GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.RepoSlug + "/pullrequests/" + po.ID + "/request-changes"
-	return p.c.execute("POST", urlStr, "")
+	return p.c.executeWithContext("POST", urlStr, "", po.ctx)
 }
 
 func (p *PullRequests) UnRequestChanges(po *PullRequestsOptions) (interface{}, error) {
@@ -143,7 +143,7 @@ func (p *PullRequests) AddComment(co *PullRequestCommentOptions) (interface{}, e
 	}
 
 	urlStr := p.c.requestUrl("/repositories/%s/%s/pullrequests/%s/comments", co.Owner, co.RepoSlug, co.PullRequestID)
-	return p.c.execute("POST", urlStr, data)
+	return p.c.executeWithContext("POST", urlStr, data, co.ctx)
 }
 
 func (p *PullRequests) UpdateComment(co *PullRequestCommentOptions) (interface{}, error) {

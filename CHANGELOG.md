@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 ### Fixed
 - Refs to deprecated io/ioutil (#415); thanks @testwill
+- Bitbucket clones without app password; thanks @SparklingAperioso
 ### Security
 
 ## [1.9.12] - 5/15/24

@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	Version = "v60.0.0"
+	Version = "v62.0.0"
 
 	defaultAPIVersion = "2022-11-28"
 	defaultBaseURL    = "https://api.github.com/"
@@ -170,7 +170,7 @@ type Client struct {
 	UserAgent string
 
 	rateMu                  sync.Mutex
-	rateLimits              [categories]Rate // Rate limits for the client as determined by the most recent API calls.
+	rateLimits              [Categories]Rate // Rate limits for the client as determined by the most recent API calls.
 	secondaryRateLimitReset time.Time        // Secondary rate limit reset for the client as determined by the most recent API calls.
 
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
@@ -804,6 +804,7 @@ type requestContext uint8
 
 const (
 	bypassRateLimitCheck requestContext = iota
+	SleepUntilPrimaryRateLimitResetWhenRateLimited
 )
 
 // BareDo sends an API request and lets you handle the api response. If an error
@@ -821,7 +822,7 @@ func (c *Client) BareDo(ctx context.Context, req *http.Request) (*Response, erro
 
 	req = withContext(ctx, req)
 
-	rateLimitCategory := category(req.Method, req.URL.Path)
+	rateLimitCategory := GetRateLimitCategory(req.Method, req.URL.Path)
 
 	if bypass := ctx.Value(bypassRateLimitCheck); bypass == nil {
 		// If we've hit rate limit, don't make further requests before Reset time.
@@ -889,6 +890,15 @@ func (c *Client) BareDo(ctx context.Context, req *http.Request) (*Response, erro
 			err = aerr
 		}
 
+		rateLimitError, ok := err.(*RateLimitError)
+		if ok && req.Context().Value(SleepUntilPrimaryRateLimitResetWhenRateLimited) != nil {
+			if err := sleepUntilResetWithBuffer(req.Context(), rateLimitError.Rate.Reset.Time); err != nil {
+				return response, err
+			}
+			// retry the request once when the rate limit has reset
+			return c.BareDo(context.WithValue(req.Context(), SleepUntilPrimaryRateLimitResetWhenRateLimited, nil), req)
+		}
+
 		// Update the secondary rate limit if we hit it.
 		rerr, ok := err.(*AbuseRateLimitError)
 		if ok && rerr.RetryAfter != nil {
@@ -937,7 +947,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*Res
 // current client state in order to quickly check if *RateLimitError can be immediately returned
 // from Client.Do, and if so, returns it so that Client.Do can skip making a network API call unnecessarily.
 // Otherwise it returns nil, and Client.Do should proceed normally.
-func (c *Client) checkRateLimitBeforeDo(req *http.Request, rateLimitCategory rateLimitCategory) *RateLimitError {
+func (c *Client) checkRateLimitBeforeDo(req *http.Request, rateLimitCategory RateLimitCategory) *RateLimitError {
 	c.rateMu.Lock()
 	rate := c.rateLimits[rateLimitCategory]
 	c.rateMu.Unlock()
@@ -950,6 +960,18 @@ func (c *Client) checkRateLimitBeforeDo(req *http.Request, rateLimitCategory rat
 			Header:     make(http.Header),
 			Body:       io.NopCloser(strings.NewReader("")),
 		}
+
+		if req.Context().Value(SleepUntilPrimaryRateLimitResetWhenRateLimited) != nil {
+			if err := sleepUntilResetWithBuffer(req.Context(), rate.Reset.Time); err == nil {
+				return nil
+			}
+			return &RateLimitError{
+				Rate:     rate,
+				Response: resp,
+				Message:  fmt.Sprintf("Context cancelled while waiting for rate limit to reset until %v, not making remote request.", rate.Reset.Time),
+			}
+		}
+
 		return &RateLimitError{
 			Rate:     rate,
 			Response: resp,
@@ -1303,65 +1325,70 @@ func parseBoolResponse(err error) (bool, error) {
 	return false, err
 }
 
-type rateLimitCategory uint8
+type RateLimitCategory uint8
 
 const (
-	coreCategory rateLimitCategory = iota
-	searchCategory
-	graphqlCategory
-	integrationManifestCategory
-	sourceImportCategory
-	codeScanningUploadCategory
-	actionsRunnerRegistrationCategory
-	scimCategory
-	dependencySnapshotsCategory
-	codeSearchCategory
+	CoreCategory RateLimitCategory = iota
+	SearchCategory
+	GraphqlCategory
+	IntegrationManifestCategory
+	SourceImportCategory
+	CodeScanningUploadCategory
+	ActionsRunnerRegistrationCategory
+	ScimCategory
+	DependencySnapshotsCategory
+	CodeSearchCategory
+	AuditLogCategory
 
-	categories // An array of this length will be able to contain all rate limit categories.
+	Categories // An array of this length will be able to contain all rate limit categories.
 )
 
-// category returns the rate limit category of the endpoint, determined by HTTP method and Request.URL.Path.
-func category(method, path string) rateLimitCategory {
+// GetRateLimitCategory returns the rate limit RateLimitCategory of the endpoint, determined by HTTP method and Request.URL.Path.
+func GetRateLimitCategory(method, path string) RateLimitCategory {
 	switch {
 	// https://docs.github.com/rest/rate-limit#about-rate-limits
 	default:
 		// NOTE: coreCategory is returned for actionsRunnerRegistrationCategory too,
 		// because no API found for this category.
-		return coreCategory
+		return CoreCategory
 
 	// https://docs.github.com/en/rest/search/search#search-code
 	case strings.HasPrefix(path, "/search/code") &&
 		method == http.MethodGet:
-		return codeSearchCategory
+		return CodeSearchCategory
 
 	case strings.HasPrefix(path, "/search/"):
-		return searchCategory
+		return SearchCategory
 	case path == "/graphql":
-		return graphqlCategory
+		return GraphqlCategory
 	case strings.HasPrefix(path, "/app-manifests/") &&
 		strings.HasSuffix(path, "/conversions") &&
 		method == http.MethodPost:
-		return integrationManifestCategory
+		return IntegrationManifestCategory
 
 	// https://docs.github.com/rest/migrations/source-imports#start-an-import
 	case strings.HasPrefix(path, "/repos/") &&
 		strings.HasSuffix(path, "/import") &&
 		method == http.MethodPut:
-		return sourceImportCategory
+		return SourceImportCategory
 
 	// https://docs.github.com/rest/code-scanning#upload-an-analysis-as-sarif-data
 	case strings.HasSuffix(path, "/code-scanning/sarifs"):
-		return codeScanningUploadCategory
+		return CodeScanningUploadCategory
 
 	// https://docs.github.com/enterprise-cloud@latest/rest/scim
 	case strings.HasPrefix(path, "/scim/"):
-		return scimCategory
+		return ScimCategory
 
 	// https://docs.github.com/en/rest/dependency-graph/dependency-submission#create-a-snapshot-of-dependencies-for-a-repository
 	case strings.HasPrefix(path, "/repos/") &&
 		strings.HasSuffix(path, "/dependency-graph/snapshots") &&
 		method == http.MethodPost:
-		return dependencySnapshotsCategory
+		return DependencySnapshotsCategory
+
+	// https://docs.github.com/en/enterprise-cloud@latest/rest/orgs/orgs?apiVersion=2022-11-28#get-the-audit-log-for-an-organization
+	case strings.HasSuffix(path, "/audit-log"):
+		return AuditLogCategory
 	}
 }
 
@@ -1507,6 +1534,20 @@ func formatRateReset(d time.Duration) string {
 		return fmt.Sprintf("[rate limit was reset %v ago]", timeString)
 	}
 	return fmt.Sprintf("[rate reset in %v]", timeString)
+}
+
+func sleepUntilResetWithBuffer(ctx context.Context, reset time.Time) error {
+	buffer := time.Second
+	timer := time.NewTimer(time.Until(reset) + buffer)
+	select {
+	case <-ctx.Done():
+		if !timer.Stop() {
+			<-timer.C
+		}
+		return ctx.Err()
+	case <-timer.C:
+	}
+	return nil
 }
 
 // When using roundTripWithOptionalFollowRedirect, note that it
