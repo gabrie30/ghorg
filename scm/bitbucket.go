@@ -1,7 +1,9 @@
 package scm
 
 import (
+	"fmt"
 	"net/url"
+	"strings"
 
 	"os"
 
@@ -96,10 +98,23 @@ func (_ Bitbucket) filter(resp []bitbucket.Repository) (repoData []Repo, err err
 			} else if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" && linkType == "https" {
 				r.URL = link.(string)
 				r.CloneURL = link.(string)
+				if os.Getenv("GHORG_BITBUCKET_OAUTH") != "" {
+					// TODO
+				} else {
+					r.CloneURL = insertAppPasswordCredentialsIntoURL(r.CloneURL)
+				}
 				cloneData = append(cloneData, r)
 			}
 		}
 	}
 
 	return cloneData, nil
+}
+
+func insertAppPasswordCredentialsIntoURL(url string) string {
+	password := os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
+	credentials := fmt.Sprintf(":%s@", password)
+	urlWithCredentials := strings.Replace(url, "@", credentials, 1)
+
+	return urlWithCredentials
 }
