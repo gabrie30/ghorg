@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Refs to deprecated io/ioutil (#415); thanks @testwill
 - Bitbucket clones without app password; thanks @SparklingAperioso
 ### Security
+- Update go version to 1.22
 
 ## [1.9.12] - 5/15/24
 ### Added
