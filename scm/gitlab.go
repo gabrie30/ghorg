@@ -284,17 +284,15 @@ func (c Gitlab) GetSnippets(cloneData []Repo) ([]Repo, error) {
 			cloneData = append(cloneData, s)
 		} else {
 			// Since this isn't a root level repo we want to find which repo the snippet is coming from
-			// for _, cloneTarget := range cloneData {
-
-			// snippet.ProjectID is not yet implemnted in the go-gitlab library
-			// if cloneTarget.ID == snippet.ProjectID {
-			// 	s.CloneURL = c.createRepoSnippetCloneURL(cloneTarget.CloneURL, snippetID)
-			// 	s.Path = cloneTarget.Path
-			// 	s.GitLabSnippetInfo.URLOfRepo = cloneTarget.URL
-			// 	s.GitLabSnippetInfo.NameOfRepo = cloneTarget.Name
-			// 	cloneData = append(cloneData, s)
-			// }
-			// }
+			for _, cloneTarget := range cloneData {
+				if cloneTarget.ID == strconv.Itoa(snippet.ProjectID) {
+					s.CloneURL = c.createRepoSnippetCloneURL(cloneTarget.CloneURL, snippetID)
+					s.Path = cloneTarget.Path
+					s.GitLabSnippetInfo.URLOfRepo = cloneTarget.URL
+					s.GitLabSnippetInfo.NameOfRepo = cloneTarget.Name
+					cloneData = append(cloneData, s)
+				}
+			}
 		}
 
 		snippetsToClone = append(snippetsToClone, s)
