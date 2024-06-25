@@ -269,7 +269,7 @@ func (c Gitlab) GetSnippets(cloneData []Repo) ([]Repo, error) {
 	for _, snippet := range allSnippets {
 		snippetAtRootLevel := c.rootLevelSnippet(snippet.WebURL)
 		snippetID := strconv.Itoa(snippet.ID)
-		snippetTitle := strings.ToLower(snippet.Title)
+		snippetTitle := ToSlug(snippet.Title)
 		s := Repo{}
 		s.IsGitLabSnippet = true
 		s.CloneBranch = "main"
@@ -553,4 +553,21 @@ func filterGitlabGroupByExcludeMatchRegex(groups []string) []string {
 	}
 
 	return filteredGroups
+}
+
+// ToSlug converts a title into a URL-friendly slug.
+func ToSlug(title string) string {
+	// Convert to lowercase
+	slug := strings.ToLower(title)
+
+	// Replace spaces and special characters with hyphens
+	slug = regexp.MustCompile(`[\s\p{P}]+`).ReplaceAllString(slug, "-")
+
+	// Remove any non-alphanumeric characters except for hyphens
+	slug = regexp.MustCompile(`[^a-z0-9-]+`).ReplaceAllString(slug, "")
+
+	// Trim any leading or trailing hyphens
+	slug = strings.Trim(slug, "-")
+
+	return slug
 }
