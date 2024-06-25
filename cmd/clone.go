@@ -796,7 +796,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			if repo.IsGitLabRootLevelSnippet {
 				repo.HostPath = filepath.Join(outputDirAbsolutePath, "_ghorg_root_level_snippets", repo.GitLabSnippetInfo.Title+"-"+repo.GitLabSnippetInfo.ID)
 			} else if repo.IsGitLabSnippet {
-				repo.HostPath = filepath.Join(outputDirAbsolutePath, repoSlug, repo.GitLabSnippetInfo.Title)
+				repo.HostPath = filepath.Join(outputDirAbsolutePath, repoSlug, repo.GitLabSnippetInfo.Title+"-"+repo.GitLabSnippetInfo.ID)
 			}
 
 			action := "cloning"
