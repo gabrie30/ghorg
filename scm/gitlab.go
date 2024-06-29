@@ -98,7 +98,7 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 	}
 
-	snippets, err := c.GetSnippets(repoData)
+	snippets, err := c.GetSnippets(repoData, targetOrg)
 	if err != nil {
 		colorlog.PrintError(fmt.Sprintf("Error getting snippets, error: %v", err))
 	}
@@ -197,7 +197,7 @@ func (c Gitlab) createRootLevelSnippetCloneURL(snippetWebURL string) string {
 	return cloneURL
 }
 
-func (c Gitlab) GetSnippets(cloneData []Repo) ([]Repo, error) {
+func (c Gitlab) GetSnippets(cloneData []Repo, target string) ([]Repo, error) {
 
 	if os.Getenv("GHORG_CLONE_SNIPPETS") != "true" {
 		return []Repo{}, nil
@@ -238,6 +238,34 @@ func (c Gitlab) GetSnippets(cloneData []Repo) ([]Repo, error) {
 				// Update the page number to get the next page.
 				opt.Page = resp.NextPage
 			}
+		}
+	} else if os.Getenv("GHORG_CLONE_TYPE") == "user" && os.Getenv("GHORG_SCM_BASE_URL") != "" {
+		opt := &gitlab.ListAllSnippetsOptions{
+			ListOptions: gitlab.ListOptions{
+				PerPage: perPage,
+				Page:    1,
+			},
+		}
+
+		for {
+			snippets, resp, err := c.Snippets.ListAllSnippets(opt)
+			if err != nil {
+				return snippetsToClone, fmt.Errorf("fetching snippets: %v", err)
+			}
+
+			for _, snippet := range snippets {
+				if strings.Contains(snippet.WebURL, target) {
+					allSnippets = append(allSnippets, snippet)
+				}
+			}
+
+			// Exit the loop when we've seen all pages.
+			if resp.NextPage == 0 {
+				break
+			}
+
+			// Update the page number to get the next page.
+			opt.Page = resp.NextPage
 		}
 
 	} else {
@@ -405,7 +433,7 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 		}
 	}
 
-	snippets, err := c.GetSnippets(cloneData)
+	snippets, err := c.GetSnippets(cloneData, targetUsername)
 	if err != nil {
 		colorlog.PrintError(fmt.Sprintf("Error getting snippets, error: %v", err))
 	}
@@ -539,7 +567,6 @@ func filterGitlabGroupByExcludeMatchRegex(groups []string) []string {
 	regex := fmt.Sprint(os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX"))
 
 	for i, grp := range groups {
-		fmt.Println(grp)
 		exclude := false
 		re := regexp.MustCompile(regex)
 		match := re.FindString(grp)
