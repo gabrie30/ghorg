@@ -11,7 +11,7 @@ import (
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/gabrie30/ghorg/colorlog"
-	"github.com/google/go-github/v41/github"
+	"github.com/google/go-github/v62/github"
 	"golang.org/x/oauth2"
 )
 
@@ -80,18 +80,13 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 // GetUserRepos gets user repos
 func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
-	c.SetTokensUsername()
-	if targetUser == tokenUsername {
-		colorlog.PrintSubtleInfo("\nCloning all your public/private repos. This process may take a bit longer than other clones, please be patient...")
-		targetUser = ""
-	}
-
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		c.BaseURL, _ = url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
 	}
 
-	opt := &github.RepositoryListOptions{
-		Visibility:  "all",
+	opt := &github.RepositoryListByUserOptions{
+		// https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories#about-repository-ownership
+		Type:        os.Getenv("GHORG_GITHUB_USER_OPTION"),
 		ListOptions: github.ListOptions{PerPage: c.perPage},
 	}
 
@@ -101,7 +96,7 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 	for {
 
 		// List the repositories for a user. Passing the empty string will list repositories for the authenticated user.
-		repos, resp, err := c.Repositories.List(context.Background(), targetUser, opt)
+		repos, resp, err := c.Repositories.ListByUser(context.Background(), targetUser, opt)
 
 		if err != nil {
 			return nil, err
@@ -180,7 +175,8 @@ func (_ Github) NewClient() (Client, error) {
 	var ghClient *github.Client
 
 	if baseURL != "" {
-		ghClient, _ = github.NewEnterpriseClient(baseURL, baseURL, tc)
+		ghClient = github.NewClient(tc)
+		ghClient, _ = ghClient.WithEnterpriseURLs(baseURL, baseURL)
 	} else {
 		ghClient = github.NewClient(tc)
 	}

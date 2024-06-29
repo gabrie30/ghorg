@@ -78,6 +78,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_SCM_TYPE", scmType)
 	}
 
+	if cmd.Flags().Changed("github-user-option") {
+		opt := cmd.Flag("github-user-option").Value.String()
+		os.Setenv("GHORG_GITHUB_USER_OPTION", opt)
+	}
+
 	if cmd.Flags().Changed("base-url") {
 		url := cmd.Flag("base-url").Value.String()
 		os.Setenv("GHORG_SCM_BASE_URL", url)
