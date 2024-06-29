@@ -42,6 +42,9 @@ var (
 
 	// ErrIncorrectProtocolType indicates an unsupported protocol type being used
 	ErrIncorrectProtocolType = errors.New("GHORG_CLONE_PROTOCOL or --protocol must be one of https or ssh")
+
+	// ErrIncorrectGithubUserOptionValue indicates an incorrectly set GHORG_GITHUB_USER_OPTION value
+	ErrIncorrectGithubUserOptionValue = errors.New("GHORG_GITHUB_USER_OPTION or --github-user-option must be one of 'owner', 'member', or 'all' and is only available to be used when GHORG_CLONE_TYPE: user or --clone-type=user is set")
 )
 
 // Load triggers the configs to load first, not sure if this is actually needed
@@ -313,6 +316,7 @@ func VerifyConfigsSetCorrectly() error {
 	scmType := os.Getenv("GHORG_SCM_TYPE")
 	cloneType := os.Getenv("GHORG_CLONE_TYPE")
 	protocol := os.Getenv("GHORG_CLONE_PROTOCOL")
+	githubUserOption := os.Getenv("GHORG_GITHUB_USER_OPTION")
 
 	if !utils.IsStringInSlice(scmType, scm.SupportedClients()) {
 		return ErrIncorrectScmType
@@ -320,6 +324,12 @@ func VerifyConfigsSetCorrectly() error {
 
 	if cloneType != "user" && cloneType != "org" {
 		return ErrIncorrectCloneType
+	}
+
+	if scmType == "github" && cloneType == "user" {
+		if githubUserOption != "owner" && githubUserOption != "all" && githubUserOption != "member" {
+			return ErrIncorrectGithubUserOptionValue
+		}
 	}
 
 	if protocol != "ssh" && protocol != "https" {

@@ -184,6 +184,10 @@ GHORG_GITHUB_APP_INSTALLATION_ID:
 # flag (--github-app-id)
 GHORG_GITHUB_APP_ID:
 
+# Only available when also using GHORG_CLONE_TYPE: user e.g. --clone-type=user
+# Can be one of: all, owner, member (default: owner)
+GHORG_GITHUB_USER_OPTION:
+
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 # |G|I|T|L|A|B| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
