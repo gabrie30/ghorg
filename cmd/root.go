@@ -55,6 +55,7 @@ var (
 	prune                        bool
 	pruneNoConfirm               bool
 	cloneWiki                    bool
+	cloneSnippets                bool
 	preserveDir                  bool
 	insecureGitlabClient         bool
 	insecureGiteaClient          bool
@@ -121,6 +122,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_SKIP_FORKS":
 			os.Setenv(envVar, "false")
 		case "GHORG_CLONE_WIKI":
+			os.Setenv(envVar, "false")
+		case "GHORG_CLONE_SNIPPETS":
 			os.Setenv(envVar, "false")
 		case "GHORG_NO_CLEAN":
 			os.Setenv(envVar, "false")
@@ -231,6 +234,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_DRY_RUN")
 	getOrSetDefaults("GHORG_GITHUB_USER_OPTION")
 	getOrSetDefaults("GHORG_CLONE_WIKI")
+	getOrSetDefaults("GHORG_CLONE_SNIPPETS")
 	getOrSetDefaults("GHORG_INSECURE_GITLAB_CLIENT")
 	getOrSetDefaults("GHORG_INSECURE_GITEA_CLIENT")
 	getOrSetDefaults("GHORG_BACKUP")
@@ -305,6 +309,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&insecureGitlabClient, "insecure-gitlab-client", false, "GHORG_INSECURE_GITLAB_CLIENT - Skip TLS certificate verification for hosted gitlab instances")
 	cloneCmd.Flags().BoolVar(&insecureGiteaClient, "insecure-gitea-client", false, "GHORG_INSECURE_GITEA_CLIENT - Must be set to clone from a Gitea instance using http")
 	cloneCmd.Flags().BoolVar(&cloneWiki, "clone-wiki", false, "GHORG_CLONE_WIKI - Additionally clone the wiki page for repo")
+	cloneCmd.Flags().BoolVar(&cloneSnippets, "clone-snippets", false, "GHORG_CLONE_SNIPPETS - Additionally clone all snippets, gitlab only")
 	cloneCmd.Flags().BoolVar(&skipForks, "skip-forks", false, "GHORG_SKIP_FORKS - Skips repo if its a fork, github/gitlab/gitea only")
 	cloneCmd.Flags().BoolVar(&noToken, "no-token", false, "GHORG_NO_TOKEN - Allows you to run ghorg with no token (GHORG_<SCM>_TOKEN), SCM server needs to specify no auth required for api calls")
 	cloneCmd.Flags().BoolVar(&preserveDir, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - Clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/unit/subunit/app, gitlab only")

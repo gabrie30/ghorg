@@ -185,6 +185,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_CLONE_WIKI", "true")
 	}
 
+	if cmd.Flags().Changed("clone-snippets") {
+		os.Setenv("GHORG_CLONE_SNIPPETS", "true")
+	}
+
 	if cmd.Flags().Changed("insecure-gitlab-client") {
 		os.Setenv("GHORG_INSECURE_GITLAB_CLIENT", "true")
 	}
@@ -319,6 +323,7 @@ func getCloneUrls(isOrg bool) ([]scm.Repo, error) {
 	if isOrg {
 		return client.GetOrgRepos(targetCloneSource)
 	}
+
 	return client.GetUserRepos(targetCloneSource)
 }
 
@@ -491,6 +496,16 @@ func hasRepoNameCollisions(repos []scm.Repo) (map[string]bool, bool) {
 	hasCollisions := false
 
 	for _, repo := range repos {
+
+		// Snippets should never have collions because we append the snippet id to the directory name
+		if repo.IsGitLabSnippet {
+			continue
+		}
+
+		if repo.IsWiki {
+			continue
+		}
+
 		if _, ok := repoNameWithCollisions[repo.Name]; ok {
 			repoNameWithCollisions[repo.Name] = true
 			hasCollisions = true
@@ -542,6 +557,21 @@ func trimCollisionFilename(filename string) string {
 	}
 
 	return filename
+}
+
+func getCloneableInventory(allRepos []scm.Repo) (int, int, int, int) {
+	var wikis, snippets, repos, total int
+	for _, repo := range allRepos {
+		if repo.IsGitLabSnippet {
+			snippets++
+		} else if repo.IsWiki {
+			wikis++
+		} else {
+			repos++
+		}
+	}
+	total = repos + snippets + wikis
+	return total, repos, snippets, wikis
 }
 
 // CloneAllRepos clones all repos
@@ -605,6 +635,16 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 							targetRepoSeenOnOrg[targetRepo] = true
 						}
 					}
+
+					if os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
+						if cloneTarget.IsGitLabSnippet {
+							targetSnippetOriginalRepo := strings.TrimSuffix(filepath.Base(cloneTarget.GitLabSnippetInfo.URLOfRepo), ".git")
+							if strings.EqualFold(targetSnippetOriginalRepo, targetRepo) {
+								flag = true
+								targetRepoSeenOnOrg[targetRepo] = true
+							}
+						}
+					}
 				}
 
 				if flag {
@@ -654,13 +694,18 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	}
 
-	repoCount := getRepoCountOnly(cloneTargets)
-
-	if os.Getenv("GHORG_CLONE_WIKI") == "true" {
-		wikiCount := strconv.Itoa(len(cloneTargets) - repoCount)
-		colorlog.PrintInfo(strconv.Itoa(repoCount) + " repos found in " + targetCloneSource + ", including " + wikiCount + " enabled wikis\n")
+	totalResourcesToClone, reposToCloneCount, snippetToCloneCount, wikisToCloneCount := getCloneableInventory(cloneTargets)
+	if os.Getenv("GHORG_CLONE_WIKI") == "true" && os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
+		m := fmt.Sprintf("%v resources to clone found in %v, %v repos, %v snippets, and %v wikis\n", totalResourcesToClone, targetCloneSource, snippetToCloneCount, reposToCloneCount, wikisToCloneCount)
+		colorlog.PrintInfo(m)
+	} else if os.Getenv("GHORG_CLONE_WIKI") == "true" {
+		m := fmt.Sprintf("%v resources to clone found in %v, %v repos and %v wikis\n", totalResourcesToClone, targetCloneSource, reposToCloneCount, wikisToCloneCount)
+		colorlog.PrintInfo(m)
+	} else if os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
+		m := fmt.Sprintf("%v resources to clone found in %v, %v repos and %v snippets\n", totalResourcesToClone, targetCloneSource, reposToCloneCount, snippetToCloneCount)
+		colorlog.PrintInfo(m)
 	} else {
-		colorlog.PrintInfo(strconv.Itoa(repoCount) + " repos found in " + targetCloneSource + "\n")
+		colorlog.PrintInfo(strconv.Itoa(reposToCloneCount) + " repos found in " + targetCloneSource + "\n")
 	}
 
 	if os.Getenv("GHORG_DRY_RUN") == "true" {
@@ -687,19 +732,46 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	for i := range cloneTargets {
 		repo := cloneTargets[i]
+
+		// We use this because we dont want spaces in the final directory, using the web address makes it more file friendly
+		// In the case of root level snippets we use the title which will have spaces in it, the url uses an ID so its not possible to use name from url
+		// With snippets that originate on repos, we use that repo name
 		repoSlug := getAppNameFromURL(repo.URL)
+
+		if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
+			repoSlug = getAppNameFromURL(repo.GitLabSnippetInfo.URLOfRepo)
+		} else if repo.IsGitLabRootLevelSnippet {
+			repoSlug = repo.Name
+		}
+
 		limit.Execute(func() {
 			if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
 				repoSlug = repo.Path
 			}
+
 			mutex.Lock()
-			inHash := repoNameWithCollisions[repo.Name]
+			var inHash bool
+			if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
+				inHash = repoNameWithCollisions[repo.GitLabSnippetInfo.NameOfRepo]
+			} else {
+				inHash = repoNameWithCollisions[repo.Name]
+			}
+
 			mutex.Unlock()
 			// Only GitLab repos can have collisions due to groups and subgroups
 			// If there are collisions and this is a repo with a naming collision change name to avoid collisions
 			if hasCollisions && inHash {
-				repoSlug = trimCollisionFilename(strings.Replace(repo.Path, "/", "_", -1))
-
+				repoSlug = trimCollisionFilename(strings.Replace(repo.Path, string(os.PathSeparator), "_", -1))
+				if repo.IsWiki {
+					if !strings.HasSuffix(repoSlug, ".wiki") {
+						repoSlug = repoSlug + ".wiki"
+					}
+				}
+				if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
+					if !strings.HasSuffix(repoSlug, ".snippets") {
+						repoSlug = repoSlug + ".snippets"
+					}
+				}
 				mutex.Lock()
 				slugCollision := repoNameWithCollisions[repoSlug]
 				mutex.Unlock()
@@ -713,12 +785,23 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				}
 			}
 
+			if repo.IsWiki {
+				if !strings.HasSuffix(repoSlug, ".wiki") {
+					repoSlug = repoSlug + ".wiki"
+				}
+			}
+			if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
+				if !strings.HasSuffix(repoSlug, ".snippets") {
+					repoSlug = repoSlug + ".snippets"
+				}
+			}
+
 			repo.HostPath = filepath.Join(outputDirAbsolutePath, repoSlug)
 
-			if repo.IsWiki {
-				if !strings.HasSuffix(repo.HostPath, ".wiki") {
-					repo.HostPath = repo.HostPath + ".wiki"
-				}
+			if repo.IsGitLabRootLevelSnippet {
+				repo.HostPath = filepath.Join(outputDirAbsolutePath, "_ghorg_root_level_snippets", repo.GitLabSnippetInfo.Title+"-"+repo.GitLabSnippetInfo.ID)
+			} else if repo.IsGitLabSnippet {
+				repo.HostPath = filepath.Join(outputDirAbsolutePath, repoSlug, repo.GitLabSnippetInfo.Title+"-"+repo.GitLabSnippetInfo.ID)
 			}
 
 			action := "cloning"
@@ -726,7 +809,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				// prevents git from asking for user for credentials, needs to be unset so creds aren't stored
 				err := git.SetOriginWithCredentials(repo)
 				if err != nil {
-					e := fmt.Sprintf("Problem setting remote with credentials Repo: %s Error: %v", repo.Name, err)
+					e := fmt.Sprintf("Problem setting remote with credentials on: %s Error: %v", repo.Name, err)
 					cloneErrors = append(cloneErrors, e)
 					return
 				}
@@ -736,13 +819,13 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					action = "updating remote"
 					// Theres no way to tell if a github repo has a wiki to clone
 					if err != nil && repo.IsWiki {
-						e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on Repo: %s Error: %v", repo.URL, err)
+						e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on: %s Error: %v", repo.URL, err)
 						cloneInfos = append(cloneInfos, e)
 						return
 					}
 
 					if err != nil {
-						e := fmt.Sprintf("Could not update remotes in Repo: %s Error: %v", repo.URL, err)
+						e := fmt.Sprintf("Could not update remotes: %s Error: %v", repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
@@ -753,13 +836,13 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 					// Theres no way to tell if a github repo has a wiki to clone
 					if err != nil && repo.IsWiki {
-						e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on Repo: %s Error: %v", repo.URL, err)
+						e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on: %s Error: %v", repo.URL, err)
 						cloneInfos = append(cloneInfos, e)
 						return
 					}
 
 					if err != nil {
-						e := fmt.Sprintf("Could not fetch remotes in Repo: %s Error: %v", repo.URL, err)
+						e := fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
@@ -767,7 +850,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				} else {
 					err := git.Checkout(repo)
 					if err != nil {
-						e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents, no changes made Repo: %s Error: %v", repo.CloneBranch, repo.URL, err)
+						e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents, no changes made on: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneInfos = append(cloneInfos, e)
 						return
 					}
@@ -783,7 +866,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					err = git.Reset(repo)
 
 					if err != nil {
-						e := fmt.Sprintf("Problem resetting %s Repo: %s Error: %v", repo.CloneBranch, repo.URL, err)
+						e := fmt.Sprintf("Problem resetting branch: %s for: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
@@ -791,7 +874,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					err = git.Pull(repo)
 
 					if err != nil {
-						e := fmt.Sprintf("Problem trying to pull %v Repo: %s Error: %v", repo.CloneBranch, repo.URL, err)
+						e := fmt.Sprintf("Problem trying to pull branch: %v for: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
@@ -803,7 +886,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						err = git.FetchAll(repo)
 
 						if err != nil {
-							e := fmt.Sprintf("Could not fetch remotes in Repo: %s Error: %v", repo.URL, err)
+							e := fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, err)
 							cloneErrors = append(cloneErrors, e)
 							return
 						}
@@ -812,7 +895,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 				err = git.SetOrigin(repo)
 				if err != nil {
-					e := fmt.Sprintf("Problem resetting remote Repo: %s Error: %v", repo.Name, err)
+					e := fmt.Sprintf("Problem resetting remote: %s Error: %v", repo.Name, err)
 					cloneErrors = append(cloneErrors, e)
 					return
 				}
@@ -823,13 +906,13 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 				// Theres no way to tell if a github repo has a wiki to clone
 				if err != nil && repo.IsWiki {
-					e := fmt.Sprintf("Wiki may be enabled but there was no content to clone on Repo: %s Error: %v", repo.URL, err)
+					e := fmt.Sprintf("Wiki may be enabled but there was no content to clone: %s Error: %v", repo.URL, err)
 					cloneInfos = append(cloneInfos, e)
 					return
 				}
 
 				if err != nil {
-					e := fmt.Sprintf("Problem trying to clone Repo: %s Error: %v", repo.URL, err)
+					e := fmt.Sprintf("Problem trying to clone: %s Error: %v", repo.URL, err)
 					cloneErrors = append(cloneErrors, e)
 					return
 				}
@@ -837,7 +920,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				if os.Getenv("GHORG_BRANCH") != "" {
 					err := git.Checkout(repo)
 					if err != nil {
-						e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents, no changes made Repo: %s Error: %v", repo.CloneBranch, repo.URL, err)
+						e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents, no changes to: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneInfos = append(cloneInfos, e)
 						return
 					}
@@ -851,7 +934,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 				// if repo has wiki, but content does not exist this is going to error
 				if err != nil {
-					e := fmt.Sprintf("Problem trying to set remote on Repo: %s Error: %v", repo.URL, err)
+					e := fmt.Sprintf("Problem trying to set remote: %s Error: %v", repo.URL, err)
 					cloneErrors = append(cloneErrors, e)
 					return
 				}
@@ -860,14 +943,14 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					err = git.FetchAll(repo)
 
 					if err != nil {
-						e := fmt.Sprintf("Could not fetch remotes in Repo: %s Error: %v", repo.URL, err)
+						e := fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, err)
 						cloneErrors = append(cloneErrors, e)
 						return
 					}
 				}
 			}
 
-			colorlog.PrintSuccess("Success " + action + " repo: " + repo.URL + " -> branch: " + repo.CloneBranch)
+			colorlog.PrintSuccess("Success " + action + " " + repo.URL + " -> branch: " + repo.CloneBranch)
 		})
 
 	}
@@ -949,11 +1032,11 @@ func pruneRepos(cloneTargets []scm.Repo) {
 
 func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount int) {
 	if updateRemoteCount > 0 {
-		colorlog.PrintSuccess(fmt.Sprintf("New repos cloned: %v, existing repos pulled: %v, remotes updated: %v", cloneCount, pulledCount, updateRemoteCount))
+		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, remotes updated: %v", cloneCount, pulledCount, updateRemoteCount))
 		return
 	}
 
-	colorlog.PrintSuccess(fmt.Sprintf("New repos cloned: %v, existing repos pulled: %v", cloneCount, pulledCount))
+	colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v", cloneCount, pulledCount))
 }
 
 func interactiveYesNoPrompt(prompt string) bool {
@@ -1032,6 +1115,9 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_CLONE_WIKI") == "true" {
 		colorlog.PrintInfo("* Wikis         : " + os.Getenv("GHORG_CLONE_WIKI"))
+	}
+	if os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
+		colorlog.PrintInfo("* Snippets      : " + os.Getenv("GHORG_CLONE_SNIPPETS"))
 	}
 	if configs.GhorgIgnoreDetected() {
 		colorlog.PrintInfo("* Ghorgignore   : " + configs.GhorgIgnoreLocation())

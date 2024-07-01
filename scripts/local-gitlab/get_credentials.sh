@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -xv
 
 # poll until gitlab has started
 
@@ -29,7 +29,7 @@ done
 
 set -x
 
-docker exec -it gitlab gitlab-rails runner "token = User.find_by_username('root').personal_access_tokens.create(scopes: [:api, :read_api, :sudo], name: 'CI Test Token'); token.set_token('password'); token.save!"
+docker exec gitlab gitlab-rails runner "token = User.find_by_username('root').personal_access_tokens.create(scopes: [:api, :read_api, :sudo], name: 'CI Test Token', expires_at: 365.days.from_now); token.set_token('password'); token.save!"
 
 API_TOKEN="password"
 

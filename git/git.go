@@ -87,6 +87,7 @@ func (g GitClient) SetOriginWithCredentials(repo scm.Repo) error {
 	return cmd.Run()
 }
 
+// TODO: why is this using repo.URL and not repo.CloneURL
 func (g GitClient) SetOrigin(repo scm.Repo) error {
 	args := []string{"remote", "set-url", "origin", repo.URL}
 	cmd := exec.Command("git", args...)
