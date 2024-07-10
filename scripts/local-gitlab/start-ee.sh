@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -xv
 
 STOP_GITLAB_WHEN_FINISHED=${1:-'true'}
 PERSIST_GITLAB_LOCALLY=${2:-'false'}

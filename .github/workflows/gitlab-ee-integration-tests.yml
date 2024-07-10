@@ -1,0 +1,28 @@
+name: Run GitLab EE Integration Tests
+on: [pull_request]
+jobs:
+  gitlab_ee_integration_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "^1.20"
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Install Go dependencies and build the project
+        run: |
+          go mod download
+          go install .
+      - name: Add Go binaries to PATH
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+      - name: Set up Docker
+        uses: docker-practice/actions-setup-docker@master
+      - name: Add hosts to /etc/hosts
+        run: |
+          sudo echo "127.0.0.1 gitlab.example.com" | sudo tee -a /etc/hosts
+      - name: Run GitLab Integration Test
+        run: |
+          echo "Using ghorg version: $(ghorg version)"
+          export GHORG_GHA_CI=true
+          ./scripts/local-gitlab/start-ee.sh
