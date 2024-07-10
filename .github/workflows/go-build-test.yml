@@ -1,6 +1,6 @@
 # Running locally https://yonatankra.com/how-to-test-github-actions-locally-using-act/
 name: Go
-on: [push, pull_request]
+on: pull_request
 jobs:
   build_and_test:
     environment: actions
@@ -10,61 +10,60 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
     steps:
-    - name: Set up Go 1.22
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.22
-      id: go
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
-    - name: Test
-      run: go test -v ./...
-    - name: Build
-      run: go build -v -o ghorg .
-    - name: Run GitHub Cloud Integration Tests
-      run: scripts/github_cloud_integration_tests.sh
-      env:
-        GITHUB_TOKEN: ${{ secrets.GHORG_GITHUB_TOKEN }}
-    - name: Run Bitbucket Cloud Integration Tests
-      run: scripts/bitbucket_cloud_integration_tests.sh
-      env:
-        BITBUCKET_TOKEN: ${{ secrets.GHORG_BITBUCKET_APP_PASSWORD }}
-        BITBUCKET_USERNAME: ${{ secrets.GHORG_BITBUCKET_USERNAME }}
-    - name: Run GitLab Cloud Integration Tests
-      run: scripts/gitlab_cloud_integration_tests.sh
-      env:
-        GITLAB_TOKEN: ${{ secrets.GHORG_GITLAB_TOKEN }}
-
+      - name: Set up Go 1.22
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.22
+        id: go
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v4
+      - name: Test
+        run: go test -v ./...
+      - name: Build
+        run: go build -v -o ghorg .
+      - name: Run GitHub Cloud Integration Tests
+        run: scripts/github_cloud_integration_tests.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHORG_GITHUB_TOKEN }}
+      - name: Run Bitbucket Cloud Integration Tests
+        run: scripts/bitbucket_cloud_integration_tests.sh
+        env:
+          BITBUCKET_TOKEN: ${{ secrets.GHORG_BITBUCKET_APP_PASSWORD }}
+          BITBUCKET_USERNAME: ${{ secrets.GHORG_BITBUCKET_USERNAME }}
+      - name: Run GitLab Cloud Integration Tests
+        run: scripts/gitlab_cloud_integration_tests.sh
+        env:
+          GITLAB_TOKEN: ${{ secrets.GHORG_GITLAB_TOKEN }}
   build_and_test_windows:
     environment: actions
     name: Build and Test Windows
     runs-on: windows-latest
     steps:
-    - name: Set up Go 1.22
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.22
-      id: go
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
-    - name: Set configuration file
-      run: |
-        mkdir C:\Users\runneradmin\.config\ghorg
-        copy sample-conf.yaml C:\Users\runneradmin\.config\ghorg\conf.yaml
-    - name: Build
-      run: env GOOS=windows GOARCH=386 go build -v -o ghorg.exe .
-    - name: Test
-      run: go test -v ./...
-    - name: Run GitHub Integration Tests
-      run: scripts/windows_github_integration_tests.bat
-      env:
-        GITHUB_TOKEN: ${{ secrets.GHORG_GITHUB_TOKEN }}
-    - name: Run Bitbucket Integration Tests
-      run: scripts/bitbucket_cloud_integration_tests.sh
-      env:
-        BITBUCKET_TOKEN: ${{ secrets.GHORG_BITBUCKET_APP_PASSWORD }}
-        BITBUCKET_USERNAME: ${{ secrets.GHORG_BITBUCKET_USERNAME }}
-    - name: Run GitLab Cloud Integration Tests
-      run: scripts/gitlab_cloud_integration_tests.sh
-      env:
-        GITLAB_TOKEN: ${{ secrets.GHORG_GITLAB_TOKEN }}
+      - name: Set up Go 1.22
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.22
+        id: go
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v4
+      - name: Set configuration file
+        run: |
+          mkdir C:\Users\runneradmin\.config\ghorg
+          copy sample-conf.yaml C:\Users\runneradmin\.config\ghorg\conf.yaml
+      - name: Build
+        run: env GOOS=windows GOARCH=386 go build -v -o ghorg.exe .
+      - name: Test
+        run: go test -v ./...
+      - name: Run GitHub Integration Tests
+        run: scripts/windows_github_integration_tests.bat
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHORG_GITHUB_TOKEN }}
+      - name: Run Bitbucket Integration Tests
+        run: scripts/bitbucket_cloud_integration_tests.sh
+        env:
+          BITBUCKET_TOKEN: ${{ secrets.GHORG_BITBUCKET_APP_PASSWORD }}
+          BITBUCKET_USERNAME: ${{ secrets.GHORG_BITBUCKET_USERNAME }}
+      - name: Run GitLab Cloud Integration Tests
+        run: scripts/gitlab_cloud_integration_tests.sh
+        env:
+          GITLAB_TOKEN: ${{ secrets.GHORG_GITLAB_TOKEN }}
