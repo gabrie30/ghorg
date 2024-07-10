@@ -208,6 +208,10 @@ GHORG_INSECURE_GITLAB_CLIENT: false
 # flag (--gitlab-group-exclude-match-regex)
 GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX:
 
+# Additionally clone all snippets
+# flag (--clone-snippets)
+GHORG_CLONE_SNIPPETS: false
+
 # +-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 # |G|I|T|E|A| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+ +-+-+-+-+-+-+-+-+

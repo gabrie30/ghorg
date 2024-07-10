@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.9.13] - Unreleased
 ### Added
+- GHORG_CLONE_SNIPPETS as a way to clone all snippets, gitlab only
 ### Changed
 ### Deprecated
 ### Removed
