@@ -14,10 +14,10 @@ import (
 )
 
 var (
-	_               Client = Gitlab{}
-	perPage                = 100
-	gitLabAllGroups        = false
-	gitLabAllUsers         = false
+	_Client         = Gitlab{}
+	perPage         = 100
+	gitLabAllGroups = false
+	gitLabAllUsers  = false
 )
 
 func init() {
@@ -31,6 +31,25 @@ type Gitlab struct {
 
 func (_ Gitlab) GetType() string {
 	return "gitlab"
+}
+
+func (_ Gitlab) rootLevelSnippet(url string) bool {
+	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
+	if baseURL != "" {
+		customSnippetPattern := regexp.MustCompile(`^` + baseURL + `/-/snippets/\d+$`)
+		if customSnippetPattern.MatchString(url) {
+			return true
+		}
+		return false
+	} else {
+		// cloud instances
+		// Check if the URL follows the pattern of a root level snippet
+		rootLevelSnippetPattern := regexp.MustCompile(`^https://gitlab\.com/-/snippets/\d+$`)
+		if rootLevelSnippetPattern.MatchString(url) {
+			return true
+		}
+		return false
+	}
 }
 
 // GetOrgRepos fetches repo data from a specific group
@@ -79,6 +98,12 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 	}
 
+	snippets, err := c.GetSnippets(repoData, targetOrg)
+	if err != nil {
+		colorlog.PrintError(fmt.Sprintf("Error getting snippets, error: %v", err))
+	}
+	repoData = append(repoData, snippets...)
+
 	return repoData, nil
 }
 
@@ -117,6 +142,198 @@ func (c Gitlab) GetTopLevelGroups() ([]string, error) {
 	}
 
 	return allGroups, nil
+}
+
+// In this case take the cloneURL from the cloneTartet repo and just inject /snippets/:id before the .git
+// cloud example
+// http clone target url https://gitlab.com/ghorg-test-group/subgroup-2/foobar.git
+// http snippet clone url https://gitlab.com/ghorg-test-group/subgroup-2/foobar/snippets/3711587.git
+// ssh clone target url git@gitlab.com:ghorg-test-group/subgroup-2/foobar.git
+// ssh snippet clone url git@gitlab.com:ghorg-test-group/subgroup-2/foobar/snippets/3711587.git
+func (c Gitlab) createRepoSnippetCloneURL(cloneTargetURL string, snippetID string) string {
+
+	// Split the cloneTargetURL into two parts at the ".git"
+	parts := strings.Split(cloneTargetURL, ".git")
+	// Insert the "/snippets/:id" before the ".git"
+	cloneURL := parts[0] + "/snippets/" + snippetID + ".git"
+
+	if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
+		return cloneURL
+	}
+
+	// git@gitlab.example.com:local-gitlab-group3/subgroup-a/subgroup-b/subgroup_b_repo_1/snippets/12.git
+
+	// http://gitlab.example.com/snippets/1.git
+	if os.Getenv("GHORG_INSECURE_GITLAB_CLIENT") == "true" {
+		cloneURL = strings.Replace(cloneURL, "http://", "git@", 1)
+	} else {
+		cloneURL = strings.Replace(cloneURL, "https://", "git@", 1)
+	}
+	// git@gitlab.example.com/snippets/1.git
+	cloneURL = strings.Replace(cloneURL, "/", ":", 1)
+	// git@gitlab.example.com:snippets/1.git
+	return cloneURL
+}
+
+// hosted example
+// root snippet ssh clone url git@gitlab.example.com:snippets/1.git
+// root snippet http clone url http://gitlab.example.com/snippets/1.git
+func (c Gitlab) createRootLevelSnippetCloneURL(snippetWebURL string) string {
+	// Web URL example, http://gitlab.example.com/-/snippets/1
+	// Both http and ssh clone urls do not have the /-/ in them so just remove it first and add the .git extention
+	cloneURL := strings.Replace(snippetWebURL, "/-/", "/", -1) + ".git"
+	if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
+		return c.addTokenToCloneURL(cloneURL, os.Getenv("GHORG_GITLAB_TOKEN"))
+	}
+
+	if os.Getenv("GHORG_INSECURE_GITLAB_CLIENT") == "true" {
+		cloneURL = strings.Replace(cloneURL, "http://", "git@", 1)
+	} else {
+		cloneURL = strings.Replace(cloneURL, "https://", "git@", 1)
+	}
+	// git@gitlab.example.com/snippets/1.git
+	cloneURL = strings.Replace(cloneURL, "/", ":", 1)
+	// git@gitlab.example.com:snippets/1.git
+	return cloneURL
+}
+
+func (c Gitlab) getRepoSnippets(r Repo) []*gitlab.Snippet {
+	var allSnippets []*gitlab.Snippet
+	opt := &gitlab.ListProjectSnippetsOptions{
+		PerPage: perPage,
+		Page:    1,
+	}
+
+	for {
+		snippets, resp, err := c.ProjectSnippets.ListSnippets(r.ID, opt)
+
+		if resp.StatusCode == 403 {
+			break
+		}
+
+		if err != nil {
+			colorlog.PrintError(fmt.Sprintf("Error fetching snippets for project %s: %v, ignoring error and proceeding to next project", r.Name, err))
+			break
+		}
+
+		allSnippets = append(allSnippets, snippets...)
+
+		// Exit the loop when we've seen all pages.
+		if resp.NextPage == 0 {
+			break
+		}
+
+		// Update the page number to get the next page.
+		opt.Page = resp.NextPage
+	}
+
+	return allSnippets
+}
+
+func (c Gitlab) getAllSnippets() []*gitlab.Snippet {
+	var allSnippets []*gitlab.Snippet
+	opt := &gitlab.ListAllSnippetsOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: perPage,
+			Page:    1,
+		},
+	}
+
+	for {
+		snippets, resp, err := c.Snippets.ListAllSnippets(opt)
+		if err != nil {
+			colorlog.PrintError(fmt.Sprintf("Issue fetching all snippets, not all snippets will be cloned error: %v", err))
+			return allSnippets
+		}
+
+		allSnippets = append(allSnippets, snippets...)
+
+		// Exit the loop when we've seen all pages.
+		if resp.NextPage == 0 {
+			break
+		}
+
+		// Update the page number to get the next page.
+		opt.Page = resp.NextPage
+	}
+
+	return allSnippets
+}
+
+func (c Gitlab) GetSnippets(cloneData []Repo, target string) ([]Repo, error) {
+
+	if os.Getenv("GHORG_CLONE_SNIPPETS") != "true" {
+		return []Repo{}, nil
+	}
+
+	var allSnippetsToClone []*gitlab.Snippet
+
+	// Snippets are converted into Repos so we can clone them
+	snippetsToClone := []Repo{}
+
+	// If it is a cloud group clone iterate over each project and try to get its snippets. We have to do this because if you use the /snippets/all endpoint it will return every public snippet from the cloud.
+	if os.Getenv("GHORG_CLONE_TYPE") != "user" && os.Getenv("GHORG_SCM_BASE_URL") == "" {
+		// Iterate over all projects in the group. If it has snippets add them
+		colorlog.PrintInfo("Note: only snippets you have access to will be cloned. This process may take a while depending on the size of group you are trying to clone, please be patient.")
+		for _, repo := range cloneData {
+			snippets := c.getRepoSnippets(repo)
+			allSnippetsToClone = append(allSnippetsToClone, snippets...)
+		}
+	} else {
+		allSnippets := c.getAllSnippets()
+
+		// if its an all-user or all-group clone, for each repo get its snippets then also include all root level snippets
+		if target == "all-users" || target == "all-groups" {
+			for _, repo := range cloneData {
+				repoSnippets := c.getRepoSnippets(repo)
+				allSnippetsToClone = append(allSnippetsToClone, repoSnippets...)
+			}
+
+			for _, snippet := range allSnippets {
+				if c.rootLevelSnippet(snippet.WebURL) {
+					allSnippetsToClone = append(allSnippetsToClone, snippet)
+				}
+			}
+		}
+
+		if os.Getenv("GHORG_CLONE_TYPE") == "user" && os.Getenv("GHORG_SCM_BASE_URL") == "" {
+
+		}
+
+	}
+
+	for _, snippet := range allSnippetsToClone {
+		snippetID := strconv.Itoa(snippet.ID)
+		snippetTitle := ToSlug(snippet.Title)
+		s := Repo{}
+		s.IsGitLabSnippet = true
+		s.CloneBranch = "main"
+		s.GitLabSnippetInfo.Title = snippetTitle
+		s.Name = snippetTitle
+		s.GitLabSnippetInfo.ID = snippetID
+		s.URL = snippet.WebURL
+		// If the snippet is not made on any repo its a root level snippet, this works for cloud
+		if c.rootLevelSnippet(snippet.WebURL) {
+			s.IsGitLabRootLevelSnippet = true
+			s.CloneURL = c.createRootLevelSnippetCloneURL(snippet.WebURL)
+			cloneData = append(cloneData, s)
+		} else {
+			// Since this isn't a root level repo we want to find which repo the snippet is coming from
+			for _, cloneTarget := range cloneData {
+				if cloneTarget.ID == strconv.Itoa(snippet.ProjectID) {
+					s.CloneURL = c.createRepoSnippetCloneURL(cloneTarget.CloneURL, snippetID)
+					s.Path = cloneTarget.Path
+					s.GitLabSnippetInfo.URLOfRepo = cloneTarget.URL
+					s.GitLabSnippetInfo.NameOfRepo = cloneTarget.Name
+					cloneData = append(cloneData, s)
+				}
+			}
+		}
+
+		snippetsToClone = append(snippetsToClone, s)
+	}
+
+	return snippetsToClone, nil
 }
 
 // GetGroupRepos fetches repo data from a specific group
@@ -223,6 +440,11 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 		}
 	}
 
+	snippets, err := c.GetSnippets(cloneData, targetUsername)
+	if err != nil {
+		colorlog.PrintError(fmt.Sprintf("Error getting snippets, error: %v", err))
+	}
+	cloneData = append(cloneData, snippets...)
 	return cloneData, nil
 }
 
@@ -292,6 +514,7 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 		r := Repo{}
 
 		r.Name = p.Name
+		r.ID = strconv.Itoa(p.ID)
 
 		if os.Getenv("GHORG_BRANCH") == "" {
 			defaultBranch := p.DefaultBranch
@@ -320,6 +543,7 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 		}
 
 		r.Path = path
+		r.ID = fmt.Sprint(p.ID)
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			r.CloneURL = c.addTokenToCloneURL(p.HTTPURLToRepo, os.Getenv("GHORG_GITLAB_TOKEN"))
 			r.URL = p.HTTPURLToRepo
@@ -332,6 +556,8 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 
 		if p.WikiEnabled && os.Getenv("GHORG_CLONE_WIKI") == "true" {
 			wiki := Repo{}
+			// wiki needs name for gitlab name collisions
+			wiki.Name = p.Name
 			wiki.IsWiki = true
 			wiki.CloneURL = strings.Replace(r.CloneURL, ".git", ".wiki.git", 1)
 			wiki.URL = strings.Replace(r.URL, ".git", ".wiki.git", 1)
@@ -348,7 +574,6 @@ func filterGitlabGroupByExcludeMatchRegex(groups []string) []string {
 	regex := fmt.Sprint(os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX"))
 
 	for i, grp := range groups {
-		fmt.Println(grp)
 		exclude := false
 		re := regexp.MustCompile(regex)
 		match := re.FindString(grp)
@@ -362,4 +587,21 @@ func filterGitlabGroupByExcludeMatchRegex(groups []string) []string {
 	}
 
 	return filteredGroups
+}
+
+// ToSlug converts a title into a URL-friendly slug.
+func ToSlug(title string) string {
+	// Convert to lowercase
+	slug := strings.ToLower(title)
+
+	// Replace spaces and special characters with hyphens
+	slug = regexp.MustCompile(`[\s\p{P}]+`).ReplaceAllString(slug, "-")
+
+	// Remove any non-alphanumeric characters except for hyphens
+	slug = regexp.MustCompile(`[^a-z0-9-]+`).ReplaceAllString(slug, "")
+
+	// Trim any leading or trailing hyphens
+	slug = strings.Trim(slug, "-")
+
+	return slug
 }

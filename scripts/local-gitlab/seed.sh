@@ -135,6 +135,22 @@ echo ""
 echo ""
 sleep 1
 
+# create a repo for testuser1, this user has an id of 2
+curl --header "PRIVATE-TOKEN: $TOKEN" -X POST "${GITLAB_URL}/api/v4/projects/user/2?name=testuser1-repo&initialize_with_readme=true"
+
+echo -e "\n\n\n"
+sleep 1
+
+# create a snippet for testuser1's repo
+SNIPPET_DATA='{"title": "my-first-snippet", "file_name": "snippet.txt", "content": "This is my first snippet", "visibility": "public"}'
+curl --request POST --header "PRIVATE-TOKEN: $TOKEN" \
+    --header "Content-Type: application/json" \
+    --data "${SNIPPET_DATA}" \
+    "${GITLAB_URL}/api/v4/projects/testuser1%2Ftestuser1-repo/snippets"
+
+echo -e "\n\n\n"
+sleep 1
+
 # create repos in group1
 for ((a=0; a <= 3 ; a++))
 do

@@ -96,23 +96,23 @@ else
 fi
 
 # SNIPPETS
-# ghorg clone $GITLAB_GROUP_2 --token="${GITLAB_TOKEN}" --scm=gitlab --clone-snippets --preserve-dir
+ghorg clone $GITLAB_GROUP_2 --token="${GITLAB_TOKEN}" --scm=gitlab --clone-snippets --preserve-dir
 
-# if [ -e "${HOME}"/ghorg/"${GITLAB_GROUP_2}"/subgroup-2/foobar.snippets/test-snippet-2-3711655 ]
-# then
-#     echo "Pass: gitlab group clone snippet 2 with preserve dir"
-# else
-#     echo "Fail: gitlab group clone snippet 2 with preserve dir"
-#     exit 1
-# fi
+if [ -e "${HOME}"/ghorg/"${GITLAB_GROUP_2}"/subgroup-2/foobar.snippets/test-snippet-2-3711655 ]
+then
+    echo "Pass: gitlab group clone snippet 2 with preserve dir"
+else
+    echo "Fail: gitlab group clone snippet 2 with preserve dir"
+    exit 1
+fi
 
-# if [ -e "${HOME}"/ghorg/"${GITLAB_GROUP_2}"/subgroup-2/foobar.snippets/test-snippet-1-3711654 ]
-# then
-#     echo "Pass: gitlab group clone snippet 1 with preserve dir"
-# else
-#     echo "Fail: gitlab group clone snippet 1 with preserve dir"
-#     exit 1
-# fi
+if [ -e "${HOME}"/ghorg/"${GITLAB_GROUP_2}"/subgroup-2/foobar.snippets/test-snippet-1-3711654 ]
+then
+    echo "Pass: gitlab group clone snippet 1 with preserve dir"
+else
+    echo "Fail: gitlab group clone snippet 1 with preserve dir"
+    exit 1
+fi
 
 #
 # SUBGROUP TESTS
