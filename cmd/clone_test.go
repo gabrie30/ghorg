@@ -3,6 +3,7 @@ package cmd
 import (
 	"log"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -326,4 +327,70 @@ func UnsetEnv(prefix string) (restore func()) {
 			}
 		}
 	}
+}
+
+func Test_filterWithGhorgignore(t *testing.T) {
+	type testCase struct {
+		name           string
+		cloneTargets   []scm.Repo
+		expectedResult []scm.Repo
+	}
+
+	testCases := []testCase{
+		{
+			name: "filters out repo named 'shouldbeignored'",
+			cloneTargets: []scm.Repo{
+				{Name: "shouldbeignored", URL: "https://github.com/org/shouldbeignored"},
+				{Name: "bar", URL: "https://github.com/org/bar"},
+			},
+			expectedResult: []scm.Repo{
+				{Name: "bar", URL: "https://github.com/org/bar"},
+			},
+		},
+		{
+			name: "filters out repo named 'shouldbeignored'",
+			cloneTargets: []scm.Repo{
+				{Name: "foo", URL: "https://github.com/org/foo"},
+				{Name: "shouldbeignored", URL: "https://github.com/org/shouldbeignored"},
+			},
+			expectedResult: []scm.Repo{
+				{Name: "foo", URL: "https://github.com/org/foo"},
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpfile, err := createTempFileWithContent("shouldbeignored")
+			if err != nil {
+				t.Fatalf("Failed to create temp file: %v", err)
+			}
+			defer os.Remove(tmpfile.Name())
+
+			os.Setenv("GHORG_IGNORE_PATH", tmpfile.Name())
+
+			got := filterWithGhorgignore(tt.cloneTargets)
+			if !reflect.DeepEqual(got, tt.expectedResult) {
+				t.Errorf("filterWithGhorgignore() = %v, want %v", got, tt.expectedResult)
+			}
+		})
+	}
+}
+
+// createTempFileWithContent will create
+func createTempFileWithContent(content string) (*os.File, error) {
+	tmpfile, err := os.CreateTemp("", "ghorgtest")
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := tmpfile.Write([]byte(content)); err != nil {
+		return nil, err
+	}
+
+	if err := tmpfile.Close(); err != nil {
+		return nil, err
+	}
+
+	return tmpfile, nil
 }

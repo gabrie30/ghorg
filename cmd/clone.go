@@ -664,35 +664,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		}
 	}
 
-	// filter repos down based on ghorgignore if one exists
-	_, err := os.Stat(configs.GhorgIgnoreLocation())
-	if !os.IsNotExist(err) {
-		// Open the file parse each line and remove cloneTargets containing
-		toIgnore, err := readGhorgIgnore()
-		if err != nil {
-			colorlog.PrintErrorAndExit(fmt.Sprintf("Error parsing your ghorgignore, error: %v", err))
-		}
-
-		colorlog.PrintInfo("Using ghorgignore, filtering repos down...")
-
-		filteredCloneTargets := []scm.Repo{}
-		var flag bool
-		for _, cloned := range cloneTargets {
-			flag = false
-			for _, ignore := range toIgnore {
-				if strings.Contains(cloned.URL, ignore) {
-					flag = true
-				}
-			}
-
-			if !flag {
-				filteredCloneTargets = append(filteredCloneTargets, cloned)
-			}
-		}
-
-		cloneTargets = filteredCloneTargets
-
-	}
+	cloneTargets = filterWithGhorgignore(cloneTargets)
 
 	totalResourcesToClone, reposToCloneCount, snippetToCloneCount, wikisToCloneCount := getCloneableInventory(cloneTargets)
 	if os.Getenv("GHORG_CLONE_WIKI") == "true" && os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
@@ -1226,4 +1198,39 @@ func setOutputDirName(argz []string) {
 	if os.Getenv("GHORG_BACKUP") == "true" {
 		outputDirName = outputDirName + "_backup"
 	}
+}
+
+// filter repos down based on ghorgignore if one exists
+func filterWithGhorgignore(cloneTargets []scm.Repo) []scm.Repo {
+
+	_, err := os.Stat(configs.GhorgIgnoreLocation())
+	if !os.IsNotExist(err) {
+		// Open the file parse each line and remove cloneTargets containing
+		toIgnore, err := readGhorgIgnore()
+		if err != nil {
+			colorlog.PrintErrorAndExit(fmt.Sprintf("Error parsing your ghorgignore, error: %v", err))
+		}
+
+		colorlog.PrintInfo("Using ghorgignore, filtering repos down...")
+
+		filteredCloneTargets := []scm.Repo{}
+		var flag bool
+		for _, cloned := range cloneTargets {
+			flag = false
+			for _, ignore := range toIgnore {
+				if strings.Contains(cloned.URL, ignore) {
+					flag = true
+				}
+			}
+
+			if !flag {
+				filteredCloneTargets = append(filteredCloneTargets, cloned)
+			}
+		}
+
+		cloneTargets = filteredCloneTargets
+
+	}
+
+	return cloneTargets
 }
