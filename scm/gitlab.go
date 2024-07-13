@@ -52,13 +52,6 @@ func (_ Gitlab) rootLevelSnippet(url string) bool {
 	}
 }
 
-func (_ Gitlab) isRootLevelSnippet(s *gitlab.Snippet) bool {
-	if s.ProjectID == 0 {
-		return true
-	}
-	return false
-}
-
 // GetOrgRepos fetches repo data from a specific group
 func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	allGroups := []string{}
@@ -297,7 +290,7 @@ func (c Gitlab) GetSnippets(cloneData []Repo, target string) ([]Repo, error) {
 			}
 
 			for _, snippet := range allSnippets {
-				if c.isRootLevelSnippet(snippet) {
+				if c.rootLevelSnippet(snippet.WebURL) {
 					allSnippetsToClone = append(allSnippetsToClone, snippet)
 				}
 			}
@@ -320,7 +313,7 @@ func (c Gitlab) GetSnippets(cloneData []Repo, target string) ([]Repo, error) {
 		s.GitLabSnippetInfo.ID = snippetID
 		s.URL = snippet.WebURL
 		// If the snippet is not made on any repo its a root level snippet, this works for cloud
-		if c.isRootLevelSnippet(snippet) {
+		if c.rootLevelSnippet(snippet.WebURL) {
 			s.IsGitLabRootLevelSnippet = true
 			s.CloneURL = c.createRootLevelSnippetCloneURL(snippet.WebURL)
 			cloneData = append(cloneData, s)
