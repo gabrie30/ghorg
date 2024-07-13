@@ -52,6 +52,13 @@ func (_ Gitlab) rootLevelSnippet(url string) bool {
 	}
 }
 
+func (_ Gitlab) isRootLevelSnippet(s *gitlab.Snippet) bool {
+	if s.ProjectID == 0 {
+		return true
+	}
+	return false
+}
+
 // GetOrgRepos fetches repo data from a specific group
 func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	allGroups := []string{}
@@ -197,13 +204,78 @@ func (c Gitlab) createRootLevelSnippetCloneURL(snippetWebURL string) string {
 	return cloneURL
 }
 
+func (c Gitlab) getRepoSnippets(r Repo) []*gitlab.Snippet {
+	var allSnippets []*gitlab.Snippet
+	opt := &gitlab.ListProjectSnippetsOptions{
+		PerPage: perPage,
+		Page:    1,
+	}
+
+	for {
+		snippets, resp, err := c.ProjectSnippets.ListSnippets(r.ID, opt)
+
+		if resp.StatusCode == 403 {
+			break
+		}
+
+		if err != nil {
+			colorlog.PrintError(fmt.Sprintf("Error fetching snippets for project %s: %v, ignoring error and proceeding to next project", r.Name, err))
+			break
+		}
+
+		allSnippets = append(allSnippets, snippets...)
+
+		// Exit the loop when we've seen all pages.
+		if resp.NextPage == 0 {
+			break
+		}
+
+		// Update the page number to get the next page.
+		opt.Page = resp.NextPage
+	}
+
+	return allSnippets
+}
+
+func (c Gitlab) getAllSnippets() []*gitlab.Snippet {
+	var allSnippets []*gitlab.Snippet
+	opt := &gitlab.ListAllSnippetsOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: perPage,
+			Page:    1,
+		},
+	}
+
+	for {
+		snippets, resp, err := c.Snippets.ListAllSnippets(opt)
+		if err != nil {
+			colorlog.PrintError(fmt.Sprintf("Issue fetching all snippets, not all snippets will be cloned error: %v", err))
+			return allSnippets
+		}
+
+		allSnippets = append(allSnippets, snippets...)
+
+		// Exit the loop when we've seen all pages.
+		if resp.NextPage == 0 {
+			break
+		}
+
+		// Update the page number to get the next page.
+		opt.Page = resp.NextPage
+	}
+
+	return allSnippets
+}
+
 func (c Gitlab) GetSnippets(cloneData []Repo, target string) ([]Repo, error) {
 
 	if os.Getenv("GHORG_CLONE_SNIPPETS") != "true" {
 		return []Repo{}, nil
 	}
 
-	var allSnippets []*gitlab.Snippet
+	var allSnippetsToClone []*gitlab.Snippet
+
+	// Snippets are converted into Repos so we can clone them
 	snippetsToClone := []Repo{}
 
 	// If it is a cloud group clone iterate over each project and try to get its snippets. We have to do this because if you use the /snippets/all endpoint it will return every public snippet from the cloud.
@@ -211,91 +283,33 @@ func (c Gitlab) GetSnippets(cloneData []Repo, target string) ([]Repo, error) {
 		// Iterate over all projects in the group. If it has snippets add them
 		colorlog.PrintInfo("Note: only snippets you have access to will be cloned. This process may take a while depending on the size of group you are trying to clone, please be patient.")
 		for _, repo := range cloneData {
-			opt := &gitlab.ListProjectSnippetsOptions{
-				PerPage: perPage,
-				Page:    1,
-			}
-
-			for {
-				snippets, resp, err := c.ProjectSnippets.ListSnippets(repo.ID, opt)
-
-				if resp.StatusCode == 403 {
-					break
-				}
-
-				if err != nil {
-					colorlog.PrintError(fmt.Sprintf("Error fetching snippets for project %s: %v, ignoring error and proceeding to next project", repo.Name, err))
-					break
-				}
-
-				allSnippets = append(allSnippets, snippets...)
-
-				// Exit the loop when we've seen all pages.
-				if resp.NextPage == 0 {
-					break
-				}
-
-				// Update the page number to get the next page.
-				opt.Page = resp.NextPage
-			}
+			snippets := c.getRepoSnippets(repo)
+			allSnippetsToClone = append(allSnippetsToClone, snippets...)
 		}
-	} else if os.Getenv("GHORG_CLONE_TYPE") == "user" && os.Getenv("GHORG_SCM_BASE_URL") != "" {
-		opt := &gitlab.ListAllSnippetsOptions{
-			ListOptions: gitlab.ListOptions{
-				PerPage: perPage,
-				Page:    1,
-			},
-		}
-
-		for {
-			snippets, resp, err := c.Snippets.ListAllSnippets(opt)
-			if err != nil {
-				return snippetsToClone, fmt.Errorf("fetching snippets: %v", err)
-			}
-
-			for _, snippet := range snippets {
-				if strings.Contains(snippet.WebURL, target) {
-					allSnippets = append(allSnippets, snippet)
-				}
-			}
-
-			// Exit the loop when we've seen all pages.
-			if resp.NextPage == 0 {
-				break
-			}
-
-			// Update the page number to get the next page.
-			opt.Page = resp.NextPage
-		}
-
 	} else {
-		opt := &gitlab.ListAllSnippetsOptions{
-			ListOptions: gitlab.ListOptions{
-				PerPage: perPage,
-				Page:    1,
-			},
-		}
+		allSnippets := c.getAllSnippets()
 
-		for {
-			snippets, resp, err := c.Snippets.ListAllSnippets(opt)
-			if err != nil {
-				return snippetsToClone, fmt.Errorf("fetching snippets: %v", err)
+		// if its an all-user or all-group clone, for each repo get its snippets then also include all root level snippets
+		if target == "all-users" || target == "all-groups" {
+			for _, repo := range cloneData {
+				repoSnippets := c.getRepoSnippets(repo)
+				allSnippetsToClone = append(allSnippetsToClone, repoSnippets...)
 			}
 
-			allSnippets = append(allSnippets, snippets...)
-
-			// Exit the loop when we've seen all pages.
-			if resp.NextPage == 0 {
-				break
+			for _, snippet := range allSnippets {
+				if c.isRootLevelSnippet(snippet) {
+					allSnippetsToClone = append(allSnippetsToClone, snippet)
+				}
 			}
-
-			// Update the page number to get the next page.
-			opt.Page = resp.NextPage
 		}
+
+		if os.Getenv("GHORG_CLONE_TYPE") == "user" && os.Getenv("GHORG_SCM_BASE_URL") == "" {
+
+		}
+
 	}
 
-	for _, snippet := range allSnippets {
-		snippetAtRootLevel := c.rootLevelSnippet(snippet.WebURL)
+	for _, snippet := range allSnippetsToClone {
 		snippetID := strconv.Itoa(snippet.ID)
 		snippetTitle := ToSlug(snippet.Title)
 		s := Repo{}
@@ -306,7 +320,7 @@ func (c Gitlab) GetSnippets(cloneData []Repo, target string) ([]Repo, error) {
 		s.GitLabSnippetInfo.ID = snippetID
 		s.URL = snippet.WebURL
 		// If the snippet is not made on any repo its a root level snippet, this works for cloud
-		if snippetAtRootLevel {
+		if c.isRootLevelSnippet(snippet) {
 			s.IsGitLabRootLevelSnippet = true
 			s.CloneURL = c.createRootLevelSnippetCloneURL(snippet.WebURL)
 			cloneData = append(cloneData, s)

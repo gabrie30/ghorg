@@ -135,6 +135,24 @@ echo ""
 echo ""
 sleep 1
 
+# create a repo for testuser1
+TESTUSER1_NAMESPACE_ID=$(curl --header "PRIVATE-TOKEN: $TOKEN" "${GITLAB_URL}/api/v4/users/testuser1" | jq '.id')
+curl --header "PRIVATE-TOKEN: $TOKEN" -X POST "${GITLAB_URL}/api/v4/projects?name=testuser1-repo&namespace_id=${TESTUSER1_NAMESPACE_ID}&initialize_with_readme=true"
+
+echo -e "\n\n\n"
+sleep 1
+
+# create a snippet for testuser1's repo
+TESTUSER1_REPO_ID=$(curl --header "PRIVATE-TOKEN: $TOKEN" "${GITLAB_URL}/api/v4/projects/testuser1-repo" | jq '.id')
+SNIPPET_DATA='{"title": "my-first-snippet", "file_name": "snippet.txt", "content": "This is my first snippet", "visibility": "public"}'
+curl --request POST --header "PRIVATE-TOKEN: $TOKEN" \
+    --header "Content-Type: application/json" \
+    --data "${SNIPPET_DATA}" \
+    "${GITLAB_URL}/api/v4/projects/${TESTUSER1_REPO_ID}/snippets"
+
+echo -e "\n\n\n"
+sleep 1
+
 # create repos in group1
 for ((a=0; a <= 3 ; a++))
 do

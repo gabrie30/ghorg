@@ -31,7 +31,7 @@ export GHORG_INSECURE_GITLAB_CLIENT=true
 
 
 
-############ CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR ############
+############ CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, SNIPPETS ############
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --output-dir=local-gitlab-v15-repos
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --output-dir=local-gitlab-v15-repos
 
@@ -81,6 +81,79 @@ echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR TEST FAILED local-gitl
 exit 1
 fi
 
+############ CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, SNIPPETS ############
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --output-dir=local-gitlab-v15-repos-snippets --clone-snippets
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --output-dir=local-gitlab-v15-repos-snippets --clone-snippets
+
+GOT=$( ghorg ls local-gitlab-v15-repos-snippets | grep -o 'local-gitlab-v15-repos-snippets.*')
+WANT=$(cat <<EOF
+local-gitlab-v15-repos-snippets/_ghorg_root_level_snippets
+local-gitlab-v15-repos-snippets/local-gitlab-group1
+local-gitlab-v15-repos-snippets/local-gitlab-group2
+local-gitlab-v15-repos-snippets/local-gitlab-group3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, SNIPPETS TEST FAILED local-gitlab-group1"
+exit 1
+fi
+
+GOT=$( ghorg ls local-gitlab-v15-repos-snippets/local-gitlab-group1 | grep -o 'local-gitlab-v15-repos-snippets/local-gitlab-group1.*')
+WANT=$(cat <<EOF
+local-gitlab-v15-repos-snippets/local-gitlab-group1/baz0
+local-gitlab-v15-repos-snippets/local-gitlab-group1/baz1
+local-gitlab-v15-repos-snippets/local-gitlab-group1/baz2
+local-gitlab-v15-repos-snippets/local-gitlab-group1/baz3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, SNIPPETS TEST FAILED local-gitlab-group1"
+exit 1
+fi
+
+GOT=$( ghorg ls local-gitlab-v15-repos-snippets/local-gitlab-group2 | grep -o 'local-gitlab-v15-repos-snippets/local-gitlab-group2.*')
+WANT=$(cat <<EOF
+local-gitlab-v15-repos-snippets/local-gitlab-group2/baz0
+local-gitlab-v15-repos-snippets/local-gitlab-group2/baz0.snippets
+local-gitlab-v15-repos-snippets/local-gitlab-group2/baz1
+local-gitlab-v15-repos-snippets/local-gitlab-group2/baz1.snippets
+local-gitlab-v15-repos-snippets/local-gitlab-group2/baz2
+local-gitlab-v15-repos-snippets/local-gitlab-group2/baz2.snippets
+local-gitlab-v15-repos-snippets/local-gitlab-group2/baz3
+local-gitlab-v15-repos-snippets/local-gitlab-group2/baz3.snippets
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, SNIPPETS TEST FAILED local-gitlab-group2"
+exit 1
+fi
+
+GOT=$( ghorg ls local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a | grep -o 'local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a.*')
+WANT=$(cat <<EOF
+local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup-b
+local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_0
+local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_0.snippets
+local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_1
+local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_1.snippets
+local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_2
+local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_2.snippets
+local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_3
+local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_3.snippets
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, SNIPPETS TEST FAILED local-gitlab-group3/subgroup-a"
+exit 1
+fi
+
 ############ CLONE AND TEST ALL-GROUPS, OUTPUT DIR  ############
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-repos-flat
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-repos-flat
@@ -103,6 +176,50 @@ local-gitlab-v15-repos-flat/subgroup_b_repo_0
 local-gitlab-v15-repos-flat/subgroup_b_repo_1
 local-gitlab-v15-repos-flat/subgroup_b_repo_2
 local-gitlab-v15-repos-flat/subgroup_b_repo_3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-GROUPS, OUTPUT DIR"
+exit 1
+fi
+
+############ CLONE AND TEST ALL-GROUPS, OUTPUT DIR, SNIPPETS ############
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-repos-all-groups-snippets --clone-snippets
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-repos-all-groups-snippets --clone-snippets
+
+GOT=$( ghorg ls local-gitlab-v15-repos-all-groups-snippets | grep -o 'local-gitlab-v15-repos-all-groups-snippets.*')
+WANT=$(cat <<EOF
+local-gitlab-v15-repos-all-groups-snippets/_ghorg_root_level_snippets
+local-gitlab-v15-repos-all-groups-snippets/local-gitlab-group1_baz0
+local-gitlab-v15-repos-all-groups-snippets/local-gitlab-group1_baz1
+local-gitlab-v15-repos-all-groups-snippets/local-gitlab-group1_baz2
+local-gitlab-v15-repos-all-groups-snippets/local-gitlab-group1_baz3
+local-gitlab-v15-repos-all-groups-snippets/local-gitlab-group2_baz0
+local-gitlab-v15-repos-all-groups-snippets/local-gitlab-group2_baz0.snippets
+local-gitlab-v15-repos-all-groups-snippets/local-gitlab-group2_baz1
+local-gitlab-v15-repos-all-groups-snippets/local-gitlab-group2_baz1.snippets
+local-gitlab-v15-repos-all-groups-snippets/local-gitlab-group2_baz2
+local-gitlab-v15-repos-all-groups-snippets/local-gitlab-group2_baz2.snippets
+local-gitlab-v15-repos-all-groups-snippets/local-gitlab-group2_baz3
+local-gitlab-v15-repos-all-groups-snippets/local-gitlab-group2_baz3.snippets
+local-gitlab-v15-repos-all-groups-snippets/subgroup_a_repo_0
+local-gitlab-v15-repos-all-groups-snippets/subgroup_a_repo_0.snippets
+local-gitlab-v15-repos-all-groups-snippets/subgroup_a_repo_1
+local-gitlab-v15-repos-all-groups-snippets/subgroup_a_repo_1.snippets
+local-gitlab-v15-repos-all-groups-snippets/subgroup_a_repo_2
+local-gitlab-v15-repos-all-groups-snippets/subgroup_a_repo_2.snippets
+local-gitlab-v15-repos-all-groups-snippets/subgroup_a_repo_3
+local-gitlab-v15-repos-all-groups-snippets/subgroup_a_repo_3.snippets
+local-gitlab-v15-repos-all-groups-snippets/subgroup_b_repo_0
+local-gitlab-v15-repos-all-groups-snippets/subgroup_b_repo_0.snippets
+local-gitlab-v15-repos-all-groups-snippets/subgroup_b_repo_1
+local-gitlab-v15-repos-all-groups-snippets/subgroup_b_repo_1.snippets
+local-gitlab-v15-repos-all-groups-snippets/subgroup_b_repo_2
+local-gitlab-v15-repos-all-groups-snippets/subgroup_b_repo_2.snippets
+local-gitlab-v15-repos-all-groups-snippets/subgroup_b_repo_3
+local-gitlab-v15-repos-all-groups-snippets/subgroup_b_repo_3.snippets
 EOF
 )
 
@@ -536,12 +653,34 @@ local-gitlab-v15-all-users/rootrepos0
 local-gitlab-v15-all-users/rootrepos1
 local-gitlab-v15-all-users/rootrepos2
 local-gitlab-v15-all-users/rootrepos3
+local-gitlab-v15-all-users/testuser1-repo
 EOF
 )
 
 if [ "${TEST_ALL_USERS_WANT}" != "${TEST_ALL_USERS_GOT}" ]
 then
 echo "CLONE AND TEST ALL-USERS, OUTPUT DIR FAILED"
+exit 1
+fi
+
+############ CLONE AND TEST ALL-USERS, OUTPUT DIR, SNIPPETS ############
+ghorg clone all-users --scm=gitlab --clone-type=user --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-all-users-snippets --clone-snippets
+
+TEST_ALL_USERS_SNIPPETS_GOT=$(ghorg ls local-gitlab-v15-all-users-snippets | grep -o 'local-gitlab-v15-all-users-snippets.*')
+TEST_ALL_USERS_SNIPPETS_WANT=$(cat <<EOF
+local-gitlab-v15-all-users-snippets/_ghorg_root_level_snippets
+local-gitlab-v15-all-users-snippets/rootrepos0
+local-gitlab-v15-all-users-snippets/rootrepos1
+local-gitlab-v15-all-users-snippets/rootrepos2
+local-gitlab-v15-all-users-snippets/rootrepos3
+local-gitlab-v15-all-users-snippets/testuser1-repo
+local-gitlab-v15-all-users-snippets/testuser1-repo.snippets
+EOF
+)
+
+if [ "${TEST_ALL_USERS_SNIPPETS_WANT}" != "${TEST_ALL_USERS_SNIPPETS_GOT}" ]
+then
+echo "CLONE AND TEST ALL-USERS, OUTPUT DIR SNIPPETS FAILED"
 exit 1
 fi
 
