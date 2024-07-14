@@ -594,8 +594,12 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		cloneTargets = filterByExcludeMatchPrefix(cloneTargets)
 	}
 
-	cloneTargets = filterDownReposIfTargetReposPathEnabled(cloneTargets)
-	cloneTargets = filterWithGhorgignore(cloneTargets)
+	if os.Getenv("GHORG_TARGET_REPOS_PATH") != "" {
+		colorlog.PrintInfo("Filtering repos down by target repos path...")
+		cloneTargets = filterByTargetReposPath(cloneTargets)
+	}
+
+	cloneTargets = filterByGhorgignore(cloneTargets)
 
 	totalResourcesToClone, reposToCloneCount, snippetToCloneCount, wikisToCloneCount := getCloneableInventory(cloneTargets)
 
@@ -909,74 +913,73 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 }
 
-func filterDownReposIfTargetReposPathEnabled(cloneTargets []scm.Repo) []scm.Repo {
-	if os.Getenv("GHORG_TARGET_REPOS_PATH") != "" {
-		_, err := os.Stat(os.Getenv("GHORG_TARGET_REPOS_PATH"))
+func filterByTargetReposPath(cloneTargets []scm.Repo) []scm.Repo {
 
+	_, err := os.Stat(os.Getenv("GHORG_TARGET_REPOS_PATH"))
+
+	if err != nil {
+		colorlog.PrintErrorAndExit(fmt.Sprintf("Error finding your GHORG_TARGET_REPOS_PATH file, error: %v", err))
+	}
+
+	if !os.IsNotExist(err) {
+		// Open the file parse each line and remove cloneTargets containing
+		toTarget, err := readTargetReposFile()
 		if err != nil {
-			colorlog.PrintErrorAndExit(fmt.Sprintf("Error finding your GHORG_TARGET_REPOS_PATH file, error: %v", err))
+			colorlog.PrintErrorAndExit(fmt.Sprintf("Error parsing your GHORG_TARGET_REPOS_PATH file, error: %v", err))
 		}
 
-		if !os.IsNotExist(err) {
-			// Open the file parse each line and remove cloneTargets containing
-			toTarget, err := readTargetReposFile()
-			if err != nil {
-				colorlog.PrintErrorAndExit(fmt.Sprintf("Error parsing your GHORG_TARGET_REPOS_PATH file, error: %v", err))
-			}
+		colorlog.PrintInfo("Using GHORG_TARGET_REPOS_PATH, filtering repos down...")
 
-			colorlog.PrintInfo("Using GHORG_TARGET_REPOS_PATH, filtering repos down...")
+		filteredCloneTargets := []scm.Repo{}
+		var flag bool
 
-			filteredCloneTargets := []scm.Repo{}
-			var flag bool
+		targetRepoSeenOnOrg := make(map[string]bool)
 
-			targetRepoSeenOnOrg := make(map[string]bool)
+		for _, cloneTarget := range cloneTargets {
+			flag = false
+			for _, targetRepo := range toTarget {
+				if _, ok := targetRepoSeenOnOrg[targetRepo]; !ok {
+					targetRepoSeenOnOrg[targetRepo] = false
+				}
+				clonedRepoName := strings.TrimSuffix(filepath.Base(cloneTarget.URL), ".git")
+				if strings.EqualFold(clonedRepoName, targetRepo) {
+					flag = true
+					targetRepoSeenOnOrg[targetRepo] = true
+				}
 
-			for _, cloneTarget := range cloneTargets {
-				flag = false
-				for _, targetRepo := range toTarget {
-					if _, ok := targetRepoSeenOnOrg[targetRepo]; !ok {
-						targetRepoSeenOnOrg[targetRepo] = false
-					}
-					clonedRepoName := strings.TrimSuffix(filepath.Base(cloneTarget.URL), ".git")
-					if strings.EqualFold(clonedRepoName, targetRepo) {
+				if os.Getenv("GHORG_CLONE_WIKI") == "true" {
+					targetRepoWiki := targetRepo + ".wiki"
+					if strings.EqualFold(targetRepoWiki, clonedRepoName) {
 						flag = true
 						targetRepoSeenOnOrg[targetRepo] = true
 					}
+				}
 
-					if os.Getenv("GHORG_CLONE_WIKI") == "true" {
-						targetRepoWiki := targetRepo + ".wiki"
-						if strings.EqualFold(targetRepoWiki, clonedRepoName) {
+				if os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
+					if cloneTarget.IsGitLabSnippet {
+						targetSnippetOriginalRepo := strings.TrimSuffix(filepath.Base(cloneTarget.GitLabSnippetInfo.URLOfRepo), ".git")
+						if strings.EqualFold(targetSnippetOriginalRepo, targetRepo) {
 							flag = true
 							targetRepoSeenOnOrg[targetRepo] = true
 						}
 					}
-
-					if os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
-						if cloneTarget.IsGitLabSnippet {
-							targetSnippetOriginalRepo := strings.TrimSuffix(filepath.Base(cloneTarget.GitLabSnippetInfo.URLOfRepo), ".git")
-							if strings.EqualFold(targetSnippetOriginalRepo, targetRepo) {
-								flag = true
-								targetRepoSeenOnOrg[targetRepo] = true
-							}
-						}
-					}
-				}
-
-				if flag {
-					filteredCloneTargets = append(filteredCloneTargets, cloneTarget)
 				}
 			}
 
-			// Print all the repos in the file that were not in the org so users know the entry is not being cloned
-			for targetRepo, seen := range targetRepoSeenOnOrg {
-				if !seen {
-					cloneInfos = append(cloneInfos, fmt.Sprintf("Target in GHORG_TARGET_REPOS_PATH was not found in the org, repo: %v", targetRepo))
-				}
+			if flag {
+				filteredCloneTargets = append(filteredCloneTargets, cloneTarget)
 			}
-
-			cloneTargets = filteredCloneTargets
-
 		}
+
+		// Print all the repos in the file that were not in the org so users know the entry is not being cloned
+		for targetRepo, seen := range targetRepoSeenOnOrg {
+			if !seen {
+				cloneInfos = append(cloneInfos, fmt.Sprintf("Target in GHORG_TARGET_REPOS_PATH was not found in the org, repo: %v", targetRepo))
+			}
+		}
+
+		cloneTargets = filteredCloneTargets
+
 	}
 
 	return cloneTargets
@@ -1215,7 +1218,7 @@ func setOutputDirName(argz []string) {
 }
 
 // filter repos down based on ghorgignore if one exists
-func filterWithGhorgignore(cloneTargets []scm.Repo) []scm.Repo {
+func filterByGhorgignore(cloneTargets []scm.Repo) []scm.Repo {
 
 	_, err := os.Stat(configs.GhorgIgnoreLocation())
 	if !os.IsNotExist(err) {
