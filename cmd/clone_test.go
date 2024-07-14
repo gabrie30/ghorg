@@ -394,3 +394,48 @@ func createTempFileWithContent(content string) (*os.File, error) {
 
 	return tmpfile, nil
 }
+
+func Test_filterDownReposIfTargetReposPathEnabled(t *testing.T) {
+	type testCase struct {
+		name           string
+		cloneTargets   []scm.Repo
+		expectedResult []scm.Repo
+	}
+
+	testCases := []testCase{
+		{
+			name: "filters out repos not matching 'targetRepo'",
+			cloneTargets: []scm.Repo{
+				{Name: "targetRepo", URL: "https://github.com/org/targetRepo"},
+				{Name: "bar", URL: "https://github.com/org/bar"},
+			},
+			expectedResult: []scm.Repo{
+				{Name: "targetRepo", URL: "https://github.com/org/targetRepo"},
+			},
+		},
+		{
+			name: "filters out all repos",
+			cloneTargets: []scm.Repo{
+				{Name: "foo", URL: "https://github.com/org/foo"},
+				{Name: "shouldbefiltered", URL: "https://github.com/org/shouldbefiltered"},
+			},
+			expectedResult: []scm.Repo{},
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpfile, err := createTempFileWithContent("targetRepo")
+			if err != nil {
+				t.Fatalf("Failed to create temp file: %v", err)
+			}
+			defer os.Remove(tmpfile.Name())
+
+			os.Setenv("GHORG_TARGET_REPOS_PATH", tmpfile.Name())
+
+			got := filterDownReposIfTargetReposPathEnabled(tt.cloneTargets)
+			if !reflect.DeepEqual(got, tt.expectedResult) {
+				t.Errorf("filterWithGhorgignore() = %v, want %v", got, tt.expectedResult)
+			}
+		})
+	}
+}
