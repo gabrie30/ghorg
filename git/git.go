@@ -19,6 +19,7 @@ type Gitter interface {
 	Checkout(scm.Repo) error
 	UpdateRemote(scm.Repo) error
 	FetchAll(scm.Repo) error
+	FetchCloneBranch(scm.Repo) error
 }
 
 type GitClient struct{}
@@ -162,6 +163,22 @@ func (g GitClient) Reset(repo scm.Repo) error {
 
 func (g GitClient) FetchAll(repo scm.Repo) error {
 	args := []string{"fetch", "--all"}
+
+	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
+		index := 1
+		args = append(args[:index+1], args[index:]...)
+		args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
+	}
+	cmd := exec.Command("git", args...)
+	cmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		return printDebugCmd(cmd, repo)
+	}
+	return cmd.Run()
+}
+
+func (g GitClient) FetchCloneBranch(repo scm.Repo) error {
+	args := []string{"fetch", "origin", repo.CloneBranch}
 
 	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
 		index := 1
