@@ -756,6 +756,25 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					}
 
 				} else {
+					if os.Getenv("GHORG_FETCH_ALL") == "true" {
+						err = git.FetchAll(repo)
+
+						if err != nil {
+							e := fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, err)
+							cloneErrors = append(cloneErrors, e)
+							return
+						}
+					} else {
+						err = git.FetchCloneBranch(repo)
+
+						if err != nil {
+							e := fmt.Sprintf("Could not fetch remote: %s Error: %v", repo.URL, err)
+							cloneErrors = append(cloneErrors, e)
+							return
+						}
+					}
+
+
 					err := git.Checkout(repo)
 					if err != nil {
 						e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents, no changes made on: %s Error: %v", repo.CloneBranch, repo.URL, err)
@@ -789,16 +808,6 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 					action = "pulling"
 					pulledCount++
-
-					if os.Getenv("GHORG_FETCH_ALL") == "true" {
-						err = git.FetchAll(repo)
-
-						if err != nil {
-							e := fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, err)
-							cloneErrors = append(cloneErrors, e)
-							return
-						}
-					}
 				}
 
 				err = git.SetOrigin(repo)
