@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Refs to deprecated io/ioutil (#415); thanks @testwill
 - Bitbucket clones without app password; thanks @SparklingAperioso
 - Github user repo clone options to be configurable; thanks @anton-kotik, @alexcurtin
+- Failing checkout when default branch changes on remote; thanks @zarthross
 ### Security
 - Update go version to 1.22
 - Updated go github from v41 to v62

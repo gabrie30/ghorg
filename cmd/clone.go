@@ -764,22 +764,19 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 							cloneErrors = append(cloneErrors, e)
 							return
 						}
-					} else {
-						err = git.FetchCloneBranch(repo)
-
-						if err != nil {
-							e := fmt.Sprintf("Could not fetch remote: %s Error: %v", repo.URL, err)
-							cloneErrors = append(cloneErrors, e)
-							return
-						}
 					}
-
 
 					err := git.Checkout(repo)
 					if err != nil {
-						e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents, no changes made on: %s Error: %v", repo.CloneBranch, repo.URL, err)
-						cloneInfos = append(cloneInfos, e)
-						return
+						git.FetchCloneBranch(repo)
+
+						// Retry checkout
+						errRetry := git.Checkout(repo)
+						if errRetry != nil {
+							e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents, no changes made on: %s Error: %v", repo.CloneBranch, repo.URL, errRetry)
+							cloneErrors = append(cloneErrors, e)
+							return
+						}
 					}
 
 					err = git.Clean(repo)
