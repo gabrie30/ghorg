@@ -633,7 +633,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	limit := limiter.NewConcurrencyLimiter(l)
 
-	var cloneCount, pulledCount, updateRemoteCount int
+	var cloneCount, pulledCount, updateRemoteCount, newCommits int
 
 	// maps in go are not safe for concurrent use
 	var mutex = &sync.RWMutex{}
@@ -713,7 +713,8 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			}
 
 			action := "cloning"
-			if repoExistsLocally(repo) {
+			repoWillBePulled := repoExistsLocally(repo)
+			if repoWillBePulled {
 				// prevents git from asking for user for credentials, needs to be unset so creds aren't stored
 				err := git.SetOriginWithCredentials(repo)
 				if err != nil {
@@ -779,6 +780,14 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						}
 					}
 
+					count, _ := git.RepoCommitCount(repo)
+					if err != nil {
+						e := fmt.Sprintf("Problem trying to get pre pull commit count for on repo: %s", repo.URL)
+						cloneInfos = append(cloneInfos, e)
+					}
+
+					repo.Commits.CountPrePull = count
+
 					err = git.Clean(repo)
 
 					if err != nil {
@@ -803,6 +812,15 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						return
 					}
 
+					count, _ = git.RepoCommitCount(repo)
+					if err != nil {
+						e := fmt.Sprintf("Problem trying to get post pull commit count for on repo: %s", repo.URL)
+						cloneInfos = append(cloneInfos, e)
+					}
+
+					repo.Commits.CountPostPull = count
+					repo.Commits.CountDiff = (repo.Commits.CountPostPull - repo.Commits.CountPrePull)
+					newCommits = (newCommits + repo.Commits.CountDiff)
 					action = "pulling"
 					pulledCount++
 				}
@@ -864,7 +882,11 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				}
 			}
 
-			colorlog.PrintSuccess("Success " + action + " " + repo.URL + " -> branch: " + repo.CloneBranch)
+			if repoWillBePulled && repo.Commits.CountDiff > 0 {
+				colorlog.PrintSuccess(fmt.Sprintf("Success %s %s, branch: %s, new commits: %d", action, repo.URL, repo.CloneBranch, repo.Commits.CountDiff))
+			} else {
+				colorlog.PrintSuccess(fmt.Sprintf("Success %s %s, branch: %s", action, repo.URL, repo.CloneBranch))
+			}
 		})
 
 	}
@@ -872,7 +894,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	limit.WaitAndClose()
 
 	printRemainingMessages()
-	printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount)
+	printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits)
 
 	if hasCollisions {
 		fmt.Println("")
@@ -1025,13 +1047,13 @@ func pruneRepos(cloneTargets []scm.Repo) {
 	}
 }
 
-func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount int) {
+func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits int) {
 	if updateRemoteCount > 0 {
-		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, remotes updated: %v", cloneCount, pulledCount, updateRemoteCount))
+		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v, remotes updated: %v", cloneCount, pulledCount, newCommits, updateRemoteCount))
 		return
 	}
 
-	colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v", cloneCount, pulledCount))
+	colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v", cloneCount, pulledCount, newCommits))
 }
 
 func interactiveYesNoPrompt(prompt string) bool {

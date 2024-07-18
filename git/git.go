@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
+	"strings"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gabrie30/ghorg/scm"
@@ -20,6 +22,7 @@ type Gitter interface {
 	UpdateRemote(scm.Repo) error
 	FetchAll(scm.Repo) error
 	FetchCloneBranch(scm.Repo) error
+	RepoCommitCount(scm.Repo) (int, error)
 }
 
 type GitClient struct{}
@@ -191,4 +194,29 @@ func (g GitClient) FetchCloneBranch(repo scm.Repo) error {
 		return printDebugCmd(cmd, repo)
 	}
 	return cmd.Run()
+}
+
+func (g GitClient) RepoCommitCount(repo scm.Repo) (int, error) {
+	args := []string{"rev-list", "--count", repo.CloneBranch}
+	cmd := exec.Command("git", args...)
+	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		err := printDebugCmd(cmd, repo)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	output, err := cmd.Output()
+	if err != nil {
+		return 0, err
+	}
+
+	count, err := strconv.Atoi(strings.TrimSpace(string(output)))
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
