@@ -1053,7 +1053,12 @@ func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommi
 		return
 	}
 
-	colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v", cloneCount, pulledCount, newCommits))
+	if newCommits > 0 {
+		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v", cloneCount, pulledCount, newCommits))
+		return
+	}
+
+	colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v", cloneCount, pulledCount))
 }
 
 func interactiveYesNoPrompt(prompt string) bool {
