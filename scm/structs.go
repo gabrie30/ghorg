@@ -24,6 +24,13 @@ type Repo struct {
 	IsGitLabRootLevelSnippet bool
 	// GitLabSnippetInfo provides additional information when the thing we are cloning is a gitlab snippet
 	GitLabSnippetInfo GitLabSnippet
+	Commits           RepoCommits
+}
+
+type RepoCommits struct {
+	CountPrePull  int
+	CountPostPull int
+	CountDiff     int
 }
 
 type GitLabSnippet struct {
