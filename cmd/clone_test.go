@@ -101,6 +101,10 @@ func (g MockGitClient) FetchCloneBranch(repo scm.Repo) error {
 	return nil
 }
 
+func (g MockGitClient) RepoCommitCount(repo scm.Repo) (int, error) {
+	return 0, nil
+}
+
 func TestInitialClone(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 	dir, err := os.MkdirTemp("", "ghorg_test_initial")
