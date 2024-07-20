@@ -3,9 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.9.13] - Unreleased
+## [1.9.13] - 7/20/2024
 ### Added
 - GHORG_CLONE_SNIPPETS as a way to clone all snippets, gitlab only
+- Commit count to clone output
 ### Changed
 ### Deprecated
 ### Removed
@@ -17,6 +18,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Security
 - Update go version to 1.22
 - Updated go github from v41 to v62
+- Bump rexml from 3.2.5 to 3.2.8 in /site (#414)
+- Bump golang.org/x/oauth2 from 0.19.0 to 0.20.0 (#419)
+- Bump github.com/bradleyfalzon/ghinstallation/v2 from 2.10.0 to 2.11.0 (#420)
+- Bump github.com/fatih/color from 1.16.0 to 1.17.0 (#422)
+- Bump github.com/xanzy/go-gitlab from 0.103.0 to 0.105.0 (#423)
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.79 to 0.9.80 (#421)
+- Bump github.com/hashicorp/go-retryablehttp from 0.7.2 to 0.7.7 (#427)
+- Bump golang.org/x/image from 0.10.0 to 0.18.0 (#428)
+- Bump golang.org/x/oauth2 from 0.20.0 to 0.21.0 (#431)
+- Bump github.com/spf13/viper from 1.18.2 to 1.19.0 (#432)
+- Bump github.com/spf13/cobra from 1.8.0 to 1.8.1 (#433)
 
 ## [1.9.12] - 5/15/24
 ### Added
