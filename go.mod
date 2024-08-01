@@ -3,7 +3,7 @@ module github.com/gabrie30/ghorg
 go 1.22.1
 
 require (
-	code.gitea.io/sdk/gitea v0.18.0
+	code.gitea.io/sdk/gitea v0.19.0
 	github.com/MichaelMure/go-term-markdown v0.1.4
 	github.com/bradleyfalzon/ghinstallation/v2 v2.11.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
