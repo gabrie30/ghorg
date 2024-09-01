@@ -86,6 +86,7 @@ type Project struct {
 	OnlyAllowMergeIfPipelineSucceeds          bool                       `json:"only_allow_merge_if_pipeline_succeeds"`
 	OnlyAllowMergeIfAllDiscussionsAreResolved bool                       `json:"only_allow_merge_if_all_discussions_are_resolved"`
 	RemoveSourceBranchAfterMerge              bool                       `json:"remove_source_branch_after_merge"`
+	PreventMergeWithoutJiraIssue              bool                       `json:"prevent_merge_without_jira_issue"`
 	PrintingMergeRequestLinkEnabled           bool                       `json:"printing_merge_request_link_enabled"`
 	LFSEnabled                                bool                       `json:"lfs_enabled"`
 	RepositoryStorage                         string                     `json:"repository_storage"`
@@ -168,6 +169,7 @@ type Project struct {
 	MergeRequestDefaultTargetSelf            bool               `json:"mr_default_target_self"`
 	ModelExperimentsAccessLevel              AccessControlValue `json:"model_experiments_access_level"`
 	ModelRegistryAccessLevel                 AccessControlValue `json:"model_registry_access_level"`
+	PreReceiveSecretDetectionEnabled         bool               `json:"pre_receive_secret_detection_enabled"`
 
 	// Deprecated: Use EmailsEnabled instead
 	EmailsDisabled bool `json:"emails_disabled"`
@@ -292,6 +294,7 @@ type Statistics struct {
 	PackagesSize          int64 `json:"packages_size"`
 	SnippetsSize          int64 `json:"snippets_size"`
 	UploadsSize           int64 `json:"uploads_size"`
+	ContainerRegistrySize int64 `json:"container_registry_size"`
 }
 
 func (s Project) String() string {
@@ -891,6 +894,7 @@ type EditProjectOptions struct {
 	InfrastructureAccessLevel                 *AccessControlValue                  `url:"infrastructure_access_level,omitempty" json:"infrastructure_access_level,omitempty"`
 	MonitorAccessLevel                        *AccessControlValue                  `url:"monitor_access_level,omitempty" json:"monitor_access_level,omitempty"`
 	RemoveSourceBranchAfterMerge              *bool                                `url:"remove_source_branch_after_merge,omitempty" json:"remove_source_branch_after_merge,omitempty"`
+	PreventMergeWithoutJiraIssue              *bool                                `url:"prevent_merge_without_jira_issue,omitempty" json:"prevent_merge_without_jira_issue,omitempty"`
 	PrintingMergeRequestLinkEnabled           *bool                                `url:"printing_merge_request_link_enabled,omitempty" json:"printing_merge_request_link_enabled,omitempty"`
 	RepositoryAccessLevel                     *AccessControlValue                  `url:"repository_access_level,omitempty" json:"repository_access_level,omitempty"`
 	RepositoryStorage                         *string                              `url:"repository_storage,omitempty" json:"repository_storage,omitempty"`
@@ -1662,6 +1666,7 @@ type ProjectPushRules struct {
 	CommitCommitterCheck       bool       `json:"commit_committer_check"`
 	CommitCommitterNameCheck   bool       `json:"commit_committer_name_check"`
 	RejectUnsignedCommits      bool       `json:"reject_unsigned_commits"`
+	RejectNonDCOCommits        bool       `json:"reject_non_dco_commits"`
 }
 
 // GetProjectPushRules gets the push rules of a project.
@@ -1707,6 +1712,7 @@ type AddProjectPushRuleOptions struct {
 	MemberCheck                *bool   `url:"member_check,omitempty" json:"member_check,omitempty"`
 	PreventSecrets             *bool   `url:"prevent_secrets,omitempty" json:"prevent_secrets,omitempty"`
 	RejectUnsignedCommits      *bool   `url:"reject_unsigned_commits,omitempty" json:"reject_unsigned_commits,omitempty"`
+	RejectNonDCOCommits        *bool   `url:"reject_non_dco_commits,omitempty" json:"reject_non_dco_commits,omitempty"`
 }
 
 // AddProjectPushRule adds a push rule to a specified project.
@@ -1752,6 +1758,7 @@ type EditProjectPushRuleOptions struct {
 	MemberCheck                *bool   `url:"member_check,omitempty" json:"member_check,omitempty"`
 	PreventSecrets             *bool   `url:"prevent_secrets,omitempty" json:"prevent_secrets,omitempty"`
 	RejectUnsignedCommits      *bool   `url:"reject_unsigned_commits,omitempty" json:"reject_unsigned_commits,omitempty"`
+	RejectNonDCOCommits        *bool   `url:"reject_non_dco_commits,omitempty" json:"reject_non_dco_commits,omitempty"`
 }
 
 // EditProjectPushRule edits a push rule for a specified project.
