@@ -66,6 +66,7 @@ var (
 	ghorgReCloneEnvConfigOnly    bool
 	noToken                      bool
 	quietMode                    bool
+	noDirSize                    bool
 	args                         []string
 	cloneErrors                  []string
 	cloneInfos                   []string
@@ -144,6 +145,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_BACKUP":
 			os.Setenv(envVar, "false")
 		case "GHORG_NO_TOKEN":
+			os.Setenv(envVar, "false")
+		case "GHORG_NO_DIR_SIZE":
 			os.Setenv(envVar, "false")
 		case "GHORG_RECLONE_VERBOSE":
 			os.Setenv(envVar, "false")
@@ -228,6 +231,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_SKIP_FORKS")
 	getOrSetDefaults("GHORG_NO_CLEAN")
 	getOrSetDefaults("GHORG_NO_TOKEN")
+	getOrSetDefaults("GHORG_NO_DIR_SIZE")
 	getOrSetDefaults("GHORG_FETCH_ALL")
 	getOrSetDefaults("GHORG_PRUNE")
 	getOrSetDefaults("GHORG_PRUNE_NO_CONFIRM")
@@ -312,6 +316,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&cloneSnippets, "clone-snippets", false, "GHORG_CLONE_SNIPPETS - Additionally clone all snippets, gitlab only")
 	cloneCmd.Flags().BoolVar(&skipForks, "skip-forks", false, "GHORG_SKIP_FORKS - Skips repo if its a fork, github/gitlab/gitea only")
 	cloneCmd.Flags().BoolVar(&noToken, "no-token", false, "GHORG_NO_TOKEN - Allows you to run ghorg with no token (GHORG_<SCM>_TOKEN), SCM server needs to specify no auth required for api calls")
+	cloneCmd.Flags().BoolVar(&noDirSize, "no-dir-size", false, "GHORG_NO_DIR_SIZE - Skips the calculation of the output directory size at the end of a clone operation. This can save time, especially when cloning a large number of repositories.")
 	cloneCmd.Flags().BoolVar(&preserveDir, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - Clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/unit/subunit/app, gitlab only")
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP - Backup mode, clone as mirror, no working copy (ignores branch parameter)")
 	cloneCmd.Flags().BoolVar(&quietMode, "quiet", false, "GHORG_QUIET - Emit critical output only")
