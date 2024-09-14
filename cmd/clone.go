@@ -209,6 +209,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_NO_TOKEN", "true")
 	}
 
+	if cmd.Flags().Changed("no-dir-size") {
+		os.Setenv("GHORG_NO_DIR_SIZE", "true")
+	}
+
 	if cmd.Flags().Changed("preserve-dir") {
 		os.Setenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE", "true")
 	}
@@ -916,7 +920,11 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	}
 
 	if os.Getenv("GHORG_QUIET") != "true" {
-		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s", outputDirAbsolutePath))
+		if os.Getenv("GHORG_NO_DIR_SIZE") == "false" {
+			printFinishedWithDirSize()
+		} else {
+			colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s", outputDirAbsolutePath))
+		}
 	}
 
 	if os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS") != "0" && len(cloneInfos) > 0 {
@@ -939,6 +947,41 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		os.Exit(exitCode)
 	}
 
+}
+
+func printFinishedWithDirSize() {
+	dirSizeMB, err := calculateDirSizeInMb(outputDirAbsolutePath)
+	if err != nil {
+		if os.Getenv("GHORG_DEBUG") == "true" {
+			colorlog.PrintError(fmt.Sprintf("Error calculating directory size: %v", err))
+		}
+		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s", outputDirAbsolutePath))
+	} else {
+		if dirSizeMB > 1000 {
+			dirSizeGB := dirSizeMB / 1000
+			colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s (Size: %.2f GB)", outputDirAbsolutePath, dirSizeGB))
+		} else {
+			colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s (Size: %.2f MB)", outputDirAbsolutePath, dirSizeMB))
+		}
+	}
+}
+
+func calculateDirSizeInMb(path string) (float64, error) {
+	var size int64
+	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	const bytesInMegabyte = 1000 * 1000
+	return float64(size) / bytesInMegabyte, nil // Return size in Megabyte
 }
 
 func filterByTargetReposPath(cloneTargets []scm.Repo) []scm.Repo {
