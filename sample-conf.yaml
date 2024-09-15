@@ -153,12 +153,13 @@ GHORG_NO_TOKEN: false
 
 # Skips the calculation of the output directory size at the end of a clone operation.
 # This can save time, especially when cloning a large number of repositories.
+# This is enabled by default
 # flag (--no-dir-size)
 GHORG_NO_DIR_SIZE: false
 
-# Creates a CSV in the GHORG_ABSOLUTE_PATH_TO_CLONE_TO called ghorg_stats.csv with info about each clone
+# Creates a CSV in the GHORG_ABSOLUTE_PATH_TO_CLONE_TO called _ghorg_stats.csv with info about each clone
 # This allows you to track clone data over time such as number of commits and size in megabytes of the clone directory.
-# If the header of the CSV changes, it will create a new file of ghorg_stats_new_header_${sha256HashOfHeader}.csv this is how we will handle breaking changes to the CSV over time
+# If the header of the CSV changes, it will create a new file of _ghorg_stats_new_header_${sha256HashOfHeader}.csv this is how we will handle breaking changes to the CSV over time
 # More information at https://github.com/gabrie30/ghorg?tab=readme-ov-file#tracking_clone_data_over_time
 # flag (--stats-enabled)
 GHORG_STATS_ENABLED: false
@@ -173,6 +174,7 @@ GHORG_STATS_ENABLED: false
 # NOTE: This setting cannot be configured through the configuration file or the CLI. It can only be set as an environment variable.
 # For example: GHORG_DEBUG=true ghorg clone kubernetes
 # When using this env concurrency is set to a value of 1, this behavior can be overwritten for debugging concurrency issues by setting GHORG_CONCURRENCY_DEBUG=true in addition to setting GHORG_DEBUG=true
+# Note when this is enabled the api key used will be printed to stdout
 # GHORG_DEBUG:
 
 # +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+

@@ -969,7 +969,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 }
 
 func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount int, hasCollisions bool) error {
-	statsFilePath := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), "ghorg_stats.csv")
+	statsFilePath := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), "_ghorg_stats.csv")
 
 	fileExists := true
 
@@ -1383,6 +1383,9 @@ func PrintConfigs() {
 	}
 
 	colorlog.PrintInfo("* Config Used   : " + os.Getenv("GHORG_CONFIG"))
+	if os.Getenv("GHORG_STATS_ENABLED") == "true" {
+		colorlog.PrintInfo("* Stats Enabled : " + os.Getenv("GHORG_STATS_ENABLED"))
+	}
 	colorlog.PrintInfo("* Ghorg version : " + GetVersion())
 
 	colorlog.PrintInfo("*************************************")

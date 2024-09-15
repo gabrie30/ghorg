@@ -338,9 +338,9 @@ Alternatively, Windows users can also install ghorg using [scoop](https://scoop.
 
 To track data on your clones over time, you can use the ghorg stats feature. It is recommended to enable ghorg stats in your configuration file by setting `GHORG_STATS_ENABLED=true`. This ensures that each clone operation is logged automatically without needing to set the command line flag `--stats-enabled` every time. **The ghorg stats feature is disabled by default and needs to be enabled.**
 
-When ghorg stats is enabled, the CSV file `ghorg_stats.csv` is created in the directory specified by `GHORG_ABSOLUTE_PATH_TO_CLONE_TO`. This file contains detailed information about each clone operation, which is useful for auditing and tracking purposes such as the size of the clone and the number of new commits over time.
+When ghorg stats is enabled, the CSV file `_ghorg_stats.csv` is created in the directory specified by `GHORG_ABSOLUTE_PATH_TO_CLONE_TO`. This file contains detailed information about each clone operation, which is useful for auditing and tracking purposes such as the size of the clone and the number of new commits over time.
 
-Below are the headers and their descriptions. Note that these headers may change over time. If there are any changes in the headers, a new file named `ghorg_stats_new_header_${sha256HashOfHeader}.csv` will be created to prevent incorrect data from being added to your CSV.
+Below are the headers and their descriptions. Note that these headers may change over time. If there are any changes in the headers, a new file named `_ghorg_stats_new_header_${sha256HashOfHeader}.csv` will be created to prevent incorrect data from being added to your CSV.
 
 - **date**: Date of the clone
 - **clonePath**: Location of the clone directory
@@ -368,5 +368,5 @@ Below are the headers and their descriptions. Note that these headers may change
 - If your GitHub Personal Access Token is only finding public repos, give your token all the repos permissions
 - Make sure your `$ git --version` is >= 2.19.0
 - Check for other software, such as anti-malware, that could interfere with ghorgs ability to create large number of connections, see [issue 132](https://github.com/gabrie30/ghorg/issues/132#issuecomment-889357960). You can also lower the concurrency with `--concurrency=n` default is 25.
-- To debug yourself you can call ghorg with the GHORG_DEBUG=true env e.g `GHORG_DEBUG=true ghorg clone kubernetes`. Note, when this env is set concurrency is set to a value of 1
+- To debug yourself you can call ghorg with the GHORG_DEBUG=true env e.g `GHORG_DEBUG=true ghorg clone kubernetes`. Note, when this env is set concurrency is set to a value of 1 and will expose the api key used to stdout.
 - If you've gotten this far and still have an issue feel free to raise an issue

@@ -325,7 +325,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP - Backup mode, clone as mirror, no working copy (ignores branch parameter)")
 	cloneCmd.Flags().BoolVar(&quietMode, "quiet", false, "GHORG_QUIET - Emit critical output only")
 	cloneCmd.Flags().BoolVar(&includeSubmodules, "include-submodules", false, "GHORG_INCLUDE_SUBMODULES - Include submodules in all clone and pull operations.")
-	cloneCmd.Flags().BoolVar(&ghorgStatsEnabled, "stats-enabled", false, "GHORG_STATS_ENABLED - Creates a CSV in the GHORG_ABSOLUTE_PATH_TO_CLONE_TO called ghorg_stats.csv with info about each clone. This allows you to track clone data over time such as number of commits and size in megabytes of the clone directory.")
+	cloneCmd.Flags().BoolVar(&ghorgStatsEnabled, "stats-enabled", false, "GHORG_STATS_ENABLED - Creates a CSV in the GHORG_ABSOLUTE_PATH_TO_CLONE_TO called _ghorg_stats.csv with info about each clone. This allows you to track clone data over time such as number of commits and size in megabytes of the clone directory.")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - Change SCM base url, for on self hosted instances (currently gitlab, gitea and github (use format of https://git.mydomain.com/api/v3))")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - Max goroutines to spin up while cloning (default 25)")
 	cloneCmd.Flags().StringVarP(&cloneDepth, "clone-depth", "", "", "GHORG_CLONE_DEPTH - Create a shallow clone with a history truncated to the specified number of commits")
