@@ -340,7 +340,7 @@ To track data on your clones over time, you can use the ghorg stats feature. It 
 
 When ghorg stats is enabled, the CSV file `ghorg_stats.csv` is created in the directory specified by `GHORG_ABSOLUTE_PATH_TO_CLONE_TO`. This file contains detailed information about each clone operation, which is useful for auditing and tracking purposes such as the size of the clone and the number of new commits over time.
 
-Below are the headers and their descriptions. Note that these headers may change over time. If there are any changes in the headers, a new file named `ghorg_stats_new_header_${hash}.csv` will be created to prevent incorrect data from being added to your CSV.
+Below are the headers and their descriptions. Note that these headers may change over time. If there are any changes in the headers, a new file named `ghorg_stats_new_header_${sha256HashOfHeader}.csv` will be created to prevent incorrect data from being added to your CSV.
 
 - **date**: Date of the clone
 - **clonePath**: Location of the clone directory

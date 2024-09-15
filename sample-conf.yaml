@@ -158,7 +158,7 @@ GHORG_NO_DIR_SIZE: false
 
 # Creates a CSV in the GHORG_ABSOLUTE_PATH_TO_CLONE_TO called ghorg_stats.csv with info about each clone
 # This allows you to track clone data over time such as number of commits and size in megabytes of the clone directory.
-# If the header of the CSV changes, it will create a new file of ghorg_stats_new_header_${hash}.csv this is how we will handle breaking changes to the CSV over time
+# If the header of the CSV changes, it will create a new file of ghorg_stats_new_header_${sha256HashOfHeader}.csv this is how we will handle breaking changes to the CSV over time
 # More information at https://github.com/gabrie30/ghorg?tab=readme-ov-file#tracking_clone_data_over_time
 # flag (--stats-enabled)
 GHORG_STATS_ENABLED: false
