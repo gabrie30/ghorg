@@ -942,7 +942,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	// This needs to be called after printFinishedWithDirSize()
 	if os.Getenv("GHORG_STATS_ENABLED") == "true" {
-		date := time.Now().Format("2006-01-02")
+		date := time.Now().Format("2006-01-02 15:04:05")
 		writeGhorgStats(date, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount, hasCollisions)
 	}
 
@@ -977,7 +977,7 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 		fileExists = false
 	}
 
-	header := "date,clonePath,scm,cloneType,cloneTarget,totalCount,newClonesCount,existingResourcesPulledCount,dirSizeInMB,newCommits,cloneInfosCount,cloneErrorsCount,updateRemoteCount,pruneCount,hasCollisions,ghorgignore,ghorgVersion\n"
+	header := "datetime,clonePath,scm,cloneType,cloneTarget,totalCount,newClonesCount,existingResourcesPulledCount,dirSizeInMB,newCommits,cloneInfosCount,cloneErrorsCount,updateRemoteCount,pruneCount,hasCollisions,ghorgignore,ghorgVersion\n"
 
 	var file *os.File
 	var err error

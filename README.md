@@ -342,7 +342,7 @@ When ghorg stats is enabled, the CSV file `_ghorg_stats.csv` is created in the d
 
 Below are the headers and their descriptions. Note that these headers may change over time. If there are any changes in the headers, a new file named `_ghorg_stats_new_header_${sha256HashOfHeader}.csv` will be created to prevent incorrect data from being added to your CSV.
 
-- **date**: Date of the clone
+- **datetime**: Date and time of the clone in YYYY-MM-DD hh:mm:ss format
 - **clonePath**: Location of the clone directory
 - **scm**: Name of the source control used
 - **cloneType**: Either user or org clone
