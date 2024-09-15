@@ -162,6 +162,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_SKIP_ARCHIVED", "true")
 	}
 
+	if cmd.Flags().Changed("stats-enabled") {
+		os.Setenv("GHORG_STATS_ENABLED", "true")
+	}
+
 	if cmd.Flags().Changed("no-clean") {
 		os.Setenv("GHORG_NO_CLEAN", "true")
 	}
