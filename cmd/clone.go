@@ -964,7 +964,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 }
 
 func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount int, hasCollisions bool) error {
-	statsFilePath := filepath.Join(outputDirAbsolutePath, "_ghorg_stats.csv")
+	statsFilePath := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), "_ghorg_stats.csv")
 
 	fileExists := true
 
@@ -972,7 +972,7 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 		fileExists = false
 	}
 
-	header := "Date,ClonePath,AllReposToCloneCount,DirSizeInMB,NewCommits,CloneCount,PulledCount,CloneInfosCount,CloneErrorsCount,UpdateRemoteCount,PruneCount,HasCollisions,SCM,CloneType,Ghorgignore,GhorgVersion\n"
+	header := "Date,ClonePath,SCM,CloneType,CloneTarget,TotalCount,DirSizeInMB,NewCommits,NewClonesCount,ExistingResourcesPulledCount,CloneInfosCount,CloneErrorsCount,UpdateRemoteCount,PruneCount,HasCollisions,Ghorgignore,GhorgVersion\n"
 
 	var file *os.File
 	var err error
@@ -988,7 +988,7 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 		// Check if the existing header is different from the new header
 		if existingHeader+"\n" != header {
 			hashedHeader := fmt.Sprintf("%x", sha256.Sum256([]byte(header)))
-			newHeaderFilePath := filepath.Join(outputDirAbsolutePath, fmt.Sprintf("_ghorg_stats_new_header_%s.csv", hashedHeader))
+			newHeaderFilePath := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), fmt.Sprintf("_ghorg_stats_new_header_%s.csv", hashedHeader))
 			// Create a new file with the new header
 			file, err = os.OpenFile(newHeaderFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 			if err != nil {
@@ -1021,7 +1021,24 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 	}
 	defer file.Close()
 
-	data := fmt.Sprintf("%s,%s,%d,%.2f,%d,%d,%d,%d,%d,%d,%d,%t,%s,%s,%t,%s\n", date, outputDirAbsolutePath, allReposToCloneCount, cachedDirSizeMB, newCommits, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, pruneCount, hasCollisions, os.Getenv("GHORG_SCM_TYPE"), os.Getenv("GHORG_CLONE_TYPE"), configs.GhorgIgnoreDetected(), GetVersion())
+	data := fmt.Sprintf("%v,%v,%v,%v,%v,%v,%.2f,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
+		date,
+		outputDirAbsolutePath,
+		os.Getenv("GHORG_SCM_TYPE"),
+		os.Getenv("GHORG_CLONE_TYPE"),
+		targetCloneSource,
+		allReposToCloneCount,
+		cachedDirSizeMB,
+		newCommits,
+		cloneCount,
+		pulledCount,
+		cloneInfosCount,
+		cloneErrorsCount,
+		updateRemoteCount,
+		pruneCount,
+		hasCollisions,
+		configs.GhorgIgnoreDetected(),
+		GetVersion())
 	if _, err := file.WriteString(data); err != nil {
 		colorlog.PrintError(fmt.Sprintf("Error writing data to GHORG_STATS file: %v", err))
 		return err
