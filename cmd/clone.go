@@ -3,6 +3,7 @@ package cmd
 
 import (
 	"bufio"
+	"crypto/sha256"
 	"fmt"
 	"log"
 	"net/url"
@@ -12,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/configs"
@@ -36,6 +38,9 @@ Or see examples directory at https://github.com/gabrie30/ghorg/tree/master/examp
 `,
 	Run: cloneFunc,
 }
+
+var cachedDirSizeMB float64
+var isDirSizeCached bool
 
 func cloneFunc(cmd *cobra.Command, argz []string) {
 	if cmd.Flags().Changed("path") {
@@ -914,9 +919,13 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		}
 	}
 
+	var pruneCount int
+	cloneInfosCount := len(cloneInfos)
+	cloneErrorsCount := len(cloneErrors)
+	allReposToCloneCount := len(cloneTargets)
 	// Now, clean up local repos that don't exist in remote, if prune flag is set
 	if os.Getenv("GHORG_PRUNE") == "true" {
-		pruneRepos(cloneTargets)
+		pruneCount = pruneRepos(cloneTargets)
 	}
 
 	if os.Getenv("GHORG_QUIET") != "true" {
@@ -927,7 +936,12 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		}
 	}
 
-	if os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS") != "0" && len(cloneInfos) > 0 {
+	if os.Getenv("GHORG_STATS") == "true" {
+		date := time.Now().Format("2006/01/02")
+		writeGhorgStats(date, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount, hasCollisions)
+	}
+
+	if os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS") != "0" && cloneInfosCount > 0 {
 		exitCode, err := strconv.Atoi(os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS"))
 		if err != nil {
 			colorlog.PrintError("Could not convert GHORG_EXIT_CODE_ON_CLONE_INFOS from string to integer")
@@ -937,7 +951,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		os.Exit(exitCode)
 	}
 
-	if len(cloneErrors) > 0 {
+	if cloneErrorsCount > 0 {
 		exitCode, err := strconv.Atoi(os.Getenv("GHORG_EXIT_CODE_ON_CLONE_ISSUES"))
 		if err != nil {
 			colorlog.PrintError("Could not convert GHORG_EXIT_CODE_ON_CLONE_ISSUES from string to integer")
@@ -949,20 +963,110 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 }
 
-func printFinishedWithDirSize() {
-	dirSizeMB, err := calculateDirSizeInMb(outputDirAbsolutePath)
-	if err != nil {
-		if os.Getenv("GHORG_DEBUG") == "true" {
-			colorlog.PrintError(fmt.Sprintf("Error calculating directory size: %v", err))
+func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount int, hasCollisions bool) error {
+	statsFilePath := filepath.Join(outputDirAbsolutePath, "_ghorg_stats.csv")
+
+	fileExists := true
+
+	if _, err := os.Stat(statsFilePath); os.IsNotExist(err) {
+		fileExists = false
+	}
+
+	header := "Date,ClonePath,AllReposToCloneCount,DirSizeInMB,NewCommits,CloneCount,PulledCount,CloneInfosCount,CloneErrorsCount,UpdateRemoteCount,PruneCount,HasCollisions,SCM,CloneType,Ghorgignore,GhorgVersion\n"
+
+	var file *os.File
+	var err error
+
+	if fileExists {
+		// Read the existing header
+		existingHeader, err := readFirstLine(statsFilePath)
+		if err != nil {
+			colorlog.PrintError(fmt.Sprintf("Error reading header from stats file: %v", err))
+			return err
 		}
-		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s", outputDirAbsolutePath))
-	} else {
-		if dirSizeMB > 1000 {
-			dirSizeGB := dirSizeMB / 1000
-			colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s (Size: %.2f GB)", outputDirAbsolutePath, dirSizeGB))
+
+		// Check if the existing header is different from the new header
+		if existingHeader+"\n" != header {
+			hashedHeader := fmt.Sprintf("%x", sha256.Sum256([]byte(header)))
+			newHeaderFilePath := filepath.Join(outputDirAbsolutePath, fmt.Sprintf("_ghorg_stats_new_header_%s.csv", hashedHeader))
+			// Create a new file with the new header
+			file, err = os.OpenFile(newHeaderFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				colorlog.PrintError(fmt.Sprintf("Error creating new header stats file: %v", err))
+				return err
+			}
+			if _, err := file.WriteString(header); err != nil {
+				colorlog.PrintError(fmt.Sprintf("Error writing new header to GHORG_STATS file: %v", err))
+				return err
+			}
 		} else {
-			colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s (Size: %.2f MB)", outputDirAbsolutePath, dirSizeMB))
+			// Open the existing file in append mode
+			file, err = os.OpenFile(statsFilePath, os.O_APPEND|os.O_WRONLY, 0644)
+			if err != nil {
+				colorlog.PrintError(fmt.Sprintf("Error opening stats file for appending: %v", err))
+				return err
+			}
 		}
+	} else {
+		// Create the file and write the header
+		file, err = os.OpenFile(statsFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			colorlog.PrintError(fmt.Sprintf("Error creating stats file: %v", err))
+			return err
+		}
+		if _, err := file.WriteString(header); err != nil {
+			colorlog.PrintError(fmt.Sprintf("Error writing header to GHORG_STATS file: %v", err))
+			return err
+		}
+	}
+	defer file.Close()
+
+	data := fmt.Sprintf("%s,%s,%d,%.2f,%d,%d,%d,%d,%d,%d,%d,%t,%s,%s,%t,%s\n", date, outputDirAbsolutePath, allReposToCloneCount, cachedDirSizeMB, newCommits, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, pruneCount, hasCollisions, os.Getenv("GHORG_SCM_TYPE"), os.Getenv("GHORG_CLONE_TYPE"), configs.GhorgIgnoreDetected(), GetVersion())
+	if _, err := file.WriteString(data); err != nil {
+		colorlog.PrintError(fmt.Sprintf("Error writing data to GHORG_STATS file: %v", err))
+		return err
+	}
+
+	return nil
+}
+
+func readFirstLine(filePath string) (string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	if scanner.Scan() {
+		return scanner.Text(), nil
+	}
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	return "", nil
+}
+
+func printFinishedWithDirSize() {
+	if !isDirSizeCached {
+		dirSizeMB, err := calculateDirSizeInMb(outputDirAbsolutePath)
+		if err != nil {
+			if os.Getenv("GHORG_DEBUG") == "true" {
+				colorlog.PrintError(fmt.Sprintf("Error calculating directory size: %v", err))
+			}
+			colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s", outputDirAbsolutePath))
+			return
+		}
+		cachedDirSizeMB = dirSizeMB
+		isDirSizeCached = true
+	}
+
+	if cachedDirSizeMB > 1000 {
+		dirSizeGB := cachedDirSizeMB / 1000
+		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s (Size: %.2f GB)", outputDirAbsolutePath, dirSizeGB))
+	} else {
+		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s (Size: %.2f MB)", outputDirAbsolutePath, cachedDirSizeMB))
 	}
 }
 
@@ -1056,7 +1160,8 @@ func filterByTargetReposPath(cloneTargets []scm.Repo) []scm.Repo {
 	return cloneTargets
 }
 
-func pruneRepos(cloneTargets []scm.Repo) {
+func pruneRepos(cloneTargets []scm.Repo) int {
+	count := 0
 	colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
 	files, err := os.ReadDir(outputDirAbsolutePath)
@@ -1080,6 +1185,7 @@ func pruneRepos(cloneTargets []scm.Repo) {
 				colorlog.PrintSubtleInfo(
 					fmt.Sprintf("Deleting %s", filepath.Join(outputDirAbsolutePath, f.Name())))
 				err = os.RemoveAll(filepath.Join(outputDirAbsolutePath, f.Name()))
+				count++
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -1088,6 +1194,8 @@ func pruneRepos(cloneTargets []scm.Repo) {
 			}
 		}
 	}
+
+	return count
 }
 
 func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits int) {
