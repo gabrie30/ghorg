@@ -6,11 +6,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.9.14] - unreleased
 ### Added
 - GHORG_NO_DIR_SIZE flag to turn off directory size output which is now enabled by default
+- GHORG_STATS_ENABLED flag to track clone data over time, set to false by default
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 ### Security
+- Bump code.gitea.io/sdk/gitea from 0.18.0 to 0.19.0 (#441)
+- Bump github.com/xanzy/go-gitlab from 0.106.0 to 0.107.0 (#442)
+- Bump rexml from 3.2.8 to 3.3.3 in /site (#443)
+- Bump rexml from 3.3.3 to 3.3.6 in /site (#444)
+- Bump golang.org/x/oauth2 from 0.21.0 to 0.22.0 (#447)
+- Bump github.com/xanzy/go-gitlab from 0.107.0 to 0.108.0 (#446)
 
 ## [1.9.13] - 7/20/2024
 ### Added
