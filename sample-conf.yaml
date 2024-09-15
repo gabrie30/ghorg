@@ -57,7 +57,7 @@ GHORG_PRUNE: false
 GHORG_PRUNE_NO_CONFIRM: false
 
 # Color output (enabled, disabled)
-# flag (--color) eg: --color=disabled
+# flag( --color) eg: --color=enabled eg: --color=disabled
 GHORG_COLOR: disabled
 
 # Skip archived repos, currently github/gitlab/gitea only
@@ -73,7 +73,7 @@ GHORG_SKIP_FORKS: false
 GHORG_BACKUP: false
 
 # Max goroutines created while cloning
-# flag (--concurrency)
+# flag (--concurrency) eg: --concurrency=1
 GHORG_CONCURRENCY: 25
 
 # Create a shallow clone with a history truncated to the specified number of commits
@@ -155,6 +155,13 @@ GHORG_NO_TOKEN: false
 # This can save time, especially when cloning a large number of repositories.
 # flag (--no-dir-size)
 GHORG_NO_DIR_SIZE: false
+
+# Creates a CSV in the GHORG_ABSOLUTE_PATH_TO_CLONE_TO called ghorg_stats.csv with info about each clone
+# This allows you to track clone data over time such as number of commits and size in megabytes of the clone directory.
+# If the header of the CSV changes, it will create a new file of ghorg_stats_new_header_${hash}.csv this is how we will handle breaking changes to the CSV over time
+# More information at https://github.com/gabrie30/ghorg?tab=readme-ov-file#tracking_clone_data_over_time
+# flag (--stats-enabled)
+GHORG_STATS_ENABLED: false
 
 # Specifies the location of your ghorg conf.yaml, allowing you to have many configuration files, or none at all
 # default: ghorg looks in $HOME/.config/ghorg/conf.yaml, if not set in that location nor as a commandline flag, ghorg will use all default values

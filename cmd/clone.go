@@ -936,8 +936,9 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		}
 	}
 
-	if os.Getenv("GHORG_STATS") == "true" {
-		date := time.Now().Format("2006/01/02")
+	// This needs to be called after printFinishedWithDirSize()
+	if os.Getenv("GHORG_STATS_ENABLED") == "true" {
+		date := time.Now().Format("2006-01-02")
 		writeGhorgStats(date, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount, hasCollisions)
 	}
 
@@ -964,7 +965,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 }
 
 func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount int, hasCollisions bool) error {
-	statsFilePath := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), "_ghorg_stats.csv")
+	statsFilePath := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), "ghorg_stats.csv")
 
 	fileExists := true
 
@@ -972,7 +973,7 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 		fileExists = false
 	}
 
-	header := "Date,ClonePath,SCM,CloneType,CloneTarget,TotalCount,DirSizeInMB,NewCommits,NewClonesCount,ExistingResourcesPulledCount,CloneInfosCount,CloneErrorsCount,UpdateRemoteCount,PruneCount,HasCollisions,Ghorgignore,GhorgVersion\n"
+	header := "date,clonePath,scm,cloneType,cloneTarget,totalCount,newClonesCount,existingResourcesPulledCount,dirSizeInMB,newCommits,cloneInfosCount,cloneErrorsCount,updateRemoteCount,pruneCount,hasCollisions,ghorgignore,ghorgVersion\n"
 
 	var file *os.File
 	var err error
@@ -985,10 +986,10 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 			return err
 		}
 
-		// Check if the existing header is different from the new header
+		// Check if the existing header is different from the new header, need to add a newline
 		if existingHeader+"\n" != header {
 			hashedHeader := fmt.Sprintf("%x", sha256.Sum256([]byte(header)))
-			newHeaderFilePath := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), fmt.Sprintf("_ghorg_stats_new_header_%s.csv", hashedHeader))
+			newHeaderFilePath := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), fmt.Sprintf("ghorg_stats_new_header_%s.csv", hashedHeader))
 			// Create a new file with the new header
 			file, err = os.OpenFile(newHeaderFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 			if err != nil {
@@ -1021,17 +1022,17 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 	}
 	defer file.Close()
 
-	data := fmt.Sprintf("%v,%v,%v,%v,%v,%v,%.2f,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
+	data := fmt.Sprintf("%v,%v,%v,%v,%v,%v,%v,%v,%.2f,%v,%v,%v,%v,%v,%v,%v,%v\n",
 		date,
 		outputDirAbsolutePath,
 		os.Getenv("GHORG_SCM_TYPE"),
 		os.Getenv("GHORG_CLONE_TYPE"),
 		targetCloneSource,
 		allReposToCloneCount,
-		cachedDirSizeMB,
-		newCommits,
 		cloneCount,
 		pulledCount,
+		cachedDirSizeMB,
+		newCommits,
 		cloneInfosCount,
 		cloneErrorsCount,
 		updateRemoteCount,
@@ -1066,25 +1067,33 @@ func readFirstLine(filePath string) (string, error) {
 }
 
 func printFinishedWithDirSize() {
+	dirSizeMB, err := getCachedOrCalculatedOutputDirSizeInMb()
+	if err != nil {
+		if os.Getenv("GHORG_DEBUG") == "true" {
+			colorlog.PrintError(fmt.Sprintf("Error calculating directory size: %v", err))
+		}
+		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s", outputDirAbsolutePath))
+		return
+	}
+
+	if dirSizeMB > 1000 {
+		dirSizeGB := dirSizeMB / 1000
+		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s (Size: %.2f GB)", outputDirAbsolutePath, dirSizeGB))
+	} else {
+		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s (Size: %.2f MB)", outputDirAbsolutePath, dirSizeMB))
+	}
+}
+
+func getCachedOrCalculatedOutputDirSizeInMb() (float64, error) {
 	if !isDirSizeCached {
 		dirSizeMB, err := calculateDirSizeInMb(outputDirAbsolutePath)
 		if err != nil {
-			if os.Getenv("GHORG_DEBUG") == "true" {
-				colorlog.PrintError(fmt.Sprintf("Error calculating directory size: %v", err))
-			}
-			colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s", outputDirAbsolutePath))
-			return
+			return 0, err
 		}
 		cachedDirSizeMB = dirSizeMB
 		isDirSizeCached = true
 	}
-
-	if cachedDirSizeMB > 1000 {
-		dirSizeGB := cachedDirSizeMB / 1000
-		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s (Size: %.2f GB)", outputDirAbsolutePath, dirSizeGB))
-	} else {
-		colorlog.PrintSuccess(fmt.Sprintf("\nFinished! %s (Size: %.2f MB)", outputDirAbsolutePath, cachedDirSizeMB))
-	}
+	return cachedDirSizeMB, nil
 }
 
 func calculateDirSizeInMb(path string) (float64, error) {

@@ -334,6 +334,32 @@ Alternatively, Windows users can also install ghorg using [scoop](https://scoop.
   scoop install ghorg
   ```
 
+## Tracking Clone Data Over Time
+
+To track data on your clones over time, you can use the ghorg stats feature. It is recommended to enable ghorg stats in your configuration file by setting `GHORG_STATS_ENABLED=true`. This ensures that each clone operation is logged automatically without needing to set the command line flag `--stats-enabled` every time. **The ghorg stats feature is disabled by default and needs to be enabled.**
+
+When ghorg stats is enabled, the CSV file `ghorg_stats.csv` is created in the directory specified by `GHORG_ABSOLUTE_PATH_TO_CLONE_TO`. This file contains detailed information about each clone operation, which is useful for auditing and tracking purposes such as the size of the clone and the number of new commits over time.
+
+Below are the headers and their descriptions. Note that these headers may change over time. If there are any changes in the headers, a new file named `ghorg_stats_new_header_${hash}.csv` will be created to prevent incorrect data from being added to your CSV.
+
+- **date**: Date of the clone
+- **clonePath**: Location of the clone directory
+- **scm**: Name of the source control used
+- **cloneType**: Either user or org clone
+- **cloneTarget**: What is specified after the clone command `ghorg clone <target>`
+- **totalCount**: Total number of resources expected to be cloned or pulled
+- **newClonesCount**: Sum of all new repos cloned
+- **existingResourcesPulledCount**: Sum of all repos that were pulled
+- **dirSizeInMB**: The size in megabytes of the output dir
+- **newCommits**: Sum of all new commits in all repos pulled or cloned
+- **cloneInfosCount**: Number of clone Info messages
+- **cloneErrorsCount**: Number of clone Issues/Errors
+- **updateRemoteCount**: Number of remotes updated
+- **pruneCount**: Number of repos pruned
+- **hasCollisions**: If there were any name collisions, only can happen with gitlab clones
+- **ghorgignore**: If a ghorgignore was used in the clone
+- **ghorgVersion**: Version of ghorg used in the clone
+
 ## Troubleshooting
 
 - If you are having trouble cloning repos. Try to clone one of the repos locally e.g. manually running `git clone https://github.com/your_private_org/your_private_repo.git` if this does not work, ghorg will also not work. Your git client must first be setup to clone the target repos. If you normally clone using an ssh key use the `--protocol=ssh` flag with ghorg. This will fetch the ssh clone urls instead of the https clone urls.
