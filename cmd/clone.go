@@ -19,6 +19,7 @@ import (
 	"github.com/gabrie30/ghorg/configs"
 	"github.com/gabrie30/ghorg/git"
 	"github.com/gabrie30/ghorg/scm"
+	"github.com/gabrie30/ghorg/utils"
 	"github.com/korovkin/limiter"
 	"github.com/spf13/cobra"
 )
@@ -1090,7 +1091,7 @@ func printFinishedWithDirSize() {
 
 func getCachedOrCalculatedOutputDirSizeInMb() (float64, error) {
 	if !isDirSizeCached {
-		dirSizeMB, err := calculateDirSizeInMb(outputDirAbsolutePath)
+		dirSizeMB, err := utils.CalculateDirSizeInMb(outputDirAbsolutePath)
 		if err != nil {
 			return 0, err
 		}
@@ -1098,24 +1099,6 @@ func getCachedOrCalculatedOutputDirSizeInMb() (float64, error) {
 		isDirSizeCached = true
 	}
 	return cachedDirSizeMB, nil
-}
-
-func calculateDirSizeInMb(path string) (float64, error) {
-	var size int64
-	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			size += info.Size()
-		}
-		return nil
-	})
-	if err != nil {
-		return 0, err
-	}
-	const bytesInMegabyte = 1000 * 1000
-	return float64(size) / bytesInMegabyte, nil // Return size in Megabyte
 }
 
 func filterByTargetReposPath(cloneTargets []scm.Repo) []scm.Repo {

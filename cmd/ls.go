@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
+	"github.com/gabrie30/ghorg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -36,9 +38,49 @@ func listGhorgHome() {
 		colorlog.PrintError("No clones found. Please clone some and try again.")
 	}
 
+	longFormat := false
+	totalFormat := false
+	for _, arg := range os.Args {
+		if arg == "-l" || arg == "--long" {
+			longFormat = true
+		}
+		if arg == "-t" || arg == "--total" {
+			totalFormat = true
+		}
+	}
+
 	for _, f := range files {
 		if f.IsDir() {
-			colorlog.PrintInfo(path + f.Name())
+			if longFormat {
+				dirPath := filepath.Join(path, f.Name())
+				dirSizeMB, err := utils.CalculateDirSizeInMb(dirPath)
+				if err != nil {
+					colorlog.PrintError(fmt.Sprintf("Error calculating directory size for %s: %v", dirPath, err))
+					continue
+				}
+
+				// Count the number of directories with a depth of 1 inside
+				subDirCount := 0
+				subFiles, err := os.ReadDir(dirPath)
+				if err != nil {
+					colorlog.PrintError(fmt.Sprintf("Error reading directory contents for %s: %v", dirPath, err))
+					continue
+				}
+				for _, subFile := range subFiles {
+					if subFile.IsDir() {
+						subDirCount++
+					}
+				}
+
+				if dirSizeMB > 1000 {
+					dirSizeGB := dirSizeMB / 1000
+					colorlog.PrintInfo(fmt.Sprintf("%-50s %10.2f GB %10d repos", dirPath, dirSizeGB, subDirCount))
+				} else {
+					colorlog.PrintInfo(fmt.Sprintf("%-50s %10.2f MB %10d repos", dirPath, dirSizeMB, subDirCount))
+				}
+			} else {
+				colorlog.PrintInfo(path + f.Name())
+			}
 		}
 	}
 }
@@ -59,7 +101,6 @@ func listGhorgDir(arg string) {
 	if err != nil {
 		colorlog.PrintError("No clones found. Please clone some and try again.")
 	}
-
 
 	for _, f := range files {
 		if f.IsDir() {
