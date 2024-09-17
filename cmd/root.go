@@ -351,6 +351,9 @@ func init() {
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneList, "list", false, "Prints reclone commands and optional descriptions to stdout then will exit 0. Does not obsfucate tokens, and is only available as a commandline argument")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneEnvConfigOnly, "env-config-only", false, "GHORG_RECLONE_ENV_CONFIG_ONLY - Only use environment variables to set the configuration for all reclones.")
 
+	lsCmd.Flags().BoolP("long", "l", false, "Display detailed information about each clone directory, including size and number of repositories. Note: This may take longer depending on the number and size of the cloned organizations.")
+	lsCmd.Flags().BoolP("total", "t", false, "Display total amounts of all repos cloned. Note: This may take longer depending on the number and size of the cloned organizations.")
+
 	rootCmd.AddCommand(lsCmd, versionCmd, cloneCmd, reCloneCmd, examplesCmd)
 }
 

@@ -351,7 +351,7 @@ Below are the headers and their descriptions. Note that these headers may change
 - **newClonesCount**: Sum of all new repos cloned
 - **existingResourcesPulledCount**: Sum of all repos that were pulled
 - **dirSizeInMB**: The size in megabytes of the output dir
-- **newCommits**: Sum of all new commits in all repos pulled or cloned
+- **newCommits**: Sum of all new commits in all repos pulled
 - **cloneInfosCount**: Number of clone Info messages
 - **cloneErrorsCount**: Number of clone Issues/Errors
 - **updateRemoteCount**: Number of remotes updated
