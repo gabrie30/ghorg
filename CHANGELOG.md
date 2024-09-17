@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Added
 - GHORG_NO_DIR_SIZE flag to turn off directory size output which is now enabled by default
 - GHORG_STATS_ENABLED flag to track clone data over time, set to false by default
+- Added two new flags to the `ghorg ls` command: `--long` and `--total`, which provide additional information about the cloned directories.
 ### Changed
 ### Deprecated
 ### Removed
