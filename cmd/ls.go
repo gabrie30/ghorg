@@ -49,38 +49,65 @@ func listGhorgHome() {
 		}
 	}
 
-	for _, f := range files {
-		if f.IsDir() {
-			if longFormat {
-				dirPath := filepath.Join(path, f.Name())
-				dirSizeMB, err := utils.CalculateDirSizeInMb(dirPath)
-				if err != nil {
-					colorlog.PrintError(fmt.Sprintf("Error calculating directory size for %s: %v", dirPath, err))
-					continue
-				}
-
-				// Count the number of directories with a depth of 1 inside
-				subDirCount := 0
-				subFiles, err := os.ReadDir(dirPath)
-				if err != nil {
-					colorlog.PrintError(fmt.Sprintf("Error reading directory contents for %s: %v", dirPath, err))
-					continue
-				}
-				for _, subFile := range subFiles {
-					if subFile.IsDir() {
-						subDirCount++
-					}
-				}
-
-				if dirSizeMB > 1000 {
-					dirSizeGB := dirSizeMB / 1000
-					colorlog.PrintInfo(fmt.Sprintf("%-50s %10.2f GB %10d repos", dirPath, dirSizeGB, subDirCount))
-				} else {
-					colorlog.PrintInfo(fmt.Sprintf("%-50s %10.2f MB %10d repos", dirPath, dirSizeMB, subDirCount))
-				}
-			} else {
+	if !longFormat && !totalFormat {
+		for _, f := range files {
+			if f.IsDir() {
 				colorlog.PrintInfo(path + f.Name())
 			}
+		}
+		return
+	}
+
+	var totalDirs int
+	var totalSizeMB float64
+	var totalRepos int
+
+	for _, f := range files {
+		if f.IsDir() {
+			totalDirs++
+			dirPath := filepath.Join(path, f.Name())
+			dirSizeMB, err := utils.CalculateDirSizeInMb(dirPath)
+			if err != nil {
+				colorlog.PrintError(fmt.Sprintf("Error calculating directory size for %s: %v", dirPath, err))
+				continue
+			}
+			totalSizeMB += dirSizeMB
+
+			// Count the number of directories with a depth of 1 inside
+			subDirCount := 0
+			subFiles, err := os.ReadDir(dirPath)
+			if err != nil {
+				colorlog.PrintError(fmt.Sprintf("Error reading directory contents for %s: %v", dirPath, err))
+				continue
+			}
+			for _, subFile := range subFiles {
+				if subFile.IsDir() {
+					subDirCount++
+				}
+			}
+			totalRepos += subDirCount
+
+			if !totalFormat || longFormat {
+				if longFormat {
+					if dirSizeMB > 1000 {
+						dirSizeGB := dirSizeMB / 1000
+						colorlog.PrintInfo(fmt.Sprintf("%-50s %10.2f GB %10d repos", dirPath, dirSizeGB, subDirCount))
+					} else {
+						colorlog.PrintInfo(fmt.Sprintf("%-50s %10.2f MB %10d repos", dirPath, dirSizeMB, subDirCount))
+					}
+				} else {
+					colorlog.PrintInfo(path + f.Name())
+				}
+			}
+		}
+	}
+
+	if totalFormat {
+		if totalSizeMB > 1000 {
+			totalSizeGB := totalSizeMB / 1000
+			colorlog.PrintInfo(fmt.Sprintf("Total: %d directories, %.2f GB, %d repos", totalDirs, totalSizeGB, totalRepos))
+		} else {
+			colorlog.PrintInfo(fmt.Sprintf("Total: %d directories, %.2f MB, %d repos", totalDirs, totalSizeMB, totalRepos))
 		}
 	}
 }
