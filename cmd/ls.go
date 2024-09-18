@@ -96,9 +96,9 @@ func listGhorgHome() {
 				if longFormat {
 					if dirSizeMB > 1000 {
 						dirSizeGB := dirSizeMB / 1000
-						colorlog.PrintInfo(fmt.Sprintf("%-60s %10.2f GB %10d repos", dirPath, dirSizeGB, subDirCount))
+						colorlog.PrintInfo(fmt.Sprintf("%-90s %10.2f GB %10d repos", dirPath, dirSizeGB, subDirCount))
 					} else {
-						colorlog.PrintInfo(fmt.Sprintf("%-60s %10.2f MB %10d repos", dirPath, dirSizeMB, subDirCount))
+						colorlog.PrintInfo(fmt.Sprintf("%-90s %10.2f MB %10d repos", dirPath, dirSizeMB, subDirCount))
 					}
 				} else {
 					colorlog.PrintInfo(path + f.Name())
@@ -190,9 +190,9 @@ func listGhorgDir(arg string) {
 				if longFormat {
 					if dirSizeMB > 1000 {
 						dirSizeGB := dirSizeMB / 1000
-						colorlog.PrintInfo(fmt.Sprintf("%-80s %10.2f GB ", dirPath, dirSizeGB))
+						colorlog.PrintInfo(fmt.Sprintf("%-90s %10.2f GB ", dirPath, dirSizeGB))
 					} else {
-						colorlog.PrintInfo(fmt.Sprintf("%-80s %10.2f MB", dirPath, dirSizeMB))
+						colorlog.PrintInfo(fmt.Sprintf("%-90s %10.2f MB", dirPath, dirSizeMB))
 					}
 				} else {
 					colorlog.PrintInfo(path + f.Name())
