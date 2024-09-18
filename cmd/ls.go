@@ -149,7 +149,8 @@ func listGhorgDir(arg string) {
 	if !longFormat && !totalFormat {
 		for _, f := range files {
 			if f.IsDir() {
-				colorlog.PrintInfo(path + f.Name())
+				str := filepath.Join(path, f.Name())
+				colorlog.PrintInfo(str)
 			}
 		}
 		return
