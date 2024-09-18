@@ -111,9 +111,9 @@ func listGhorgHome() {
 	if totalFormat {
 		if totalSizeMB > 1000 {
 			totalSizeGB := totalSizeMB / 1000
-			colorlog.PrintInfo(fmt.Sprintf("Total: %d directories, %.2f GB, %d repos", totalDirs, totalSizeGB, totalRepos))
+			colorlog.PrintSuccess(fmt.Sprintf("Total: %d directories, %.2f GB, %d repos", totalDirs, totalSizeGB, totalRepos))
 		} else {
-			colorlog.PrintInfo(fmt.Sprintf("Total: %d directories, %.2f MB, %d repos", totalDirs, totalSizeMB, totalRepos))
+			colorlog.PrintSuccess(fmt.Sprintf("Total: %d directories, %.2f MB, %d repos", totalDirs, totalSizeMB, totalRepos))
 		}
 	}
 }
@@ -205,9 +205,9 @@ func listGhorgDir(arg string) {
 	if totalFormat {
 		if totalSizeMB > 1000 {
 			totalSizeGB := totalSizeMB / 1000
-			colorlog.PrintInfo(fmt.Sprintf("Total: %d repos, %.2f GB", totalDirs, totalSizeGB))
+			colorlog.PrintSuccess(fmt.Sprintf("Total: %d repos, %.2f GB", totalDirs, totalSizeGB))
 		} else {
-			colorlog.PrintInfo(fmt.Sprintf("Total: %d repos, %.2f MB", totalDirs, totalSizeMB))
+			colorlog.PrintSuccess(fmt.Sprintf("Total: %d repos, %.2f MB", totalDirs, totalSizeMB))
 		}
 	}
 }
