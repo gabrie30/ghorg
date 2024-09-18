@@ -5,7 +5,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/utils"
 	"github.com/spf13/cobra"
@@ -58,6 +60,9 @@ func listGhorgHome() {
 		return
 	}
 
+	spinningSpinner := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	spinningSpinner.Start()
+
 	var totalDirs int
 	var totalSizeMB float64
 	var totalRepos int
@@ -86,8 +91,8 @@ func listGhorgHome() {
 				}
 			}
 			totalRepos += subDirCount
-
 			if !totalFormat || longFormat {
+				spinningSpinner.Stop()
 				if longFormat {
 					if dirSizeMB > 1000 {
 						dirSizeGB := dirSizeMB / 1000
@@ -102,6 +107,7 @@ func listGhorgHome() {
 		}
 	}
 
+	spinningSpinner.Stop()
 	if totalFormat {
 		if totalSizeMB > 1000 {
 			totalSizeGB := totalSizeMB / 1000

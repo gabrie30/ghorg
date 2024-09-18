@@ -6,6 +6,7 @@ require (
 	code.gitea.io/sdk/gitea v0.19.0
 	github.com/MichaelMure/go-term-markdown v0.1.4
 	github.com/bradleyfalzon/ghinstallation/v2 v2.11.0
+	github.com/briandowns/spinner v1.23.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/fatih/color v1.17.0
 	github.com/google/go-github/v62 v62.0.0
@@ -60,6 +61,7 @@ require (
 	golang.org/x/image v0.18.0 // indirect
 	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/term v0.19.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
