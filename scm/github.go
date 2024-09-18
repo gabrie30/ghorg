@@ -212,6 +212,25 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 			continue
 		}
 
+		if os.Getenv("GHORG_GITHUB_FILTER_LANGUAGE") != "" {
+			if ghRepo.Language != nil {
+				ghLang := strings.ToLower(*ghRepo.Language)
+				userLangs := strings.Split(strings.ToLower(os.Getenv("GHORG_GITHUB_FILTER_LANGUAGE")), ",")
+				matched := false
+				for _, userLang := range userLangs {
+					if ghLang == userLang {
+						matched = true
+						break
+					}
+				}
+				if !matched {
+					continue
+				}
+			} else {
+				continue
+			}
+		}
+
 		r := Repo{}
 
 		r.Name = *ghRepo.Name

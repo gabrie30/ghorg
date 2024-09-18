@@ -46,6 +46,7 @@ var (
 	githubAppPemPath             string
 	githubAppInstallationID      string
 	githubUserOption             string
+	githubFilterLanguage         string
 	includeSubmodules            bool
 	skipArchived                 bool
 	skipForks                    bool
@@ -257,6 +258,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_TARGET_REPOS_PATH")
 	getOrSetDefaults("GHORG_CLONE_DEPTH")
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
+	getOrSetDefaults("GHORG_GITHUB_FILTER_LANGUAGE")
 	getOrSetDefaults("GHORG_COLOR")
 	getOrSetDefaults("GHORG_TOPICS")
 	getOrSetDefaults("GHORG_GITLAB_TOKEN")
@@ -342,6 +344,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&gitFilter, "git-filter", "", "", "GHORG_GIT_FILTER - Allows you to pass arguments to git's filter flag. Useful for filtering out binary objects from repos with --git-filter=blob:none, this requires git version 2.19 or greater.")
 	cloneCmd.Flags().StringVarP(&githubAppPemPath, "github-app-pem-path", "", "", "GHORG_GITHUB_APP_PEM_PATH - Path to your GitHub App PEM file, for authenticating with GitHub App.")
 	cloneCmd.Flags().StringVarP(&githubAppInstallationID, "github-app-installation-id", "", "", "GHORG_GITHUB_APP_INSTALLATION_ID - GitHub App Installation ID, for authenticating with GitHub App.")
+	cloneCmd.Flags().StringVarP(&githubFilterLanguage, "github-filter-language", "", "", "GHORG_GITHUB_FILTER_LANGUAGE - Filter repos by a language. Can be a comma separated value with no spaces.")
 	cloneCmd.Flags().StringVarP(&githubUserOption, "github-user-option", "", "", "GHORG_GITHUB_USER_OPTION - Only available when also using GHORG_CLONE_TYPE: user e.g. --clone-type=user can be one of: all, owner, member (default: owner)")
 	cloneCmd.Flags().StringVarP(&githubAppID, "github-app-id", "", "", "GHORG_GITHUB_APP_ID -  GitHub App ID, for authenticating with GitHub App")
 
