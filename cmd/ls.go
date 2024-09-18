@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -67,42 +68,68 @@ func listGhorgHome() {
 	var totalSizeMB float64
 	var totalRepos int
 
+	type result struct {
+		dirPath     string
+		dirSizeMB   float64
+		subDirCount int
+		err         error
+	}
+
+	results := make(chan result, len(files))
+	var wg sync.WaitGroup
+
 	for _, f := range files {
 		if f.IsDir() {
 			totalDirs++
-			dirPath := filepath.Join(path, f.Name())
-			dirSizeMB, err := utils.CalculateDirSizeInMb(dirPath)
-			if err != nil {
-				colorlog.PrintError(fmt.Sprintf("Error calculating directory size for %s: %v", dirPath, err))
-				continue
-			}
-			totalSizeMB += dirSizeMB
+			wg.Add(1)
+			go func(f os.DirEntry) {
+				defer wg.Done()
+				dirPath := filepath.Join(path, f.Name())
+				dirSizeMB, err := utils.CalculateDirSizeInMb(dirPath)
+				if err != nil {
+					results <- result{dirPath: dirPath, err: err}
+					return
+				}
 
-			// Count the number of directories with a depth of 1 inside
-			subDirCount := 0
-			subFiles, err := os.ReadDir(dirPath)
-			if err != nil {
-				colorlog.PrintError(fmt.Sprintf("Error reading directory contents for %s: %v", dirPath, err))
-				continue
-			}
-			for _, subFile := range subFiles {
-				if subFile.IsDir() {
-					subDirCount++
+				subDirCount := 0
+				subFiles, err := os.ReadDir(dirPath)
+				if err != nil {
+					results <- result{dirPath: dirPath, err: err}
+					return
 				}
-			}
-			totalRepos += subDirCount
-			if !totalFormat || longFormat {
-				spinningSpinner.Stop()
-				if longFormat {
-					if dirSizeMB > 1000 {
-						dirSizeGB := dirSizeMB / 1000
-						colorlog.PrintInfo(fmt.Sprintf("%-90s %10.2f GB %10d repos", dirPath, dirSizeGB, subDirCount))
-					} else {
-						colorlog.PrintInfo(fmt.Sprintf("%-90s %10.2f MB %10d repos", dirPath, dirSizeMB, subDirCount))
+				for _, subFile := range subFiles {
+					if subFile.IsDir() {
+						subDirCount++
 					}
-				} else {
-					colorlog.PrintInfo(path + f.Name())
 				}
+				results <- result{dirPath: dirPath, dirSizeMB: dirSizeMB, subDirCount: subDirCount}
+			}(f)
+		}
+	}
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	for res := range results {
+		if res.err != nil {
+			colorlog.PrintError(fmt.Sprintf("Error processing directory %s: %v", res.dirPath, res.err))
+			continue
+		}
+		totalSizeMB += res.dirSizeMB
+		totalRepos += res.subDirCount
+		if !totalFormat || longFormat {
+			spinningSpinner.Stop()
+			if longFormat {
+				if res.dirSizeMB > 1000 {
+					dirSizeGB := res.dirSizeMB / 1000
+					colorlog.PrintInfo(fmt.Sprintf("%-90s %10.2f GB %10d repos", res.dirPath, dirSizeGB, res.subDirCount))
+				} else {
+					colorlog.PrintInfo(fmt.Sprintf("%-90s %10.2f MB %10d repos", res.dirPath, res.dirSizeMB, res.subDirCount))
+				}
+			} else {
+				colorlog.PrintInfo(res.dirPath)
 			}
 		}
 	}
@@ -162,41 +189,68 @@ func listGhorgDir(arg string) {
 	var totalDirs int
 	var totalSizeMB float64
 
+	type result struct {
+		dirPath     string
+		dirSizeMB   float64
+		subDirCount int
+		err         error
+	}
+
+	results := make(chan result)
+	var wg sync.WaitGroup
+
 	for _, f := range files {
 		if f.IsDir() {
-			totalDirs++
-			dirPath := filepath.Join(path, f.Name())
-			dirSizeMB, err := utils.CalculateDirSizeInMb(dirPath)
-			if err != nil {
-				colorlog.PrintError(fmt.Sprintf("Error calculating directory size for %s: %v", dirPath, err))
-				continue
-			}
-			totalSizeMB += dirSizeMB
+			wg.Add(1)
+			go func(f os.DirEntry) {
+				defer wg.Done()
+				dirPath := filepath.Join(path, f.Name())
+				dirSizeMB, err := utils.CalculateDirSizeInMb(dirPath)
+				if err != nil {
+					results <- result{dirPath: dirPath, err: err}
+					return
+				}
 
-			// Count the number of directories with a depth of 1 inside
-			subDirCount := 0
-			subFiles, err := os.ReadDir(dirPath)
-			if err != nil {
-				colorlog.PrintError(fmt.Sprintf("Error reading directory contents for %s: %v", dirPath, err))
-				continue
-			}
-			for _, subFile := range subFiles {
-				if subFile.IsDir() {
-					subDirCount++
+				// Count the number of directories with a depth of 1 inside
+				subDirCount := 0
+				subFiles, err := os.ReadDir(dirPath)
+				if err != nil {
+					results <- result{dirPath: dirPath, err: err}
+					return
 				}
-			}
-			if !totalFormat || longFormat {
-				spinningSpinner.Stop()
-				if longFormat {
-					if dirSizeMB > 1000 {
-						dirSizeGB := dirSizeMB / 1000
-						colorlog.PrintInfo(fmt.Sprintf("%-90s %10.2f GB ", dirPath, dirSizeGB))
-					} else {
-						colorlog.PrintInfo(fmt.Sprintf("%-90s %10.2f MB", dirPath, dirSizeMB))
+				for _, subFile := range subFiles {
+					if subFile.IsDir() {
+						subDirCount++
 					}
-				} else {
-					colorlog.PrintInfo(path + f.Name())
 				}
+				results <- result{dirPath: dirPath, dirSizeMB: dirSizeMB, subDirCount: subDirCount}
+			}(f)
+		}
+	}
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	for res := range results {
+		if res.err != nil {
+			colorlog.PrintError(fmt.Sprintf("Error processing directory %s: %v", res.dirPath, res.err))
+			continue
+		}
+		totalSizeMB += res.dirSizeMB
+		totalDirs++
+		if !totalFormat || longFormat {
+			spinningSpinner.Stop()
+			if longFormat {
+				if res.dirSizeMB > 1000 {
+					dirSizeGB := res.dirSizeMB / 1000
+					colorlog.PrintInfo(fmt.Sprintf("%-90s %10.2f GB ", res.dirPath, dirSizeGB))
+				} else {
+					colorlog.PrintInfo(fmt.Sprintf("%-90s %10.2f MB", res.dirPath, res.dirSizeMB))
+				}
+			} else {
+				colorlog.PrintInfo(res.dirPath)
 			}
 		}
 	}
