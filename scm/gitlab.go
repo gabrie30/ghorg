@@ -62,6 +62,9 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		colorlog.PrintErrorAndExit("When using the 'all-users' keyword the '--clone-type=user' flag should be set")
 	}
 
+	spinningSpinner.Start()
+	defer spinningSpinner.Stop()
+
 	if targetOrg == "all-groups" {
 		gitLabAllGroups = true
 		longFetch = true
@@ -82,6 +85,7 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	}
 
 	for i, group := range allGroups {
+		spinningSpinner.Stop()
 		if longFetch {
 			if i == 0 {
 				fmt.Println("")
@@ -100,6 +104,7 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 	snippets, err := c.GetSnippets(repoData, targetOrg)
 	if err != nil {
+		spinningSpinner.Stop()
 		colorlog.PrintError(fmt.Sprintf("Error getting snippets, error: %v", err))
 	}
 	repoData = append(repoData, snippets...)
@@ -394,6 +399,9 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 		},
 	}
 
+	spinningSpinner.Start()
+	defer spinningSpinner.Stop()
+
 	if targetUsername == "all-users" {
 		gitLabAllUsers = true
 		for {
@@ -422,7 +430,7 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 			// Get the first page with projects.
 			ps, resp, err := c.Projects.ListUserProjects(targetUser, projectOpts)
 			if err != nil {
-				fmt.Printf("Error getting repo for user: %v", targetUser)
+				spinningSpinner.Stop()
 				colorlog.PrintError(fmt.Sprintf("Error getting repo for user: %v", targetUser))
 				continue
 			}
@@ -442,6 +450,7 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 
 	snippets, err := c.GetSnippets(cloneData, targetUsername)
 	if err != nil {
+		spinningSpinner.Stop()
 		colorlog.PrintError(fmt.Sprintf("Error getting snippets, error: %v", err))
 	}
 	cloneData = append(cloneData, snippets...)

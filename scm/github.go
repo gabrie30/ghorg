@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
-	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/google/go-github/v62/github"
 	"golang.org/x/oauth2"
 )
@@ -46,10 +45,12 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 	c.SetTokensUsername()
 
+	spinningSpinner.Start()
+	defer spinningSpinner.Stop()
+
 	// get all pages of results
 	var allRepos []*github.Repository
 	for {
-		pageToPrintMoreInfo := 10
 		repos, resp, err := c.Repositories.ListByOrg(context.Background(), targetOrg, opt)
 
 		if err != nil {
@@ -57,21 +58,9 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		}
 		allRepos = append(allRepos, repos...)
 		if resp.NextPage == 0 {
-			// formatting for "Everything is okay, the org just has a lot of repos..."
-			if opt.Page >= pageToPrintMoreInfo {
-				fmt.Println("")
-			}
-
 			break
 		}
 
-		if opt.Page == pageToPrintMoreInfo {
-			fmt.Println("")
-		}
-
-		if opt.Page%pageToPrintMoreInfo == 0 && opt.Page != 0 {
-			colorlog.PrintSubtleInfo("Everything is okay, the org just has a lot of repos...")
-		}
 		opt.Page = resp.NextPage
 	}
 
@@ -85,6 +74,9 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 	}
 
 	c.SetTokensUsername()
+
+	spinningSpinner.Start()
+	defer spinningSpinner.Stop()
 
 	// get all pages of results
 	var allRepos []*github.Repository
