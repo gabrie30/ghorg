@@ -34,6 +34,9 @@ func (_ Gitea) GetType() string {
 func (c Gitea) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	repoData := []Repo{}
 
+	spinningSpinner.Start()
+	defer spinningSpinner.Stop()
+
 	for i := 1; ; i++ {
 		rps, resp, err := c.ListOrgRepos(targetOrg, gitea.ListOrgReposOptions{ListOptions: gitea.ListOptions{
 			Page:     i,
@@ -65,6 +68,9 @@ func (c Gitea) GetOrgRepos(targetOrg string) ([]Repo, error) {
 // GetUserRepos gets all of a users gitlab repos
 func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
 	repoData := []Repo{}
+
+	spinningSpinner.Start()
+	defer spinningSpinner.Stop()
 
 	for i := 1; ; i++ {
 		rps, resp, err := c.ListUserRepos(targetUsername, gitea.ListReposOptions{ListOptions: gitea.ListOptions{

@@ -29,6 +29,8 @@ func (_ Bitbucket) GetType() string {
 
 // GetOrgRepos gets org repos
 func (c Bitbucket) GetOrgRepos(targetOrg string) ([]Repo, error) {
+	spinningSpinner.Start()
+	defer spinningSpinner.Stop()
 	resp, err := c.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: targetOrg})
 	if err != nil {
 		return []Repo{}, err

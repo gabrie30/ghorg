@@ -21,6 +21,12 @@ var lsCmd = &cobra.Command{
 	Run:   lsFunc,
 }
 
+var spinningSpinner *spinner.Spinner
+
+func init() {
+	spinningSpinner = spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+}
+
 func lsFunc(cmd *cobra.Command, argz []string) {
 	if len(argz) == 0 {
 		listGhorgHome()
@@ -61,7 +67,6 @@ func listGhorgHome() {
 		return
 	}
 
-	spinningSpinner := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	spinningSpinner.Start()
 
 	var totalDirs int
@@ -183,7 +188,6 @@ func listGhorgDir(arg string) {
 		return
 	}
 
-	spinningSpinner := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	spinningSpinner.Start()
 
 	var totalDirs int

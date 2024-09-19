@@ -66,6 +66,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_GITHUB_APP_INSTALLATION_ID", cmd.Flag("github-app-installation-id").Value.String())
 	}
 
+	if cmd.Flags().Changed("github-filter-language") {
+		os.Setenv("GHORG_GITHUB_FILTER_LANGUAGE", cmd.Flag("github-filter-language").Value.String())
+	}
+
 	if cmd.Flags().Changed("github-app-id") {
 		os.Setenv("GHORG_GITHUB_APP_ID", cmd.Flag("github-app-id").Value.String())
 	}

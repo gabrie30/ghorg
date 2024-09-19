@@ -202,6 +202,11 @@ GHORG_GITHUB_APP_ID:
 # Can be one of: all, owner, member (default: owner)
 GHORG_GITHUB_USER_OPTION:
 
+# Filter repos by a language
+# Can be a comma separated value with no spaces
+# falg (--github-filter-language) e.g.: --github-filter-language=go,ruby,elixir
+GHORG_GITHUB_FILTER_LANGUAGE:
+
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 # |G|I|T|L|A|B| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
