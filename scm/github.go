@@ -84,29 +84,43 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 		c.BaseURL, _ = url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
 	}
 
-	opt := &github.RepositoryListByUserOptions{
-		// https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories#about-repository-ownership
-		Type:        os.Getenv("GHORG_GITHUB_USER_OPTION"),
-		ListOptions: github.ListOptions{PerPage: c.perPage},
-	}
+	c.SetTokensUsername()
 
 	// get all pages of results
 	var allRepos []*github.Repository
+	opt := &github.ListOptions{PerPage: c.perPage, Page: 1}
 
 	for {
+		var repos []*github.Repository
+		var resp *github.Response
+		var err error
 
-		// List the repositories for a user. Passing the empty string will list repositories for the authenticated user.
-		repos, resp, err := c.Repositories.ListByUser(context.Background(), targetUser, opt)
+		if targetUser == tokenUsername {
+
+			authOpt := &github.RepositoryListByAuthenticatedUserOptions{
+				Type:        os.Getenv("GHORG_GITHUB_USER_OPTION"),
+				ListOptions: *opt,
+			}
+			// List repositories for the authenticated user
+			repos, resp, err = c.Repositories.ListByAuthenticatedUser(context.Background(), authOpt)
+		} else {
+			userOpt := &github.RepositoryListByUserOptions{
+				Type:        os.Getenv("GHORG_GITHUB_USER_OPTION"),
+				ListOptions: *opt,
+			}
+			// List repositories for the specified user
+			repos, resp, err = c.Repositories.ListByUser(context.Background(), targetUser, userOpt)
+		}
 
 		if err != nil {
 			return nil, err
 		}
 
-		if targetUser == "" {
+		if targetUser != tokenUsername {
 			userRepos := []*github.Repository{}
 
 			for _, repo := range repos {
-				if *repo.Owner.Type == "User" {
+				if repo.Owner != nil && repo.Owner.Type != nil && *repo.Owner.Type == "User" {
 					userRepos = append(userRepos, repo)
 				}
 			}
@@ -212,6 +226,7 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 			continue
 		}
 
+		// NOTE: for some reason forks do not always have a language field set so sometimes they get filtered out
 		if os.Getenv("GHORG_GITHUB_FILTER_LANGUAGE") != "" {
 			if ghRepo.Language != nil {
 				ghLang := strings.ToLower(*ghRepo.Language)
