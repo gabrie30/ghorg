@@ -85,8 +85,8 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	}
 
 	for i, group := range allGroups {
-		spinningSpinner.Stop()
 		if longFetch {
+			spinningSpinner.Stop()
 			if i == 0 {
 				fmt.Println("")
 			}
