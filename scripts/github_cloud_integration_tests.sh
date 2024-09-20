@@ -37,7 +37,7 @@ else
 fi
 
 # user cloning selfs private repo
-ghorg clone $GITHUB_SELF --clone-type=user --topics=ghorgtestprivate --token=$GITHUB_TOKEN --path=/tmp --output-dir=testing_self_private_repo
+ghorg clone $GITHUB_SELF --clone-type=user --topics=ghogtestprivate --token=$GITHUB_TOKEN --path=/tmp --output-dir=testing_self_private_repo
 
 if [ -e /tmp/testing_self_private_repo/$GHORG_TEST_SELF_PRIVATE_REPO ]
 then
