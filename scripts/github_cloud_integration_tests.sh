@@ -8,7 +8,9 @@ cp ./ghorg /usr/local/bin
 
 GITHUB_ORG=forcepushtoproduction
 GHORG_TEST_REPO=ghorg-ci-test
+GHORG_TEST_SELF_PRIVATE_REPO=ghorg_testing_private
 REPO_WITH_TESTING_TOPIC=ghorg-repo-with-topic-of-testing
+GITHUB_SELF=gabrie30
 
 ghorg version
 
@@ -31,6 +33,17 @@ then
     echo "Pass: github org clone, commandline flags take overwrite conf.yaml"
 else
     echo "Fail: github org clone, commandline flags take overwrite conf.yaml"
+    exit 1
+fi
+
+# user cloning selfs private repo
+ghorg clone $GITHUB_SELF --clone-type=user --topics=ghorgtestprivate --token=$GITHUB_TOKEN --path=/tmp --output-dir=testing_self_private_repo
+
+if [ -e /tmp/testing_self_private_repo/$GHORG_TEST_SELF_PRIVATE_REPO ]
+then
+    echo "Pass: github self private repos clone"
+else
+    echo "Fail: github self private repos clone"
     exit 1
 fi
 
