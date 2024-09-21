@@ -11,6 +11,14 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     ```
     ghorg clone <github_org> --token=XXXXXX
     ```
+    Will produce the following
+
+    ```sh
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
+    └── github_org
+        ├── repo1
+        └── repo2
+    ```
 
 1. Clone all repos from a **github org** that are **prefixed** with "frontend" **into a folder** called "design_only"
 
@@ -22,6 +30,20 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
     ```
     ghorg clone <github_username> --clone-type=user --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+    ```
+
+1. Clone an **org**, preserving the cloud scm hostname
+    ```
+    ghorg clone <github_org> --preserve-cloud-scm-hostname
+    ```
+    Will produce the following
+
+    ```sh
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
+    └── github.com
+        └── github_org
+            ├── repo1
+            └── repo2
     ```
 
 ## GitHub Enterprise
