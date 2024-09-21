@@ -183,7 +183,7 @@ else
 fi
 
 # PRESERVE DIR, PRESERVE SCM HOSTNAME
-ghorg clone $GITLAB_GROUP/$GITLAB_SUB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab --preserve-dir
+ghorg clone $GITLAB_GROUP/$GITLAB_SUB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab --preserve-dir --preserve-scm-hostname
 
 if [ -e "${HOME}"/ghorg/gitlab.com/"${GITLAB_GROUP}"/"${GITLAB_SUB_GROUP}"/wayne-industries/microservice ]
 then
