@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Changed
 ### Deprecated
 ### Removed
+- GHORG_RECLONE_VERBOSE flag
 ### Fixed
 ### Security
 - Bump code.gitea.io/sdk/gitea from 0.18.0 to 0.19.0 (#441)
@@ -287,7 +288,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Security
 ## [1.8.2] - 7/6/22
 ### Added
-- GHORG_RECLONE_VERBOSE flag
 - GHORG_RECLONE_QUIET flag
 ### Changed
 - reclone logging format

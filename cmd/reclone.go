@@ -24,10 +24,6 @@ type ReClone struct {
 	Description string `yaml:"description"`
 }
 
-func isVerboseReClone() bool {
-	return os.Getenv("GHORG_RECLONE_VERBOSE") == "true"
-}
-
 func isQuietReClone() bool {
 	return os.Getenv("GHORG_RECLONE_QUIET") == "true"
 }
@@ -37,10 +33,6 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 	if cmd.Flags().Changed("reclone-path") {
 		path := cmd.Flag("reclone-path").Value.String()
 		os.Setenv("GHORG_RECLONE_PATH", path)
-	}
-
-	if cmd.Flags().Changed("verbose") {
-		os.Setenv("GHORG_RECLONE_VERBOSE", "true")
 	}
 
 	if cmd.Flags().Changed("quiet") {
@@ -171,7 +163,7 @@ func runReClone(rc ReClone) {
 			ghorgEnv := strings.HasPrefix(env, "GHORG_")
 
 			// skip global flags and reclone flags which are set in the conf.yaml
-			if env == "GHORG_COLOR" || env == "GHORG_CONFIG" || env == "GHORG_RECLONE_VERBOSE" || env == "GHORG_RECLONE_QUIET" || env == "GHORG_RECLONE_PATH" || env == "GHORG_RECLONE_RUNNING" {
+			if env == "GHORG_COLOR" || env == "GHORG_CONFIG" || env == "GHORG_RECLONE_QUIET" || env == "GHORG_RECLONE_PATH" || env == "GHORG_RECLONE_RUNNING" {
 				continue
 			}
 			if ghorgEnv {

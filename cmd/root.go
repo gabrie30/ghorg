@@ -61,7 +61,6 @@ var (
 	insecureGitlabClient         bool
 	insecureGiteaClient          bool
 	fetchAll                     bool
-	ghorgReCloneVerbose          bool
 	ghorgReCloneQuiet            bool
 	ghorgReCloneList             bool
 	ghorgReCloneEnvConfigOnly    bool
@@ -149,8 +148,6 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_NO_TOKEN":
 			os.Setenv(envVar, "false")
 		case "GHORG_NO_DIR_SIZE":
-			os.Setenv(envVar, "false")
-		case "GHORG_RECLONE_VERBOSE":
 			os.Setenv(envVar, "false")
 		case "GHORG_RECLONE_ENV_CONFIG_ONLY":
 			os.Setenv(envVar, "false")
@@ -246,7 +243,6 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_INSECURE_GITLAB_CLIENT")
 	getOrSetDefaults("GHORG_INSECURE_GITEA_CLIENT")
 	getOrSetDefaults("GHORG_BACKUP")
-	getOrSetDefaults("GHORG_RECLONE_VERBOSE")
 	getOrSetDefaults("GHORG_RECLONE_ENV_CONFIG_ONLY")
 	getOrSetDefaults("GHORG_RECLONE_QUIET")
 	getOrSetDefaults("GHORG_CONCURRENCY")
@@ -349,7 +345,6 @@ func init() {
 	cloneCmd.Flags().StringVarP(&githubAppID, "github-app-id", "", "", "GHORG_GITHUB_APP_ID -  GitHub App ID, for authenticating with GitHub App")
 
 	reCloneCmd.Flags().StringVarP(&ghorgReClonePath, "reclone-path", "", "", "GHORG_RECLONE_PATH - If you want to set a path other than $HOME/.config/ghorg/reclone.yaml for your reclone configuration")
-	reCloneCmd.Flags().BoolVar(&ghorgReCloneVerbose, "verbose", false, "GHORG_RECLONE_VERBOSE - Verbose logging output")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneQuiet, "quiet", false, "GHORG_RECLONE_QUIET - Quiet logging output")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneList, "list", false, "Prints reclone commands and optional descriptions to stdout then will exit 0. Does not obsfucate tokens, and is only available as a commandline argument")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneEnvConfigOnly, "env-config-only", false, "GHORG_RECLONE_ENV_CONFIG_ONLY - Only use environment variables to set the configuration for all reclones.")
