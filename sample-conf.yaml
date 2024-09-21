@@ -274,10 +274,6 @@ GHORG_BITBUCKET_USERNAME:
 # flag (--reclone-path)
 GHORG_RECLONE_PATH:
 
-# Get more verbose logging with reclone command
-# flag (--verbose)
-GHORG_RECLONE_VERBOSE: false
-
 # Quiet logging output with reclone command
 # flag (--quiet)
 GHORG_RECLONE_QUIET: false

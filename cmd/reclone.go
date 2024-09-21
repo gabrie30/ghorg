@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -25,10 +24,6 @@ type ReClone struct {
 	Description string `yaml:"description"`
 }
 
-func isVerboseReClone() bool {
-	return os.Getenv("GHORG_RECLONE_VERBOSE") == "true"
-}
-
 func isQuietReClone() bool {
 	return os.Getenv("GHORG_RECLONE_QUIET") == "true"
 }
@@ -38,10 +33,6 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 	if cmd.Flags().Changed("reclone-path") {
 		path := cmd.Flag("reclone-path").Value.String()
 		os.Setenv("GHORG_RECLONE_PATH", path)
-	}
-
-	if cmd.Flags().Changed("verbose") {
-		os.Setenv("GHORG_RECLONE_VERBOSE", "true")
 	}
 
 	if cmd.Flags().Changed("quiet") {
@@ -79,10 +70,6 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 			fmt.Println("")
 		}
 		os.Exit(0)
-	}
-
-	if !isVerboseReClone() && !isQuietReClone() {
-		asciiTime()
 	}
 
 	if len(argz) == 0 {
@@ -155,7 +142,8 @@ func runReClone(rc ReClone) {
 	safeToLogCmd := sanitizeCmd(strings.Clone(rc.Cmd))
 
 	if !isQuietReClone() {
-		colorlog.PrintInfo(fmt.Sprintf("$ %v", safeToLogCmd))
+		fmt.Println("")
+		colorlog.PrintInfo(fmt.Sprintf("> %v", safeToLogCmd))
 	}
 
 	ghorgClone := exec.Command("ghorg", remainingCommand...)
@@ -175,7 +163,7 @@ func runReClone(rc ReClone) {
 			ghorgEnv := strings.HasPrefix(env, "GHORG_")
 
 			// skip global flags and reclone flags which are set in the conf.yaml
-			if env == "GHORG_COLOR" || env == "GHORG_CONFIG" || env == "GHORG_RECLONE_VERBOSE" || env == "GHORG_RECLONE_QUIET" || env == "GHORG_RECLONE_PATH" || env == "GHORG_RECLONE_RUNNING" {
+			if env == "GHORG_COLOR" || env == "GHORG_CONFIG" || env == "GHORG_RECLONE_QUIET" || env == "GHORG_RECLONE_PATH" || env == "GHORG_RECLONE_RUNNING" {
 				continue
 			}
 			if ghorgEnv {
@@ -184,27 +172,26 @@ func runReClone(rc ReClone) {
 		}
 	}
 
-	stdout, err := ghorgClone.StdoutPipe()
-	if err != nil {
-		colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: Problem with piping to stdout, err: %v", err))
+	// Connect ghorgClone's stdout and stderr to the current process's stdout and stderr
+	if !isQuietReClone() {
+		ghorgClone.Stdout = os.Stdout
+		ghorgClone.Stderr = os.Stderr
+	} else {
+		spinningSpinner.Start()
+		defer spinningSpinner.Stop()
+		ghorgClone.Stdout = nil
+		ghorgClone.Stderr = nil
 	}
 
-	err = ghorgClone.Start()
-
+	err := ghorgClone.Start()
 	if err != nil {
+		spinningSpinner.Stop()
 		colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: Starting ghorg clone cmd: %v, err: %v", safeToLogCmd, err))
-	}
-
-	if isVerboseReClone() && !isQuietReClone() {
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			m := scanner.Text()
-			fmt.Println(m)
-		}
 	}
 
 	err = ghorgClone.Wait()
 	if err != nil {
+		spinningSpinner.Stop()
 		colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: Running ghorg clone cmd: %v, err: %v", safeToLogCmd, err))
 	}
 }
