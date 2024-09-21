@@ -29,3 +29,14 @@ else
     echo "Fail: bitbucket org clone, commandline flags take overwrite conf.yaml"
     exit 1
 fi
+
+# preserve scm hostname
+ghorg clone $BITBUCKET_WORKSPACE --token="${BITBUCKET_TOKEN}" --bitbucket-username="${BITBUCKET_USERNAME}" --path=/tmp --output-dir=testing_output_dir --scm=bitbucket --base-url="https://api.bitbucket.org/2.0" --preserve-scm-hostname
+
+if [ -e /tmp/api.bitbucket.org/testing_output_dir ]
+then
+    echo "Pass: bitbucket org clone, preserve scm hostname"
+else
+    echo "Fail: bitbucket org clone, preserve scm hostname"
+    exit 1
+fi

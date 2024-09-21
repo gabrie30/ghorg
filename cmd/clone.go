@@ -163,6 +163,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_GIT_FILTER", filter)
 	}
 
+	if cmd.Flags().Changed("preserve-scm-hostname") {
+		os.Setenv("GHORG_PRESERVE_SCM_HOSTNAME", "true")
+	}
+
 	if cmd.Flags().Changed("skip-archived") {
 		os.Setenv("GHORG_SKIP_ARCHIVED", "true")
 	}
@@ -280,6 +284,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	if err != nil {
 		colorlog.PrintError(err)
 		os.Exit(1)
+	}
+
+	if os.Getenv("GHORG_PRESERVE_SCM_HOSTNAME") == "true" {
+		updateAbsolutePathToCloneToWithHostname()
 	}
 
 	setOutputDirName(argz)
@@ -974,7 +982,14 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 }
 
 func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount int, hasCollisions bool) error {
-	statsFilePath := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), "_ghorg_stats.csv")
+	var statsFilePath string
+	absolutePath := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
+	if os.Getenv("GHORG_PRESERVE_SCM_HOSTNAME") == "true" {
+		originalAbsolutePath := os.Getenv("GHORG_ORIGINAL_ABSOLUTE_PATH_TO_CLONE_TO")
+		statsFilePath = filepath.Join(originalAbsolutePath, "_ghorg_stats.csv")
+	} else {
+		statsFilePath = filepath.Join(absolutePath, "_ghorg_stats.csv")
+	}
 
 	fileExists := true
 

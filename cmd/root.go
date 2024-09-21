@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 
@@ -68,6 +69,7 @@ var (
 	quietMode                    bool
 	noDirSize                    bool
 	ghorgStatsEnabled            bool
+	ghorgPreserveScmHostname     bool
 	args                         []string
 	cloneErrors                  []string
 	cloneInfos                   []string
@@ -81,6 +83,40 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, argz []string) {
 		fmt.Println("For help run: ghorg clone --help")
 	},
+}
+
+func getHostname() string {
+	var hostname string
+	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
+	if baseURL != "" {
+		// Parse the URL to extract the hostname
+		parsedURL, err := url.Parse(baseURL)
+		if err != nil {
+			colorlog.PrintError(fmt.Sprintf("Error parsing GHORG_SCM_BASE_URL clone may be affected, error: %v", err))
+		}
+		// Append the hostname to the absolute path
+		hostname = parsedURL.Hostname()
+	} else {
+		// Use the predefined hostname based on the SCM type
+		hostname = configs.GetScmTypeHostnames()
+	}
+
+	return hostname
+}
+
+// updateAbsolutePathToCloneToWithHostname modifies the absolute path by appending the hostname if the user has enabled it,
+// supporting the GHORG_PRESERVE_SCM_HOSTNAME feature. It checks the GHORG_PRESERVE_SCM_HOSTNAME environment variable, and if set to "true",
+// it uses the hostname from GHORG_SCM_BASE_URL if available, otherwise, it defaults to a predefined hostname based on the SCM type.
+func updateAbsolutePathToCloneToWithHostname() {
+	// Verify if GHORG_PRESERVE_SCM_HOSTNAME is set to "true"
+	if os.Getenv("GHORG_PRESERVE_SCM_HOSTNAME") == "true" {
+		// Retrieve the hostname from the environment variable
+		hostname := getHostname()
+		absolutePath := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
+		os.Setenv("GHORG_ORIGINAL_ABSOLUTE_PATH_TO_CLONE_TO", absolutePath)
+		absolutePath = filepath.Join(absolutePath, hostname)
+		os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", configs.EnsureTrailingSlashOnFilePath(absolutePath))
+	}
 }
 
 // reads in configuration file and updates anything not set to default
@@ -144,6 +180,8 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_GITHUB_USER_OPTION":
 			os.Setenv(envVar, "owner")
 		case "GHORG_BACKUP":
+			os.Setenv(envVar, "false")
+		case "GHORG_PRESERVE_SCM_HOSTNAME":
 			os.Setenv(envVar, "false")
 		case "GHORG_NO_TOKEN":
 			os.Setenv(envVar, "false")
@@ -228,6 +266,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_CLONE_PROTOCOL")
 	getOrSetDefaults("GHORG_CLONE_TYPE")
 	getOrSetDefaults("GHORG_SCM_TYPE")
+	getOrSetDefaults("GHORG_PRESERVE_SCM_HOSTNAME")
 	getOrSetDefaults("GHORG_SKIP_ARCHIVED")
 	getOrSetDefaults("GHORG_SKIP_FORKS")
 	getOrSetDefaults("GHORG_NO_CLEAN")
@@ -324,6 +363,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&quietMode, "quiet", false, "GHORG_QUIET - Emit critical output only")
 	cloneCmd.Flags().BoolVar(&includeSubmodules, "include-submodules", false, "GHORG_INCLUDE_SUBMODULES - Include submodules in all clone and pull operations.")
 	cloneCmd.Flags().BoolVar(&ghorgStatsEnabled, "stats-enabled", false, "GHORG_STATS_ENABLED - Creates a CSV in the GHORG_ABSOLUTE_PATH_TO_CLONE_TO called _ghorg_stats.csv with info about each clone. This allows you to track clone data over time such as number of commits and size in megabytes of the clone directory.")
+	cloneCmd.Flags().BoolVar(&ghorgPreserveScmHostname, "preserve-scm-hostname", false, "GHORG_PRESERVE_SCM_HOSTNAME - Appends the scm hostname to the GHORG_ABSOLUTE_PATH_TO_CLONE_TO which will organize your clones into specific folders by the scm provider. e.g. /github.com/kuberentes")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - Change SCM base url, for on self hosted instances (currently gitlab, gitea and github (use format of https://git.mydomain.com/api/v3))")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - Max goroutines to spin up while cloning (default 25)")
 	cloneCmd.Flags().StringVarP(&cloneDepth, "clone-depth", "", "", "GHORG_CLONE_DEPTH - Create a shallow clone with a history truncated to the specified number of commits")

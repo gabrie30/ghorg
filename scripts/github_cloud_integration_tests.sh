@@ -25,6 +25,17 @@ else
     exit 1
 fi
 
+# clone an org preserving scm hostname
+ghorg clone $GITHUB_ORG --token=$GITHUB_TOKEN --preserve-scm-hostname
+
+if [ -e $HOME/ghorg/github.com/$GITHUB_ORG/$GHORG_TEST_REPO ]
+then
+    echo "Pass: github org clone preserving scm hostname"
+else
+    echo "Fail: github org clone preserving scm hostname"
+    exit 1
+fi
+
 # clone an org with no config file to a specific path
 ghorg clone $GITHUB_ORG --token=$GITHUB_TOKEN --path=/tmp --output-dir=testing_output_dir
 
