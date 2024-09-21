@@ -73,15 +73,16 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 	}
 
 	if len(argz) == 0 {
-		for _, key := range mapOfReClones {
-			runReClone(key)
+		for rcIdentifier, reclone := range mapOfReClones {
+			runReClone(reclone, rcIdentifier)
 		}
 	} else {
-		for _, arg := range argz {
-			if _, ok := mapOfReClones[arg]; !ok {
-				colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: The key %v was not found in reclone.yaml", arg))
+		for _, rcIdentifier := range argz {
+			if _, ok := mapOfReClones[rcIdentifier]; !ok {
+				colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: The key %v was not found in reclone.yaml", rcIdentifier))
+			} else {
+				runReClone(mapOfReClones[rcIdentifier], rcIdentifier)
 			}
-			runReClone(mapOfReClones[arg])
 		}
 	}
 
@@ -130,7 +131,7 @@ func sanitizeCmd(cmd string) string {
 	return cmd
 }
 
-func runReClone(rc ReClone) {
+func runReClone(rc ReClone, rcIdentifier string) {
 	// make sure command starts with ghorg clone
 	splitCommand := strings.Split(rc.Cmd, " ")
 	ghorg, clone, remainingCommand := splitCommand[0], splitCommand[1], splitCommand[1:]
@@ -143,6 +144,11 @@ func runReClone(rc ReClone) {
 
 	if !isQuietReClone() {
 		fmt.Println("")
+		colorlog.PrintInfo(fmt.Sprintf("Running reclone: %v", rcIdentifier))
+		if rc.Description != "" {
+			colorlog.PrintInfo(fmt.Sprintf("Description: %v", rc.Description))
+			fmt.Println("")
+		}
 		colorlog.PrintInfo(fmt.Sprintf("> %v", safeToLogCmd))
 	}
 
