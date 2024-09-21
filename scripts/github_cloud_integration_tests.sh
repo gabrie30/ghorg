@@ -86,7 +86,7 @@ mv $HOME/.config/ghorg/conf-bak.yaml $HOME/.config/ghorg/conf.yaml
 # hack to allow sed to be ran on both mac and ubuntu
 sed "s/XTOKEN/${GITHUB_TOKEN}/g" $PWD/scripts/testing_confs/reclone-basic.yaml > $PWD/scripts/testing_confs/updated_reclone.yaml
 
-ghorg reclone --reclone-path=$PWD/scripts/testing_confs/updated_reclone.yaml --verbose
+ghorg reclone --reclone-path=$PWD/scripts/testing_confs/updated_reclone.yaml
 
 if [ -e /tmp/testing_reclone_with_tag/$REPO_WITH_TESTING_TOPIC ]
 then
