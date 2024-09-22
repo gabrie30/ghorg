@@ -763,10 +763,6 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					return
 				}
 
-				if repo.Name == "has-many-branches" {
-					fmt.Print("")
-				}
-
 				// Delete if it has no branches
 				if branches == "" {
 					untouchedReposToPrune = append(untouchedReposToPrune, repo.HostPath)
