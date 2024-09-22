@@ -105,6 +105,17 @@ func (g MockGitClient) RepoCommitCount(repo scm.Repo) (int, error) {
 	return 0, nil
 }
 
+func (g MockGitClient) CurrentBranch(repo scm.Repo) (string, error) {
+	return "main", nil
+}
+
+func (g MockGitClient) BranchVV(repo scm.Repo) (string, error) {
+	return "main 1234567 [origin/main] Initial commit", nil
+}
+func (g MockGitClient) ShortStatus(repo scm.Repo) (string, error) {
+	return " M file1.txt\n?? file2.txt", nil
+}
+
 func TestInitialClone(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 	dir, err := os.MkdirTemp("", "ghorg_test_initial")
