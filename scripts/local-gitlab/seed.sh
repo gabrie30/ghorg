@@ -130,6 +130,16 @@ do
     curl --header "PRIVATE-TOKEN: $TOKEN" -X POST "${GITLAB_URL}/api/v4/projects?name=rootrepos${a}&initialize_with_readme=true"
 done
 
+sleep 1
+
+SNIPPET_DATA='{"title": "my-first-snippet", "file_name": "snippet.txt", "content": "This is my first snippet", "visibility": "public"}'
+curl --request POST --header "PRIVATE-TOKEN: $TOKEN" \
+    --header "Content-Type: application/json" \
+    --data "${SNIPPET_DATA}" \
+    "${GITLAB_URL}/api/v4/projects/root%2Frootrepos1/snippets"
+
+echo -e "\n\n\n"
+
 echo ""
 echo ""
 echo ""

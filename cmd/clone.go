@@ -187,6 +187,14 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
 	}
 
+	if cmd.Flags().Changed("prune-untouched") {
+		os.Setenv("GHORG_PRUNE_UNTOUCHED", "true")
+	}
+
+	if cmd.Flags().Changed("prune-untouched-no-confirm") {
+		os.Setenv("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM", "true")
+	}
+
 	if cmd.Flags().Changed("fetch-all") {
 		os.Setenv("GHORG_FETCH_ALL", "true")
 	}
@@ -742,8 +750,10 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			repoWillBePulled := repoExistsLocally(repo)
 
 			// Repos are considered untouched if
-			// 1. there are no new branches, ghorg only clones one branch so if there are more then the user likely has done something in the repo
-			// 2. if there are any changes on the default branch locally that are not on the remote
+			// 1. There are no new branches, ghorg only clones one branch so if there are more then the user has done something in the repo
+			// 2. If there are no branches locally, this means the repo is empty or all commits have been removed
+			// 3. If there are any commits on the default branch locally that are not on the remote
+			// 4. There are any modified changes locally
 			if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" && repoWillBePulled {
 				git.FetchCloneBranch(repo)
 
@@ -753,20 +763,41 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					return
 				}
 
+				if repo.Name == "has-many-branches" {
+					fmt.Print("")
+				}
+
+				// Delete if it has no branches
+				if branches == "" {
+					untouchedReposToPrune = append(untouchedReposToPrune, repo.HostPath)
+					return
+				}
+
 				if len(strings.Split(strings.TrimSpace(branches), "\n")) > 1 {
 					return
 				}
+
+				status, err := git.ShortStatus(repo)
+				if err != nil {
+					colorlog.PrintError(fmt.Sprintf("Failed to get short status for repository %s: %v", repo.Name, err))
+					return
+				}
+
+				if status != "" {
+					return
+				}
+
 				// Check for new commits on the branch that exist locally but not on the remote
 				commits, err := git.RevListCompare(repo, "HEAD", "@{u}")
 				if err != nil {
 					colorlog.PrintError(fmt.Sprintf("Failed to get commit differences for repository %s. The repository may be empty or does not have a .git directory. Error: %v", repo.Name, err))
 					return
 				}
-				if commits == "" {
-					untouchedReposToPrune = append(untouchedReposToPrune, repo.HostPath)
+				if commits != "" {
+					return
 				}
 
-				return
+				untouchedReposToPrune = append(untouchedReposToPrune, repo.HostPath)
 			}
 
 			// Don't clone any new repos when prune untouched is active
