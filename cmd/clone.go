@@ -663,7 +663,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	// maps in go are not safe for concurrent use
 	var mutex = &sync.RWMutex{}
-	var reposToPrune []string
+	var untouchedReposToPrune []string
 
 	for i := range cloneTargets {
 		repo := cloneTargets[i]
@@ -773,7 +773,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						return
 					}
 					if status == "" {
-						reposToPrune = append(reposToPrune, repo.HostPath)
+						untouchedReposToPrune = append(untouchedReposToPrune, repo.HostPath)
 						return
 					}
 				}
@@ -964,16 +964,16 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	limit.WaitAndClose()
 
-	if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" && len(reposToPrune) > 0 {
+	if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" && len(untouchedReposToPrune) > 0 {
 		if os.Getenv("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM") != "true" {
-			colorlog.PrintSuccess(fmt.Sprintf("PLEASE CONFIRM: The following %d untouched repositories will be deleted. Press enter to confirm: ", len(reposToPrune)))
-			for _, repoPath := range reposToPrune {
+			colorlog.PrintSuccess(fmt.Sprintf("PLEASE CONFIRM: The following %d untouched repositories will be deleted. Press enter to confirm: ", len(untouchedReposToPrune)))
+			for _, repoPath := range untouchedReposToPrune {
 				colorlog.PrintInfo(fmt.Sprintf("- %s", repoPath))
 			}
 			fmt.Scanln()
 		}
 
-		for _, repoPath := range reposToPrune {
+		for _, repoPath := range untouchedReposToPrune {
 			err := os.RemoveAll(repoPath)
 			if err != nil {
 				colorlog.PrintError(fmt.Sprintf("Failed to prune repository at %s: %v", repoPath, err))
