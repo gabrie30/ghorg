@@ -106,14 +106,14 @@ func (g MockGitClient) RepoCommitCount(repo scm.Repo) (int, error) {
 }
 
 func (g MockGitClient) CurrentBranch(repo scm.Repo) (string, error) {
-	return "main", nil
+	return "", nil
 }
 
 func (g MockGitClient) BranchVV(repo scm.Repo) (string, error) {
-	return "main 1234567 [origin/main] Initial commit", nil
+	return "", nil
 }
 func (g MockGitClient) ShortStatus(repo scm.Repo) (string, error) {
-	return " M file1.txt\n?? file2.txt", nil
+	return "", nil
 }
 
 func TestInitialClone(t *testing.T) {
