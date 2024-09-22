@@ -647,6 +647,10 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		return
 	}
 
+	if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" && os.Getenv("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM") != "true" {
+		colorlog.PrintInfo("The following untouched repos will be deleted, to continue press enter: ")
+	}
+
 	createDirIfNotExist()
 
 	// check for duplicate names will cause issues for some clone types on gitlab
@@ -738,8 +742,56 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				repo.HostPath = filepath.Join(outputDirAbsolutePath, repoSlug, repo.GitLabSnippetInfo.Title+"-"+repo.GitLabSnippetInfo.ID)
 			}
 
-			action := "cloning"
 			repoWillBePulled := repoExistsLocally(repo)
+
+			if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" && repoWillBePulled {
+
+				branches, err := git.BranchVV(repo)
+				if err != nil {
+					colorlog.PrintError(fmt.Sprintf("Failed to get branches for repository %s: %v", repo.Name, err))
+					return
+				}
+
+				if len(strings.Split(strings.TrimSpace(branches), "\n")) > 1 {
+					colorlog.PrintInfo(fmt.Sprintf("Repository %s has new branch skipping deletion", repo.Name))
+					return
+				}
+
+				currentBranch, err := git.CurrentBranch(repo)
+				if err != nil {
+					colorlog.PrintError(fmt.Sprintf("Could not determine current branch: %s Error: %v", repo.Name, err))
+					return
+				}
+
+				if currentBranch == repo.CloneBranch {
+					err = git.FetchAll(repo)
+					if err != nil {
+						colorlog.PrintError(fmt.Sprintf("Could not fetch all branches: %s Error: %v", repo.Name, err))
+						return
+					}
+
+					status, err := git.ShortStatus(repo)
+					if err != nil {
+						colorlog.PrintError(fmt.Sprintf("Failed to get short status for repository %s: %v", repo.Name, err))
+						return
+					}
+					if status == "" {
+						if os.Getenv("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM") != "true" {
+							colorlog.PrintInfo(fmt.Sprintf("- %s", repo.HostPath))
+							fmt.Scanln()
+						}
+						os.RemoveAll(repo.HostPath)
+						return
+					}
+				}
+				return
+			}
+
+			if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" {
+				return
+			}
+
+			action := "cloning"
 			if repoWillBePulled {
 				// prevents git from asking for user for credentials, needs to be unset so creds aren't stored
 				err := git.SetOriginWithCredentials(repo)
