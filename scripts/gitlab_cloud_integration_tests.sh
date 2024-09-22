@@ -22,6 +22,17 @@ else
     exit 1
 fi
 
+# preserve scm hostname
+ghorg clone $GITLAB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab --output-dir=examples-flat --preserve-scm-hostname
+
+if [ -e "${HOME}"/ghorg/gitlab.com/examples-flat/microservice ]
+then
+    echo "Pass: gitlab org clone flat file, preserve scm hostname"
+else
+    echo "Fail: gitlab org clone flat file, preserve scm hostname"
+    exit 1
+fi
+
 #
 # TOP LEVEL GROUP TESTS
 #
@@ -114,6 +125,24 @@ else
     exit 1
 fi
 
+ghorg clone $GITLAB_GROUP_2 --token="${GITLAB_TOKEN}" --scm=gitlab --clone-snippets --preserve-dir --preserve-scm-hostname
+
+if [ -e "${HOME}"/ghorg/gitlab.com/"${GITLAB_GROUP_2}"/subgroup-2/foobar.snippets/test-snippet-2-3711655 ]
+then
+    echo "Pass: gitlab group clone snippet 2 with preserve dir, preserve scm hostname"
+else
+    echo "Fail: gitlab group clone snippet 2 with preserve dir, preserve scm hostname"
+    exit 1
+fi
+
+if [ -e "${HOME}"/ghorg/gitlab.com/"${GITLAB_GROUP_2}"/subgroup-2/foobar.snippets/test-snippet-1-3711654 ]
+then
+    echo "Pass: gitlab group clone snippet 1 with preserve dir, preserve scm hostname"
+else
+    echo "Fail: gitlab group clone snippet 1 with preserve dir, preserve scm hostname"
+    exit 1
+fi
+
 #
 # SUBGROUP TESTS
 #
@@ -150,6 +179,18 @@ then
     rm -rf "${HOME}/ghorg/${GITLAB_GROUP}"
 else
     echo "Fail: gitlab subgroup clone preserve directories"
+    exit 1
+fi
+
+# PRESERVE DIR, PRESERVE SCM HOSTNAME
+ghorg clone $GITLAB_GROUP/$GITLAB_SUB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab --preserve-dir --preserve-scm-hostname
+
+if [ -e "${HOME}"/ghorg/gitlab.com/"${GITLAB_GROUP}"/"${GITLAB_SUB_GROUP}"/wayne-industries/microservice ]
+then
+    echo "Pass: gitlab subgroup clone preserve directories, preserve scm hostname"
+    rm -rf "${HOME}/ghorg/gitlab.com/${GITLAB_GROUP}"
+else
+    echo "Fail: gitlab subgroup clone preserve directories, preserve scm hostname"
     exit 1
 fi
 

@@ -154,6 +154,98 @@ echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, SNIPPETS TEST FAILED 
 exit 1
 fi
 
+############ CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, SNIPPETS, PERSERVE SCM HOSTNAME ############
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --output-dir=local-gitlab-v15-repos-snippets --clone-snippets --preserve-scm-hostname
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --output-dir=local-gitlab-v15-repos-snippets --clone-snippets --preserve-scm-hostname
+
+GOT=$( ghorg ls gitlab.example.com/local-gitlab-v15-repos-snippets | grep -o 'gitlab.example.com/local-gitlab-v15-repos-snippets.*')
+WANT=$(cat <<EOF
+gitlab.example.com/local-gitlab-v15-repos-snippets/_ghorg_root_level_snippets
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group1
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group2
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, SNIPPETS, PRESERVE SCM HOSTNAME TEST FAILED local-gitlab-group1"
+exit 1
+fi
+
+GOT=$( ghorg ls gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group1 | grep -o 'gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group1.*')
+WANT=$(cat <<EOF
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group1/baz0
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group1/baz1
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group1/baz2
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group1/baz3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, SNIPPETS, PRESERVE SCM HOSTNAME TEST FAILED local-gitlab-group1"
+exit 1
+fi
+
+GOT=$( ghorg ls gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group2 | grep -o 'gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group2.*')
+WANT=$(cat <<EOF
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group2/baz0
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group2/baz0.snippets
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group2/baz1
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group2/baz1.snippets
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group2/baz2
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group2/baz2.snippets
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group2/baz3
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group2/baz3.snippets
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, SNIPPETS, PRESERVE SCM HOSTNAME TEST FAILED local-gitlab-group2"
+exit 1
+fi
+
+GOT=$( ghorg ls gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a | grep -o 'gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a.*')
+WANT=$(cat <<EOF
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup-b
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_0
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_0.snippets
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_1
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_1.snippets
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_2
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_2.snippets
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_3
+gitlab.example.com/local-gitlab-v15-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_3.snippets
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, SNIPPETS, PRESERVE SCM HOSTNAME, TEST FAILED local-gitlab-group3/subgroup-a"
+exit 1
+fi
+
+############ CLONE AND TEST ALL-GROUPS, PRESERVE DIR, NO OUTPUT DIR ############
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir
+
+GOT=$( ghorg ls gitlab.example.com/local-gitlab-group1 | grep -o 'gitlab.example.com/local-gitlab-group1.*')
+WANT=$(cat <<EOF
+gitlab.example.com/local-gitlab-group1/baz0
+gitlab.example.com/local-gitlab-group1/baz1
+gitlab.example.com/local-gitlab-group1/baz2
+gitlab.example.com/local-gitlab-group1/baz3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, NO OUTPUT DIR TEST FAILED local-gitlab-group1"
+exit 1
+fi
+
 ############ CLONE AND TEST ALL-GROUPS, OUTPUT DIR  ############
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-repos-flat
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-repos-flat
@@ -432,6 +524,29 @@ echo "CLONE AND TEST TOP LEVEL GROUP FAILED"
 exit 1
 fi
 
+############ CLONE AND TEST TOP LEVEL GROUP, PRESERVE SCM HOSTNAME ############
+ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-top-level-group --preserve-scm-hostname
+ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-top-level-group --preserve-scm-hostname
+
+GOT=$(ghorg ls gitlab.example.com/local-gitlab-v15-top-level-group | grep -o 'gitlab.example.com/local-gitlab-v15-top-level-group.*')
+WANT=$(cat <<EOF
+gitlab.example.com/local-gitlab-v15-top-level-group/subgroup_a_repo_0
+gitlab.example.com/local-gitlab-v15-top-level-group/subgroup_a_repo_1
+gitlab.example.com/local-gitlab-v15-top-level-group/subgroup_a_repo_2
+gitlab.example.com/local-gitlab-v15-top-level-group/subgroup_a_repo_3
+gitlab.example.com/local-gitlab-v15-top-level-group/subgroup_b_repo_0
+gitlab.example.com/local-gitlab-v15-top-level-group/subgroup_b_repo_1
+gitlab.example.com/local-gitlab-v15-top-level-group/subgroup_b_repo_2
+gitlab.example.com/local-gitlab-v15-top-level-group/subgroup_b_repo_3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST TOP LEVEL GROUP PRESERVE SCM HOSTNAME FAILED"
+exit 1
+fi
+
 ############ CLONE AND TEST TOP LEVEL GROUP WITH NESTED SUBGROUP, PRESERVE DIR, OUTPUT DIR ############
 ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-group3-preserve
 ghorg clone local-gitlab-group3 --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-group3-preserve
@@ -597,6 +712,58 @@ echo "CLONE AND TEST SUBGROUP, NESTED SUBGROUB, OUTPUT DIR FAILED"
 exit 1
 fi
 
+rm -rf "${LOCAL_GITLAB_GHORG_DIR}"/local-gitlab-group3
+
+############ CLONE AND TEST SUBGROUP, NESTED SUBGROUB, OUTPUT DIR, PRESERVE SCM HOSTNAME ############
+ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-group3-subgroup-a --preserve-scm-hostname
+ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-group3-subgroup-a --preserve-scm-hostname
+
+GOT=$(ghorg ls gitlab.example.com/local-gitlab-v15-group3-subgroup-a | grep -o 'gitlab.example.com/local-gitlab-v15-group3-subgroup-a.*')
+WANT=$(cat <<EOF
+gitlab.example.com/local-gitlab-v15-group3-subgroup-a/subgroup_a_repo_0
+gitlab.example.com/local-gitlab-v15-group3-subgroup-a/subgroup_a_repo_1
+gitlab.example.com/local-gitlab-v15-group3-subgroup-a/subgroup_a_repo_2
+gitlab.example.com/local-gitlab-v15-group3-subgroup-a/subgroup_a_repo_3
+gitlab.example.com/local-gitlab-v15-group3-subgroup-a/subgroup_b_repo_0
+gitlab.example.com/local-gitlab-v15-group3-subgroup-a/subgroup_b_repo_1
+gitlab.example.com/local-gitlab-v15-group3-subgroup-a/subgroup_b_repo_2
+gitlab.example.com/local-gitlab-v15-group3-subgroup-a/subgroup_b_repo_3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST SUBGROUP, NESTED SUBGROUB, OUTPUT DIR, PRESERVE SCM HOSTNAME FAILED"
+exit 1
+fi
+
+rm -rf "${LOCAL_GITLAB_GHORG_DIR}"/gitlab.example.com/local-gitlab-group3
+
+############ CLONE AND TEST SUBGROUP, NESTED SUBGROUB, NO OUTPUT DIR, PRESERVE SCM HOSTNAME ############
+ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-scm-hostname
+ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-scm-hostname
+
+GOT=$(ghorg ls gitlab.example.com/local-gitlab-group3/subgroup-a | grep -o 'gitlab.example.com/local-gitlab-group3/subgroup-a.*')
+WANT=$(cat <<EOF
+gitlab.example.com/local-gitlab-group3/subgroup-a/subgroup_a_repo_0
+gitlab.example.com/local-gitlab-group3/subgroup-a/subgroup_a_repo_1
+gitlab.example.com/local-gitlab-group3/subgroup-a/subgroup_a_repo_2
+gitlab.example.com/local-gitlab-group3/subgroup-a/subgroup_a_repo_3
+gitlab.example.com/local-gitlab-group3/subgroup-a/subgroup_b_repo_0
+gitlab.example.com/local-gitlab-group3/subgroup-a/subgroup_b_repo_1
+gitlab.example.com/local-gitlab-group3/subgroup-a/subgroup_b_repo_2
+gitlab.example.com/local-gitlab-group3/subgroup-a/subgroup_b_repo_3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST SUBGROUP, NESTED SUBGROUB, NO OUTPUT DIR, PRESERVE SCM HOSTNAME FAILED"
+exit 1
+fi
+
+rm -rf "${LOCAL_GITLAB_GHORG_DIR}"/local-gitlab-group3
+
 ############ CLONE AND TEST SUBGROUP, NESTED SUBGROUPS, PRESERVE DIR, OUTPUT DIR ############
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-subgroups-preserve-output
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --output-dir=local-gitlab-v15-subgroups-preserve-output
@@ -625,6 +792,42 @@ fi
  #     # #       #             #     # #     # #       #    #  #     #
  #     # ####### #######        #####   #####  ####### #     #  #####
 
+
+############ CLONE AND TEST ALL-USERS, PRESERVE DIR ############
+ghorg clone all-users --scm=gitlab --clone-type=user --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir
+
+GOT=$(ghorg ls gitlab.example.com/root | grep -o 'gitlab.example.com/root.*')
+WANT=$(cat <<EOF
+gitlab.example.com/root/rootrepos0
+gitlab.example.com/root/rootrepos1
+gitlab.example.com/root/rootrepos2
+gitlab.example.com/root/rootrepos3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-USERS, PRESERVE DIR, OUTPUT DIR"
+exit 1
+fi
+
+############ CLONE AND TEST ALL-USERS, PRESERVE DIR ############
+ghorg clone all-users --scm=gitlab --clone-type=user --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-dir --preserve-scm-hostname
+
+GOT=$(ghorg ls gitlab.example.com/root | grep -o 'gitlab.example.com/root.*')
+WANT=$(cat <<EOF
+gitlab.example.com/root/rootrepos0
+gitlab.example.com/root/rootrepos1
+gitlab.example.com/root/rootrepos2
+gitlab.example.com/root/rootrepos3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-USERS, PRESERVE DIR, OUTPUT DIR"
+exit 1
+fi
 
 ############ CLONE AND TEST ALL-USERS, PRESERVE DIR, OUTPUT DIR ############
 ghorg clone all-users --scm=gitlab --clone-type=user --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-all-users-preserve --preserve-dir
@@ -681,6 +884,27 @@ EOF
 if [ "${TEST_ALL_USERS_SNIPPETS_WANT}" != "${TEST_ALL_USERS_SNIPPETS_GOT}" ]
 then
 echo "CLONE AND TEST ALL-USERS, OUTPUT DIR SNIPPETS FAILED"
+exit 1
+fi
+
+############ CLONE AND TEST ALL-USERS, OUTPUT DIR, SNIPPETS, PRESERVE SCM HOSTNAME ############
+ghorg clone all-users --scm=gitlab --clone-type=user --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-all-users-snippets --clone-snippets --preserve-scm-hostname
+
+TEST_ALL_USERS_SNIPPETS_GOT=$(ghorg ls gitlab.example.com/local-gitlab-v15-all-users-snippets | grep -o 'gitlab.example.com/local-gitlab-v15-all-users-snippets.*')
+TEST_ALL_USERS_SNIPPETS_WANT=$(cat <<EOF
+gitlab.example.com/local-gitlab-v15-all-users-snippets/_ghorg_root_level_snippets
+gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos0
+gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos1
+gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos2
+gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos3
+gitlab.example.com/local-gitlab-v15-all-users-snippets/testuser1-repo
+gitlab.example.com/local-gitlab-v15-all-users-snippets/testuser1-repo.snippets
+EOF
+)
+
+if [ "${TEST_ALL_USERS_SNIPPETS_WANT}" != "${TEST_ALL_USERS_SNIPPETS_GOT}" ]
+then
+echo "CLONE AND TEST ALL-USERS, OUTPUT DIR SNIPPETS, PRESERVE SCM HOSTNAME FAILED"
 exit 1
 fi
 

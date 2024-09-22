@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/scm"
 	"github.com/gabrie30/ghorg/utils"
 
@@ -309,6 +310,22 @@ func VerifyTokenSet() error {
 	}
 
 	return nil
+}
+
+func GetCloudScmTypeHostnames() string {
+	switch os.Getenv("GHORG_SCM_TYPE") {
+	case "github":
+		return "github.com"
+	case "gitlab":
+		return "gitlab.com"
+	case "gitea":
+		return "gitea.com"
+	case "bitbucket":
+		return "bitbucket.com"
+	default:
+		colorlog.PrintErrorAndExit("Unsupported GHORG_SCM_TYPE")
+		return ""
+	}
 }
 
 // VerifyConfigsSetCorrectly makes sure flags are set to appropriate values

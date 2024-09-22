@@ -163,6 +163,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_GIT_FILTER", filter)
 	}
 
+	if cmd.Flags().Changed("preserve-scm-hostname") {
+		os.Setenv("GHORG_PRESERVE_SCM_HOSTNAME", "true")
+	}
+
 	if cmd.Flags().Changed("skip-archived") {
 		os.Setenv("GHORG_SKIP_ARCHIVED", "true")
 	}
@@ -280,6 +284,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	if err != nil {
 		colorlog.PrintError(err)
 		os.Exit(1)
+	}
+
+	if os.Getenv("GHORG_PRESERVE_SCM_HOSTNAME") == "true" {
+		updateAbsolutePathToCloneToWithHostname()
 	}
 
 	setOutputDirName(argz)
@@ -974,7 +982,14 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 }
 
 func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount int, hasCollisions bool) error {
-	statsFilePath := filepath.Join(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), "_ghorg_stats.csv")
+	var statsFilePath string
+	absolutePath := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
+	if os.Getenv("GHORG_PRESERVE_SCM_HOSTNAME") == "true" {
+		originalAbsolutePath := os.Getenv("GHORG_ORIGINAL_ABSOLUTE_PATH_TO_CLONE_TO")
+		statsFilePath = filepath.Join(originalAbsolutePath, "_ghorg_stats.csv")
+	} else {
+		statsFilePath = filepath.Join(absolutePath, "_ghorg_stats.csv")
+	}
 
 	fileExists := true
 
@@ -1398,22 +1413,23 @@ func setOutputDirName(argz []string) {
 
 	outputDirName = strings.ToLower(argz[0])
 
-	// If all-group is used set the parent folder to the name of the baseurl
-	if argz[0] == "all-groups" && os.Getenv("GHORG_SCM_BASE_URL") != "" {
-		u, err := url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
-		if err != nil {
-			return
+	if os.Getenv("GHORG_PRESERVE_SCM_HOSTNAME") != "true" {
+		// If all-group is used set the parent folder to the name of the baseurl
+		if argz[0] == "all-groups" && os.Getenv("GHORG_SCM_BASE_URL") != "" {
+			u, err := url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
+			if err != nil {
+				colorlog.PrintError(fmt.Sprintf("Error parsing GHORG_SCM_BASE_URL, clone may be affected, error: %v", err))
+			}
+			outputDirName = u.Hostname()
 		}
-		outputDirName = strings.TrimSuffix(strings.TrimPrefix(u.Host, "www."), ".com")
-	}
 
-	if argz[0] == "all-users" && os.Getenv("GHORG_SCM_BASE_URL") != "" {
-		u, err := url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
-		if err != nil {
-			return
+		if argz[0] == "all-users" && os.Getenv("GHORG_SCM_BASE_URL") != "" {
+			u, err := url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
+			if err != nil {
+				colorlog.PrintError(fmt.Sprintf("Error parsing GHORG_SCM_BASE_URL, clone may be affected, error: %v", err))
+			}
+			outputDirName = u.Hostname()
 		}
-		outputDirName = strings.TrimSuffix(strings.TrimPrefix(u.Host, "www."), ".com")
-		outputDirName = outputDirName + "_users"
 	}
 
 	if os.Getenv("GHORG_BACKUP") == "true" {

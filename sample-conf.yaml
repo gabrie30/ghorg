@@ -40,6 +40,12 @@ GHORG_SCM_BASE_URL:
 # flag (--include-submodules)
 GHORG_INCLUDE_SUBMODULES: false
 
+# Appends the scm cloud hostname to the GHORG_ABSOLUTE_PATH_TO_CLONE_TO
+# This will organize your clones into specific folders by the scm provider.
+# e.g. GHORG_ABSOLUTE_PATH_TO_CLONE_TO/github.com/kuberentes")
+# flag (--preserve-scm-hostname)
+GHORG_PRESERVE_SCM_HOSTNAME: false
+
 # Allows you to pass arguments to git's filter flag e.g. git clone --filter=<args> this requires git version 2.19 or greater.
 # Useful for filtering out binary objects from repos
 # Few caveats, only works on inital clones, however if done on inital clone all subsequent clones will also honor the settings.
