@@ -19,13 +19,12 @@ type Gitter interface {
 	SetOriginWithCredentials(scm.Repo) error
 	Clean(scm.Repo) error
 	Checkout(scm.Repo) error
-	CurrentBranch(scm.Repo) (string, error)
-	BranchVV(scm.Repo) (string, error)
+	RevListCompare(scm.Repo, string, string) (string, error)
+	Branch(scm.Repo) (string, error)
 	UpdateRemote(scm.Repo) error
 	FetchAll(scm.Repo) error
 	FetchCloneBranch(scm.Repo) error
 	RepoCommitCount(scm.Repo) (int, error)
-	ShortStatus(scm.Repo) (string, error)
 }
 
 type GitClient struct{}
@@ -185,8 +184,8 @@ func (g GitClient) FetchAll(repo scm.Repo) error {
 	return cmd.Run()
 }
 
-func (g GitClient) ShortStatus(repo scm.Repo) (string, error) {
-	args := []string{"status", "--short"}
+func (g GitClient) Branch(repo scm.Repo) (string, error) {
+	args := []string{"branch"}
 
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath
@@ -204,41 +203,13 @@ func (g GitClient) ShortStatus(repo scm.Repo) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func (g GitClient) CurrentBranch(repo scm.Repo) (string, error) {
-	args := []string{"branch", "--show-current"}
-
-	cmd := exec.Command("git", args...)
-	cmd.Dir = repo.HostPath
-	if os.Getenv("GHORG_DEBUG") != "" {
-		if err := printDebugCmd(cmd, repo); err != nil {
-			return "", err
-		}
-	}
-
-	output, err := cmd.Output()
+// RevListCompare returns the list of commits in the local branch that are not in the remote branch.
+func (g GitClient) RevListCompare(repo scm.Repo, localBranch string, remoteBranch string) (string, error) {
+	cmd := exec.Command("git", "-C", repo.HostPath, "rev-list", localBranch, "^"+remoteBranch)
+	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err
 	}
-
-	return strings.TrimSpace(string(output)), nil
-}
-
-func (g GitClient) BranchVV(repo scm.Repo) (string, error) {
-	args := []string{"branch", "-vv"}
-
-	cmd := exec.Command("git", args...)
-	cmd.Dir = repo.HostPath
-	if os.Getenv("GHORG_DEBUG") != "" {
-		if err := printDebugCmd(cmd, repo); err != nil {
-			return "", err
-		}
-	}
-
-	output, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-
 	return strings.TrimSpace(string(output)), nil
 }
 

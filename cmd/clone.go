@@ -741,45 +741,35 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 			repoWillBePulled := repoExistsLocally(repo)
 
+			// Repos are considered untouched if
+			// 1. there are no new branches, ghorg only clones one branch so if there are more then the user likely has done something in the repo
+			// 2. if there are any changes on the default branch locally that are not on the remote
 			if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" && repoWillBePulled {
+				git.FetchCloneBranch(repo)
 
-				branches, err := git.BranchVV(repo)
+				branches, err := git.Branch(repo)
 				if err != nil {
-					colorlog.PrintError(fmt.Sprintf("Failed to get branches for repository %s: %v", repo.Name, err))
+					colorlog.PrintError(fmt.Sprintf("Failed to list local branches for repository %s: %v", repo.Name, err))
 					return
 				}
 
 				if len(strings.Split(strings.TrimSpace(branches), "\n")) > 1 {
-					colorlog.PrintInfo(fmt.Sprintf("Repository %s has new branch skipping deletion", repo.Name))
 					return
 				}
-
-				currentBranch, err := git.CurrentBranch(repo)
+				// Check for new commits on the branch that exist locally but not on the remote
+				commits, err := git.RevListCompare(repo, "HEAD", "@{u}")
 				if err != nil {
-					colorlog.PrintError(fmt.Sprintf("Could not determine current branch: %s Error: %v", repo.Name, err))
+					colorlog.PrintError(fmt.Sprintf("Failed to get commit differences for repository %s. The repository may be empty or does not have a .git directory. Error: %v", repo.Name, err))
 					return
 				}
-
-				if currentBranch == repo.CloneBranch {
-					err = git.FetchAll(repo)
-					if err != nil {
-						colorlog.PrintError(fmt.Sprintf("Could not fetch all branches: %s Error: %v", repo.Name, err))
-						return
-					}
-
-					status, err := git.ShortStatus(repo)
-					if err != nil {
-						colorlog.PrintError(fmt.Sprintf("Failed to get short status for repository %s: %v", repo.Name, err))
-						return
-					}
-					if status == "" {
-						untouchedReposToPrune = append(untouchedReposToPrune, repo.HostPath)
-						return
-					}
+				if commits == "" {
+					untouchedReposToPrune = append(untouchedReposToPrune, repo.HostPath)
 				}
+
 				return
 			}
 
+			// Don't clone any new repos when prune untouched is active
 			if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" {
 				return
 			}
@@ -963,6 +953,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	}
 
 	limit.WaitAndClose()
+	var untouchedPrunes int
 
 	if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" && len(untouchedReposToPrune) > 0 {
 		if os.Getenv("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM") != "true" {
@@ -978,13 +969,14 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			if err != nil {
 				colorlog.PrintError(fmt.Sprintf("Failed to prune repository at %s: %v", repoPath, err))
 			} else {
-				colorlog.PrintSuccess(fmt.Sprintf("Successfully pruned %s", repoPath))
+				untouchedPrunes++
+				colorlog.PrintSuccess(fmt.Sprintf("Successfully deleted %s", repoPath))
 			}
 		}
 	}
 
 	printRemainingMessages()
-	printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits)
+	printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits, untouchedPrunes)
 
 	if hasCollisions {
 		fmt.Println("")
@@ -1294,7 +1286,7 @@ func pruneRepos(cloneTargets []scm.Repo) int {
 	return count
 }
 
-func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits int) {
+func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits, untouchedPrunes int) {
 	if updateRemoteCount > 0 {
 		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v, remotes updated: %v", cloneCount, pulledCount, newCommits, updateRemoteCount))
 		return
@@ -1302,6 +1294,11 @@ func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommi
 
 	if newCommits > 0 {
 		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v", cloneCount, pulledCount, newCommits))
+		return
+	}
+
+	if untouchedPrunes > 0 {
+		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total prunes: %v", cloneCount, pulledCount, untouchedPrunes))
 		return
 	}
 
