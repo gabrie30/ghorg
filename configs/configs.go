@@ -312,7 +312,7 @@ func VerifyTokenSet() error {
 	return nil
 }
 
-func GetScmTypeHostnames() string {
+func GetCloudScmTypeHostnames() string {
 	switch os.Getenv("GHORG_SCM_TYPE") {
 	case "github":
 		return "github.com"

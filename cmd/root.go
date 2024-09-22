@@ -98,7 +98,7 @@ func getHostname() string {
 		hostname = parsedURL.Hostname()
 	} else {
 		// Use the predefined hostname based on the SCM type
-		hostname = configs.GetScmTypeHostnames()
+		hostname = configs.GetCloudScmTypeHostnames()
 	}
 
 	return hostname
