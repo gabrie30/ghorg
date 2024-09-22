@@ -1413,22 +1413,23 @@ func setOutputDirName(argz []string) {
 
 	outputDirName = strings.ToLower(argz[0])
 
-	// If all-group is used set the parent folder to the name of the baseurl
-	if argz[0] == "all-groups" && os.Getenv("GHORG_SCM_BASE_URL") != "" {
-		u, err := url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
-		if err != nil {
-			return
+	if os.Getenv("GHORG_PRESERVE_SCM_HOSTNAME") != "true" {
+		// If all-group is used set the parent folder to the name of the baseurl
+		if argz[0] == "all-groups" && os.Getenv("GHORG_SCM_BASE_URL") != "" {
+			u, err := url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
+			if err != nil {
+				colorlog.PrintError(fmt.Sprintf("Error parsing GHORG_SCM_BASE_URL, clone may be affected, error: %v", err))
+			}
+			outputDirName = u.Hostname()
 		}
-		outputDirName = strings.TrimSuffix(strings.TrimPrefix(u.Host, "www."), ".com")
-	}
 
-	if argz[0] == "all-users" && os.Getenv("GHORG_SCM_BASE_URL") != "" {
-		u, err := url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
-		if err != nil {
-			return
+		if argz[0] == "all-users" && os.Getenv("GHORG_SCM_BASE_URL") != "" {
+			u, err := url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
+			if err != nil {
+				colorlog.PrintError(fmt.Sprintf("Error parsing GHORG_SCM_BASE_URL, clone may be affected, error: %v", err))
+			}
+			outputDirName = u.Hostname()
 		}
-		outputDirName = strings.TrimSuffix(strings.TrimPrefix(u.Host, "www."), ".com")
-		outputDirName = outputDirName + "_users"
 	}
 
 	if os.Getenv("GHORG_BACKUP") == "true" {

@@ -33,6 +33,8 @@ func NewGit() GitClient {
 
 func printDebugCmd(cmd *exec.Cmd, repo scm.Repo) error {
 	fmt.Println("------------- GIT DEBUG -------------")
+	fmt.Printf("GHORG_OUTPUT_DIR=%v\n", os.Getenv("GHORG_OUTPUT_DIR"))
+	fmt.Printf("GHORG_ABSOLUTE_PATH_TO_CLONE_TO=%v\n", os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
 	fmt.Print("Repo Data: ")
 	spew.Dump(repo)
 	fmt.Print("Command Ran: ")

@@ -14,6 +14,8 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
 1. The `--output-dir` flag overrides the default name given to the folder ghorg creates to clone repos into. The default will be the instance name when cloning `all-groups` or `all-users` or the `group` name when cloning a specific group. The exception is when you are cloning a subgroup and preserving the directory structure, then it will preserve the parent groups of the subgroup.
 
+1. The `--preserve-scm-hostname` flag will always create a top level folder in your GHORG_ABSOLUTE_PATH_TO_CLONE_TO with the hostname of the instance you are cloning from. For gitlab cloud it will be `gitlab.com/` otherwise it will be what is set to the hostname of the `GHORG_SCM_BASE_URL`.
+
 1. If the group name you are cloning has spaces, substitute the spaces with "-" e.g.
 
     ```sh
@@ -45,7 +47,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
     ```sh
     /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
-    └── your.instance.gitlab
+    └── your.instance.gitlab.com
         ├── group1
         │   └── project1
         ├── group2
@@ -66,11 +68,32 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
     ```sh
     /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
-    └── your.instance.gitlab
+    └── your.instance.gitlab.com
         ├── project1
         ├── project2
         ├── project3
         └── project4
+    ```
+
+1. Clone **all groups**, **preserving the directory structure** of users, preserving scm hostname
+
+    ```sh
+    ghorg clone all-groups --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir --preserve-scm-hostname
+    ```
+
+    This would produce a directory structure like
+
+    ```sh
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
+    └── your.instance.gitlab.com
+        └── all-groups
+            ├── group1
+            │   └── project1
+            ├── group2
+            │   └── project2
+            └── group3
+                ├── project3
+                └── project4
     ```
 
 #### Cloning Specific Groups
@@ -175,7 +198,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
     ```sh
     /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
-    └── your.instance.gitlab_users
+    └── your.instance.gitlab.com
         ├── user1
         │   └── project1
         ├── user2
@@ -194,11 +217,30 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
     ```sh
     /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
-    └── your.instance.gitlab_users
-        ├── project1
-        ├── project2
-        ├── project3
-        └── project4
+    └── your.instance.gitlab.com
+        ├── user1-repo1
+        └── user2-repo1
+    ```
+
+1. Clone **all users**, **preserving the directory structure** of users, preserving scm hostname
+
+    ```sh
+    ghorg clone all-users --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir --preserve-scm-hostname
+    ```
+
+    This would produce a directory structure like
+
+    ```sh
+    /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
+    └── your.instance.gitlab.com
+        └── all-users
+            ├── user1
+            │   └── project1
+            ├── user2
+            │   └── project2
+            └── user3
+                ├── project3
+                └── project4
     ```
 
 ## Cloud GitLab Orgs

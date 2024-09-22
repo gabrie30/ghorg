@@ -43,7 +43,6 @@ GHORG_INCLUDE_SUBMODULES: false
 # Appends the scm cloud hostname to the GHORG_ABSOLUTE_PATH_TO_CLONE_TO
 # This will organize your clones into specific folders by the scm provider.
 # e.g. GHORG_ABSOLUTE_PATH_TO_CLONE_TO/github.com/kuberentes")
-# Note this may become repetitive if you have set GHORG_SCM_BASE_URL
 # flag (--preserve-scm-hostname)
 GHORG_PRESERVE_SCM_HOSTNAME: false
 

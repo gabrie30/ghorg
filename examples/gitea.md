@@ -4,6 +4,12 @@
 
 To view all additional flags see the [sample-conf.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml) or use `ghorg clone --help`
 
+## Things to know
+
+1. The `--preserve-scm-hostname` flag will always create a top level folder in your GHORG_ABSOLUTE_PATH_TO_CLONE_TO with the hostname of the `GHORG_SCM_BASE_URL` you are cloning from.
+
+## Examples
+
 1. Clone an **org**
 
     ```
