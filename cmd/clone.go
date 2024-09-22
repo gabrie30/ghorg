@@ -647,10 +647,6 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		return
 	}
 
-	if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" && os.Getenv("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM") != "true" {
-		colorlog.PrintInfo("The following untouched repos will be deleted, to continue press enter: ")
-	}
-
 	createDirIfNotExist()
 
 	// check for duplicate names will cause issues for some clone types on gitlab
@@ -667,6 +663,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	// maps in go are not safe for concurrent use
 	var mutex = &sync.RWMutex{}
+	var reposToPrune []string
 
 	for i := range cloneTargets {
 		repo := cloneTargets[i]
@@ -776,11 +773,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						return
 					}
 					if status == "" {
-						if os.Getenv("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM") != "true" {
-							colorlog.PrintInfo(fmt.Sprintf("- %s", repo.HostPath))
-							fmt.Scanln()
-						}
-						os.RemoveAll(repo.HostPath)
+						reposToPrune = append(reposToPrune, repo.HostPath)
 						return
 					}
 				}
@@ -970,6 +963,25 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	}
 
 	limit.WaitAndClose()
+
+	if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" && len(reposToPrune) > 0 {
+		if os.Getenv("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM") != "true" {
+			colorlog.PrintSuccess(fmt.Sprintf("PLEASE CONFIRM: The following %d untouched repositories will be deleted. Press enter to confirm: ", len(reposToPrune)))
+			for _, repoPath := range reposToPrune {
+				colorlog.PrintInfo(fmt.Sprintf("- %s", repoPath))
+			}
+			fmt.Scanln()
+		}
+
+		for _, repoPath := range reposToPrune {
+			err := os.RemoveAll(repoPath)
+			if err != nil {
+				colorlog.PrintError(fmt.Sprintf("Failed to prune repository at %s: %v", repoPath, err))
+			} else {
+				colorlog.PrintSuccess(fmt.Sprintf("Successfully pruned %s", repoPath))
+			}
+		}
+	}
 
 	printRemainingMessages()
 	printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits)
