@@ -737,7 +737,7 @@ echo "CLONE AND TEST SUBGROUP, NESTED SUBGROUB, OUTPUT DIR, PRESERVE SCM HOSTNAM
 exit 1
 fi
 
-rm -rf "${LOCAL_GITLAB_GHORG_DIR}"/local-gitlab-group3
+rm -rf "${LOCAL_GITLAB_GHORG_DIR}"/gitlab.example.com/local-gitlab-group3
 
 ############ CLONE AND TEST SUBGROUP, NESTED SUBGROUB, NO OUTPUT DIR, PRESERVE SCM HOSTNAME ############
 ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --preserve-scm-hostname
