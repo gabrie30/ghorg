@@ -187,6 +187,14 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
 	}
 
+	if cmd.Flags().Changed("prune-untouched") {
+		os.Setenv("GHORG_PRUNE_UNTOUCHED", "true")
+	}
+
+	if cmd.Flags().Changed("prune-untouched-no-confirm") {
+		os.Setenv("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM", "true")
+	}
+
 	if cmd.Flags().Changed("fetch-all") {
 		os.Setenv("GHORG_FETCH_ALL", "true")
 	}
@@ -663,6 +671,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	// maps in go are not safe for concurrent use
 	var mutex = &sync.RWMutex{}
+	var untouchedReposToPrune []string
 
 	for i := range cloneTargets {
 		repo := cloneTargets[i]
@@ -738,8 +747,61 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				repo.HostPath = filepath.Join(outputDirAbsolutePath, repoSlug, repo.GitLabSnippetInfo.Title+"-"+repo.GitLabSnippetInfo.ID)
 			}
 
-			action := "cloning"
 			repoWillBePulled := repoExistsLocally(repo)
+
+			// Repos are considered untouched if
+			// 1. There are no new branches, ghorg only clones one branch so if there are more then the user has done something in the repo
+			// 2. If there are no branches locally, this means the repo is empty or all commits have been removed
+			// 3. If there are any commits on the default branch locally that are not on the remote
+			// 4. There are any modified changes locally
+			if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" && repoWillBePulled {
+				git.FetchCloneBranch(repo)
+
+				branches, err := git.Branch(repo)
+				if err != nil {
+					colorlog.PrintError(fmt.Sprintf("Failed to list local branches for repository %s: %v", repo.Name, err))
+					return
+				}
+
+				// Delete if it has no branches
+				if branches == "" {
+					untouchedReposToPrune = append(untouchedReposToPrune, repo.HostPath)
+					return
+				}
+
+				if len(strings.Split(strings.TrimSpace(branches), "\n")) > 1 {
+					return
+				}
+
+				status, err := git.ShortStatus(repo)
+				if err != nil {
+					colorlog.PrintError(fmt.Sprintf("Failed to get short status for repository %s: %v", repo.Name, err))
+					return
+				}
+
+				if status != "" {
+					return
+				}
+
+				// Check for new commits on the branch that exist locally but not on the remote
+				commits, err := git.RevListCompare(repo, "HEAD", "@{u}")
+				if err != nil {
+					colorlog.PrintError(fmt.Sprintf("Failed to get commit differences for repository %s. The repository may be empty or does not have a .git directory. Error: %v", repo.Name, err))
+					return
+				}
+				if commits != "" {
+					return
+				}
+
+				untouchedReposToPrune = append(untouchedReposToPrune, repo.HostPath)
+			}
+
+			// Don't clone any new repos when prune untouched is active
+			if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" {
+				return
+			}
+
+			action := "cloning"
 			if repoWillBePulled {
 				// prevents git from asking for user for credentials, needs to be unset so creds aren't stored
 				err := git.SetOriginWithCredentials(repo)
@@ -918,9 +980,30 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	}
 
 	limit.WaitAndClose()
+	var untouchedPrunes int
+
+	if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" && len(untouchedReposToPrune) > 0 {
+		if os.Getenv("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM") != "true" {
+			colorlog.PrintSuccess(fmt.Sprintf("PLEASE CONFIRM: The following %d untouched repositories will be deleted. Press enter to confirm: ", len(untouchedReposToPrune)))
+			for _, repoPath := range untouchedReposToPrune {
+				colorlog.PrintInfo(fmt.Sprintf("- %s", repoPath))
+			}
+			fmt.Scanln()
+		}
+
+		for _, repoPath := range untouchedReposToPrune {
+			err := os.RemoveAll(repoPath)
+			if err != nil {
+				colorlog.PrintError(fmt.Sprintf("Failed to prune repository at %s: %v", repoPath, err))
+			} else {
+				untouchedPrunes++
+				colorlog.PrintSuccess(fmt.Sprintf("Successfully deleted %s", repoPath))
+			}
+		}
+	}
 
 	printRemainingMessages()
-	printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits)
+	printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits, untouchedPrunes)
 
 	if hasCollisions {
 		fmt.Println("")
@@ -1230,7 +1313,7 @@ func pruneRepos(cloneTargets []scm.Repo) int {
 	return count
 }
 
-func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits int) {
+func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits, untouchedPrunes int) {
 	if updateRemoteCount > 0 {
 		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v, remotes updated: %v", cloneCount, pulledCount, newCommits, updateRemoteCount))
 		return
@@ -1238,6 +1321,11 @@ func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommi
 
 	if newCommits > 0 {
 		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v", cloneCount, pulledCount, newCommits))
+		return
+	}
+
+	if untouchedPrunes > 0 {
+		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total prunes: %v", cloneCount, pulledCount, untouchedPrunes))
 		return
 	}
 

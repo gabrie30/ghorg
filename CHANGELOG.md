@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Added
 - Reclone name and description to reclone output
 - GHORG_PRESERVE_SCM_HOSTNAME, note that this feature changes the directory struture that gitlab all-users and all-groups clone into; thanks @rrrix
+- GHORG_PRUNE_UNTOUCHED, to prune repos that users make no changes in; thanks @MaxG87
 ### Changed
 ### Deprecated
 ### Removed

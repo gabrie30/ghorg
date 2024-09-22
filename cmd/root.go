@@ -70,6 +70,8 @@ var (
 	noDirSize                    bool
 	ghorgStatsEnabled            bool
 	ghorgPreserveScmHostname     bool
+	ghorgPruneUntouched          bool
+	ghorgPruneUntouchedNoConfirm bool
 	args                         []string
 	cloneErrors                  []string
 	cloneInfos                   []string
@@ -173,6 +175,10 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		case "GHORG_PRUNE_NO_CONFIRM":
 			os.Setenv(envVar, "false")
+		case "GHORG_PRUNE_UNTOUCHED":
+			os.Setenv(envVar, "false")
+		case "GHORG_PRUNE_UNTOUCHED_NO_CONFIRM":
+			os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_GITLAB_CLIENT":
 			os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_GITEA_CLIENT":
@@ -275,6 +281,8 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_FETCH_ALL")
 	getOrSetDefaults("GHORG_PRUNE")
 	getOrSetDefaults("GHORG_PRUNE_NO_CONFIRM")
+	getOrSetDefaults("GHORG_PRUNE_UNTOUCHED")
+	getOrSetDefaults("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM")
 	getOrSetDefaults("GHORG_DRY_RUN")
 	getOrSetDefaults("GHORG_GITHUB_USER_OPTION")
 	getOrSetDefaults("GHORG_CLONE_WIKI")
@@ -364,6 +372,8 @@ func init() {
 	cloneCmd.Flags().BoolVar(&includeSubmodules, "include-submodules", false, "GHORG_INCLUDE_SUBMODULES - Include submodules in all clone and pull operations.")
 	cloneCmd.Flags().BoolVar(&ghorgStatsEnabled, "stats-enabled", false, "GHORG_STATS_ENABLED - Creates a CSV in the GHORG_ABSOLUTE_PATH_TO_CLONE_TO called _ghorg_stats.csv with info about each clone. This allows you to track clone data over time such as number of commits and size in megabytes of the clone directory.")
 	cloneCmd.Flags().BoolVar(&ghorgPreserveScmHostname, "preserve-scm-hostname", false, "GHORG_PRESERVE_SCM_HOSTNAME - Appends the scm hostname to the GHORG_ABSOLUTE_PATH_TO_CLONE_TO which will organize your clones into specific folders by the scm provider. e.g. /github.com/kuberentes")
+	cloneCmd.Flags().BoolVar(&ghorgPruneUntouched, "prune-untouched", false, "GHORG_PRUNE_UNTOUCHED - Prune repositories that don't have any local changes, see sample-conf.yaml for more details")
+	cloneCmd.Flags().BoolVar(&ghorgPruneUntouchedNoConfirm, "prune-untouched-no-confirm", false, "GHORG_PRUNE_UNTOUCHED_NO_CONFIRM - Automatically delete repos without showing an interactive confirmation prompt.")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - Change SCM base url, for on self hosted instances (currently gitlab, gitea and github (use format of https://git.mydomain.com/api/v3))")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - Max goroutines to spin up while cloning (default 25)")
 	cloneCmd.Flags().StringVarP(&cloneDepth, "clone-depth", "", "", "GHORG_CLONE_DEPTH - Create a shallow clone with a history truncated to the specified number of commits")

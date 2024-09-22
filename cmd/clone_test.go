@@ -105,6 +105,18 @@ func (g MockGitClient) RepoCommitCount(repo scm.Repo) (int, error) {
 	return 0, nil
 }
 
+func (g MockGitClient) Branch(repo scm.Repo) (string, error) {
+	return "", nil
+}
+
+func (g MockGitClient) RevListCompare(repo scm.Repo, ref1 string, ref2 string) (string, error) {
+	return "", nil
+}
+
+func (g MockGitClient) ShortStatus(repo scm.Repo) (string, error) {
+	return "", nil
+}
+
 func TestInitialClone(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 	dir, err := os.MkdirTemp("", "ghorg_test_initial")
