@@ -750,10 +750,9 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			repoWillBePulled := repoExistsLocally(repo)
 
 			// Repos are considered untouched if
-			// 1. There are no new branches, ghorg only clones one branch so if there are more then the user has done something in the repo
-			// 2. If there are no branches locally, this means the repo is empty or all commits have been removed
-			// 3. If there are any commits on the default branch locally that are not on the remote
-			// 4. There are any modified changes locally
+			// 1. No new branches or zero branches
+			// 2. No new commits
+			// 3. No modified changes
 			if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" && repoWillBePulled {
 				git.FetchCloneBranch(repo)
 

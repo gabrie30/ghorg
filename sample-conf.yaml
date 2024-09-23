@@ -62,11 +62,10 @@ GHORG_PRUNE: false
 # flag (--prune-no-confirm)
 GHORG_PRUNE_NO_CONFIRM: false
 
-# Prune repositories that are considered untouched. A repository is considered untouched if:
-# 1. There are no new branches, ghorg only clones one branch so if there are more then the user has done something in the repo
-# 2. If there are no branches locally, this means the repo is empty or all commits have been removed
-# 3. If there are any commits on the default branch locally that are not on the remote
-# 4. There are any modified changes locally
+# Prune repositories that are considered untouched. A repository is considered untouched if there are:
+# 1. No new branches or zero branches
+# 2. No new commits
+# 3. No modified changes
 # flag (--prune-untouched)
 GHORG_PRUNE_UNTOUCHED: false
 
