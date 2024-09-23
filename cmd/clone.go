@@ -862,7 +862,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						// Retry checkout
 						errRetry := git.Checkout(repo)
 						if errRetry != nil {
-							e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents, no changes made on: %s Error: %v", repo.CloneBranch, repo.URL, errRetry)
+							e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents/commits, no changes made on: %s Error: %v", repo.CloneBranch, repo.URL, errRetry)
 							cloneErrors = append(cloneErrors, e)
 							return
 						}
@@ -940,7 +940,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				if os.Getenv("GHORG_BRANCH") != "" {
 					err := git.Checkout(repo)
 					if err != nil {
-						e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents, no changes to: %s Error: %v", repo.CloneBranch, repo.URL, err)
+						e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents/commits, no changes to: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneInfos = append(cloneInfos, e)
 						return
 					}
