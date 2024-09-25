@@ -203,8 +203,8 @@ GHORG_STATS_ENABLED: false
 GHORG_GITHUB_TOKEN:
 
 # Indicate that the Github token should be treated as an app token. Needed if you already obtained a github app token outside the context of ghorg.
-# flag (--github-token-app)
-GHORG_GITHUB_TOKEN_APP: false
+# flag (--github-token-from-github-app)
+GHORG_GITHUB_TOKEN_FROM_GITHUB_APP: false
 
 # Path to your GitHub App PEM file, for authenticating with GitHub App
 # e.g. /home/user/foo/ghorg-app.pem

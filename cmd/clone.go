@@ -58,8 +58,8 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_BRANCH", cmd.Flag("branch").Value.String())
 	}
 
-	if cmd.Flags().Changed("github-token-app") {
-		os.Setenv("GHORG_GITHUB_TOKEN_APP", cmd.Flag("github-token-app").Value.String())
+	if cmd.Flags().Changed("github-token-from-github-app") {
+		os.Setenv("GHORG_GITHUB_TOKEN_FROM_GITHUB_APP", cmd.Flag("github-token-from-github-app").Value.String())
 	}
 
 	if cmd.Flags().Changed("github-app-pem-path") {
