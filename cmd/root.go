@@ -65,6 +65,7 @@ var (
 	ghorgReCloneQuiet            bool
 	ghorgReCloneList             bool
 	ghorgReCloneEnvConfigOnly    bool
+	githubTokenFromGithubApp     bool
 	noToken                      bool
 	quietMode                    bool
 	noDirSize                    bool
@@ -211,6 +212,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "0")
 		case "GHORG_EXIT_CODE_ON_CLONE_ISSUES":
 			os.Setenv(envVar, "1")
+		case "GHORG_GITHUB_TOKEN_FROM_GITHUB_APP":
+			os.Setenv(envVar, "false")
 		}
 	} else {
 		s := viper.GetString(envVar)
@@ -301,6 +304,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_TARGET_REPOS_PATH")
 	getOrSetDefaults("GHORG_CLONE_DEPTH")
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
+	getOrSetDefaults("GHORG_GITHUB_TOKEN_FROM_GITHUB_APP")
 	getOrSetDefaults("GHORG_GITHUB_FILTER_LANGUAGE")
 	getOrSetDefaults("GHORG_COLOR")
 	getOrSetDefaults("GHORG_TOPICS")
@@ -388,6 +392,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&exitCodeOnCloneInfos, "exit-code-on-clone-infos", "", "", "GHORG_EXIT_CODE_ON_CLONE_INFOS - Allows you to control the exit code when ghorg runs into a problem (info level message) cloning a repo from the remote. Info messages will appear after a clone is complete, similar to success messages. (default 0)")
 	cloneCmd.Flags().StringVarP(&exitCodeOnCloneIssues, "exit-code-on-clone-issues", "", "", "GHORG_EXIT_CODE_ON_CLONE_ISSUES - Allows you to control the exit code when ghorg runs into a problem (issue level message) cloning a repo from the remote. Issue messages will appear after a clone is complete, similar to success messages (default 1)")
 	cloneCmd.Flags().StringVarP(&gitFilter, "git-filter", "", "", "GHORG_GIT_FILTER - Allows you to pass arguments to git's filter flag. Useful for filtering out binary objects from repos with --git-filter=blob:none, this requires git version 2.19 or greater.")
+	cloneCmd.Flags().BoolVarP(&githubTokenFromGithubApp, "github-token-from-github-app", "", false, "GHORG_GITHUB_TOKEN_FROM_GITHUB_APP - Indicate that the Github token should be treated as an app token. Needed if you already obtained a github app token outside the context of ghorg.")
 	cloneCmd.Flags().StringVarP(&githubAppPemPath, "github-app-pem-path", "", "", "GHORG_GITHUB_APP_PEM_PATH - Path to your GitHub App PEM file, for authenticating with GitHub App.")
 	cloneCmd.Flags().StringVarP(&githubAppInstallationID, "github-app-installation-id", "", "", "GHORG_GITHUB_APP_INSTALLATION_ID - GitHub App Installation ID, for authenticating with GitHub App.")
 	cloneCmd.Flags().StringVarP(&githubFilterLanguage, "github-filter-language", "", "", "GHORG_GITHUB_FILTER_LANGUAGE - Filter repos by a language. Can be a comma separated value with no spaces.")
