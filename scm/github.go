@@ -281,7 +281,7 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 // Then if https clone method is used the clone url will be https://username:token@github.com/org/repo.git
 // The username is now needed when using the new fine-grained tokens for github
 func (c Github) SetTokensUsername() {
-	if os.Getenv("GHORG_GITHUB_APP_PEM_PATH") != "" {
+	if os.Getenv("GHORG_GITHUB_TOKEN_APP") == "true" || os.Getenv("GHORG_GITHUB_APP_PEM_PATH") != "" {
 		tokenUsername = "x-access-token"
 		return
 	}
