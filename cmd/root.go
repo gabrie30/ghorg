@@ -169,6 +169,10 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		case "GHORG_NO_CLEAN":
 			os.Setenv(envVar, "false")
+		case "GHORG_CRON_TIMER_MINUTES":
+			os.Setenv(envVar, "60")
+		case "GHORG_RECLONE_SERVER_PORT":
+			os.Setenv(envVar, ":8080")
 		case "GHORG_FETCH_ALL":
 			os.Setenv(envVar, "false")
 		case "GHORG_DRY_RUN":
@@ -299,6 +303,8 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_INFOS")
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_ISSUES")
 	getOrSetDefaults("GHORG_STATS_ENABLED")
+	getOrSetDefaults("GHORG_CRON_TIMER_MINUTES")
+	getOrSetDefaults("GHORG_RECLONE_SERVER_PORT")
 	// Optionally set
 	getOrSetDefaults("GHORG_TARGET_REPOS_PATH")
 	getOrSetDefaults("GHORG_CLONE_DEPTH")
@@ -406,7 +412,7 @@ func init() {
 
 	recloneCronCmd.Flags().StringVarP(&cronTimerMinutes, "minutes", "m", "", "GHORG_CRON_TIMER_MINUTES - Number of minutes to run the reclone command on a cron")
 
-	recloneServerCmd.Flags().StringVarP(&recloneServerPort, "port", "p", ":8080", "GHORG_RECLONE_SERVER_PORT - Specifiy the port the reclone server will run on.")
+	recloneServerCmd.Flags().StringVarP(&recloneServerPort, "port", "p", "", "GHORG_RECLONE_SERVER_PORT - Specifiy the port the reclone server will run on.")
 
 	rootCmd.AddCommand(lsCmd, versionCmd, cloneCmd, reCloneCmd, examplesCmd, recloneServerCmd, recloneCronCmd)
 }
