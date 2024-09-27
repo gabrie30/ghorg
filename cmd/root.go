@@ -48,6 +48,8 @@ var (
 	githubAppInstallationID      string
 	githubUserOption             string
 	githubFilterLanguage         string
+	cronTimerMinutes             string
+	recloneServerPort            string
 	includeSubmodules            bool
 	skipArchived                 bool
 	skipForks                    bool
@@ -402,7 +404,11 @@ func init() {
 	lsCmd.Flags().BoolP("long", "l", false, "Display detailed information about each clone directory, including size and number of repositories. Note: This may take longer depending on the number and size of the cloned organizations.")
 	lsCmd.Flags().BoolP("total", "t", false, "Display total amounts of all repos cloned. Note: This may take longer depending on the number and size of the cloned organizations.")
 
-	rootCmd.AddCommand(lsCmd, versionCmd, cloneCmd, reCloneCmd, examplesCmd)
+	recloneCronCmd.Flags().StringVarP(&cronTimerMinutes, "minutes", "m", "", "GHORG_CRON_TIMER_MINUTES - Number of minutes to run the reclone command on a cron")
+
+	recloneServerCmd.Flags().StringVarP(&recloneServerPort, "port", "p", ":8080", "GHORG_RECLONE_SERVER_PORT - Specifiy the port the reclone server will run on.")
+
+	rootCmd.AddCommand(lsCmd, versionCmd, cloneCmd, reCloneCmd, examplesCmd, recloneServerCmd, recloneCronCmd)
 }
 
 func Execute() {
