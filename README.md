@@ -268,7 +268,100 @@ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-reclone.yaml
 
 Update file with the commands you wish to run.
 
-### Docker
+## Reclone Server and Cron Commands
+
+### Reclone Server
+
+The `reclone-server` command starts a server that allows you to trigger adhoc reclone commands via HTTP requests.
+
+#### Usage
+
+```sh
+ghorg reclone-server [flags]
+```
+
+#### Flags
+
+- `--port`: Specify the port on which the server will run. If not specified, the server will use the default port.
+
+#### Endpoints
+
+- **`/trigger/reclone`**: Triggers the reclone command. To prevent resource exhaustion, only one request can processed at a time.
+  - **Query Parameters**:
+    - `cmd`: Optional. Allows you to call a specific reclone, otherwise all reclones are ran.
+  - **Responses**:
+    - `200 OK`: Command started successfully.
+    - `429 Too Many Requests`: Server is currently running a reclone command, you will need to wait until its completed before starting another one.
+
+- **`/stats`**: Returns the statistics of the reclone operations in JSON format. `GHORG_STATS_ENABLED=true` or `--stats-enabled` must be set to work.
+  - **Responses**:
+    - `200 OK`: Statistics returned successfully.
+    - `428 Precondition required`: Ghorg stats is not enabled.
+    - `500 Internal Server Error`: Unable to read the statistics file.
+
+- **`/health`**: Health check endpoint.
+  - **Responses**:
+    - `200 OK`: Server is healthy.
+
+#### Examples
+
+Starting the server. The default port is `8080` but you can optionally start the server on different port using the `--port` flag:
+
+```sh
+ghorg reclone-server
+```
+
+Trigger reclone command, this will run all cmds defined in your `reclone.yaml`:
+
+```sh
+curl "http://localhost:8080/trigger/reclone"
+```
+
+Trigger a specific reclone command:
+
+```sh
+curl "http://localhost:8080/trigger/reclone?cmd=your-reclone-command"
+```
+
+Get the statistics:
+
+```sh
+curl "http://localhost:8080/stats"
+```
+
+Check the server health:
+
+```sh
+curl "http://localhost:8080/health"
+```
+
+### Reclone Cron
+
+The `reclone-cron` command sets up a simple cron job that triggers the reclone command at specified minute intervals indefinitely.
+
+#### Usage
+
+```sh
+ghorg reclone-cron [flags]
+```
+
+#### Flags
+
+- `--minutes`: Specify the interval in minutes at which the reclone command will be triggered. Default is every 60 minutes.
+
+#### Example
+
+Set up a cron job to trigger the reclone command every day:
+
+```sh
+ghorg reclone-cron --minutes 1440
+```
+
+#### Environment Variables
+
+- `GHORG_CRON_TIMER_MINUTES`: The interval in minutes for the cron job. This can be set via the `--minutes` flag. Defualt is 60 minutes.
+
+## Using Docker
 
 The provided images are built for both `amd64` and `arm64` architectures and are available solely on Github Container Registry [ghcr.io](https://github.com/gabrie30/ghorg/pkgs/container/ghorg).
 
@@ -297,7 +390,7 @@ GHORG_ABSOLUTE_PATH_TO_CLONE_TO=/data
 
 These can be overriden, if necessary, by including the `-e` flag to the docker run comand, e.g. `-e GHORG_GITHUB_TOKEN=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2`.
 
-#### Persisting Data on the Host
+### Persisting Data on the Host
 
 In order to store data on the host, it is required to bind mount a volume:
 - `$HOME/.config/ghorg:/config`: Mounts your config directory inside the container, to access `config.yaml` and `reclone.yaml`.
@@ -322,17 +415,6 @@ alias ghorg="docker run --rm -v $HOME/.config/ghorg:/config -v $HOME/repositorie
 # Using the alias: creates and cleans up the container
 ghorg clone kubernetes --match-regex=^sig
 ```
-
-## Windows support
-
-Windows is supported when built with golang or as a [prebuilt binary](https://github.com/gabrie30/ghorg/releases/latest) however, the readme and other documentation is not geared towards Windows users.
-
-Alternatively, Windows users can also install ghorg using [scoop](https://scoop.sh/#/)
-
-  ```
-  scoop bucket add main
-  scoop install ghorg
-  ```
 
 ## Tracking Clone Data Over Time
 
@@ -366,6 +448,17 @@ Below are the headers and their descriptions. Note that these headers may change
 go install github.com/gabrie30/csvToJson@latest && \
 csvToJson _ghorg_stats.csv
 ```
+
+## Windows support
+
+Windows is supported when built with golang or as a [prebuilt binary](https://github.com/gabrie30/ghorg/releases/latest) however, the readme and other documentation is not geared towards Windows users.
+
+Alternatively, Windows users can also install ghorg using [scoop](https://scoop.sh/#/)
+
+  ```
+  scoop bucket add main
+  scoop install ghorg
+  ```
 
 ## Troubleshooting
 
