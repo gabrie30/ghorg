@@ -16,7 +16,7 @@ import (
 
 var recloneServerCmd = &cobra.Command{
 	Use:   "reclone-server",
-	Short: "Server allowing you to trigger adhoc reclone commands via HTTP requests",
+	Short: "Server allowing you to trigger ad hoc reclone commands via HTTP requests",
 	Long:  `Read the documentation and examples in the Readme under Reclone Cron heading`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if cmd.Flags().Changed("port") {

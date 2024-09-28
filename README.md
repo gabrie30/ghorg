@@ -270,7 +270,7 @@ Update file with the commands you wish to run.
 
 ## Reclone Server Command
 
-The `reclone-server` command starts a server that allows you to trigger adhoc reclone commands via HTTP requests.
+The `reclone-server` command starts a server that allows you to trigger ad hoc reclone commands via HTTP requests.
 
 ### Usage
 

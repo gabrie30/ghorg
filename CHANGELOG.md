@@ -3,13 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.0] - unreleased
+## [1.11.0] - 9/28/2024
 ### Added
 - Reclone name and description to reclone output
-- GHORG_PRESERVE_SCM_HOSTNAME, note that this feature changes the directory struture that gitlab all-users and all-groups clone into; thanks @rrrix
+- GHORG_PRESERVE_SCM_HOSTNAME, note that this feature changes the directory structure that gitlab all-users and all-groups clone into; thanks @rrrix
 - GHORG_PRUNE_UNTOUCHED, to prune repos that users make no changes in; thanks @MaxG87
 - GHORG_GITHUB_TOKEN_FROM_GITHUB_APP to handle github app tokens; thanks @PaarthShah
-- Command reclone-server, to run adhoc reclone commands via HTTP requests
+- Command reclone-server, to run ad hoc reclone commands via HTTP requests
 - Command reclone-cron, to run periodic reclone commands on a timer
 ### Changed
 ### Deprecated
