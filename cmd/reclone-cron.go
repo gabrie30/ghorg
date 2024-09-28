@@ -15,7 +15,7 @@ import (
 var recloneCronCmd = &cobra.Command{
 	Use:   "reclone-cron",
 	Short: "Simple cron that will trigger your reclone command at a specified minute intervals indefinitely",
-	Long:  `Read the documentation and examples in the readme`,
+	Long:  `Read the documentation and examples in the Readme under Reclone Server heading`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if cmd.Flags().Changed("minutes") {
 			os.Setenv("GHORG_CRON_TIMER_MINUTES", cmd.Flag("minutes").Value.String())

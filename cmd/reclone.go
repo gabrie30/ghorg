@@ -93,7 +93,7 @@ func printFinalOutput(argz []string, reCloneMap map[string]ReClone) {
 	fmt.Println("")
 	colorlog.PrintSuccess("Completed! The following reclones were ran successfully...")
 	if len(argz) == 0 {
-		for key, _ := range reCloneMap {
+		for key := range reCloneMap {
 			colorlog.PrintSuccess(fmt.Sprintf("  * %v", key))
 		}
 	} else {

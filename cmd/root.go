@@ -75,7 +75,6 @@ var (
 	ghorgPreserveScmHostname     bool
 	ghorgPruneUntouched          bool
 	ghorgPruneUntouchedNoConfirm bool
-	args                         []string
 	cloneErrors                  []string
 	cloneInfos                   []string
 )

@@ -304,7 +304,6 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 
 	setOutputDirName(argz)
 	setOuputDirAbsolutePath()
-	args = argz
 	targetCloneSource = argz[0]
 	setupRepoClone()
 }
@@ -505,18 +504,6 @@ func filterByExcludeMatchPrefix(repos []scm.Repo) []scm.Repo {
 	}
 
 	return filteredRepos
-}
-
-// exclude wikis from repo count
-func getRepoCountOnly(targets []scm.Repo) int {
-	count := 0
-	for _, t := range targets {
-		if !t.IsWiki {
-			count++
-		}
-	}
-
-	return count
 }
 
 func hasRepoNameCollisions(repos []scm.Repo) (map[string]bool, bool) {
@@ -903,7 +890,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						return
 					}
 
-					count, _ = git.RepoCommitCount(repo)
+					count, err = git.RepoCommitCount(repo)
 					if err != nil {
 						e := fmt.Sprintf("Problem trying to get post pull commit count for on repo: %s", repo.URL)
 						cloneInfos = append(cloneInfos, e)
@@ -1067,7 +1054,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 }
 
-func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount int, hasCollisions bool) error {
+func getGhorgStatsFilePath() string {
 	var statsFilePath string
 	absolutePath := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
 	if os.Getenv("GHORG_PRESERVE_SCM_HOSTNAME") == "true" {
@@ -1077,6 +1064,12 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 		statsFilePath = filepath.Join(absolutePath, "_ghorg_stats.csv")
 	}
 
+	return statsFilePath
+}
+
+func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount int, hasCollisions bool) error {
+
+	statsFilePath := getGhorgStatsFilePath()
 	fileExists := true
 
 	if _, err := os.Stat(statsFilePath); os.IsNotExist(err) {

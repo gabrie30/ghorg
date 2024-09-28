@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"embed"
-	_ "embed"
 	"fmt"
 
 	gtm "github.com/MichaelMure/go-term-markdown"

@@ -2,6 +2,8 @@ package cmd
 
 import (
 	_ "embed"
+	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,8 +16,8 @@ import (
 
 var recloneServerCmd = &cobra.Command{
 	Use:   "reclone-server",
-	Short: "Server allowing you to trigger adhoc or cron based reclone commands",
-	Long:  `Read the documentation and examples in the readme`,
+	Short: "Server allowing you to trigger adhoc reclone commands via HTTP requests",
+	Long:  `Read the documentation and examples in the Readme under Reclone Cron heading`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if cmd.Flags().Changed("port") {
 			os.Setenv("GHORG_RECLONE_SERVER_PORT", cmd.Flag("port").Value.String())
@@ -64,6 +66,59 @@ func startReCloneServer() {
 
 		// Wait for the command to start before responding
 		<-started
+		w.WriteHeader(http.StatusOK)
+	})
+
+	http.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {
+
+		if os.Getenv("GHORG_STATS_ENABLED") != "true" {
+			http.Error(w, "Stats collection is not enabled. Please set GHORG_STATS_ENABLED=true or use --stats-enabled flag", http.StatusPreconditionRequired)
+			return
+		}
+
+		statsFilePath := getGhorgStatsFilePath()
+		fileExists := true
+
+		if _, err := os.Stat(statsFilePath); os.IsNotExist(err) {
+			fileExists = false
+		}
+
+		if fileExists {
+			file, err := os.Open(statsFilePath)
+			if err != nil {
+				http.Error(w, "Unable to open file", http.StatusInternalServerError)
+				return
+			}
+			defer file.Close()
+
+			reader := csv.NewReader(file)
+			records, err := reader.ReadAll()
+			if err != nil {
+				http.Error(w, "Unable to read CSV file", http.StatusInternalServerError)
+				return
+			}
+
+			var jsonData []map[string]string
+			headers := records[0]
+			for _, row := range records[1:] {
+				rowData := make(map[string]string)
+				for i, value := range row {
+					rowData[headers[i]] = value
+				}
+				jsonData = append(jsonData, rowData)
+			}
+
+			jsonBytes, err := json.Marshal(jsonData)
+			if err != nil {
+				http.Error(w, "Unable to encode JSON", http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jsonBytes)
+			return
+		}
+
 		w.WriteHeader(http.StatusOK)
 	})
 
