@@ -268,23 +268,21 @@ curl https://raw.githubusercontent.com/gabrie30/ghorg/master/sample-reclone.yaml
 
 Update file with the commands you wish to run.
 
-## Reclone Server and Cron Commands
-
-### Reclone Server
+## Reclone Server Command
 
 The `reclone-server` command starts a server that allows you to trigger adhoc reclone commands via HTTP requests.
 
-#### Usage
+### Usage
 
 ```sh
 ghorg reclone-server [flags]
 ```
 
-#### Flags
+### Flags
 
 - `--port`: Specify the port on which the server will run. If not specified, the server will use the default port.
 
-#### Endpoints
+### Endpoints
 
 - **`/trigger/reclone`**: Triggers the reclone command. To prevent resource exhaustion, only one request can processed at a time.
   - **Query Parameters**:
@@ -303,7 +301,7 @@ ghorg reclone-server [flags]
   - **Responses**:
     - `200 OK`: Server is healthy.
 
-#### Examples
+### Examples
 
 Starting the server. The default port is `8080` but you can optionally start the server on different port using the `--port` flag:
 
@@ -335,21 +333,21 @@ Check the server health:
 curl "http://localhost:8080/health"
 ```
 
-### Reclone Cron
+## Reclone Cron Command
 
 The `reclone-cron` command sets up a simple cron job that triggers the reclone command at specified minute intervals indefinitely.
 
-#### Usage
+### Usage
 
 ```sh
 ghorg reclone-cron [flags]
 ```
 
-#### Flags
+### Flags
 
 - `--minutes`: Specify the interval in minutes at which the reclone command will be triggered. Default is every 60 minutes.
 
-#### Example
+### Example
 
 Set up a cron job to trigger the reclone command every day:
 
@@ -357,7 +355,7 @@ Set up a cron job to trigger the reclone command every day:
 ghorg reclone-cron --minutes 1440
 ```
 
-#### Environment Variables
+### Environment Variables
 
 - `GHORG_CRON_TIMER_MINUTES`: The interval in minutes for the cron job. This can be set via the `--minutes` flag. Defualt is 60 minutes.
 
