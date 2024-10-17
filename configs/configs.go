@@ -300,12 +300,15 @@ func VerifyTokenSet() error {
 	}
 
 	if scmProvider == "bitbucket" {
-		if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" {
-			return ErrNoBitbucketUsername
-		}
+		if os.Getenv("GHORG_BITBUCKET_OAUTH_TOKEN") == "" {
 
-		if os.Getenv("GHORG_BITBUCKET_APP_PASSWORD") == "" {
-			return ErrNoBitbucketAppPassword
+			if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" {
+				return ErrNoBitbucketUsername
+			}
+
+			if os.Getenv("GHORG_BITBUCKET_APP_PASSWORD") == "" {
+				return ErrNoBitbucketAppPassword
+			}
 		}
 	}
 
