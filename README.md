@@ -130,6 +130,8 @@ Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wi
 
 ### Bitbucket Setup
 
+> Note: ghorg only supports bitbucket cloud, it does not support self hosted instances at this time
+
 #### App Passwords
 
 1. To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/.config/ghorg/conf.yaml` or use the (--token, -t) and (--bitbucket-username) flags.
