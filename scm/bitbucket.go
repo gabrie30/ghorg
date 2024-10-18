@@ -1,7 +1,6 @@
 package scm
 
 import (
-	"net/url"
 	"strings"
 
 	"os"
@@ -63,8 +62,7 @@ func (_ Bitbucket) NewClient() (Client, error) {
 	}
 
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
-		u, _ := url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
-		c.SetApiBaseURL(*u)
+		colorlog.PrintErrorAndExit("Self hosted Bitbucket instances are not supported at this time.")
 	}
 
 	return Bitbucket{c}, nil
