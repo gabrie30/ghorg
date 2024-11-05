@@ -76,7 +76,7 @@ github.com/fsnotify/fsnotify
 # github.com/go-fed/httpsig v1.1.0
 ## explicit; go 1.13
 github.com/go-fed/httpsig
-# github.com/golang-jwt/jwt/v4 v4.5.0
+# github.com/golang-jwt/jwt/v4 v4.5.1
 ## explicit; go 1.16
 github.com/golang-jwt/jwt/v4
 # github.com/gomarkdown/markdown v0.0.0-20191123064959-2c17d62f5098
