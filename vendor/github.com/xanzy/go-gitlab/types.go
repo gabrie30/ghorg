@@ -440,6 +440,26 @@ func GenericPackageStatus(v GenericPackageStatusValue) *GenericPackageStatusValu
 	return Ptr(v)
 }
 
+// GroupHookTrigger represents the type of event to trigger for a group
+// hook test.
+type GroupHookTrigger string
+
+// List of available group hook trigger types.
+const (
+	GroupHookTriggerPush                GroupHookTrigger = "push_events"
+	GroupHookTriggerTagPush             GroupHookTrigger = "tag_push_events"
+	GroupHookTriggerIssue               GroupHookTrigger = "issues_events"
+	GroupHookTriggerConfidentialIssue   GroupHookTrigger = "confidential_issues_events"
+	GroupHookTriggerNote                GroupHookTrigger = "note_events"
+	GroupHookTriggerMergeRequest        GroupHookTrigger = "merge_requests_events"
+	GroupHookTriggerJob                 GroupHookTrigger = "job_events"
+	GroupHookTriggerPipeline            GroupHookTrigger = "pipeline_events"
+	GroupHookTriggerWikiPage            GroupHookTrigger = "wiki_page_events"
+	GroupHookTriggerRelease             GroupHookTrigger = "releases_events"
+	GroupHookTriggerEmoji               GroupHookTrigger = "emoji_events"
+	GroupHookTriggerResourceAccessToken GroupHookTrigger = "resource_access_token_events"
+)
+
 // ISOTime represents an ISO 8601 formatted date.
 type ISOTime time.Time
 
@@ -982,3 +1002,19 @@ func (t *BoolValue) UnmarshalJSON(b []byte) error {
 		return err
 	}
 }
+
+// CIPipelineVariablesMinimumOverrideRoleValue represents an access control
+// value used for managing access to the CI Pipeline Variable Override feature.
+//
+// GitLab API docs: https://docs.gitlab.com/ee/api/projects.html
+type CIPipelineVariablesMinimumOverrideRoleValue = string
+
+// List of available CIPipelineVariablesMinimumOverrideRoleValue values.
+//
+// GitLab API docs: https://docs.gitlab.com/ee/api/projects.html
+const (
+	CIPipelineVariablesNoOneAllowedRole CIPipelineVariablesMinimumOverrideRoleValue = "no_one_allowed"
+	CiPipelineVariablesOwnerRole        CIPipelineVariablesMinimumOverrideRoleValue = "owner"
+	CiPipelineVariablesMaintainerRole   CIPipelineVariablesMinimumOverrideRoleValue = "maintainer"
+	CIPipelineVariablesDeveloperRole    CIPipelineVariablesMinimumOverrideRoleValue = "developer"
+)
