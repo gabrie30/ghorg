@@ -161,6 +161,7 @@ func (s *GroupsService) ListAllGroupMembers(gid interface{}, opt *ListGroupMembe
 // https://docs.gitlab.com/ee/api/members.html#add-a-member-to-a-group-or-project
 type AddGroupMemberOptions struct {
 	UserID       *int              `url:"user_id,omitempty" json:"user_id,omitempty"`
+	Username     *string           `url:"username,omitempty" json:"username,omitempty"`
 	AccessLevel  *AccessLevelValue `url:"access_level,omitempty" json:"access_level,omitempty"`
 	ExpiresAt    *string           `url:"expires_at,omitempty" json:"expires_at"`
 	MemberRoleID *int              `url:"member_role_id,omitempty" json:"member_role_id,omitempty"`
@@ -217,7 +218,8 @@ func (s *GroupMembersService) GetInheritedGroupMember(gid interface{}, user int,
 	return gm, resp, err
 }
 
-// ListBillableGroupMembersOptions represents the available ListBillableGroupMembers() options.
+// ListBillableGroupMembersOptions represents the available
+// ListBillableGroupMembers() options.
 //
 // GitLab API docs:
 // https://docs.gitlab.com/ee/api/members.html#list-all-billable-members-of-a-group
@@ -253,19 +255,26 @@ func (s *GroupsService) ListBillableGroupMembers(gid interface{}, opt *ListBilla
 	return bgm, resp, nil
 }
 
-// ListMembershipsForBillableGroupMember Gets a list of memberships for a billable member of a group.
-// Lists all projects and groups a user is a member of. Only projects and groups within the group hierarchy are included.
+// ListMembershipsForBillableGroupMemberOptions represents the available
+// ListMembershipsForBillableGroupMember() options.
 //
 // GitLab API docs:
 // https://docs.gitlab.com/ee/api/members.html#list-memberships-for-a-billable-member-of-a-group
-func (s *GroupsService) ListMembershipsForBillableGroupMember(gid interface{}, user int, options ...RequestOptionFunc) ([]*BillableUserMembership, *Response, error) {
+type ListMembershipsForBillableGroupMemberOptions = ListOptions
+
+// ListMembershipsForBillableGroupMember gets a list of memberships for a
+// billable member of a group.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ee/api/members.html#list-memberships-for-a-billable-member-of-a-group
+func (s *GroupsService) ListMembershipsForBillableGroupMember(gid interface{}, user int, opt *ListMembershipsForBillableGroupMemberOptions, options ...RequestOptionFunc) ([]*BillableUserMembership, *Response, error) {
 	group, err := parseID(gid)
 	if err != nil {
 		return nil, nil, err
 	}
 	u := fmt.Sprintf("groups/%s/billable_members/%d/memberships", PathEscape(group), user)
 
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
+	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -405,7 +414,8 @@ func (s *GroupMembersService) EditGroupMember(gid interface{}, user int, opt *Ed
 
 // RemoveGroupMemberOptions represents the available options to remove a group member.
 //
-// GitLab API docs: https://docs.gitlab.com/ee/api/members.html#remove-a-member-from-a-group-or-project
+// GitLab API docs:
+// https://docs.gitlab.com/ee/api/members.html#remove-a-member-from-a-group-or-project
 type RemoveGroupMemberOptions struct {
 	SkipSubresources  *bool `url:"skip_subresources,omitempty" json:"skip_subresources,omitempty"`
 	UnassignIssuables *bool `url:"unassign_issuables,omitempty" json:"unassign_issuables,omitempty"`
