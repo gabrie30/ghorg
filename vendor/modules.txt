@@ -42,8 +42,8 @@ github.com/alecthomas/chroma/lexers/w
 github.com/alecthomas/chroma/lexers/x
 github.com/alecthomas/chroma/lexers/y
 github.com/alecthomas/chroma/styles
-# github.com/bradleyfalzon/ghinstallation/v2 v2.11.0
-## explicit; go 1.16
+# github.com/bradleyfalzon/ghinstallation/v2 v2.12.0
+## explicit; go 1.21
 github.com/bradleyfalzon/ghinstallation/v2
 # github.com/briandowns/spinner v1.23.1
 ## explicit; go 1.17
@@ -88,6 +88,9 @@ github.com/gomarkdown/markdown/parser
 # github.com/google/go-github/v62 v62.0.0
 ## explicit; go 1.21
 github.com/google/go-github/v62/github
+# github.com/google/go-github/v66 v66.0.0
+## explicit; go 1.21
+github.com/google/go-github/v66/github
 # github.com/google/go-querystring v1.1.0
 ## explicit; go 1.10
 github.com/google/go-querystring/query
