@@ -359,7 +359,7 @@ ghorg reclone-cron --minutes 1440
 
 ### Environment Variables
 
-- `GHORG_CRON_TIMER_MINUTES`: The interval in minutes for the cron job. This can be set via the `--minutes` flag. Defualt is 60 minutes.
+- `GHORG_CRON_TIMER_MINUTES`: The interval in minutes for the cron job. This can be set via the `--minutes` flag. Default is 60 minutes.
 
 ## Using Docker
 
