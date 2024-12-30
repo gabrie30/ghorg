@@ -40,7 +40,7 @@ There are a installation methods available, please choose the one that suits you
 - [Prebuilt Binaries](#prebuilt-binaries)
 - [Homebrew](#homebrew)
 - [Golang](#golang)
-- [Docker](#docker)
+- [Docker](#using-docker)
 - [Windows Support](#windows-support)
 
 For each installation method, optionally create a ghorg configuration file. See the [configuration](#configuration) section for more details.
