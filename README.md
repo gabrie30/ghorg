@@ -34,7 +34,7 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
 
 > The terminology used in ghorg is that of GitHub, mainly orgs/repos. GitLab and BitBucket use different terminology. There is a handy chart thanks to GitLab that translates terminology [here](https://about.gitlab.com/images/blogimages/gitlab-terminology.png). Note, some features may be different for certain providers.
 
-## Features
+## High Level Features
 
 - [Filter or select specific repositories for cloning](#selective-repository-cloning)
 - [Create backups of repositories](#creating-backups)
