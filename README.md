@@ -36,12 +36,12 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
 
 ## High Level Features
 
-- [Filter or select specific repositories for cloning](#selective-repository-cloning)
-- [Create backups of repositories](#creating-backups)
-- [Simplify complex clone commands using reclone shortcuts](#reclone-command)
-- [Initiate clone operations via HTTP server](#reclone-server-command)
-- [Schedule cloning tasks using cron](#reclone-cron-command)
-- [Monitor and track clone metrics over time](#tracking-clone-data-over-time)
+- [Filter](#selective-repository-cloning) or select specific repositories for cloning
+- Create [backups](#creating-backups) of repositories
+- Simplify complex clone commands using [reclone](#reclone-command) shortcuts
+- Initiate clone operations via [HTTP server](#reclone-server-command)
+- Schedule cloning tasks using [cron](#reclone-cron-command)
+- Monitor and track clone [metrics](#tracking-clone-data-over-time) over time
 
 ## Installation
 
