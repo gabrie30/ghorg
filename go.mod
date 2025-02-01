@@ -3,7 +3,7 @@ module github.com/gabrie30/ghorg
 go 1.22.1
 
 require (
-	code.gitea.io/sdk/gitea v0.19.0
+	code.gitea.io/sdk/gitea v0.20.0
 	github.com/MichaelMure/go-term-markdown v0.1.4
 	github.com/bradleyfalzon/ghinstallation/v2 v2.12.0
 	github.com/briandowns/spinner v1.23.1
@@ -21,6 +21,7 @@ require (
 )
 
 require (
+	github.com/42wim/httpsig v1.2.1 // indirect
 	github.com/MichaelMure/go-term-text v0.3.1 // indirect
 	github.com/alecthomas/chroma v0.7.1 // indirect
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
