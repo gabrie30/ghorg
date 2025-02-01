@@ -6,7 +6,7 @@ require (
 	code.gitea.io/sdk/gitea v0.19.0
 	github.com/MichaelMure/go-term-markdown v0.1.4
 	github.com/bradleyfalzon/ghinstallation/v2 v2.12.0
-	github.com/briandowns/spinner v1.23.1
+	github.com/briandowns/spinner v1.23.2
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/fatih/color v1.18.0
 	github.com/google/go-github/v62 v62.0.0
