@@ -1,6 +1,7 @@
 module github.com/gabrie30/ghorg
 
 go 1.22.1
+toolchain go1.23.6
 
 require (
 	code.gitea.io/sdk/gitea v0.20.0
@@ -16,7 +17,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	github.com/xanzy/go-gitlab v0.115.0
-	golang.org/x/oauth2 v0.25.0
+	golang.org/x/oauth2 v0.27.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
