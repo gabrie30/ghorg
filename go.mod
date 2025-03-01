@@ -1,11 +1,12 @@
 module github.com/gabrie30/ghorg
 
 go 1.22.1
+toolchain go1.23.6
 
 require (
 	code.gitea.io/sdk/gitea v0.20.0
 	github.com/MichaelMure/go-term-markdown v0.1.4
-	github.com/bradleyfalzon/ghinstallation/v2 v2.13.0
+	github.com/bradleyfalzon/ghinstallation/v2 v2.14.0
 	github.com/briandowns/spinner v1.23.2
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/fatih/color v1.18.0
@@ -16,7 +17,7 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	github.com/xanzy/go-gitlab v0.115.0
-	golang.org/x/oauth2 v0.25.0
+	golang.org/x/oauth2 v0.27.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -33,7 +34,7 @@ require (
 	github.com/go-fed/httpsig v1.1.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
 	github.com/gomarkdown/markdown v0.0.0-20191123064959-2c17d62f5098 // indirect
-	github.com/google/go-github/v68 v68.0.0 // indirect
+	github.com/google/go-github/v69 v69.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
