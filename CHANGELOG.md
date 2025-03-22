@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 ### Fixed
 - Gitea internal repos token injection on https clones; thanks @drmacdon
+- BitBucket backup with prune removes repositories just cloned; thanks @dannuralogix
 ### Security
 
 ## [1.11.0] - 9/28/2024
