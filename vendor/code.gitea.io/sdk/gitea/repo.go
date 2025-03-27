@@ -85,6 +85,9 @@ type Repository struct {
 	ExternalWiki              *ExternalWiki    `json:"external_wiki,omitempty"`
 	HasPullRequests           bool             `json:"has_pull_requests"`
 	HasProjects               bool             `json:"has_projects"`
+	HasReleases               bool             `json:"has_releases,omitempty"`
+	HasPackages               bool             `json:"has_packages,omitempty"`
+	HasActions                bool             `json:"has_actions,omitempty"`
 	IgnoreWhitespaceConflicts bool             `json:"ignore_whitespace_conflicts"`
 	AllowMerge                bool             `json:"allow_merge_commits"`
 	AllowRebase               bool             `json:"allow_rebase"`
@@ -93,6 +96,7 @@ type Repository struct {
 	AvatarURL                 string           `json:"avatar_url"`
 	Internal                  bool             `json:"internal"`
 	MirrorInterval            string           `json:"mirror_interval"`
+	MirrorUpdated             time.Time        `json:"mirror_updated,omitempty"`
 	DefaultMergeStyle         MergeStyle       `json:"default_merge_style"`
 }
 
@@ -286,7 +290,9 @@ func (c *Client) SearchRepos(opt SearchRepoOptions) ([]*Repository, *Response, e
 				// private repos only not supported on gitea <= 1.11.x
 				return nil, nil, err
 			}
-			link.Query().Add("private", "false")
+			newQuery := link.Query()
+			newQuery.Add("private", "false")
+			link.RawQuery = newQuery.Encode()
 		}
 	}
 
@@ -328,11 +334,11 @@ func (opt CreateRepoOption) Validate(c *Client) error {
 	if len(opt.Name) > 100 {
 		return fmt.Errorf("name has more than 100 chars")
 	}
-	if len(opt.Description) > 255 {
-		return fmt.Errorf("name has more than 255 chars")
+	if len(opt.Description) > 2048 {
+		return fmt.Errorf("description has more than 2048 chars")
 	}
 	if len(opt.DefaultBranch) > 100 {
-		return fmt.Errorf("name has more than 100 chars")
+		return fmt.Errorf("default branch name has more than 100 chars")
 	}
 	if len(opt.TrustModel) != 0 {
 		if err := c.checkServerVersionGreaterThanOrEqual(version1_13_0); err != nil {
@@ -420,6 +426,12 @@ type EditRepoOption struct {
 	HasPullRequests *bool `json:"has_pull_requests,omitempty"`
 	// either `true` to enable project unit, or `false` to disable them.
 	HasProjects *bool `json:"has_projects,omitempty"`
+	// either `true` to enable release, or `false` to disable them.
+	HasReleases *bool `json:"has_releases,omitempty"`
+	// either `true` to enable packages, or `false` to disable them.
+	HasPackages *bool `json:"has_packages,omitempty"`
+	// either `true` to enable actions, or `false` to disable them.
+	HasActions *bool `json:"has_actions,omitempty"`
 	// either `true` to ignore whitespace for conflicts, or `false` to not ignore whitespace. `has_pull_requests` must be `true`.
 	IgnoreWhitespaceConflicts *bool `json:"ignore_whitespace_conflicts,omitempty"`
 	// either `true` to allow merging pull requests with a merge commit, or `false` to prevent merging pull requests with merge commits. `has_pull_requests` must be `true`.

@@ -41,7 +41,7 @@ func ShiftNBytesLeft(dst, x []byte, n int) {
 	bits := uint(n % 8)
 	l := len(dst)
 	for i := 0; i < l-1; i++ {
-		dst[i] = (dst[i] << bits) | (dst[i+1] >> uint(8 - bits))
+		dst[i] = (dst[i] << bits) | (dst[i+1] >> uint(8-bits))
 	}
 	dst[l-1] = dst[l-1] << bits
 
@@ -49,17 +49,16 @@ func ShiftNBytesLeft(dst, x []byte, n int) {
 	dst = append(dst, make([]byte, n/8)...)
 }
 
-// XorBytesMut assumes equal input length, replaces X with X XOR Y
+// XorBytesMut replaces X with X XOR Y. len(X) must be >= len(Y).
 func XorBytesMut(X, Y []byte) {
-	for i := 0; i < len(X); i++ {
+	for i := 0; i < len(Y); i++ {
 		X[i] ^= Y[i]
 	}
 }
 
-
-// XorBytes assumes equal input length, puts X XOR Y into Z
+// XorBytes puts X XOR Y into Z. len(Z) and len(X) must be >= len(Y).
 func XorBytes(Z, X, Y []byte) {
-	for i := 0; i < len(X); i++ {
+	for i := 0; i < len(Y); i++ {
 		Z[i] = X[i] ^ Y[i]
 	}
 }
@@ -67,10 +66,10 @@ func XorBytes(Z, X, Y []byte) {
 // RightXor XORs smaller input (assumed Y) at the right of the larger input (assumed X)
 func RightXor(X, Y []byte) []byte {
 	offset := len(X) - len(Y)
-	xored := make([]byte, len(X));
+	xored := make([]byte, len(X))
 	copy(xored, X)
 	for i := 0; i < len(Y); i++ {
-		xored[offset + i] ^= Y[i]
+		xored[offset+i] ^= Y[i]
 	}
 	return xored
 }
@@ -89,4 +88,3 @@ func SliceForAppend(in []byte, n int) (head, tail []byte) {
 	tail = head[len(in):]
 	return
 }
-

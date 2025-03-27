@@ -32,8 +32,38 @@ type DiffStat struct {
 }
 
 func (d *Diff) GetDiff(do *DiffOptions) (interface{}, error) {
-	urlStr := d.c.requestUrl("/repositories/%s/%s/diff/%s", do.Owner, do.RepoSlug, do.Spec)
-	return d.c.executeRaw("GET", urlStr, "diff")
+
+	params := url.Values{}
+	if do.FromPullRequestID > 0 {
+		params.Add("from_pullrequest_id", strconv.Itoa(do.FromPullRequestID))
+	}
+
+	if do.Whitespace {
+		params.Add("ignore_whitespace", strconv.FormatBool(do.Whitespace))
+	}
+
+	if do.Context > 0 {
+		params.Add("context", strconv.Itoa(do.Context))
+	}
+
+	if do.Path != "" {
+		params.Add("path", do.Path)
+	}
+
+	if !do.Binary {
+		params.Add("binary", strconv.FormatBool(do.Binary))
+	}
+
+	if !do.Renames {
+		params.Add("renames", strconv.FormatBool(do.Renames))
+	}
+
+	if do.Topic {
+		params.Add("topic", strconv.FormatBool(do.Topic))
+	}
+
+	urlStr := d.c.requestUrl("/repositories/%s/%s/diff/%s?%s", do.Owner, do.RepoSlug, do.Spec, params.Encode())
+	return d.c.executeRaw("GET", urlStr, "")
 }
 
 func (d *Diff) GetPatch(do *DiffOptions) (interface{}, error) {
@@ -44,11 +74,15 @@ func (d *Diff) GetPatch(do *DiffOptions) (interface{}, error) {
 func (d *Diff) GetDiffStat(dso *DiffStatOptions) (*DiffStatRes, error) {
 
 	params := url.Values{}
-	if dso.Whitespace == true {
+	if dso.FromPullRequestID > 0 {
+		params.Add("from_pullrequest_id", strconv.Itoa(dso.FromPullRequestID))
+	}
+
+	if dso.Whitespace {
 		params.Add("ignore_whitespace", strconv.FormatBool(dso.Whitespace))
 	}
 
-	if dso.Merge == false {
+	if !dso.Merge {
 		params.Add("merge", strconv.FormatBool(dso.Merge))
 	}
 
@@ -56,8 +90,12 @@ func (d *Diff) GetDiffStat(dso *DiffStatOptions) (*DiffStatRes, error) {
 		params.Add("path", dso.Path)
 	}
 
-	if dso.Renames == false {
+	if !dso.Renames {
 		params.Add("renames", strconv.FormatBool(dso.Renames))
+	}
+
+	if dso.Topic {
+		params.Add("topic", strconv.FormatBool(dso.Topic))
 	}
 
 	if dso.PageNum > 0 {

@@ -3,7 +3,8 @@
 >
 > **Thank you!**
 
-![Viper](.github/logo.png?raw=true)
+![viper logo](https://github.com/user-attachments/assets/acae9193-2974-41f3-808d-2d433f5ada5e)
+
 
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge-flat.svg)](https://github.com/avelino/awesome-go#configuration)
 [![run on repl.it](https://repl.it/badge/github/sagikazarmark/Viper-example)](https://repl.it/@sagikazarmark/Viper-example#main.go)
@@ -11,7 +12,7 @@
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/spf13/viper/ci.yaml?branch=master&style=flat-square)](https://github.com/spf13/viper/actions?query=workflow%3ACI)
 [![Join the chat at https://gitter.im/spf13/viper](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/spf13/viper?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Go Report Card](https://goreportcard.com/badge/github.com/spf13/viper?style=flat-square)](https://goreportcard.com/report/github.com/spf13/viper)
-![Go Version](https://img.shields.io/badge/go%20version-%3E=1.16-61CFDD.svg?style=flat-square)
+![Go Version](https://img.shields.io/badge/go%20version-%3E=1.21-61CFDD.svg?style=flat-square)
 [![PkgGoDev](https://pkg.go.dev/badge/mod/github.com/spf13/viper)](https://pkg.go.dev/mod/github.com/spf13/viper)
 
 **Go configuration with fangs!**
@@ -30,6 +31,7 @@ Many Go projects are built using Viper including:
 * [Meshery](https://github.com/meshery/meshery)
 * [Bearer](https://github.com/bearer/bearer)
 * [Coder](https://github.com/coder/coder)
+* [Vitess](https://vitess.io/)
 
 
 ## Install
@@ -38,7 +40,7 @@ Many Go projects are built using Viper including:
 go get github.com/spf13/viper
 ```
 
-**Note:** Viper uses [Go Modules](https://github.com/golang/go/wiki/Modules) to manage dependencies.
+**Note:** Viper uses [Go Modules](https://go.dev/wiki/Modules) to manage dependencies.
 
 
 ## What is Viper?
@@ -140,7 +142,7 @@ if err := viper.ReadInConfig(); err != nil {
 // Config file found and successfully parsed
 ```
 
-*NOTE [since 1.6]:* You can also have a file without an extension and specify the format programmaticaly. For those configuration files that lie in the home of the user without any extension like `.bashrc`
+*NOTE [since 1.6]:* You can also have a file without an extension and specify the format programmatically. For those configuration files that lie in the home of the user without any extension like `.bashrc`
 
 ### Writing Config Files
 
@@ -221,6 +223,7 @@ These could be from a command line flag, or from your own application logic.
 ```go
 viper.Set("Verbose", true)
 viper.Set("LogFile", LogFile)
+viper.Set("host.port", 5899)   // set subset
 ```
 
 ### Registering and Using Aliases
@@ -416,7 +419,9 @@ in a Key/Value store such as etcd or Consul.  These values take precedence over
 default values, but are overridden by configuration values retrieved from disk,
 flags, or environment variables.
 
-Viper uses [crypt](https://github.com/bketelsen/crypt) to retrieve
+Viper supports multiple hosts. To use, pass a list of endpoints separated by `;`. For example `http://127.0.0.1:4001;http://127.0.0.1:4002`.
+
+Viper uses [crypt](https://github.com/sagikazarmark/crypt) to retrieve
 configuration from the K/V store, which means that you can store your
 configuration values encrypted and have them automatically decrypted if you have
 the correct gpg keyring.  Encryption is optional.
@@ -428,7 +433,7 @@ independently of it.
 K/V store. `crypt` defaults to etcd on http://127.0.0.1:4001.
 
 ```bash
-$ go get github.com/bketelsen/crypt/bin/crypt
+$ go get github.com/sagikazarmark/crypt/bin/crypt
 $ crypt set -plaintext /config/hugo.json /Users/hugo/settings/config.json
 ```
 
@@ -487,6 +492,15 @@ err := viper.ReadRemoteConfig()
 
 Of course, you're allowed to use `SecureRemoteProvider` also
 
+
+#### NATS
+
+```go
+viper.AddRemoteProvider("nats", "nats://127.0.0.1:4222", "myapp.config")
+viper.SetConfigType("json")
+err := viper.ReadRemoteConfig()
+```
+
 ### Remote Key/Value Store Example - Encrypted
 
 ```go
@@ -534,23 +548,26 @@ go func(){
 In Viper, there are a few ways to get a value depending on the value’s type.
 The following functions and methods exist:
 
- * `Get(key string) : interface{}`
+ * `Get(key string) : any`
  * `GetBool(key string) : bool`
  * `GetFloat64(key string) : float64`
  * `GetInt(key string) : int`
  * `GetIntSlice(key string) : []int`
  * `GetString(key string) : string`
- * `GetStringMap(key string) : map[string]interface{}`
+ * `GetStringMap(key string) : map[string]any`
  * `GetStringMapString(key string) : map[string]string`
  * `GetStringSlice(key string) : []string`
  * `GetTime(key string) : time.Time`
  * `GetDuration(key string) : time.Duration`
  * `IsSet(key string) : bool`
- * `AllSettings() : map[string]interface{}`
+ * `AllSettings() : map[string]any`
 
 One important thing to recognize is that each Get function will return a zero
 value if it’s not found. To check if a given key exists, the `IsSet()` method
 has been provided.
+
+The zero value will also be returned if the value is set, but fails to parse
+as the requested type.
 
 Example:
 ```go
@@ -709,8 +726,8 @@ etc.
 
 There are two methods to do this:
 
- * `Unmarshal(rawVal interface{}) : error`
- * `UnmarshalKey(key string, rawVal interface{}) : error`
+ * `Unmarshal(rawVal any) : error`
+ * `UnmarshalKey(key string, rawVal any) : error`
 
 Example:
 
@@ -735,9 +752,9 @@ you have to change the delimiter:
 ```go
 v := viper.NewWithOptions(viper.KeyDelimiter("::"))
 
-v.SetDefault("chart::values", map[string]interface{}{
-	"ingress": map[string]interface{}{
-		"annotations": map[string]interface{}{
+v.SetDefault("chart::values", map[string]any{
+	"ingress": map[string]any{
+		"annotations": map[string]any{
 			"traefik.frontend.rule.type":                 "PathPrefix",
 			"traefik.ingress.kubernetes.io/ssl-redirect": "true",
 		},
@@ -746,7 +763,7 @@ v.SetDefault("chart::values", map[string]interface{}{
 
 type config struct {
 	Chart struct{
-		Values map[string]interface{}
+		Values map[string]any
 	}
 }
 
@@ -786,7 +803,7 @@ if err != nil {
 }
 ```
 
-Viper uses [github.com/mitchellh/mapstructure](https://github.com/mitchellh/mapstructure) under the hood for unmarshaling values which uses `mapstructure` tags by default.
+Viper uses [github.com/go-viper/mapstructure](https://github.com/go-viper/mapstructure) under the hood for unmarshaling values which uses `mapstructure` tags by default.
 
 ### Decoding custom formats
 
@@ -820,13 +837,15 @@ func yamlStringSettings() string {
 
 ## Viper or Vipers?
 
-Viper comes ready to use out of the box. There is no configuration or
-initialization needed to begin using Viper. Since most applications will want
-to use a single central repository for their configuration, the viper package
-provides this. It is similar to a singleton.
+Viper comes with a global instance (singleton) out of the box.
 
-In all of the examples above, they demonstrate using viper in its singleton
-style approach.
+Although it makes setting up configuration easy,
+using it is generally discouraged as it makes testing harder and can lead to unexpected behavior.
+
+The best practice is to initialize a Viper instance and pass that around when necessary.
+
+The global instance _MAY_ be deprecated in the future.
+See [#1855](https://github.com/spf13/viper/issues/1855) for more details.
 
 ### Working with multiple vipers
 
@@ -882,3 +901,31 @@ No, you will need to synchronize access to the viper yourself (for example by us
 ## Troubleshooting
 
 See [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+
+## Development
+
+**For an optimal developer experience, it is recommended to install [Nix](https://nixos.org/download.html) and [direnv](https://direnv.net/docs/installation.html).**
+
+_Alternatively, install [Go](https://go.dev/dl/) on your computer then run `make deps` to install the rest of the dependencies._
+
+Run the test suite:
+
+```shell
+make test
+```
+
+Run linters:
+
+```shell
+make lint # pass -j option to run them in parallel
+```
+
+Some linter violations can automatically be fixed:
+
+```shell
+make fmt
+```
+
+## License
+
+The project is licensed under the [MIT License](LICENSE).

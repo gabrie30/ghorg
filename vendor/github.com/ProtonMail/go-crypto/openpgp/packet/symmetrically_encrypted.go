@@ -21,20 +21,19 @@ type SymmetricallyEncrypted struct {
 	IntegrityProtected bool      // If true it is type 18 (with MDC or AEAD). False is packet type 9
 
 	// Specific to version 1
-	prefix   []byte
+	prefix []byte
 
 	// Specific to version 2
-	cipher CipherFunction
-	mode AEADMode
-	chunkSizeByte byte
-	salt [aeadSaltSize]byte
+	Cipher        CipherFunction
+	Mode          AEADMode
+	ChunkSizeByte byte
+	Salt          [aeadSaltSize]byte
 }
 
 const (
-	symmetricallyEncryptedVersionMdc = 1
+	symmetricallyEncryptedVersionMdc  = 1
 	symmetricallyEncryptedVersionAead = 2
 )
-
 
 func (se *SymmetricallyEncrypted) parse(r io.Reader) error {
 	if se.IntegrityProtected {
@@ -75,6 +74,10 @@ func (se *SymmetricallyEncrypted) Decrypt(c CipherFunction, key []byte) (io.Read
 // SerializeSymmetricallyEncrypted serializes a symmetrically encrypted packet
 // to w and returns a WriteCloser to which the to-be-encrypted packets can be
 // written.
+// If aeadSupported is set to true, SEIPDv2 is used with the indicated CipherSuite.
+// Otherwise, SEIPDv1 is used with the indicated CipherFunction.
+// Note: aeadSupported MUST match the value passed to SerializeEncryptedKeyAEAD
+// and/or SerializeSymmetricKeyEncryptedAEADReuseKey.
 // If config is nil, sensible defaults will be used.
 func SerializeSymmetricallyEncrypted(w io.Writer, c CipherFunction, aeadSupported bool, cipherSuite CipherSuite, key []byte, config *Config) (Contents io.WriteCloser, err error) {
 	writeCloser := noOpCloser{w}

@@ -16,7 +16,7 @@ type GitServiceType string
 const (
 	// GitServicePlain represents a plain git service
 	GitServicePlain GitServiceType = "git"
-	//GitServiceGithub represents github.com
+	// GitServiceGithub represents github.com
 	GitServiceGithub GitServiceType = "github"
 	// GitServiceGitlab represents a gitlab service
 	GitServiceGitlab GitServiceType = "gitlab"
@@ -62,7 +62,7 @@ func (opt *MigrateRepoOption) Validate(c *Client) error {
 	} else if len(opt.RepoName) > 100 {
 		return fmt.Errorf("RepoName to long")
 	}
-	if len(opt.Description) > 255 {
+	if len(opt.Description) > 2048 {
 		return fmt.Errorf("Description to long")
 	}
 	switch opt.Service {

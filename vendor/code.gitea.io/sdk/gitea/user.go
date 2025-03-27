@@ -17,6 +17,10 @@ type User struct {
 	ID int64 `json:"id"`
 	// the user's username
 	UserName string `json:"login"`
+	// The login_name of non local users (e.g. LDAP / OAuth / SMTP)
+	LoginName string `json:"login_name"`
+	// The ID of the Authentication Source for non local users.
+	SourceID int64 `json:"source_id"`
 	// the user's full name
 	FullName string `json:"full_name"`
 	Email    string `json:"email"`
@@ -77,7 +81,6 @@ func (c *Client) GetUserByID(id int64) (*User, *Response, error) {
 	query := make(url.Values)
 	query.Add("uid", strconv.FormatInt(id, 10))
 	users, resp, err := c.searchUsers(query.Encode())
-
 	if err != nil {
 		return nil, resp, err
 	}

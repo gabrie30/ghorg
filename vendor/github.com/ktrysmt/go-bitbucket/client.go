@@ -36,7 +36,7 @@ func apiBaseUrl() (*url.URL, error) {
 
 type Client struct {
 	Auth         *auth
-	Users        users
+	Users        *Users
 	User         user
 	Teams        teams
 	Repositories *Repositories
@@ -191,7 +191,10 @@ func injectClient(a *auth) *Client {
 		Downloads:          &Downloads{c: c},
 		DeployKeys:         &DeployKeys{c: c},
 	}
-	c.Users = &Users{c: c}
+	c.Users = &Users{
+		c: c,
+		SSHKeys:  &SSHKeys{c: c},
+	}
 	c.User = &User{c: c}
 	c.Teams = &Teams{c: c}
 	c.Workspaces = &Workspace{c: c, Repositories: c.Repositories, Permissions: &Permission{c: c}}
@@ -231,6 +234,10 @@ func (c *Client) executeRaw(method string, urlStr string, text string) (io.ReadC
 }
 
 func (c *Client) execute(method string, urlStr string, text string) (interface{}, error) {
+	return c.executeWithContext(method, urlStr, text, context.Background())
+}
+
+func (c *Client) executeWithContext(method string, urlStr string, text string, ctx context.Context) (interface{}, error) {
 	body := strings.NewReader(text)
 	req, err := http.NewRequest(method, urlStr, body)
 	if err != nil {
@@ -239,7 +246,9 @@ func (c *Client) execute(method string, urlStr string, text string) (interface{}
 	if text != "" {
 		req.Header.Set("Content-Type", "application/json")
 	}
-
+	if ctx != nil {
+		req.WithContext(ctx)
+	}
 	c.authenticateRequest(req)
 	result, err := c.doRequest(req, false)
 	if err != nil {
@@ -279,28 +288,37 @@ func (c *Client) executePaginated(method string, urlStr string, text string, pag
 	return result, nil
 }
 
-func (c *Client) executeFileUpload(method string, urlStr string, filePath string, fileName string, fieldname string, params map[string]string) (interface{}, error) {
-	fileReader, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer fileReader.Close()
-
+func (c *Client) executeFileUpload(method string, urlStr string, files []File, filesToDelete []string, params map[string]string, ctx context.Context) (interface{}, error) {
 	// Prepare a form that you will submit to that URL.
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 
 	var fw io.Writer
-	if fw, err = w.CreateFormFile(fieldname, fileName); err != nil {
-		return nil, err
-	}
+	for _, file := range files {
+		fileReader, err := os.Open(file.Path)
+		if err != nil {
+			return nil, err
+		}
+		defer fileReader.Close()
 
-	if _, err = io.Copy(fw, fileReader); err != nil {
-		return nil, err
+		if fw, err = w.CreateFormFile(file.Name, file.Name); err != nil {
+			return nil, err
+		}
+
+		if _, err = io.Copy(fw, fileReader); err != nil {
+			return nil, err
+		}
 	}
 
 	for key, value := range params {
-		err = w.WriteField(key, value)
+		err := w.WriteField(key, value)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, filename := range filesToDelete {
+		err := w.WriteField("files", filename)
 		if err != nil {
 			return nil, err
 		}
@@ -317,7 +335,9 @@ func (c *Client) executeFileUpload(method string, urlStr string, filePath string
 	}
 	// Don't forget to set the content type, this will contain the boundary.
 	req.Header.Set("Content-Type", w.FormDataContentType())
-
+	if ctx != nil {
+		req.WithContext(ctx)
+	}
 	c.authenticateRequest(req)
 	return c.doRequest(req, true)
 

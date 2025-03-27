@@ -2,6 +2,7 @@ package limiter
 
 import (
 	"errors"
+	"fmt"
 	"sync/atomic"
 )
 
@@ -12,7 +13,8 @@ const (
 
 var (
 	// appending a callback to a closed limiter
-	ErrorClosed = errors.New("limiter closed")
+	ErrorClosed          = errors.New("limiter closed")
+	ErrorSubroutinePanic = errors.New("goroutine panic")
 )
 
 // ConcurrencyLimiter object
@@ -20,6 +22,7 @@ type ConcurrencyLimiter struct {
 	limit         int
 	tickets       chan int
 	numInProgress int32
+	RecoverPanics bool // recover from panics in the subroutines (keeping the process running)
 }
 
 // NewConcurrencyLimiter allocates a new ConcurrencyLimiter
@@ -55,10 +58,20 @@ func (c *ConcurrencyLimiter) Execute(job func()) (int, error) {
 		defer func() {
 			c.tickets <- ticket
 			atomic.AddInt32(&c.numInProgress, -1)
+
+			if c.RecoverPanics {
+				if r := recover(); r != nil {
+					err := ErrorSubroutinePanic
+					fmt.Println("ERROR: PANIC: ", r, "err:", err, "- recovering")
+				}
+			}
 		}()
 
-		// run the job
-		job()
+		// execute the job
+		if job != nil {
+			job()
+		}
+
 	}()
 	return ticket, nil
 }
@@ -77,6 +90,13 @@ func (c *ConcurrencyLimiter) ExecuteWithTicket(job func(ticket int)) (int, error
 		defer func() {
 			c.tickets <- ticket
 			atomic.AddInt32(&c.numInProgress, -1)
+
+			if c.RecoverPanics {
+				if r := recover(); r != nil {
+					err := ErrorSubroutinePanic
+					fmt.Println("ERROR: PANIC: ", r, "err:", err, "- recovering")
+				}
+			}
 		}()
 
 		// run the job

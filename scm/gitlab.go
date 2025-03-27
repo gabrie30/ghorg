@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
-	gitlab "github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 var (
