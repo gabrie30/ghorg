@@ -479,3 +479,8 @@ Alternatively, Windows users can also install ghorg using [scoop](https://scoop.
 - Check for other software, such as anti-malware, that could interfere with ghorgs ability to create large number of connections, see [issue 132](https://github.com/gabrie30/ghorg/issues/132#issuecomment-889357960). You can also lower the concurrency with `--concurrency=n` default is 25.
 - To debug yourself you can call ghorg with the GHORG_DEBUG=true env e.g `GHORG_DEBUG=true ghorg clone kubernetes`. Note, when this env is set concurrency is set to a value of 1 and will expose the api key used to stdout.
 - If you've gotten this far and still have an issue feel free to raise an issue
+- If you’re cloning using https, but you have submodules which are configured to use ssh, you can force git to pull these submodules as well via https by running these commands before running ghorg:
+  ```
+  git config --global url."https://github.com/".insteadOf git@github.com:
+  git config --global credential.https://github.com/.helper '! f() { echo username=x-access-token; echo password=$GHORG_GITHUB_TOKEN; };f'
+  ```
