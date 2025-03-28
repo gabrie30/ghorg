@@ -311,20 +311,78 @@ This will show:
 5. **Push commits** before enabling sync to avoid conflicts
 6. **Test sync behavior** in non-production environments first
 
+## Go-Git Implementation & CLI Fallback
+
+### Current Architecture
+
+ghorg includes a secondary Git implementation using the go-git library in addition to the primary CLI-based implementation. This provides flexibility and demonstrates different approaches to Git operations:
+
+- **Primary**: `GitClient` (CLI-based) - Production implementation in `git.go`
+- **Secondary**: `GoGitClient` (go-git library) - Alternative implementation in `gogit.go`
+
+### Go-Git Filter Fallback
+
+The go-git implementation automatically falls back to the git CLI when filtering is requested, since go-git v5 does not support native filtering:
+
+- **Without filtering**: Uses go-git for faster cloning without shell dependencies
+- **With filtering**: Automatically falls back to git CLI for proper filter support
+
+When `GHORG_GIT_FILTER` is set, the `GoGitClient` will:
+1. Detect the filter environment variable
+2. Log the fallback (if `GHORG_DEBUG` is enabled)
+3. Use the `GitClient` implementation for proper filter support
+
+### Migration to go-git v6
+
+When go-git v6 becomes stable with native filter support in `CloneOptions`, the migration path is:
+
+1. **Update** `gogit.go`:
+   - Add back `"github.com/go-git/go-git/v6/plumbing/protocol/packp"` import
+   - Replace the filter fallback section in the `Clone` method with:
+     ```go
+     // Use native go-git v6 filter support
+     if gitFilter != "" {
+         filter, err := parseGitFilterToPackpFilter(gitFilter)
+         if err == nil && filter != "" {
+             cloneOptions.Filter = filter // v6 native support
+             if os.Getenv("GHORG_DEBUG") != "" {
+                 fmt.Printf("Using native go-git v6 filter: %s\n", filter)
+             }
+         }
+     }
+     ```
+2. **Add** native `parseGitFilterToPackpFilter` function back to `gogit.go`
+3. **Remove** CLI fallback logic
+4. **Update** dependencies to go-git v6
+
+This architecture ensures a clean migration path while maintaining full filter functionality with the current go-git v5 limitations.
+
+### Filter Support Matrix
+
+| Filter Type | CLI Implementation | go-git v5 | go-git v6 (Future) |
+|-------------|-------------------|-----------|-------------------|
+| `blob:none` | ✅ Native | ⚠️ CLI Fallback | ✅ Native |
+| `blob:limit=<size>` | ✅ Native | ⚠️ CLI Fallback | ✅ Native |
+| `tree:<depth>` | ✅ Native | ⚠️ CLI Fallback | ✅ Native |
+| Combined filters | ✅ Native | ⚠️ CLI Fallback | ✅ Native |
+
 ## Package Structure
 
 ```
 git/
-├── git.go           # Gitter interface and GitClient implementation
+├── git.go           # Gitter interface and GitClient implementation (CLI-based)
+├── gogit.go         # GoGitClient implementation (go-git library-based)
 ├── sync.go          # Sync functionality implementation
 ├── git_test.go      # Unit tests for git.go methods
+├── gogit_test.go    # Unit tests for gogit.go methods
 ├── sync_test.go     # Integration tests for sync functionality
 └── README.md        # This documentation
 ```
 
 ### Key Files
 
-- **`git.go`**: Defines the `Gitter` interface and provides the `GitClient` implementation with all core Git operations
+- **`git.go`**: Defines the `Gitter` interface and provides the `GitClient` implementation with all core Git operations (CLI-based)
+- **`gogit.go`**: Provides the `GoGitClient` implementation using the go-git library (alternative implementation with CLI fallback for filtering)
 - **`sync.go`**: Contains the `SyncDefaultBranch` method implementation with safety checks and sync logic
 - **Test files**: Comprehensive test coverage ensuring reliability and maintainability
 

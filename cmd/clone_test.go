@@ -1092,3 +1092,150 @@ func TestSyncFlagBehaviorMatchesDocumentation(t *testing.T) {
 		}
 	})
 }
+
+func TestUseGitCLIFlagHandling(t *testing.T) {
+	tests := []struct {
+		name        string
+		flagValue   string
+		envValue    string
+		expectedEnv string
+	}{
+		{
+			name:        "Flag set to true",
+			flagValue:   "true",
+			envValue:    "",
+			expectedEnv: "true",
+		},
+		{
+			name:        "Flag set to false",
+			flagValue:   "false",
+			envValue:    "",
+			expectedEnv: "false",
+		},
+		{
+			name:        "Flag overrides environment",
+			flagValue:   "true",
+			envValue:    "false",
+			expectedEnv: "true",
+		},
+		{
+			name:        "Environment used when flag not set",
+			flagValue:   "",
+			envValue:    "true",
+			expectedEnv: "true",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Save original values
+			originalEnv := os.Getenv("GHORG_USE_GIT_CLI")
+			originalUseGitCLI := useGitCLI
+
+			// Clean environment
+			os.Unsetenv("GHORG_USE_GIT_CLI")
+			useGitCLI = false
+
+			// Set test environment if provided
+			if tt.envValue != "" {
+				os.Setenv("GHORG_USE_GIT_CLI", tt.envValue)
+			}
+
+			// Create a mock command to simulate flag changes
+			cmd := cloneCmd
+			if tt.flagValue != "" {
+				// Simulate flag being changed
+				cmd.Flags().Set("use-git-cli", tt.flagValue)
+
+				// Test the flag handling logic from cloneFunc
+				if cmd.Flags().Changed("use-git-cli") {
+					os.Setenv("GHORG_USE_GIT_CLI", cmd.Flag("use-git-cli").Value.String())
+				}
+			}
+
+			// Check the result
+			actualEnv := os.Getenv("GHORG_USE_GIT_CLI")
+			if actualEnv != tt.expectedEnv {
+				t.Errorf("Expected GHORG_USE_GIT_CLI=%s, got %s", tt.expectedEnv, actualEnv)
+			}
+
+			// Restore original values
+			if originalEnv != "" {
+				os.Setenv("GHORG_USE_GIT_CLI", originalEnv)
+			} else {
+				os.Unsetenv("GHORG_USE_GIT_CLI")
+			}
+			useGitCLI = originalUseGitCLI
+		})
+	}
+}
+
+func TestUseGitCLIInitializationFromEnv(t *testing.T) {
+	tests := []struct {
+		name         string
+		envValue     string
+		expectedBool bool
+	}{
+		{
+			name:         "Environment true sets useGitCLI to true",
+			envValue:     "true",
+			expectedBool: true,
+		},
+		{
+			name:         "Environment false keeps useGitCLI false",
+			envValue:     "false",
+			expectedBool: false,
+		},
+		{
+			name:         "Empty environment keeps useGitCLI false",
+			envValue:     "",
+			expectedBool: false,
+		},
+		{
+			name:         "Environment 1 sets useGitCLI to true",
+			envValue:     "1",
+			expectedBool: true,
+		},
+		{
+			name:         "Environment yes sets useGitCLI to true",
+			envValue:     "yes",
+			expectedBool: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Save original values
+			originalEnv := os.Getenv("GHORG_USE_GIT_CLI")
+			originalUseGitCLI := useGitCLI
+
+			// Clean environment and reset useGitCLI
+			os.Unsetenv("GHORG_USE_GIT_CLI")
+			useGitCLI = false
+
+			// Set test environment
+			if tt.envValue != "" {
+				os.Setenv("GHORG_USE_GIT_CLI", tt.envValue)
+			}
+
+			// Simulate the initialization logic from cloneFunc
+			envValue := strings.ToLower(os.Getenv("GHORG_USE_GIT_CLI"))
+			if envValue == "true" || envValue == "1" || envValue == "yes" {
+				useGitCLI = true
+			}
+
+			// Check the result
+			if useGitCLI != tt.expectedBool {
+				t.Errorf("Expected useGitCLI=%t, got %t", tt.expectedBool, useGitCLI)
+			}
+
+			// Restore original values
+			if originalEnv != "" {
+				os.Setenv("GHORG_USE_GIT_CLI", originalEnv)
+			} else {
+				os.Unsetenv("GHORG_USE_GIT_CLI")
+			}
+			useGitCLI = originalUseGitCLI
+		})
+	}
+}

@@ -717,7 +717,7 @@ func TestIsDefaultBranchBehindHead(t *testing.T) {
 		t.Skip("git CLI not available, skipping test")
 	}
 
-	client := NewGit()
+	client := NewGit(true)
 
 	t.Run("Default branch not behind when on same branch", func(t *testing.T) {
 		tempDir, err := createTestRepo(t)
@@ -908,7 +908,7 @@ func TestMergeIntoDefaultBranch(t *testing.T) {
 		t.Skip("git CLI not available, skipping test")
 	}
 
-	client := NewGit()
+	client := NewGit(true)
 
 	t.Run("Successful fast-forward merge", func(t *testing.T) {
 		tempDir, err := createTestRepo(t)

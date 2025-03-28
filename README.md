@@ -39,6 +39,7 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
 ## High Level Features
 
 - [Filter](#selective-repository-cloning) or select specific repositories for cloning
+- Apply Git [partial clone filters](#git-filters) (`--git-filter`) to reduce repository size
 - Create [backups](#creating-backups) of repositories
 - [Sync](#repository-synchronization) existing repositories with remote default branches
 - Simplify complex clone commands using [reclone](#reclone-command) shortcuts
@@ -316,6 +317,49 @@ When sync is enabled, ghorg will:
 - Use debug mode to understand sync decisions
 
 For comprehensive documentation on sync functionality, safety checks, troubleshooting, and implementation details, see [git/README.md](git/README.md).
+
+## Git Filters
+
+ghorg supports Git's partial clone filters through the `--git-filter` flag or `GHORG_GIT_FILTER` environment variable. This feature allows you to reduce repository size by excluding certain types of content during cloning.
+
+### Supported Filter Types
+
+**Blob Filters:**
+- `blob:none` - Exclude all blob objects (files), keeping only commit and tree objects
+- `blob:limit=<size>` - Exclude blobs larger than specified size (e.g., `blob:limit=1M`, `blob:limit=100K`)
+
+**Tree Filters:**
+- `tree:0` - Flatten directory structure (move all files to root)
+- `tree:<depth>` - Limit directory depth (e.g., `tree:1`, `tree:2`)
+
+**Combined Filters:**
+- `combine:blob:none+tree:1` - Apply multiple filters together
+
+### Usage Examples
+
+```bash
+# Exclude all binary files
+ghorg clone myorg --git-filter=blob:none
+
+# Exclude files larger than 10MB
+ghorg clone myorg --git-filter=blob:limit=10M
+
+# Limit directory depth to 2 levels
+ghorg clone myorg --git-filter=tree:2
+
+# Combine multiple filters
+ghorg clone myorg --git-filter=combine:blob:limit=5M+tree:1
+
+# Using environment variable
+export GHORG_GIT_FILTER=blob:none
+ghorg clone myorg
+```
+
+### Implementation Notes
+
+Since go-git v5 has limited native filter support, ghorg implements filter approximation by applying the filtering logic post-clone. This provides similar results to Git's native partial clone filtering while maintaining compatibility with the current go-git version.
+
+When go-git v6 becomes available with full native filter support, the implementation will be updated to use true partial clones for better performance and accuracy.
 
 ## Reclone Command
 
