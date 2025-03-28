@@ -32,8 +32,11 @@ type Gitter interface {
 
 type GitClient struct{}
 
-func NewGit() GitClient {
-	return GitClient{}
+func NewGit(useGitCLI bool) Gitter {
+	if useGitCLI {
+		return &GitClient{}
+	}
+	return &GoGitClient{}
 }
 
 func printDebugCmd(cmd *exec.Cmd, repo scm.Repo) error {
@@ -53,7 +56,7 @@ func printDebugCmd(cmd *exec.Cmd, repo scm.Repo) error {
 	return err
 }
 
-func (g GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
+func (g *GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
 	cmd := exec.Command("git", "ls-remote", "--heads", "--quiet", "--exit-code")
 	cmd.Dir = repo.HostPath
 
@@ -80,10 +83,9 @@ func (g GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
 		// another exit code, simply return err
 		return false, err
 	}
-
 }
 
-func (g GitClient) Clone(repo scm.Repo) error {
+func (g *GitClient) Clone(repo scm.Repo) error {
 	args := []string{"clone", repo.CloneURL, repo.HostPath}
 
 	if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
@@ -114,11 +116,26 @@ func (g GitClient) Clone(repo scm.Repo) error {
 		return printDebugCmd(cmd, repo)
 	}
 
-	err := cmd.Run()
-	return err
+	return cmd.Run()
 }
 
-func (g GitClient) SetOriginWithCredentials(repo scm.Repo) error {
+func (g *GitClient) SetOriginWithCredentials(repo scm.Repo) error {
+	// First check if origin remote exists
+	checkCmd := exec.Command("git", "remote", "get-url", "origin")
+	checkCmd.Dir = repo.HostPath
+
+	if err := checkCmd.Run(); err != nil {
+		// Origin doesn't exist, add it
+		args := []string{"remote", "add", "origin", repo.CloneURL}
+		cmd := exec.Command("git", args...)
+		cmd.Dir = repo.HostPath
+		if os.Getenv("GHORG_DEBUG") != "" {
+			return printDebugCmd(cmd, repo)
+		}
+		return cmd.Run()
+	}
+
+	// Origin exists, set its URL
 	args := []string{"remote", "set-url", "origin", repo.CloneURL}
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath
@@ -128,7 +145,23 @@ func (g GitClient) SetOriginWithCredentials(repo scm.Repo) error {
 	return cmd.Run()
 }
 
-func (g GitClient) SetOrigin(repo scm.Repo) error {
+func (g *GitClient) SetOrigin(repo scm.Repo) error {
+	// First check if origin remote exists
+	checkCmd := exec.Command("git", "remote", "get-url", "origin")
+	checkCmd.Dir = repo.HostPath
+
+	if err := checkCmd.Run(); err != nil {
+		// Origin doesn't exist, add it
+		args := []string{"remote", "add", "origin", repo.URL}
+		cmd := exec.Command("git", args...)
+		cmd.Dir = repo.HostPath
+		if os.Getenv("GHORG_DEBUG") != "" {
+			return printDebugCmd(cmd, repo)
+		}
+		return cmd.Run()
+	}
+
+	// Origin exists, set its URL
 	args := []string{"remote", "set-url", "origin", repo.URL}
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath
@@ -138,7 +171,7 @@ func (g GitClient) SetOrigin(repo scm.Repo) error {
 	return cmd.Run()
 }
 
-func (g GitClient) Checkout(repo scm.Repo) error {
+func (g *GitClient) Checkout(repo scm.Repo) error {
 	cmd := exec.Command("git", "checkout", repo.CloneBranch)
 	cmd.Dir = repo.HostPath
 
@@ -149,7 +182,7 @@ func (g GitClient) Checkout(repo scm.Repo) error {
 	return cmd.Run()
 }
 
-func (g GitClient) Clean(repo scm.Repo) error {
+func (g *GitClient) Clean(repo scm.Repo) error {
 	cmd := exec.Command("git", "clean", "-f", "-d")
 	cmd.Dir = repo.HostPath
 	if os.Getenv("GHORG_DEBUG") != "" {
@@ -158,7 +191,7 @@ func (g GitClient) Clean(repo scm.Repo) error {
 	return cmd.Run()
 }
 
-func (g GitClient) UpdateRemote(repo scm.Repo) error {
+func (g *GitClient) UpdateRemote(repo scm.Repo) error {
 	cmd := exec.Command("git", "remote", "update")
 	cmd.Dir = repo.HostPath
 	if os.Getenv("GHORG_DEBUG") != "" {
@@ -167,7 +200,7 @@ func (g GitClient) UpdateRemote(repo scm.Repo) error {
 	return cmd.Run()
 }
 
-func (g GitClient) Pull(repo scm.Repo) error {
+func (g *GitClient) Pull(repo scm.Repo) error {
 	args := []string{"pull", "origin", repo.CloneBranch}
 
 	if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
@@ -192,7 +225,7 @@ func (g GitClient) Pull(repo scm.Repo) error {
 	return cmd.Run()
 }
 
-func (g GitClient) Reset(repo scm.Repo) error {
+func (g *GitClient) Reset(repo scm.Repo) error {
 	cmd := exec.Command("git", "reset", "--hard", "origin/"+repo.CloneBranch)
 	cmd.Dir = repo.HostPath
 	if os.Getenv("GHORG_DEBUG") != "" {
@@ -201,7 +234,7 @@ func (g GitClient) Reset(repo scm.Repo) error {
 	return cmd.Run()
 }
 
-func (g GitClient) FetchAll(repo scm.Repo) error {
+func (g *GitClient) FetchAll(repo scm.Repo) error {
 	args := []string{"fetch", "--all"}
 
 	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
@@ -217,7 +250,7 @@ func (g GitClient) FetchAll(repo scm.Repo) error {
 	return cmd.Run()
 }
 
-func (g GitClient) Branch(repo scm.Repo) (string, error) {
+func (g *GitClient) Branch(repo scm.Repo) (string, error) {
 	args := []string{"branch"}
 
 	cmd := exec.Command("git", args...)
@@ -237,7 +270,7 @@ func (g GitClient) Branch(repo scm.Repo) (string, error) {
 }
 
 // RevListCompare returns the list of commits in the local branch that are not in the remote branch.
-func (g GitClient) RevListCompare(repo scm.Repo, localBranch string, remoteBranch string) (string, error) {
+func (g *GitClient) RevListCompare(repo scm.Repo, localBranch string, remoteBranch string) (string, error) {
 	cmd := exec.Command("git", "-C", repo.HostPath, "rev-list", localBranch, "^"+remoteBranch)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -246,7 +279,7 @@ func (g GitClient) RevListCompare(repo scm.Repo, localBranch string, remoteBranc
 	return strings.TrimSpace(string(output)), nil
 }
 
-func (g GitClient) FetchCloneBranch(repo scm.Repo) error {
+func (g *GitClient) FetchCloneBranch(repo scm.Repo) error {
 	args := []string{"fetch", "origin", repo.CloneBranch}
 
 	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
@@ -262,7 +295,7 @@ func (g GitClient) FetchCloneBranch(repo scm.Repo) error {
 	return cmd.Run()
 }
 
-func (g GitClient) ShortStatus(repo scm.Repo) (string, error) {
+func (g *GitClient) ShortStatus(repo scm.Repo) (string, error) {
 	args := []string{"status", "--short"}
 
 	cmd := exec.Command("git", args...)
@@ -281,7 +314,7 @@ func (g GitClient) ShortStatus(repo scm.Repo) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func (g GitClient) RepoCommitCount(repo scm.Repo) (int, error) {
+func (g *GitClient) RepoCommitCount(repo scm.Repo) (int, error) {
 	args := []string{"rev-list", "--count", repo.CloneBranch, "--"}
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath

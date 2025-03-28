@@ -53,6 +53,12 @@ GHORG_PRESERVE_SCM_HOSTNAME: false
 # flag (--git-filter) eg: --git-filter=blob:none
 GHORG_GIT_FILTER:
 
+# Use the git CLI for cloning instead of the internal git library (go-git).
+# This is useful for debugging, testing purposes, or when you need full git CLI functionality.
+# The CLI implementation may be more compatible with complex git configurations and edge cases.
+# flag (--use-git-cli)
+GHORG_USE_GIT_CLI: false
+
 # Deletes all files/directories found in your local clone directory that are not found on the remote (e.g., after remote deletion).  With GHORG_SKIP_ARCHIVED set, archived repositories will also be pruned from your local clone.
 # Will prompt before deleting any files unless used in combination with --prune-no-confirm
 # flag (--prune)

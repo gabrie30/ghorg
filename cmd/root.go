@@ -75,6 +75,7 @@ var (
 	ghorgPreserveScmHostname     bool
 	ghorgPruneUntouched          bool
 	ghorgPruneUntouchedNoConfirm bool
+	useGitCLI                    bool
 	cloneErrors                  []string
 	cloneInfos                   []string
 )
@@ -219,6 +220,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "1")
 		case "GHORG_GITHUB_TOKEN_FROM_GITHUB_APP":
 			os.Setenv(envVar, "false")
+		case "GHORG_USE_GIT_CLI":
+			os.Setenv(envVar, "false")
 		}
 	} else {
 		s := viper.GetString(envVar)
@@ -336,6 +339,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_GITHUB_APP_PEM_PATH")
 	getOrSetDefaults("GHORG_GITHUB_APP_INSTALLATION_ID")
 	getOrSetDefaults("GHORG_GITHUB_APP_ID")
+	getOrSetDefaults("GHORG_USE_GIT_CLI")
 
 	if os.Getenv("GHORG_DEBUG") != "" {
 		viper.Debug()
@@ -355,6 +359,7 @@ func init() {
 
 	_ = viper.BindPFlag("color", rootCmd.PersistentFlags().Lookup("color"))
 	_ = viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
+	_ = viper.BindPFlag("use-git-cli", cloneCmd.Flags().Lookup("use-git-cli"))
 
 	cloneCmd.Flags().StringVar(&targetReposPath, "target-repos-path", "", "GHORG_TARGET_REPOS_PATH - Path to file with list of repo names to clone, file should contain one repo name per line")
 	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "GHORG_CLONE_PROTOCOL - Protocol to clone with, ssh or https, (default https)")
@@ -385,6 +390,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&ghorgPreserveScmHostname, "preserve-scm-hostname", false, "GHORG_PRESERVE_SCM_HOSTNAME - Appends the scm hostname to the GHORG_ABSOLUTE_PATH_TO_CLONE_TO which will organize your clones into specific folders by the scm provider. e.g. /github.com/kuberentes")
 	cloneCmd.Flags().BoolVar(&ghorgPruneUntouched, "prune-untouched", false, "GHORG_PRUNE_UNTOUCHED - Prune repositories that don't have any local changes, see sample-conf.yaml for more details")
 	cloneCmd.Flags().BoolVar(&ghorgPruneUntouchedNoConfirm, "prune-untouched-no-confirm", false, "GHORG_PRUNE_UNTOUCHED_NO_CONFIRM - Automatically delete repos without showing an interactive confirmation prompt.")
+	cloneCmd.Flags().BoolVar(&useGitCLI, "use-git-cli", false, "GHORG_USE_GIT_CLI - Use the git CLI for cloning instead of the internal git library. This is useful for debugging and testing purposes.")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - Change SCM base url, for on self hosted instances (currently gitlab, gitea and github (use format of https://git.mydomain.com/api/v3))")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - Max goroutines to spin up while cloning (default 25)")
 	cloneCmd.Flags().StringVarP(&cloneDepth, "clone-depth", "", "", "GHORG_CLONE_DEPTH - Create a shallow clone with a history truncated to the specified number of commits")

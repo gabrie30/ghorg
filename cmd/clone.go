@@ -168,6 +168,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_GIT_FILTER", filter)
 	}
 
+	if cmd.Flags().Changed("use-git-cli") {
+		os.Setenv("GHORG_USE_GIT_CLI", cmd.Flag("use-git-cli").Value.String())
+	}
+
 	if cmd.Flags().Changed("preserve-scm-hostname") {
 		os.Setenv("GHORG_PRESERVE_SCM_HOSTNAME", "true")
 	}
@@ -299,6 +303,14 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Exit(1)
 	}
 
+	// Initialize useGitCLI from environment variable if not set by flag
+	if !cmd.Flags().Changed("use-git-cli") {
+		envValue := strings.ToLower(os.Getenv("GHORG_USE_GIT_CLI"))
+		if envValue == "true" || envValue == "1" || envValue == "yes" {
+			useGitCLI = true
+		}
+	}
+
 	if os.Getenv("GHORG_PRESERVE_SCM_HOSTNAME") == "true" {
 		updateAbsolutePathToCloneToWithHostname()
 	}
@@ -332,7 +344,7 @@ func setupRepoClone() {
 		colorlog.PrintInfo("No repos found for " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + targetCloneSource + ", please verify you have sufficient permissions to clone target repos, double check spelling and try again.")
 		os.Exit(0)
 	}
-	git := git.NewGit()
+	git := git.NewGit(useGitCLI)
 	CloneAllRepos(git, cloneTargets)
 }
 
