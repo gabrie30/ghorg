@@ -250,7 +250,7 @@ func (g GitClient) ShortStatus(repo scm.Repo) (string, error) {
 }
 
 func (g GitClient) RepoCommitCount(repo scm.Repo) (int, error) {
-	args := []string{"rev-list", "--count", repo.CloneBranch}
+	args := []string{"rev-list", "--count", repo.CloneBranch, "--"}
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath
 
