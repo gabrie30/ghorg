@@ -13,6 +13,7 @@ import (
 func TestShouldLowerRegularString(t *testing.T) {
 
 	upperName := "RepoName"
+	defer setOutputDirName([]string{""})
 	setOutputDirName([]string{upperName})
 
 	if outputDirName != "reponame" {
@@ -23,6 +24,7 @@ func TestShouldLowerRegularString(t *testing.T) {
 func TestShouldNotChangeLowerCasedRegularString(t *testing.T) {
 
 	lowerName := "repo_name"
+	defer setOutputDirName([]string{""})
 	setOutputDirName([]string{lowerName})
 
 	if outputDirName != "repo_name" {
@@ -34,6 +36,7 @@ func TestReplaceDashWithUnderscore(t *testing.T) {
 
 	want := "repo-name"
 	lowerName := "repo-name"
+	defer setOutputDirName([]string{""})
 	setOutputDirName([]string{lowerName})
 
 	if outputDirName != want {
@@ -44,6 +47,7 @@ func TestReplaceDashWithUnderscore(t *testing.T) {
 func TestShouldNotChangeNonLettersString(t *testing.T) {
 
 	numberName := "1234567_8"
+	defer setOutputDirName([]string{""})
 	setOutputDirName([]string{numberName})
 
 	if outputDirName != "1234567_8" {
