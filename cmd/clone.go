@@ -1032,24 +1032,29 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		writeGhorgStats(date, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount, hasCollisions)
 	}
 
-	if os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS") != "0" && cloneInfosCount > 0 {
-		exitCode, err := strconv.Atoi(os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS"))
-		if err != nil {
-			colorlog.PrintError("Could not convert GHORG_EXIT_CODE_ON_CLONE_INFOS from string to integer")
-			os.Exit(1)
-		}
+	if os.Getenv("GHORG_DONT_EXIT_UNDER_TEST") != "true" {
+		if os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS") != "0" && cloneInfosCount > 0 {
+			exitCode, err := strconv.Atoi(os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS"))
+			if err != nil {
+				colorlog.PrintError("Could not convert GHORG_EXIT_CODE_ON_CLONE_INFOS from string to integer")
+				os.Exit(1)
+			}
 
-		os.Exit(exitCode)
+			os.Exit(exitCode)
+		}
 	}
 
-	if cloneErrorsCount > 0 {
-		exitCode, err := strconv.Atoi(os.Getenv("GHORG_EXIT_CODE_ON_CLONE_ISSUES"))
-		if err != nil {
-			colorlog.PrintError("Could not convert GHORG_EXIT_CODE_ON_CLONE_ISSUES from string to integer")
-			os.Exit(1)
+	if os.Getenv("GHORG_DONT_EXIT_UNDER_TEST") != "true" {
+		if cloneErrorsCount > 0 {
+			exitCode, err := strconv.Atoi(os.Getenv("GHORG_EXIT_CODE_ON_CLONE_ISSUES"))
+			if err != nil {
+				colorlog.PrintError("Could not convert GHORG_EXIT_CODE_ON_CLONE_ISSUES from string to integer")
+				os.Exit(1)
+			}
+			os.Exit(exitCode)
 		}
-
-		os.Exit(exitCode)
+	} else {
+		cloneErrorsCount = 0
 	}
 
 }
