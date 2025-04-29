@@ -1,6 +1,7 @@
 package git
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -26,6 +27,7 @@ type Gitter interface {
 	FetchAll(scm.Repo) error
 	FetchCloneBranch(scm.Repo) error
 	RepoCommitCount(scm.Repo) (int, error)
+	HasRemoteHeads(scm.Repo) (bool, error)
 }
 
 type GitClient struct{}
@@ -49,6 +51,35 @@ func printDebugCmd(cmd *exec.Cmd, repo scm.Repo) error {
 		fmt.Printf("Error: %v\n", err)
 	}
 	return err
+}
+
+func (g GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
+	cmd := exec.Command("git", "ls-remote", "--heads", "--quiet", "--exit-code")
+
+	err := cmd.Run()
+	if err == nil {
+		// successfully listed the remote heads
+		return true, nil
+	}
+
+	var exitError *exec.ExitError
+	if !errors.As(err, &exitError) {
+		// error, but no exit code, return err
+		return false, err
+	}
+
+	exitCode := exitError.ExitCode()
+	if exitCode == 0 {
+		// ls-remote did successfully list the remote heads
+		return true, nil
+	} else if exitCode == 2 {
+		// repository is empty
+		return false, nil
+	} else {
+		// another exit code, simply return err
+		return false, err
+	}
+
 }
 
 func (g GitClient) Clone(repo scm.Repo) error {

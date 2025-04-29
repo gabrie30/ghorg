@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"log"
 	"os"
 	"reflect"
@@ -61,6 +62,13 @@ func NewMockGit() MockGitClient {
 	return MockGitClient{}
 }
 
+func (g MockGitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
+	if repo.Name == "testRepoEmpty" {
+		return false, nil
+	}
+	return true, nil
+}
+
 func (g MockGitClient) Clone(repo scm.Repo) error {
 	_, err := os.MkdirTemp(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), repo.Name)
 	if err != nil {
@@ -78,6 +86,9 @@ func (g MockGitClient) SetOriginWithCredentials(repo scm.Repo) error {
 }
 
 func (g MockGitClient) Checkout(repo scm.Repo) error {
+	if repo.Name == "testRepoEmpty" {
+		return errors.New("Cannot checkout any specific branch in an empty repository")
+	}
 	return nil
 }
 
@@ -145,6 +156,49 @@ func TestInitialClone(t *testing.T) {
 	expected := len(testRepos)
 	if len(got) != expected {
 		t.Errorf("Wrong number of repos in clone, expected: %v, got: %v", expected, got)
+	}
+}
+
+func TestCloneEmptyRepo(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	dir, err := os.MkdirTemp("", "ghorg_test_empty_repo")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	setOuputDirAbsolutePath()
+
+	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+
+	// simulate a previous clone of empty git repository
+	repoErr := os.Mkdir(outputDirAbsolutePath+"/"+"testRepoEmpty", 0o700)
+	if repoErr != nil {
+		log.Fatal(repoErr)
+	}
+	defer os.RemoveAll(outputDirAbsolutePath + "/" + "testRepoEmpty")
+
+	os.Setenv("GHORG_CONCURRENCY", "1")
+	var testRepos = []scm.Repo{
+		{
+			Name:        "testRepoEmpty",
+			URL:         "git@github.com:org/testRepoEmpty.git",
+			CloneBranch: "main",
+		},
+	}
+
+	mockGit := NewMockGit()
+	CloneAllRepos(mockGit, testRepos)
+	gotInfos := len(cloneInfos)
+	expectedInfos := 1
+	if gotInfos != expectedInfos {
+		t.Fatalf("Wrong number of cloneInfos, expected: %v, got: %v", expectedInfos, gotInfos)
+	}
+	gotInfo := cloneInfos[0]
+	expected := "Could not checkout main due to repository being empty, no changes made on: git@github.com:org/testRepoEmpty.git"
+	if gotInfo != expected {
+		t.Errorf("Wrong cloneInfo, expected: %v, got: %v", expected, gotInfo)
 	}
 }
 

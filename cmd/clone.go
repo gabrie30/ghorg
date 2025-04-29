@@ -852,9 +852,23 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						// Retry checkout
 						errRetry := git.Checkout(repo)
 						if errRetry != nil {
-							e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents/commits, no changes made on: %s Error: %v", repo.CloneBranch, repo.URL, errRetry)
-							cloneErrors = append(cloneErrors, e)
-							return
+							hasRemoteHeads, errHasRemoteHeads := git.HasRemoteHeads(repo)
+							if errHasRemoteHeads != nil {
+								e := fmt.Sprintf("Could not checkout %s, branch may not exist or may not have any contents/commits, no changes made on: %s Errors: %v %v", repo.CloneBranch, repo.URL, errRetry, errHasRemoteHeads)
+								cloneErrors = append(cloneErrors, e)
+								return
+							}
+							if hasRemoteHeads {
+								// weird, should not happen, return original checkout error
+								e := fmt.Sprintf("Could not checkout %s, branch may not exist or may not have any contents/commits, no changes made on: %s Error: %v", repo.CloneBranch, repo.URL, errRetry)
+								cloneErrors = append(cloneErrors, e)
+								return
+							} else {
+								// this is _just_ an empty repository
+								e := fmt.Sprintf("Could not checkout %s due to repository being empty, no changes made on: %s", repo.CloneBranch, repo.URL)
+								cloneInfos = append(cloneInfos, e)
+								return
+							}
 						}
 					}
 
