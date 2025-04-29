@@ -158,6 +158,8 @@ func TestMatchPrefix(t *testing.T) {
 	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
 	os.Setenv("GHORG_CONCURRENCY", "1")
 	os.Setenv("GHORG_MATCH_PREFIX", "test")
+	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+
 	var testRepos = []scm.Repo{
 		{
 			Name: "testRepoOne",
@@ -195,6 +197,8 @@ func TestExcludeMatchPrefix(t *testing.T) {
 	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
 	os.Setenv("GHORG_CONCURRENCY", "1")
 	os.Setenv("GHORG_EXCLUDE_MATCH_PREFIX", "test")
+	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+
 	var testRepos = []scm.Repo{
 		{
 			Name: "testRepoOne",
@@ -232,6 +236,8 @@ func TestMatchRegex(t *testing.T) {
 	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
 	os.Setenv("GHORG_CONCURRENCY", "1")
 	os.Setenv("GHORG_MATCH_REGEX", "^test-")
+	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+
 	var testRepos = []scm.Repo{
 		{
 			Name: "test-RepoOne",
@@ -271,6 +277,8 @@ func TestExcludeMatchRegex(t *testing.T) {
 	os.Setenv("GHORG_CONCURRENCY", "1")
 	os.Setenv("GHORG_OUTPUT_DIR", testDescriptor)
 	os.Setenv("GHORG_EXCLUDE_MATCH_REGEX", "^test-")
+	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+
 	var testRepos = []scm.Repo{
 		{
 			Name: "test-RepoOne",
