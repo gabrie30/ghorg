@@ -55,6 +55,7 @@ func printDebugCmd(cmd *exec.Cmd, repo scm.Repo) error {
 
 func (g GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
 	cmd := exec.Command("git", "ls-remote", "--heads", "--quiet", "--exit-code")
+	cmd.Dir = repo.HostPath
 
 	err := cmd.Run()
 	if err == nil {
