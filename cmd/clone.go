@@ -852,9 +852,23 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						// Retry checkout
 						errRetry := git.Checkout(repo)
 						if errRetry != nil {
-							e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents/commits, no changes made on: %s Error: %v", repo.CloneBranch, repo.URL, errRetry)
-							cloneErrors = append(cloneErrors, e)
-							return
+							hasRemoteHeads, errHasRemoteHeads := git.HasRemoteHeads(repo)
+							if errHasRemoteHeads != nil {
+								e := fmt.Sprintf("Could not checkout %s, branch may not exist or may not have any contents/commits, no changes made on: %s Errors: %v %v", repo.CloneBranch, repo.URL, errRetry, errHasRemoteHeads)
+								cloneErrors = append(cloneErrors, e)
+								return
+							}
+							if hasRemoteHeads {
+								// weird, should not happen, return original checkout error
+								e := fmt.Sprintf("Could not checkout %s, branch may not exist or may not have any contents/commits, no changes made on: %s Error: %v", repo.CloneBranch, repo.URL, errRetry)
+								cloneErrors = append(cloneErrors, e)
+								return
+							} else {
+								// this is _just_ an empty repository
+								e := fmt.Sprintf("Could not checkout %s due to repository being empty, no changes made on: %s", repo.CloneBranch, repo.URL)
+								cloneInfos = append(cloneInfos, e)
+								return
+							}
 						}
 					}
 
@@ -1032,24 +1046,29 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		writeGhorgStats(date, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount, hasCollisions)
 	}
 
-	if os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS") != "0" && cloneInfosCount > 0 {
-		exitCode, err := strconv.Atoi(os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS"))
-		if err != nil {
-			colorlog.PrintError("Could not convert GHORG_EXIT_CODE_ON_CLONE_INFOS from string to integer")
-			os.Exit(1)
-		}
+	if os.Getenv("GHORG_DONT_EXIT_UNDER_TEST") != "true" {
+		if os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS") != "0" && cloneInfosCount > 0 {
+			exitCode, err := strconv.Atoi(os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS"))
+			if err != nil {
+				colorlog.PrintError("Could not convert GHORG_EXIT_CODE_ON_CLONE_INFOS from string to integer")
+				os.Exit(1)
+			}
 
-		os.Exit(exitCode)
+			os.Exit(exitCode)
+		}
 	}
 
-	if cloneErrorsCount > 0 {
-		exitCode, err := strconv.Atoi(os.Getenv("GHORG_EXIT_CODE_ON_CLONE_ISSUES"))
-		if err != nil {
-			colorlog.PrintError("Could not convert GHORG_EXIT_CODE_ON_CLONE_ISSUES from string to integer")
-			os.Exit(1)
+	if os.Getenv("GHORG_DONT_EXIT_UNDER_TEST") != "true" {
+		if cloneErrorsCount > 0 {
+			exitCode, err := strconv.Atoi(os.Getenv("GHORG_EXIT_CODE_ON_CLONE_ISSUES"))
+			if err != nil {
+				colorlog.PrintError("Could not convert GHORG_EXIT_CODE_ON_CLONE_ISSUES from string to integer")
+				os.Exit(1)
+			}
+			os.Exit(exitCode)
 		}
-
-		os.Exit(exitCode)
+	} else {
+		cloneErrorsCount = 0
 	}
 
 }

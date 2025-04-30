@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"log"
 	"os"
 	"reflect"
@@ -13,6 +14,7 @@ import (
 func TestShouldLowerRegularString(t *testing.T) {
 
 	upperName := "RepoName"
+	defer setOutputDirName([]string{""})
 	setOutputDirName([]string{upperName})
 
 	if outputDirName != "reponame" {
@@ -23,6 +25,7 @@ func TestShouldLowerRegularString(t *testing.T) {
 func TestShouldNotChangeLowerCasedRegularString(t *testing.T) {
 
 	lowerName := "repo_name"
+	defer setOutputDirName([]string{""})
 	setOutputDirName([]string{lowerName})
 
 	if outputDirName != "repo_name" {
@@ -34,6 +37,7 @@ func TestReplaceDashWithUnderscore(t *testing.T) {
 
 	want := "repo-name"
 	lowerName := "repo-name"
+	defer setOutputDirName([]string{""})
 	setOutputDirName([]string{lowerName})
 
 	if outputDirName != want {
@@ -44,6 +48,7 @@ func TestReplaceDashWithUnderscore(t *testing.T) {
 func TestShouldNotChangeNonLettersString(t *testing.T) {
 
 	numberName := "1234567_8"
+	defer setOutputDirName([]string{""})
 	setOutputDirName([]string{numberName})
 
 	if outputDirName != "1234567_8" {
@@ -55,6 +60,13 @@ type MockGitClient struct{}
 
 func NewMockGit() MockGitClient {
 	return MockGitClient{}
+}
+
+func (g MockGitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
+	if repo.Name == "testRepoEmpty" {
+		return false, nil
+	}
+	return true, nil
 }
 
 func (g MockGitClient) Clone(repo scm.Repo) error {
@@ -74,6 +86,9 @@ func (g MockGitClient) SetOriginWithCredentials(repo scm.Repo) error {
 }
 
 func (g MockGitClient) Checkout(repo scm.Repo) error {
+	if repo.Name == "testRepoEmpty" {
+		return errors.New("Cannot checkout any specific branch in an empty repository")
+	}
 	return nil
 }
 
@@ -144,6 +159,49 @@ func TestInitialClone(t *testing.T) {
 	}
 }
 
+func TestCloneEmptyRepo(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	dir, err := os.MkdirTemp("", "ghorg_test_empty_repo")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	setOuputDirAbsolutePath()
+
+	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+
+	// simulate a previous clone of empty git repository
+	repoErr := os.Mkdir(outputDirAbsolutePath+"/"+"testRepoEmpty", 0o700)
+	if repoErr != nil {
+		log.Fatal(repoErr)
+	}
+	defer os.RemoveAll(outputDirAbsolutePath + "/" + "testRepoEmpty")
+
+	os.Setenv("GHORG_CONCURRENCY", "1")
+	var testRepos = []scm.Repo{
+		{
+			Name:        "testRepoEmpty",
+			URL:         "git@github.com:org/testRepoEmpty.git",
+			CloneBranch: "main",
+		},
+	}
+
+	mockGit := NewMockGit()
+	CloneAllRepos(mockGit, testRepos)
+	gotInfos := len(cloneInfos)
+	expectedInfos := 1
+	if gotInfos != expectedInfos {
+		t.Fatalf("Wrong number of cloneInfos, expected: %v, got: %v", expectedInfos, gotInfos)
+	}
+	gotInfo := cloneInfos[0]
+	expected := "Could not checkout main due to repository being empty, no changes made on: git@github.com:org/testRepoEmpty.git"
+	if gotInfo != expected {
+		t.Errorf("Wrong cloneInfo, expected: %v, got: %v", expected, gotInfo)
+	}
+}
+
 func TestMatchPrefix(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 	dir, err := os.MkdirTemp("", "ghorg_test_match_prefix")
@@ -154,6 +212,8 @@ func TestMatchPrefix(t *testing.T) {
 	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
 	os.Setenv("GHORG_CONCURRENCY", "1")
 	os.Setenv("GHORG_MATCH_PREFIX", "test")
+	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+
 	var testRepos = []scm.Repo{
 		{
 			Name: "testRepoOne",
@@ -191,6 +251,8 @@ func TestExcludeMatchPrefix(t *testing.T) {
 	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
 	os.Setenv("GHORG_CONCURRENCY", "1")
 	os.Setenv("GHORG_EXCLUDE_MATCH_PREFIX", "test")
+	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+
 	var testRepos = []scm.Repo{
 		{
 			Name: "testRepoOne",
@@ -228,6 +290,8 @@ func TestMatchRegex(t *testing.T) {
 	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
 	os.Setenv("GHORG_CONCURRENCY", "1")
 	os.Setenv("GHORG_MATCH_REGEX", "^test-")
+	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+
 	var testRepos = []scm.Repo{
 		{
 			Name: "test-RepoOne",
@@ -267,6 +331,8 @@ func TestExcludeMatchRegex(t *testing.T) {
 	os.Setenv("GHORG_CONCURRENCY", "1")
 	os.Setenv("GHORG_OUTPUT_DIR", testDescriptor)
 	os.Setenv("GHORG_EXCLUDE_MATCH_REGEX", "^test-")
+	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+
 	var testRepos = []scm.Repo{
 		{
 			Name: "test-RepoOne",
