@@ -6,13 +6,13 @@ toolchain go1.24.1
 require (
 	code.gitea.io/sdk/gitea v0.21.0
 	github.com/MichaelMure/go-term-markdown v0.1.4
-	github.com/bradleyfalzon/ghinstallation/v2 v2.14.0
+	github.com/bradleyfalzon/ghinstallation/v2 v2.15.0
 	github.com/briandowns/spinner v1.23.2
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/fatih/color v1.18.0
 	github.com/google/go-github/v62 v62.0.0
 	github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
-	github.com/ktrysmt/go-bitbucket v0.9.82
+	github.com/ktrysmt/go-bitbucket v0.9.83
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
@@ -35,7 +35,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/gomarkdown/markdown v0.0.0-20191123064959-2c17d62f5098 // indirect
-	github.com/google/go-github/v69 v69.0.0 // indirect
+	github.com/google/go-github/v71 v71.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect

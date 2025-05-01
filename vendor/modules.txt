@@ -45,8 +45,8 @@ github.com/alecthomas/chroma/lexers/w
 github.com/alecthomas/chroma/lexers/x
 github.com/alecthomas/chroma/lexers/y
 github.com/alecthomas/chroma/styles
-# github.com/bradleyfalzon/ghinstallation/v2 v2.14.0
-## explicit; go 1.22.0
+# github.com/bradleyfalzon/ghinstallation/v2 v2.15.0
+## explicit; go 1.23.0
 github.com/bradleyfalzon/ghinstallation/v2
 # github.com/briandowns/spinner v1.23.2
 ## explicit; go 1.17
@@ -96,9 +96,9 @@ github.com/gomarkdown/markdown/parser
 # github.com/google/go-github/v62 v62.0.0
 ## explicit; go 1.21
 github.com/google/go-github/v62/github
-# github.com/google/go-github/v69 v69.0.0
-## explicit; go 1.22.0
-github.com/google/go-github/v69/github
+# github.com/google/go-github/v71 v71.0.0
+## explicit; go 1.23.0
+github.com/google/go-github/v71/github
 # github.com/google/go-querystring v1.1.0
 ## explicit; go 1.10
 github.com/google/go-querystring/query
@@ -117,7 +117,7 @@ github.com/inconshreveable/mousetrap
 # github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
 ## explicit; go 1.17
 github.com/korovkin/limiter
-# github.com/ktrysmt/go-bitbucket v0.9.82
+# github.com/ktrysmt/go-bitbucket v0.9.83
 ## explicit; go 1.14
 github.com/ktrysmt/go-bitbucket
 # github.com/kyokomi/emoji/v2 v2.2.8
