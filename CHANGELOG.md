@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.1] - unreleased
+## [1.11.1] - 5/1/25
 ### Added
 ### Changed
 ### Deprecated
@@ -11,7 +11,34 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - Gitea internal repos token injection on https clones; thanks @drmacdon
 - BitBucket backup with prune removes repositories just cloned; thanks @dannuralogix
+- Empty repo clones no longer error; thanks @efasel
 ### Security
+- Bump golang.org/x/net from 0.36.0 to 0.38.0 (#510)
+- Bump github.com/spf13/viper from 1.19.0 to 1.20.1 (#506)
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.81 to 0.9.82 (#507)
+- Bump golang.org/x/oauth2 from 0.27.0 to 0.28.0 (#505)
+- Bump github.com/golang-jwt/jwt/v4 from 4.5.1 to 4.5.2 (#498)
+- Bump golang.org/x/net from 0.33.0 to 0.36.0 (#495)
+- Bump github.com/spf13/cobra from 1.8.1 to 1.9.1 (#492)
+- Bump golang.org/x/oauth2 from 0.25.0 to 0.27.0 (#491)
+- Bump github.com/bradleyfalzon/ghinstallation/v2 from 2.13.0 to 2.14.0 (#490)
+- Bump golang.org/x/oauth2 from 0.24.0 to 0.25.0 (#485)
+- Bump github.com/bradleyfalzon/ghinstallation/v2 from 2.12.0 to 2.13.0 (#486)
+- Bump code.gitea.io/sdk/gitea from 0.19.0 to 0.20.0 (#487)
+- Bump github.com/briandowns/spinner from 1.23.1 to 1.23.2 (#488)
+- Bump golang.org/x/net from 0.25.0 to 0.33.0 (#484)
+- Bump github.com/xanzy/go-gitlab from 0.114.0 to 0.115.0 (#480)
+- Bump golang.org/x/crypto from 0.23.0 to 0.31.0 (#478)
+- Bump golang.org/x/oauth2 from 0.23.0 to 0.24.0 (#475)
+- Bump github.com/bradleyfalzon/ghinstallation/v2 from 2.11.0 to 2.12.0 (#476)
+- Bump github.com/xanzy/go-gitlab from 0.112.0 to 0.114.0 (#474)
+- Bump github.com/golang-jwt/jwt/v4 from 4.5.0 to 4.5.1 (#471)
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.80 to 0.9.81 (#469)
+- Bump github.com/xanzy/go-gitlab from 0.109.0 to 0.112.0 (#468)
+- Bump github.com/fatih/color from 1.17.0 to 1.18.0 (#470)
+- Bump rexml from 3.3.6 to 3.3.9 in /site (#467)
+- Bump golang.org/x/oauth2 from 0.22.0 to 0.23.0 (#462)
+- Bump github.com/xanzy/go-gitlab from 0.108.0 to 0.109.0 (#463)
 
 ## [1.11.0] - 9/28/2024
 ### Added
