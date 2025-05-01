@@ -1,7 +1,7 @@
-# code.gitea.io/sdk/gitea v0.20.0
-## explicit; go 1.18
+# code.gitea.io/sdk/gitea v0.21.0
+## explicit; go 1.23
 code.gitea.io/sdk/gitea
-# github.com/42wim/httpsig v1.2.1
+# github.com/42wim/httpsig v1.2.2
 ## explicit; go 1.18
 github.com/42wim/httpsig
 # github.com/MichaelMure/go-term-markdown v0.1.4
@@ -108,7 +108,7 @@ github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-retryablehttp v0.7.7
 ## explicit; go 1.19
 github.com/hashicorp/go-retryablehttp
-# github.com/hashicorp/go-version v1.6.0
+# github.com/hashicorp/go-version v1.7.0
 ## explicit
 github.com/hashicorp/go-version
 # github.com/inconshreveable/mousetrap v1.1.0
