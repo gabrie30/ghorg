@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -28,7 +29,7 @@ import (
 )
 
 const (
-	Version = "v69.0.0"
+	Version = "v71.0.0"
 
 	defaultAPIVersion = "2022-11-28"
 	defaultBaseURL    = "https://api.github.com/"
@@ -175,6 +176,10 @@ type Client struct {
 	rateMu                  sync.Mutex
 	rateLimits              [Categories]Rate // Rate limits for the client as determined by the most recent API calls.
 	secondaryRateLimitReset time.Time        // Secondary rate limit reset for the client as determined by the most recent API calls.
+
+	// If specified, Client will block requests for at most this duration in case of reaching a secondary
+	// rate limit
+	MaxSecondaryRateLimitRetryAfterDuration time.Duration
 
 	// Whether to respect rate limit headers on endpoints that return 302 redirections to artifacts
 	RateLimitRedirectionalEndpoints bool
@@ -928,6 +933,10 @@ func (c *Client) bareDo(ctx context.Context, caller *http.Client, req *http.Requ
 		// Update the secondary rate limit if we hit it.
 		rerr, ok := err.(*AbuseRateLimitError)
 		if ok && rerr.RetryAfter != nil {
+			// if a max duration is specified, make sure that we are waiting at most this duration
+			if c.MaxSecondaryRateLimitRetryAfterDuration > 0 && rerr.GetRetryAfter() > c.MaxSecondaryRateLimitRetryAfterDuration {
+				rerr.RetryAfter = &c.MaxSecondaryRateLimitRetryAfterDuration
+			}
 			c.rateMu.Lock()
 			c.secondaryRateLimitReset = time.Now().Add(*rerr.RetryAfter)
 			c.rateMu.Unlock()
@@ -1761,4 +1770,19 @@ type roundTripperFunc func(*http.Request) (*http.Response, error)
 
 func (fn roundTripperFunc) RoundTrip(r *http.Request) (*http.Response, error) {
 	return fn(r)
+}
+
+var runIDFromURLRE = regexp.MustCompile(`repos/.*/actions/runs/(\d+)/deployment_protection_rule$`)
+
+// GetRunID is a Helper Function used to extract the workflow RunID from the *DeploymentProtectionRuleEvent.DeploymentCallBackURL.
+func (e *DeploymentProtectionRuleEvent) GetRunID() (int64, error) {
+	match := runIDFromURLRE.FindStringSubmatch(*e.DeploymentCallbackURL)
+	if len(match) != 2 {
+		return -1, errors.New("no match")
+	}
+	runID, err := strconv.ParseInt(match[1], 10, 64)
+	if err != nil {
+		return -1, err
+	}
+	return runID, nil
 }
