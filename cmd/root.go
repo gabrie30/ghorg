@@ -339,7 +339,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_GITHUB_APP_PEM_PATH")
 	getOrSetDefaults("GHORG_GITHUB_APP_INSTALLATION_ID")
 	getOrSetDefaults("GHORG_GITHUB_APP_ID")
-	getOrSetDefaults("GHORG_USE_LOCAL_GIT_CLI")
+	getOrSetDefaults("GHORG_USE_GIT_CLI")
 
 	if os.Getenv("GHORG_DEBUG") != "" {
 		viper.Debug()
