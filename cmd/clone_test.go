@@ -526,6 +526,7 @@ func Test_filterDownReposIfTargetReposPathEnabled(t *testing.T) {
 		})
 	}
 }
+
 func TestReadDirRecursively(t *testing.T) {
 	dir, err := os.MkdirTemp("", "testing")
 	if err != nil {

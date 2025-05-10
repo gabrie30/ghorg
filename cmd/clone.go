@@ -557,7 +557,13 @@ func printDryRun(repos []scm.Repo) {
 			// to do.
 			colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
-			files, err := readDirRecursively(outputDirAbsolutePath)
+			var files []os.DirEntry
+			var err error
+			if os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
+				files, err = readDirRecursively(outputDirAbsolutePath)
+			} else {
+				files, err = os.ReadDir(outputDirAbsolutePath)
+			}
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -1314,7 +1320,13 @@ func pruneRepos(cloneTargets []scm.Repo) int {
 	count := 0
 	colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
-	files, err := readDirRecursively(outputDirAbsolutePath)
+	var files []os.DirEntry
+	var err error
+	if os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
+		files, err = readDirRecursively(outputDirAbsolutePath)
+	} else {
+		files, err = os.ReadDir(outputDirAbsolutePath)
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
