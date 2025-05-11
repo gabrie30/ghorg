@@ -19,11 +19,3 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     ```
     ghorg clone microsoft --scm=bitbucket --token=<oauth-token>
     ```
-
-## Hosted Bitbucket
-
-1. Clone a workspace on a hosted bitbucket instance using an app-password
-
-    ```
-    ghorg clone <workspace> --scm=bitbucket --bitbucket-username=<your-username> --token=<app-password> --base-url=https://<api.myhostedbb.com>/v2
-    ```
