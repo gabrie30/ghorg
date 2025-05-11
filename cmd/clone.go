@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"crypto/sha256"
 	"fmt"
-	"io/fs"
 	"log"
 	"net/url"
 	"os"
@@ -557,13 +556,7 @@ func printDryRun(repos []scm.Repo) {
 			// to do.
 			colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
-			var files []os.DirEntry
-			var err error
-			if os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
-				files, err = readDirRecursively(outputDirAbsolutePath)
-			} else {
-				files, err = os.ReadDir(outputDirAbsolutePath)
-			}
+			files, err := os.ReadDir(outputDirAbsolutePath)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -604,25 +597,6 @@ func getCloneableInventory(allRepos []scm.Repo) (int, int, int, int) {
 	}
 	total = repos + snippets + wikis
 	return total, repos, snippets, wikis
-}
-
-func isGitRepository(path string) bool {
-	file, err := os.Stat(filepath.Join(path, ".git"))
-	return err == nil && file.IsDir()
-}
-
-func readDirRecursively(name string) ([]os.DirEntry, error) {
-	var files []os.DirEntry
-	err := filepath.WalkDir(name, func(path string, file fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if path != outputDirAbsolutePath && file.IsDir() && isGitRepository(path) {
-			files = append(files, file)
-		}
-		return nil
-	})
-	return files, err
 }
 
 // CloneAllRepos clones all repos
@@ -1320,13 +1294,7 @@ func pruneRepos(cloneTargets []scm.Repo) int {
 	count := 0
 	colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
-	var files []os.DirEntry
-	var err error
-	if os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
-		files, err = readDirRecursively(outputDirAbsolutePath)
-	} else {
-		files, err = os.ReadDir(outputDirAbsolutePath)
-	}
+	files, err := os.ReadDir(outputDirAbsolutePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1397,7 +1365,14 @@ func interactiveYesNoPrompt(prompt string) bool {
 }
 
 // There's probably a nicer way of finding whether any scm.Repo in the slice matches a given name.
+// TODO, currently this does not work if user sets --preserve-dir see https://github.com/gabrie30/ghorg/issues/210 for more info
 func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
+
+	if os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
+		colorlog.PrintError("GHORG_PRUNE (--prune) does not currently work in combination with GHORG_PRESERVE_DIRECTORY_STRUCTURE (--preserve-dir), this will come in later versions")
+		os.Exit(1)
+	}
+
 	for _, repo := range haystack {
 		basepath := filepath.Base(repo.Path)
 
