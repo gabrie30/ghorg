@@ -17,7 +17,7 @@ jobs:
       - name: Add Go binaries to PATH
         run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
       - name: Set up Docker
-        uses: docker-practice/actions-setup-docker@master
+        uses: docker/setup-docker-action@v4
       - name: Add hosts to /etc/hosts
         run: |
           sudo echo "127.0.0.1 gitlab.example.com" | sudo tee -a /etc/hosts
