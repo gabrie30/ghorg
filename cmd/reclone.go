@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
@@ -20,8 +21,9 @@ var reCloneCmd = &cobra.Command{
 }
 
 type ReClone struct {
-	Cmd         string `yaml:"cmd"`
-	Description string `yaml:"description"`
+	Cmd            string `yaml:"cmd"`
+	Description    string `yaml:"description"`
+	HealthcheckURL string `yaml:"healthcheck_url"` // optional
 }
 
 func isQuietReClone() bool {
@@ -196,6 +198,23 @@ func runReClone(rc ReClone, rcIdentifier string) {
 	}
 
 	err = ghorgClone.Wait()
+	if rc.HealthcheckURL != "" {
+		client := &http.Client{}
+		if err != nil {
+			colorlog.PrintInfo(fmt.Sprintf("Calling healthcheck URL (failure): %s/fail", rc.HealthcheckURL))
+			_, healthErr := client.Get(rc.HealthcheckURL + "/fail")
+			if healthErr != nil {
+				colorlog.PrintError(fmt.Sprintf("ERROR: Failed to call healthcheck URL: %v", healthErr))
+			}
+		} else {
+			colorlog.PrintInfo(fmt.Sprintf("Calling healthcheck URL (success): %s", rc.HealthcheckURL))
+			_, healthErr := client.Get(rc.HealthcheckURL)
+			if healthErr != nil {
+				colorlog.PrintError(fmt.Sprintf("ERROR: Failed to call healthcheck URL: %v", healthErr))
+			}
+		}
+	}
+
 	if err != nil {
 		spinningSpinner.Stop()
 		colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: Running ghorg clone cmd: %v, err: %v", safeToLogCmd, err))
