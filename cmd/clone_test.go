@@ -527,102 +527,119 @@ func Test_filterDownReposIfTargetReposPathEnabled(t *testing.T) {
 	}
 }
 
-func TestReadDirRecursively(t *testing.T) {
-	dir, err := os.MkdirTemp("", "testing")
+func TestRelativePathRepositories(t *testing.T) {
+	testing, err := os.MkdirTemp("", "testing")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(testing)
 
-	outputDirAbsolutePath = dir
+	outputDirAbsolutePath = testing
 
-	subDir := filepath.Join(dir, "subdir")
-	if err := os.Mkdir(subDir, 0o755); err != nil {
-		t.Fatalf("Failed to create subdirectory: %v", err)
+	repository := filepath.Join(testing, "repository", ".git")
+	if err := os.MkdirAll(repository, 0o755); err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
 	}
 
-	gitDir := filepath.Join(subDir, ".git")
-	if err := os.Mkdir(gitDir, 0o755); err != nil {
-		t.Fatalf("Failed to create subdirectory: %v", err)
-	}
-
-	files, err := getRelativePathRepositories(dir)
+	files, err := getRelativePathRepositories(testing)
 	if err != nil {
-		t.Fatalf("readDirRecursively returned an error: %v", err)
+		t.Fatalf("getRelativePathRepositories returned an error: %v", err)
 	}
 
 	if len(files) != 1 {
-		t.Errorf("Expected %d directories, got %d", 1, len(files))
+		t.Errorf("Expected 1 directory, got %d", len(files))
 	}
 
-	if len(files) > 0 && files[0] != "subdir" {
-		t.Errorf("Expected directory name 'subdir', got '%s'", files[0])
+	if len(files) > 0 && files[0] != "repository" {
+		t.Errorf("Expected 'repository', got '%s'", files[0])
 	}
 }
 
-func TestReadDirRecursivelyNoGitDir(t *testing.T) {
-	dir, err := os.MkdirTemp("", "testing")
+func TestRelativePathRepositoriesNoGitDir(t *testing.T) {
+	testing, err := os.MkdirTemp("", "testing")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(testing)
 
-	outputDirAbsolutePath = dir
+	outputDirAbsolutePath = testing
 
-	subDir := filepath.Join(dir, "subdir")
-	if err := os.Mkdir(subDir, 0o755); err != nil {
-		t.Fatalf("Failed to create subdirectory: %v", err)
+	directory := filepath.Join(testing, "directory")
+	if err := os.MkdirAll(directory, 0o755); err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
 	}
 
-	files, err := getRelativePathRepositories(dir)
+	files, err := getRelativePathRepositories(testing)
 	if err != nil {
-		t.Fatalf("readDirRecursively returned an error: %v", err)
+		t.Fatalf("getRelativePathRepositories returned an error: %v", err)
 	}
 
 	if len(files) != 0 {
-		t.Errorf("Expected %d directories, got %d", 0, len(files))
+		t.Errorf("Expected 0 directories, got %d", len(files))
 	}
 }
 
-func TestReadDirRecursivelyWithGitSubmodule(t *testing.T) {
-	dir, err := os.MkdirTemp("", "testing")
+func TestRelativePathRepositoriesWithGitSubmodule(t *testing.T) {
+	testing, err := os.MkdirTemp("", "testing")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(testing)
 
-	outputDirAbsolutePath = dir
+	outputDirAbsolutePath = testing
 
-	subDir := filepath.Join(dir, "subdir")
-	if err := os.Mkdir(subDir, 0o755); err != nil {
-		t.Fatalf("Failed to create subdirectory: %v", err)
+	repository := filepath.Join(testing, "repository", ".git")
+	submodule := filepath.Join(testing, "repository", "submodule", ".git")
+
+	if err := os.MkdirAll(repository, 0o755); err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(submodule), 0o755); err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+	if _, err := os.Create(submodule); err != nil {
+		t.Fatalf("Failed to create .git file: %v", err)
 	}
 
-	gitDir := filepath.Join(subDir, ".git")
-	if err := os.Mkdir(gitDir, 0o755); err != nil {
-		t.Fatalf("Failed to create subdirectory: %v", err)
-	}
-
-	submoduleDir := filepath.Join(subDir, "submodule")
-	if err := os.Mkdir(submoduleDir, 0o755); err != nil {
-		t.Fatalf("Failed to create subdirectory: %v", err)
-	}
-
-	submoduleGitFile := filepath.Join(submoduleDir, ".git")
-	if _, err := os.Create(submoduleGitFile); err != nil {
-		t.Fatalf("Failed to create file: %v", err)
-	}
-
-	files, err := getRelativePathRepositories(dir)
+	files, err := getRelativePathRepositories(testing)
 	if err != nil {
-		t.Fatalf("readDirRecursively returned an error: %v", err)
+		t.Fatalf("getRelativePathRepositories returned an error: %v", err)
 	}
 
 	if len(files) != 1 {
-		t.Errorf("Expected %d directories, got %d", 1, len(files))
+		t.Errorf("Expected 1 directory, got %d", len(files))
 	}
 
-	if len(files) > 0 && files[0] != "subdir" {
-		t.Errorf("Expected directory name 'subdir', got '%s'", files[0])
+	if len(files) > 0 && files[0] != "repository" {
+		t.Errorf("Expected 'repository', got '%s'", files[0])
+	}
+}
+
+func TestRelativePathRepositoriesDeeplyNested(t *testing.T) {
+	testing, err := os.MkdirTemp("", "testing")
+	if err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+	defer os.RemoveAll(testing)
+
+	outputDirAbsolutePath = testing
+
+	repository := filepath.Join(testing, "deeply", "nested", "repository", ".git")
+	if err := os.MkdirAll(repository, 0o755); err != nil {
+		t.Fatalf("Failed to create temp repository: %v", err)
+	}
+
+	files, err := getRelativePathRepositories(testing)
+	if err != nil {
+		t.Fatalf("getRelativePathRepositories returned an error: %v", err)
+	}
+
+	if len(files) != 1 {
+		t.Errorf("Expected 1 directory, got %d", len(files))
+	}
+
+	expected := filepath.Join("deeply", "nested", "repository")
+	if len(files) > 0 && files[0] != expected {
+		t.Errorf("Expected '%s', got '%s'", expected, files[0])
 	}
 }
