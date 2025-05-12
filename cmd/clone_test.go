@@ -546,7 +546,7 @@ func TestReadDirRecursively(t *testing.T) {
 		t.Fatalf("Failed to create subdirectory: %v", err)
 	}
 
-	files, err := readDirRecursively(dir)
+	files, err := getRelativePathRepositories(dir)
 	if err != nil {
 		t.Fatalf("readDirRecursively returned an error: %v", err)
 	}
@@ -555,8 +555,8 @@ func TestReadDirRecursively(t *testing.T) {
 		t.Errorf("Expected %d directories, got %d", 1, len(files))
 	}
 
-	if len(files) > 0 && files[0].Name() != "subdir" {
-		t.Errorf("Expected directory name 'subdir', got '%s'", files[0].Name())
+	if len(files) > 0 && files[0] != "subdir" {
+		t.Errorf("Expected directory name 'subdir', got '%s'", files[0])
 	}
 }
 
@@ -574,7 +574,7 @@ func TestReadDirRecursivelyNoGitDir(t *testing.T) {
 		t.Fatalf("Failed to create subdirectory: %v", err)
 	}
 
-	files, err := readDirRecursively(dir)
+	files, err := getRelativePathRepositories(dir)
 	if err != nil {
 		t.Fatalf("readDirRecursively returned an error: %v", err)
 	}
@@ -613,7 +613,7 @@ func TestReadDirRecursivelyWithGitSubmodule(t *testing.T) {
 		t.Fatalf("Failed to create file: %v", err)
 	}
 
-	files, err := readDirRecursively(dir)
+	files, err := getRelativePathRepositories(dir)
 	if err != nil {
 		t.Fatalf("readDirRecursively returned an error: %v", err)
 	}
@@ -622,7 +622,7 @@ func TestReadDirRecursivelyWithGitSubmodule(t *testing.T) {
 		t.Errorf("Expected %d directories, got %d", 1, len(files))
 	}
 
-	if len(files) > 0 && files[0].Name() != "subdir" {
-		t.Errorf("Expected directory name 'subdir', got '%s'", files[0].Name())
+	if len(files) > 0 && files[0] != "subdir" {
+		t.Errorf("Expected directory name 'subdir', got '%s'", files[0])
 	}
 }
