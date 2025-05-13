@@ -10,24 +10,28 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gabrie30/ghorg/scm"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 type Gitter interface {
-	Clone(scm.Repo) error
-	Reset(scm.Repo) error
-	Pull(scm.Repo) error
-	SetOrigin(scm.Repo) error
-	SetOriginWithCredentials(scm.Repo) error
-	Clean(scm.Repo) error
-	Checkout(scm.Repo) error
-	RevListCompare(scm.Repo, string, string) (string, error)
-	ShortStatus(scm.Repo) (string, error)
-	Branch(scm.Repo) (string, error)
-	UpdateRemote(scm.Repo) error
-	FetchAll(scm.Repo) error
-	FetchCloneBranch(scm.Repo) error
-	RepoCommitCount(scm.Repo) (int, error)
-	HasRemoteHeads(scm.Repo) (bool, error)
+	Clone(scm.Repo, bool) error
+	Reset(scm.Repo, bool) error
+	Pull(scm.Repo, bool) error
+	SetOrigin(scm.Repo, bool) error
+	SetOriginWithCredentials(scm.Repo, bool) error
+	Clean(scm.Repo, bool) error
+	Checkout(scm.Repo, bool) error
+	RevListCompare(scm.Repo, string, string, bool) (string, error)
+	ShortStatus(scm.Repo, bool) (string, error)
+	Branch(scm.Repo, bool) (string, error)
+	UpdateRemote(scm.Repo, bool) error
+	FetchAll(scm.Repo, bool) error
+	FetchCloneBranch(scm.Repo, bool) error
+	RepoCommitCount(scm.Repo, bool) (int, error)
+	HasRemoteHeads(scm.Repo, bool) (bool, error)
 }
 
 type GitClient struct{}
@@ -53,254 +57,683 @@ func printDebugCmd(cmd *exec.Cmd, repo scm.Repo) error {
 	return err
 }
 
-func (g GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
-	cmd := exec.Command("git", "ls-remote", "--heads", "--quiet", "--exit-code")
-	cmd.Dir = repo.HostPath
-
-	err := cmd.Run()
-	if err == nil {
-		// successfully listed the remote heads
-		return true, nil
+func getCloneDepth() int {
+	cloneDepthStr := os.Getenv("GHORG_CLONE_DEPTH")
+	if cloneDepthStr != "" {
+		if depth, err := strconv.Atoi(cloneDepthStr); err == nil && depth > 0 {
+			return depth
+		}
 	}
-
-	var exitError *exec.ExitError
-	if !errors.As(err, &exitError) {
-		// error, but no exit code, return err
-		return false, err
-	}
-
-	exitCode := exitError.ExitCode()
-	if exitCode == 0 {
-		// ls-remote did successfully list the remote heads
-		return true, nil
-	} else if exitCode == 2 {
-		// repository is empty
-		return false, nil
-	} else {
-		// another exit code, simply return err
-		return false, err
-	}
-
+	return 1 // Default depth
 }
 
-func (g GitClient) Clone(repo scm.Repo) error {
-	args := []string{"clone", repo.CloneURL, repo.HostPath}
+func (g GitClient) HasRemoteHeads(repo scm.Repo, useGitCLI bool) (bool, error) {
+	if useGitCLI {
+		// Original implementation using the git CLI
+		cmd := exec.Command("git", "ls-remote", "--heads", "--quiet", "--exit-code")
+		cmd.Dir = repo.HostPath
 
-	if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
-		index := 1
-		args = append(args[:index+1], args[index:]...)
-		args[index] = "--recursive"
+		err := cmd.Run()
+		if err == nil {
+			// Successfully listed the remote heads
+			return true, nil
+		}
+
+		var exitError *exec.ExitError
+		if !errors.As(err, &exitError) {
+			// Error, but no exit code, return err
+			return false, err
+		}
+
+		exitCode := exitError.ExitCode()
+		if exitCode == 0 {
+			// ls-remote successfully listed the remote heads
+			return true, nil
+		} else if exitCode == 2 {
+			// Repository is empty
+			return false, nil
+		} else {
+			// Another exit code, simply return err
+			return false, err
+		}
 	}
 
-	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
-		index := 1
-		args = append(args[:index+1], args[index:]...)
-		args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
+	// New implementation using go-git
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return false, fmt.Errorf("failed to open repository: %w", err)
 	}
 
-	if os.Getenv("GHORG_GIT_FILTER") != "" {
-		index := 1
-		args = append(args[:index+1], args[index:]...)
-		args[index] = fmt.Sprintf("--filter=%v", os.Getenv("GHORG_GIT_FILTER"))
+	remote, err := r.Remote("origin")
+	if err != nil {
+		return false, fmt.Errorf("failed to get remote: %w", err)
 	}
 
-	if os.Getenv("GHORG_BACKUP") == "true" {
-		args = append(args, "--mirror")
+	refs, err := remote.List(&git.ListOptions{})
+	if err != nil {
+		return false, fmt.Errorf("failed to list remote references: %w", err)
 	}
 
-	cmd := exec.Command("git", args...)
-
-	if os.Getenv("GHORG_DEBUG") != "" {
-		return printDebugCmd(cmd, repo)
+	for _, ref := range refs {
+		if ref.Name().IsBranch() {
+			return true, nil
+		}
 	}
 
-	err := cmd.Run()
+	return false, nil
+}
+
+func (g GitClient) Clone(repo scm.Repo, useGitCLI bool) error {
+	if useGitCLI {
+		args := []string{"clone", repo.CloneURL, repo.HostPath}
+
+		if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
+			index := 1
+			args = append(args[:index+1], args[index:]...)
+			args[index] = "--recursive"
+		}
+
+		if os.Getenv("GHORG_CLONE_DEPTH") != "" {
+			index := 1
+			args = append(args[:index+1], args[index:]...)
+			args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
+		}
+
+		if os.Getenv("GHORG_GIT_FILTER") != "" {
+			index := 1
+			args = append(args[:index+1], args[index:]...)
+			args[index] = fmt.Sprintf("--filter=%v", os.Getenv("GHORG_GIT_FILTER"))
+		}
+
+		if os.Getenv("GHORG_BACKUP") == "true" {
+			args = append(args, "--mirror")
+		}
+
+		cmd := exec.Command("git", args...)
+
+		if os.Getenv("GHORG_DEBUG") != "" {
+			return printDebugCmd(cmd, repo)
+		}
+
+		err := cmd.Run()
+		return err
+	}
+
+	// recurseSubmodules := os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true"
+	// 	return printDebugCmd(cmd, repo)
+	// }
+
+	// err := cmd.Run()
+	// return err
+
+	recurseSubmodules := os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true"
+	cloneDepth := getCloneDepth()
+	// gitFilter := os.Getenv("GHORG_GIT_FILTER")
+	isMirror := os.Getenv("GHORG_BACKUP") == "true"
+
+	// Prepare clone options
+	cloneOptions := &git.CloneOptions{
+		URL:               repo.CloneURL,
+		Depth:             cloneDepth,
+		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+	}
+
+	// Set submodule recursion if enabled
+	if recurseSubmodules {
+		cloneOptions.RecurseSubmodules = git.DefaultSubmoduleRecursionDepth
+	} else {
+		cloneOptions.RecurseSubmodules = 0
+	}
+
+	// // Set filter if specified
+	// if gitFilter != "" {
+	// 	cloneOptions.Filter = gitFilter
+	// }
+
+	// Set mirror option if enabled
+	if isMirror {
+		cloneOptions.Mirror = true
+	}
+
+	// Perform the clone
+	_, err := git.PlainClone(repo.HostPath, false, cloneOptions)
+	if err != nil {
+		return fmt.Errorf("failed to clone repository: %w", err)
+	}
+
+	return nil
+}
+
+func (g GitClient) SetOriginWithCredentials(repo scm.Repo, useGitCLI bool) error {
+	if useGitCLI {
+		args := []string{"remote", "set-url", "origin", repo.CloneURL}
+		cmd := exec.Command("git", args...)
+		cmd.Dir = repo.HostPath
+		if os.Getenv("GHORG_DEBUG") != "" {
+			return printDebugCmd(cmd, repo)
+		}
+		return cmd.Run()
+	}
+
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get the repository configuration
+	cfg, err := r.Config()
+	if err != nil {
+		return fmt.Errorf("failed to get repository config: %w", err)
+	}
+
+	// Update the remote URL for "origin"
+	cfg.Remotes[git.DefaultRemoteName] = &config.RemoteConfig{
+		Name: git.DefaultRemoteName,
+		URLs: []string{repo.CloneURL},
+	}
+
+	// Save the updated configuration
+	err = r.Storer.SetConfig(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to set repository config: %w", err)
+	}
+
+	return nil
+}
+
+func (g GitClient) SetOrigin(repo scm.Repo, useGitCLI bool) error {
+	if useGitCLI {
+		args := []string{"remote", "set-url", "origin", repo.URL}
+		cmd := exec.Command("git", args...)
+		cmd.Dir = repo.HostPath
+		if os.Getenv("GHORG_DEBUG") != "" {
+			return printDebugCmd(cmd, repo)
+		}
+		return cmd.Run()
+	}
+
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get the repository configuration
+	cfg, err := r.Config()
+	if err != nil {
+		return fmt.Errorf("failed to get repository config: %w", err)
+	}
+
+	// Update the remote URL for "origin"
+	cfg.Remotes[git.DefaultRemoteName] = &config.RemoteConfig{
+		Name: git.DefaultRemoteName,
+		URLs: []string{repo.URL},
+	}
+
+	// Save the updated configuration
+	err = r.Storer.SetConfig(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to set repository config: %w", err)
+	}
+
+	return nil
+}
+
+func (g GitClient) Checkout(repo scm.Repo, useGitCLI bool) error {
+	if useGitCLI {
+		cmd := exec.Command("git", "checkout", repo.CloneBranch)
+		cmd.Dir = repo.HostPath
+
+		if os.Getenv("GHORG_DEBUG") != "" {
+			return printDebugCmd(cmd, repo)
+		}
+
+		return cmd.Run()
+	}
+
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get the worktree
+	w, err := r.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	// Checkout the specified branch
+	err = w.Checkout(&git.CheckoutOptions{
+		Branch: plumbing.NewBranchReferenceName(repo.CloneBranch),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to checkout branch '%s': %w", repo.CloneBranch, err)
+	}
+
+	return nil
+}
+
+func (g GitClient) Clean(repo scm.Repo, useGitCLI bool) error {
+	if useGitCLI {
+		cmd := exec.Command("git", "clean", "-f", "-d")
+		cmd.Dir = repo.HostPath
+		if os.Getenv("GHORG_DEBUG") != "" {
+			return printDebugCmd(cmd, repo)
+		}
+		return cmd.Run()
+	}
+
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get the worktree
+	w, err := r.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	// Get the status of the worktree
+	status, err := w.Status()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree status: %w", err)
+	}
+
+	// Iterate over the status to find untracked files
+	for file, fileStatus := range status {
+		if fileStatus.Worktree == git.Untracked {
+			// Remove untracked files and directories
+			err := os.RemoveAll(fmt.Sprintf("%s/%s", repo.HostPath, file))
+			if err != nil {
+				return fmt.Errorf("failed to remove untracked file or directory '%s': %w", file, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (g GitClient) UpdateRemote(repo scm.Repo, useGitCLI bool) error {
+	if useGitCLI {
+		cmd := exec.Command("git", "remote", "update")
+		cmd.Dir = repo.HostPath
+		if os.Getenv("GHORG_DEBUG") != "" {
+			return printDebugCmd(cmd, repo)
+		}
+		return cmd.Run()
+	}
+
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Fetch updates for all remotes
+	err = r.Fetch(&git.FetchOptions{
+		RemoteName: "origin", // Update the default remote
+		Force:      true,     // Force fetch to ensure updates
+		Tags:       git.AllTags,
+	})
+	if err != nil && err != git.NoErrAlreadyUpToDate {
+		return fmt.Errorf("failed to update remote: %w", err)
+	}
+
+	return nil
+}
+
+func (g GitClient) Pull(repo scm.Repo, useGitCLI bool) error {
+	if useGitCLI {
+		args := []string{"pull", "origin", repo.CloneBranch}
+
+		if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
+			index := 1
+			args = append(args[:index+1], args[index:]...)
+			args[index] = "--recurse-submodules"
+		}
+
+		if os.Getenv("GHORG_CLONE_DEPTH") != "" {
+			index := 1
+			args = append(args[:index+1], args[index:]...)
+			args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
+		}
+
+		cmd := exec.Command("git", args...)
+		cmd.Dir = repo.HostPath
+
+		if os.Getenv("GHORG_DEBUG") != "" {
+			return printDebugCmd(cmd, repo)
+		}
+
+		return cmd.Run()
+	}
+
+	recurseSubmodules := os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true"
+
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return err
+	}
+
+	w, err := r.Worktree()
+	if err != nil {
+		return err
+	}
+
+	err = w.Pull(&git.PullOptions{
+		RemoteName: git.DefaultRemoteName,
+		Force:      true,
+		Depth:      getCloneDepth(),
+		RecurseSubmodules: git.SubmoduleRescursivity(func() int {
+			if recurseSubmodules {
+				return int(git.DefaultSubmoduleRecursionDepth)
+			}
+			return 0
+		}()),
+	})
+
 	return err
 }
 
-func (g GitClient) SetOriginWithCredentials(repo scm.Repo) error {
-	args := []string{"remote", "set-url", "origin", repo.CloneURL}
-	cmd := exec.Command("git", args...)
-	cmd.Dir = repo.HostPath
-	if os.Getenv("GHORG_DEBUG") != "" {
-		return printDebugCmd(cmd, repo)
+func (g GitClient) Reset(repo scm.Repo, useGitCLI bool) error {
+	if useGitCLI {
+		cmd := exec.Command("git", "reset", "--hard", "origin/"+repo.CloneBranch)
+		cmd.Dir = repo.HostPath
+		if os.Getenv("GHORG_DEBUG") != "" {
+			return printDebugCmd(cmd, repo)
+		}
+		return cmd.Run()
 	}
-	return cmd.Run()
+
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return err
+	}
+
+	w, err := r.Worktree()
+	if err != nil {
+		return err
+	}
+
+	err = w.Reset(&git.ResetOptions{
+		Mode: git.HardReset,
+	})
+
+	return err
 }
 
-func (g GitClient) SetOrigin(repo scm.Repo) error {
-	args := []string{"remote", "set-url", "origin", repo.URL}
-	cmd := exec.Command("git", args...)
-	cmd.Dir = repo.HostPath
-	if os.Getenv("GHORG_DEBUG") != "" {
-		return printDebugCmd(cmd, repo)
+func (g GitClient) FetchAll(repo scm.Repo, useGitCLI bool) error {
+	if useGitCLI {
+		args := []string{"fetch", "--all"}
+
+		if os.Getenv("GHORG_CLONE_DEPTH") != "" {
+			index := 1
+			args = append(args[:index+1], args[index:]...)
+			args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
+		}
+		cmd := exec.Command("git", args...)
+		cmd.Dir = repo.HostPath
+		if os.Getenv("GHORG_DEBUG") != "" {
+			return printDebugCmd(cmd, repo)
+		}
+		return cmd.Run()
 	}
-	return cmd.Run()
+
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return err
+	}
+
+	err = r.Fetch(&git.FetchOptions{
+		RemoteName: git.DefaultRemoteName,
+		RemoteURL:  repo.URL,
+		Depth:      getCloneDepth(),
+	})
+	if err == git.NoErrAlreadyUpToDate {
+		return nil
+	}
+
+	return err
 }
 
-func (g GitClient) Checkout(repo scm.Repo) error {
-	cmd := exec.Command("git", "checkout", repo.CloneBranch)
-	cmd.Dir = repo.HostPath
+func (g GitClient) Branch(repo scm.Repo, useGitCLI bool) (string, error) {
+	if useGitCLI {
+		args := []string{"branch"}
 
-	if os.Getenv("GHORG_DEBUG") != "" {
-		return printDebugCmd(cmd, repo)
-	}
+		cmd := exec.Command("git", args...)
+		cmd.Dir = repo.HostPath
+		if os.Getenv("GHORG_DEBUG") != "" {
+			if err := printDebugCmd(cmd, repo); err != nil {
+				return "", err
+			}
+		}
 
-	return cmd.Run()
-}
-
-func (g GitClient) Clean(repo scm.Repo) error {
-	cmd := exec.Command("git", "clean", "-f", "-d")
-	cmd.Dir = repo.HostPath
-	if os.Getenv("GHORG_DEBUG") != "" {
-		return printDebugCmd(cmd, repo)
-	}
-	return cmd.Run()
-}
-
-func (g GitClient) UpdateRemote(repo scm.Repo) error {
-	cmd := exec.Command("git", "remote", "update")
-	cmd.Dir = repo.HostPath
-	if os.Getenv("GHORG_DEBUG") != "" {
-		return printDebugCmd(cmd, repo)
-	}
-	return cmd.Run()
-}
-
-func (g GitClient) Pull(repo scm.Repo) error {
-	args := []string{"pull", "origin", repo.CloneBranch}
-
-	if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
-		index := 1
-		args = append(args[:index+1], args[index:]...)
-		args[index] = "--recurse-submodules"
-	}
-
-	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
-		index := 1
-		args = append(args[:index+1], args[index:]...)
-		args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
-	}
-
-	cmd := exec.Command("git", args...)
-	cmd.Dir = repo.HostPath
-
-	if os.Getenv("GHORG_DEBUG") != "" {
-		return printDebugCmd(cmd, repo)
-	}
-
-	return cmd.Run()
-}
-
-func (g GitClient) Reset(repo scm.Repo) error {
-	cmd := exec.Command("git", "reset", "--hard", "origin/"+repo.CloneBranch)
-	cmd.Dir = repo.HostPath
-	if os.Getenv("GHORG_DEBUG") != "" {
-		return printDebugCmd(cmd, repo)
-	}
-	return cmd.Run()
-}
-
-func (g GitClient) FetchAll(repo scm.Repo) error {
-	args := []string{"fetch", "--all"}
-
-	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
-		index := 1
-		args = append(args[:index+1], args[index:]...)
-		args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
-	}
-	cmd := exec.Command("git", args...)
-	cmd.Dir = repo.HostPath
-	if os.Getenv("GHORG_DEBUG") != "" {
-		return printDebugCmd(cmd, repo)
-	}
-	return cmd.Run()
-}
-
-func (g GitClient) Branch(repo scm.Repo) (string, error) {
-	args := []string{"branch"}
-
-	cmd := exec.Command("git", args...)
-	cmd.Dir = repo.HostPath
-	if os.Getenv("GHORG_DEBUG") != "" {
-		if err := printDebugCmd(cmd, repo); err != nil {
+		output, err := cmd.Output()
+		if err != nil {
 			return "", err
 		}
+
+		return strings.TrimSpace(string(output)), nil
 	}
 
-	output, err := cmd.Output()
+	r, err := git.PlainOpen(repo.HostPath)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to open repository: %w", err)
 	}
 
-	return strings.TrimSpace(string(output)), nil
+	// Get the list of references
+	refs, err := r.References()
+	if err != nil {
+		return "", fmt.Errorf("failed to get references: %w", err)
+	}
+
+	var branches []string
+	err = refs.ForEach(func(ref *plumbing.Reference) error {
+		// Filter for branch references
+		if ref.Type() == plumbing.HashReference && strings.HasPrefix(ref.Name().String(), "refs/heads/") {
+			branches = append(branches, strings.TrimPrefix(ref.Name().String(), "refs/heads/"))
+		}
+		return nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to iterate over references: %w", err)
+	}
+
+	// Join the branch names into a single string
+	return strings.Join(branches, "\n"), nil
 }
 
 // RevListCompare returns the list of commits in the local branch that are not in the remote branch.
-func (g GitClient) RevListCompare(repo scm.Repo, localBranch string, remoteBranch string) (string, error) {
-	cmd := exec.Command("git", "-C", repo.HostPath, "rev-list", localBranch, "^"+remoteBranch)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(output)), nil
-}
-
-func (g GitClient) FetchCloneBranch(repo scm.Repo) error {
-	args := []string{"fetch", "origin", repo.CloneBranch}
-
-	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
-		index := 1
-		args = append(args[:index+1], args[index:]...)
-		args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
-	}
-	cmd := exec.Command("git", args...)
-	cmd.Dir = repo.HostPath
-	if os.Getenv("GHORG_DEBUG") != "" {
-		return printDebugCmd(cmd, repo)
-	}
-	return cmd.Run()
-}
-
-func (g GitClient) ShortStatus(repo scm.Repo) (string, error) {
-	args := []string{"status", "--short"}
-
-	cmd := exec.Command("git", args...)
-	cmd.Dir = repo.HostPath
-	if os.Getenv("GHORG_DEBUG") != "" {
-		if err := printDebugCmd(cmd, repo); err != nil {
+func (g GitClient) RevListCompare(repo scm.Repo, localBranch string, remoteBranch string, useGitCLI bool) (string, error) {
+	if useGitCLI {
+		cmd := exec.Command("git", "-C", repo.HostPath, "rev-list", localBranch, "^"+remoteBranch)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
 			return "", err
 		}
+		return strings.TrimSpace(string(output)), nil
 	}
 
-	output, err := cmd.Output()
+	r, err := git.PlainOpen(repo.HostPath)
 	if err != nil {
 		return "", err
 	}
 
-	return strings.TrimSpace(string(output)), nil
+	// Get the local branch reference
+	localRef, err := r.Reference(plumbing.NewBranchReferenceName(localBranch), true)
+	if err != nil {
+		return "", fmt.Errorf("failed to get local branch reference: %w", err)
+	}
+
+	// Get the remote branch reference
+	remoteRef, err := r.Reference(plumbing.NewRemoteReferenceName("origin", remoteBranch), true)
+	if err != nil {
+		return "", fmt.Errorf("failed to get remote branch reference: %w", err)
+	}
+
+	// Get the commit objects for the local and remote branches
+	localCommit, err := r.CommitObject(localRef.Hash())
+	if err != nil {
+		return "", fmt.Errorf("failed to get local commit: %w", err)
+	}
+
+	remoteCommit, err := r.CommitObject(remoteRef.Hash())
+	if err != nil {
+		return "", fmt.Errorf("failed to get remote commit: %w", err)
+	}
+
+	// Find the commits in the local branch that are not in the remote branch
+	commitIter := object.NewCommitPreorderIter(localCommit, nil, nil)
+	var commits []string
+	err = commitIter.ForEach(func(c *object.Commit) error {
+		isAncestor, err := c.IsAncestor(remoteCommit)
+		if err != nil {
+			return err
+		}
+		if !isAncestor {
+			commits = append(commits, c.Hash.String())
+		}
+		return nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to iterate over commits: %w", err)
+	}
+
+	return strings.Join(commits, "\n"), nil
 }
 
-func (g GitClient) RepoCommitCount(repo scm.Repo) (int, error) {
-	args := []string{"rev-list", "--count", repo.CloneBranch, "--"}
-	cmd := exec.Command("git", args...)
-	cmd.Dir = repo.HostPath
+func (g GitClient) FetchCloneBranch(repo scm.Repo, useGitCLI bool) error {
+	if useGitCLI {
+		args := []string{"fetch", "origin", repo.CloneBranch}
 
-	if os.Getenv("GHORG_DEBUG") != "" {
-		err := printDebugCmd(cmd, repo)
+		if os.Getenv("GHORG_CLONE_DEPTH") != "" {
+			index := 1
+			args = append(args[:index+1], args[index:]...)
+			args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
+		}
+		cmd := exec.Command("git", args...)
+		cmd.Dir = repo.HostPath
+		if os.Getenv("GHORG_DEBUG") != "" {
+			return printDebugCmd(cmd, repo)
+		}
+		return cmd.Run()
+	}
+
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Prepare fetch options
+	fetchOptions := &git.FetchOptions{
+		RemoteName: "origin",
+		RefSpecs:   []config.RefSpec{config.RefSpec(fmt.Sprintf("+refs/heads/%s:refs/remotes/origin/%s", repo.CloneBranch, repo.CloneBranch))},
+		Depth:      getCloneDepth(),
+	}
+
+	// Perform the fetch
+	err = r.Fetch(fetchOptions)
+	if err != nil && err != git.NoErrAlreadyUpToDate {
+		return fmt.Errorf("failed to fetch branch: %w", err)
+	}
+
+	return nil
+}
+
+func (g GitClient) ShortStatus(repo scm.Repo, useGitCLI bool) (string, error) {
+	if useGitCLI {
+		args := []string{"status", "--short"}
+
+		cmd := exec.Command("git", args...)
+		cmd.Dir = repo.HostPath
+		if os.Getenv("GHORG_DEBUG") != "" {
+			if err := printDebugCmd(cmd, repo); err != nil {
+				return "", err
+			}
+		}
+
+		output, err := cmd.Output()
+		if err != nil {
+			return "", err
+		}
+
+		return strings.TrimSpace(string(output)), nil
+	}
+
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get the worktree
+	w, err := r.Worktree()
+	if err != nil {
+		return "", fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	// Get the status of the worktree
+	status, err := w.Status()
+	if err != nil {
+		return "", fmt.Errorf("failed to get worktree status: %w", err)
+	}
+
+	// Convert the status to a short format string
+	var statusLines []string
+	for file, fileStatus := range status {
+		statusLines = append(statusLines, fmt.Sprintf("%s %s", string(fileStatus.Worktree), file))
+	}
+
+	return strings.Join(statusLines, "\n"), nil
+}
+
+func (g GitClient) RepoCommitCount(repo scm.Repo, useGitCLI bool) (int, error) {
+	if useGitCLI {
+		args := []string{"rev-list", "--count", repo.CloneBranch, "--"}
+		cmd := exec.Command("git", args...)
+		cmd.Dir = repo.HostPath
+
+		if os.Getenv("GHORG_DEBUG") != "" {
+			err := printDebugCmd(cmd, repo)
+			if err != nil {
+				return 0, err
+			}
+		}
+
+		output, err := cmd.Output()
 		if err != nil {
 			return 0, err
 		}
+
+		count, err := strconv.Atoi(strings.TrimSpace(string(output)))
+		if err != nil {
+			return 0, err
+		}
+
+		return count, nil
 	}
 
-	output, err := cmd.Output()
+	r, _ := git.PlainOpen(repo.HostPath)
+
+	// Get the reference for the specified branch
+	ref, err := r.Reference(plumbing.NewBranchReferenceName(repo.CloneBranch), true)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to get branch reference: %w", err)
 	}
 
-	count, err := strconv.Atoi(strings.TrimSpace(string(output)))
+	// Get the commit object for the branch
+	commit, err := r.CommitObject(ref.Hash())
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to get commit object: %w", err)
+	}
+
+	// Iterate through the commit history and count the commits
+	count := 0
+	commitIter := object.NewCommitIterCTime(commit, nil, nil)
+	err = commitIter.ForEach(func(*object.Commit) error {
+		count++
+		return nil
+	})
+	if err != nil {
+		return 0, fmt.Errorf("failed to iterate over commits: %w", err)
 	}
 
 	return count, nil
