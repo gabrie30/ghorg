@@ -145,7 +145,7 @@ fi
 
 # PRUNE AND PRESERVE DIR
 ghorg clone $GITLAB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab --prune --preserve-dir --prune-no-confirm
-git init "${HOME}"/ghorg/"${GITLAB_GROUP}"/wayne-enterprises/wayne-industries/prunable
+git init "${HOME}"/ghorg/"${GITLAB_GROUP}"/wayne-enterprises/wayne-industries/prunable --quiet
 ghorg clone $GITLAB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab --prune --preserve-dir --prune-no-confirm
 
 if [ -e "${HOME}"/ghorg/"${GITLAB_GROUP}"/wayne-enterprises/wayne-industries/microservice ] && \
