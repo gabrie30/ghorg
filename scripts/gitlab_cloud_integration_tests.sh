@@ -143,6 +143,21 @@ else
     exit 1
 fi
 
+# PRUNE AND PRESERVE DIR
+ghorg clone $GITLAB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab --prune --preserve-dir
+git init "${HOME}"/ghorg/"${GITLAB_GROUP}"/wayne-enterprises/wayne-industries/prunable
+ghorg clone $GITLAB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab --prune --preserve-dir
+
+if [ -e "${HOME}"/ghorg/"${GITLAB_GROUP}"/wayne-enterprises/wayne-industries/microservice ] && \
+    [ ! -e "${HOME}"/ghorg/"${GITLAB_GROUP}"/wayne-enterprises/wayne-industries/prunable ]
+then
+    echo "Pass: gitlab org clone preserve dir, prune"
+    rm -rf "${HOME}/ghorg/${GITLAB_GROUP}"
+else
+    echo "Fail: gitlab org clone preserve dir, prune"
+    exit 1
+fi
+
 #
 # SUBGROUP TESTS
 #
