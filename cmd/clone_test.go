@@ -626,7 +626,7 @@ func TestRelativePathRepositoriesDeeplyNested(t *testing.T) {
 
 	repository := filepath.Join(testing, "deeply", "nested", "repository", ".git")
 	if err := os.MkdirAll(repository, 0o755); err != nil {
-		t.Fatalf("Failed to create temp repository: %v", err)
+		t.Fatalf("Failed to create repository: %v", err)
 	}
 
 	files, err := getRelativePathRepositories(testing)
@@ -641,5 +641,39 @@ func TestRelativePathRepositoriesDeeplyNested(t *testing.T) {
 	expected := filepath.Join("deeply", "nested", "repository")
 	if len(files) > 0 && files[0] != expected {
 		t.Errorf("Expected '%s', got '%s'", expected, files[0])
+	}
+}
+
+func TestPruneRepos(t *testing.T) {
+	os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
+
+	cloneTargets := []scm.Repo{{Path: "/repository"}}
+
+	testing, err := os.MkdirTemp("", "testing")
+	if err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+	defer os.RemoveAll(testing)
+
+	outputDirAbsolutePath = testing
+
+	repository := filepath.Join(testing, "repository", ".git")
+	if err := os.MkdirAll(repository, 0o755); err != nil {
+		t.Fatalf("Failed to create repository: %v", err)
+	}
+
+	prunable := filepath.Join(testing, "prunnable", ".git")
+	if err := os.MkdirAll(prunable, 0o755); err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+
+	pruneRepos(cloneTargets)
+
+	if _, err := os.Stat(repository); os.IsNotExist(err) {
+		t.Errorf("Expected '%s' to exist, but it was deleted", repository)
+	}
+
+	if _, err := os.Stat(prunable); !os.IsNotExist(err) {
+		t.Errorf("Expected '%s' to be deleted, but it exists", prunable)
 	}
 }

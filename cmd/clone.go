@@ -1391,7 +1391,7 @@ func interactiveYesNoPrompt(prompt string) bool {
 // There's probably a nicer way of finding whether any scm.Repo in the slice matches a given name.
 func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
 	for _, repo := range haystack {
-		if repo.Path == needle {
+		if repo.Path == fmt.Sprintf("/%s", needle) {
 			return true
 		}
 	}
