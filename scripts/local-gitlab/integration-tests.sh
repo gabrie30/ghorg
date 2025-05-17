@@ -446,6 +446,34 @@ echo "CLONE AND TEST ALL-GROUPS, OUTPUT DIR, SNIPPETS, ROOT LEVEL FAILED"
 exit 1
 fi
 
+
+############ CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, PRUNE ############
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --output-dir=local-gitlab-v15-repos-prune --prune --prune-no-confirm
+git init ${LOCAL_GITLAB_GHORG_DIR}/local-gitlab-v15-repos-prune/local-gitlab-group1/prune-me
+ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --output-dir=local-gitlab-v15-repos-prune --prune --prune-no-confirm
+
+# Check that the prune-me directory no longer exists
+if [ -d "${LOCAL_GITLAB_GHORG_DIR}/local-gitlab-v15-repos-prune/local-gitlab-group1/prune-me" ]; then
+  echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, PRUNE TEST FAILED: prune-me directory still exists"
+  exit 1
+fi
+
+# Check that the baz0, baz1, baz2, and baz3 directories still exist
+GOT=$( ghorg ls local-gitlab-v15-repos-prune/local-gitlab-group1 | grep -o 'local-gitlab-v15-repos-prune/local-gitlab-group1.*')
+WANT=$(cat <<EOF
+local-gitlab-v15-repos-prune/local-gitlab-group1/baz0
+local-gitlab-v15-repos-prune/local-gitlab-group1/baz1
+local-gitlab-v15-repos-prune/local-gitlab-group1/baz2
+local-gitlab-v15-repos-prune/local-gitlab-group1/baz3
+EOF
+)
+
+if [ "${WANT}" != "${GOT}" ]
+then
+echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, PRUNE TEST FAILED: baz directories do not match"
+exit 1
+fi
+
 ############ CLONE ALL-GROUPS, BACKUP, CLONE WIKI, OUTPUT DIR  ############
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --backup --clone-wiki --output-dir=local-gitlab-v15-backup
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="${TOKEN}" --backup --clone-wiki --output-dir=local-gitlab-v15-backup
