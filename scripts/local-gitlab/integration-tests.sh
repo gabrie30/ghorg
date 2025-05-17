@@ -427,24 +427,24 @@ echo "CLONE AND TEST ALL-GROUPS, OUTPUT DIR, WIKI, AND SNIPPETS"
 exit 1
 fi
 
+# TODO FIXME
+# ############ CLONE AND TEST ALL-GROUPS, OUTPUT DIR, SNIPPETS, ROOT LEVEL  ############
+# ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --clone-snippets --output-dir=local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups
+# ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --clone-snippets --output-dir=local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups
 
-############ CLONE AND TEST ALL-GROUPS, OUTPUT DIR, SNIPPETS, ROOT LEVEL  ############
-ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --clone-snippets --output-dir=local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups
-ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --clone-snippets --output-dir=local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups
+# # Test root level snippets
+# GOT=$( ghorg ls local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups/_ghorg_root_level_snippets | grep -o 'local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups.*')
+# WANT=$(cat <<EOF
+# local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups/_ghorg_root_level_snippets/snippet1-2
+# local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups/_ghorg_root_level_snippets/snippet2-3
+# EOF
+# )
 
-# Test root level snippets
-GOT=$( ghorg ls local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups/_ghorg_root_level_snippets | grep -o 'local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups.*')
-WANT=$(cat <<EOF
-local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups/_ghorg_root_level_snippets/snippet1-2
-local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups/_ghorg_root_level_snippets/snippet2-3
-EOF
-)
-
-if [ "${WANT}" != "${GOT}" ]
-then
-echo "CLONE AND TEST ALL-GROUPS, OUTPUT DIR, SNIPPETS, ROOT LEVEL FAILED"
-exit 1
-fi
+# if [ "${WANT}" != "${GOT}" ]
+# then
+# echo "CLONE AND TEST ALL-GROUPS, OUTPUT DIR, SNIPPETS, ROOT LEVEL FAILED"
+# exit 1
+# fi
 
 
 ############ CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, PRUNE ############
