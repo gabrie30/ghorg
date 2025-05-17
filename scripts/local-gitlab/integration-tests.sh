@@ -427,6 +427,7 @@ echo "CLONE AND TEST ALL-GROUPS, OUTPUT DIR, WIKI, AND SNIPPETS"
 exit 1
 fi
 
+
 ############ CLONE AND TEST ALL-GROUPS, OUTPUT DIR, SNIPPETS, ROOT LEVEL  ############
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --clone-snippets --output-dir=local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --clone-snippets --output-dir=local-gitlab-v15-snippets-preserve-dir-output-dir-all-groups
