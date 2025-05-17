@@ -1328,17 +1328,24 @@ func pruneRepos(cloneTargets []scm.Repo) int {
 	userAgreesToDelete := true
 	pruneNoConfirm := os.Getenv("GHORG_PRUNE_NO_CONFIRM") == "true"
 	for _, repository := range repositories {
+		absolutePathToDelete := filepath.Join(outputDirAbsolutePath, repository)
+
+		// Safeguard: Ensure the path is within the expected base directory
+		if !strings.HasPrefix(absolutePathToDelete, outputDirAbsolutePath) {
+			colorlog.PrintErrorAndExit(fmt.Sprintf("DANGEROUS ACTION DETECTED! Preventing deletion of %s as it is outside the base directory this deletion is not expected, exiting.", absolutePathToDelete))
+		}
+
 		// For each item in the org's clone directory, let's make sure we found a corresponding
 		// repo on the remote.  We check userAgreesToDelete here too, so that if the user says
 		// "No" at any time, we stop trying to prune things altogether.
 		if userAgreesToDelete && !sliceContainsNamedRepo(cloneTargets, repository) {
 			// If the user specified --prune-no-confirm, we needn't prompt interactively.
 			userAgreesToDelete = pruneNoConfirm || interactiveYesNoPrompt(
-				fmt.Sprintf("%s was not found in remote.  Do you want to prune it?", repository))
+				fmt.Sprintf("%s was not found in remote.  Do you want to prune it? %s", repository, absolutePathToDelete))
 			if userAgreesToDelete {
 				colorlog.PrintSubtleInfo(
-					fmt.Sprintf("Deleting %s", repository))
-				err = os.RemoveAll(filepath.Join(outputDirAbsolutePath, repository))
+					fmt.Sprintf("Deleting %s", absolutePathToDelete))
+				err = os.RemoveAll(absolutePathToDelete)
 				count++
 				if err != nil {
 					log.Fatal(err)
@@ -1390,8 +1397,18 @@ func interactiveYesNoPrompt(prompt string) bool {
 
 // There's probably a nicer way of finding whether any scm.Repo in the slice matches a given name.
 func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
+
+	// GitLab Cloud vs GitLab on Prem seem to have different needle/repo.Paths when it comes to this,
+	// so normalize to handle both
+	// I'm not really sure whats going on here though, could be a bug with how this is set
+	needle = strings.TrimPrefix(needle, "/")
+
 	for _, repo := range haystack {
-		if repo.Path == fmt.Sprintf("/%s", needle) {
+		normalizedPath := strings.TrimPrefix(repo.Path, "/")
+		if normalizedPath == fmt.Sprintf("%s", needle) {
+			if os.Getenv("GHORG_DEBUG") != "" {
+				fmt.Printf("Debug: Match found for repo path: %s\n", repo.Path)
+			}
 			return true
 		}
 	}
