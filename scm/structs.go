@@ -8,7 +8,7 @@ type Repo struct {
 	Name string
 	// HostPath is the path on the users machine that the repo will be cloned to. Its used in all the git commands to locate the directory of the repo. HostPath is updated for wikis and snippets because the folder for the clone is appended with .wiki and .snippet
 	HostPath string
-	// Path where the repo is located within the scm provider. Its mostly used with gitlab repos when the directory structure is preserved. In this case the path becomes where to locate the repo in relation to gitlab.com/group/group/group/repo.git => group/group/group/repo
+	// Path where the repo is located within the scm provider. Its mostly used with gitlab repos when the directory structure is preserved. In this case the path becomes where to locate the repo in relation to gitlab.com/group/group/group/repo.git => /group/group/group/repo
 	Path string
 	// URL is the web address of the repo
 	URL string
