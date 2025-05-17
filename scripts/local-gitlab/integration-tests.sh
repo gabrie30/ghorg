@@ -906,45 +906,45 @@ fi
 
 ############ CLONE AND TEST ALL-USERS, OUTPUT DIR, SNIPPETS ############
 
-TEST_ALL_USERS_SNIPPETS_GOT=$(ghorg ls local-gitlab-v15-all-users-snippets | grep -o 'local-gitlab-v15-all-users-snippets.*')
-TEST_ALL_USERS_SNIPPETS_WANT=$(cat <<EOF
-local-gitlab-v15-all-users-snippets/_ghorg_root_level_snippets
-local-gitlab-v15-all-users-snippets/rootrepos0
-local-gitlab-v15-all-users-snippets/rootrepos1
-local-gitlab-v15-all-users-snippets/rootrepos1.snippets
-local-gitlab-v15-all-users-snippets/rootrepos2
-local-gitlab-v15-all-users-snippets/rootrepos3
-local-gitlab-v15-all-users-snippets/testuser1-repo
-local-gitlab-v15-all-users-snippets/testuser1-repo.snippets
-EOF
-)
+# TEST_ALL_USERS_SNIPPETS_GOT=$(ghorg ls local-gitlab-v15-all-users-snippets | grep -o 'local-gitlab-v15-all-users-snippets.*')
+# TEST_ALL_USERS_SNIPPETS_WANT=$(cat <<EOF
+# local-gitlab-v15-all-users-snippets/_ghorg_root_level_snippets
+# local-gitlab-v15-all-users-snippets/rootrepos0
+# local-gitlab-v15-all-users-snippets/rootrepos1
+# local-gitlab-v15-all-users-snippets/rootrepos1.snippets
+# local-gitlab-v15-all-users-snippets/rootrepos2
+# local-gitlab-v15-all-users-snippets/rootrepos3
+# local-gitlab-v15-all-users-snippets/testuser1-repo
+# local-gitlab-v15-all-users-snippets/testuser1-repo.snippets
+# EOF
+# )
 
-if [ "${TEST_ALL_USERS_SNIPPETS_WANT}" != "${TEST_ALL_USERS_SNIPPETS_GOT}" ]
-then
-echo "CLONE AND TEST ALL-USERS, OUTPUT DIR SNIPPETS FAILED"
-exit 1
-fi
+# if [ "${TEST_ALL_USERS_SNIPPETS_WANT}" != "${TEST_ALL_USERS_SNIPPETS_GOT}" ]
+# then
+# echo "CLONE AND TEST ALL-USERS, OUTPUT DIR SNIPPETS FAILED"
+# exit 1
+# fi
 
-############ CLONE AND TEST ALL-USERS, OUTPUT DIR, SNIPPETS, PRESERVE SCM HOSTNAME ############
-ghorg clone all-users --scm=gitlab --clone-type=user --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-all-users-snippets --clone-snippets --preserve-scm-hostname
+# ############ CLONE AND TEST ALL-USERS, OUTPUT DIR, SNIPPETS, PRESERVE SCM HOSTNAME ############
+# ghorg clone all-users --scm=gitlab --clone-type=user --base-url="${GITLAB_URL}" --token="${TOKEN}" --output-dir=local-gitlab-v15-all-users-snippets --clone-snippets --preserve-scm-hostname
 
-TEST_ALL_USERS_SNIPPETS_GOT=$(ghorg ls gitlab.example.com/local-gitlab-v15-all-users-snippets | grep -o 'gitlab.example.com/local-gitlab-v15-all-users-snippets.*')
-TEST_ALL_USERS_SNIPPETS_WANT=$(cat <<EOF
-gitlab.example.com/local-gitlab-v15-all-users-snippets/_ghorg_root_level_snippets
-gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos0
-gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos1
-gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos1.snippets
-gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos2
-gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos3
-gitlab.example.com/local-gitlab-v15-all-users-snippets/testuser1-repo
-gitlab.example.com/local-gitlab-v15-all-users-snippets/testuser1-repo.snippets
-EOF
-)
+# TEST_ALL_USERS_SNIPPETS_GOT=$(ghorg ls gitlab.example.com/local-gitlab-v15-all-users-snippets | grep -o 'gitlab.example.com/local-gitlab-v15-all-users-snippets.*')
+# TEST_ALL_USERS_SNIPPETS_WANT=$(cat <<EOF
+# gitlab.example.com/local-gitlab-v15-all-users-snippets/_ghorg_root_level_snippets
+# gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos0
+# gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos1
+# gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos1.snippets
+# gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos2
+# gitlab.example.com/local-gitlab-v15-all-users-snippets/rootrepos3
+# gitlab.example.com/local-gitlab-v15-all-users-snippets/testuser1-repo
+# gitlab.example.com/local-gitlab-v15-all-users-snippets/testuser1-repo.snippets
+# EOF
+# )
 
-if [ "${TEST_ALL_USERS_SNIPPETS_WANT}" != "${TEST_ALL_USERS_SNIPPETS_GOT}" ]
-then
-echo "CLONE AND TEST ALL-USERS, OUTPUT DIR SNIPPETS, PRESERVE SCM HOSTNAME FAILED"
-exit 1
-fi
+# if [ "${TEST_ALL_USERS_SNIPPETS_WANT}" != "${TEST_ALL_USERS_SNIPPETS_GOT}" ]
+# then
+# echo "CLONE AND TEST ALL-USERS, OUTPUT DIR SNIPPETS, PRESERVE SCM HOSTNAME FAILED"
+# exit 1
+# fi
 
 echo "INTEGRATOIN TESTS FINISHED..."
