@@ -15,8 +15,7 @@ for dir in "${LOCAL_GITLAB_GHORG_DIR}"/local-gitlab-*; do
 done
 
 
-export GHORG_INSECURE_GITLAB_CLIENT=true
-# export GHORG_DEBUG=true
+
 
 # NOTE run all clones twice to test once for clone then pull
 
@@ -451,16 +450,16 @@ fi
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --output-dir=local-gitlab-v15-repos-prune --prune --prune-no-confirm
 git init ${LOCAL_GITLAB_GHORG_DIR}/local-gitlab-v15-repos-prune/local-gitlab-group1/prune-me
 
-# Check that the prune-me directory exists
-if [ -d "${LOCAL_GITLAB_GHORG_DIR}/local-gitlab-v15-repos-prune/local-gitlab-group1/prune-me" ]; then
+# Fail if the directory does not exist
+if [ ! -d "${LOCAL_GITLAB_GHORG_DIR}/local-gitlab-v15-repos-prune/local-gitlab-group1/prune-me/" ]; then
   echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, PRUNE TEST FAILED: prune-me directory does not exist"
   exit 1
 fi
 
 ghorg clone all-groups --scm=gitlab --base-url="${GITLAB_URL}" --token="$TOKEN" --preserve-dir --output-dir=local-gitlab-v15-repos-prune --prune --prune-no-confirm
 
-# Check that the prune-me directory no longer exists
-if [ ! -d "${LOCAL_GITLAB_GHORG_DIR}/local-gitlab-v15-repos-prune/local-gitlab-group1/prune-me" ]; then
+# Fail if prune-me directory still exists
+if [ -d "${LOCAL_GITLAB_GHORG_DIR}/local-gitlab-v15-repos-prune/local-gitlab-group1/prune-me/" ]; then
   echo "CLONE AND TEST ALL-GROUPS, PRESERVE DIR, OUTPUT DIR, PRUNE TEST FAILED: prune-me directory still exists"
   exit 1
 fi
