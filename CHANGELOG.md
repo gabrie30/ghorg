@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- Gitlab prune not working with preserve dir; thanks @Fraguinha
 ### Security
 
 ## [1.11.1] - 5/1/25
