@@ -12,10 +12,12 @@
 # name-of-reclone:
 #   cmd: "ghorg clone command here"
 #   description: "Optional description that will be printed to stdout when running `ghorg reclone --list`"
+#   healthcheck_url: "Optional URL that will be called after clone completion (e.g. https://hc-ping.com/your-uuid)"
 
 # Example for gitlab; update with your gitlab cloud token
 gitlab-examples:
   cmd: "ghorg clone gitlab-examples --scm=gitlab --preserve-dir --token=XXXXXXX"
+  healthcheck_url: "https://hc-ping.com/your-uuid-here"
 
 # Examples from README.md; update with your github cloud token
 kubernetes:
