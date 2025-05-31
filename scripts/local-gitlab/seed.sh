@@ -241,4 +241,3 @@ sleep 1
 echo "sleeping before running integration tests, to ensure all resources are created"
 sleep 5
 
-./scripts/local-gitlab/integration-tests.sh "${LOCAL_GITLAB_GHORG_DIR}" "${TOKEN}" "${GITLAB_URL}"

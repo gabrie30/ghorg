@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -523,5 +524,156 @@ func Test_filterDownReposIfTargetReposPathEnabled(t *testing.T) {
 				t.Errorf("filterWithGhorgignore() = %v, want %v", got, tt.expectedResult)
 			}
 		})
+	}
+}
+
+func TestRelativePathRepositories(t *testing.T) {
+	testing, err := os.MkdirTemp("", "testing")
+	if err != nil {
+		t.Fatalf("Failed to create temp directory: %v", err)
+	}
+	defer os.RemoveAll(testing)
+
+	outputDirAbsolutePath = testing
+
+	repository := filepath.Join(testing, "repository", ".git")
+	if err := os.MkdirAll(repository, 0o755); err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+
+	files, err := getRelativePathRepositories(testing)
+	if err != nil {
+		t.Fatalf("getRelativePathRepositories returned an error: %v", err)
+	}
+
+	if len(files) != 1 {
+		t.Errorf("Expected 1 directory, got %d", len(files))
+	}
+
+	if len(files) > 0 && files[0] != "repository" {
+		t.Errorf("Expected 'repository', got '%s'", files[0])
+	}
+}
+
+func TestRelativePathRepositoriesNoGitDir(t *testing.T) {
+	testing, err := os.MkdirTemp("", "testing")
+	if err != nil {
+		t.Fatalf("Failed to create temp directory: %v", err)
+	}
+	defer os.RemoveAll(testing)
+
+	outputDirAbsolutePath = testing
+
+	directory := filepath.Join(testing, "directory")
+	if err := os.MkdirAll(directory, 0o755); err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+
+	files, err := getRelativePathRepositories(testing)
+	if err != nil {
+		t.Fatalf("getRelativePathRepositories returned an error: %v", err)
+	}
+
+	if len(files) != 0 {
+		t.Errorf("Expected 0 directories, got %d", len(files))
+	}
+}
+
+func TestRelativePathRepositoriesWithGitSubmodule(t *testing.T) {
+	testing, err := os.MkdirTemp("", "testing")
+	if err != nil {
+		t.Fatalf("Failed to create temp directory: %v", err)
+	}
+	defer os.RemoveAll(testing)
+
+	outputDirAbsolutePath = testing
+
+	repository := filepath.Join(testing, "repository", ".git")
+	submodule := filepath.Join(testing, "repository", "submodule", ".git")
+
+	if err := os.MkdirAll(repository, 0o755); err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(submodule), 0o755); err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+	if _, err := os.Create(submodule); err != nil {
+		t.Fatalf("Failed to create .git file: %v", err)
+	}
+
+	files, err := getRelativePathRepositories(testing)
+	if err != nil {
+		t.Fatalf("getRelativePathRepositories returned an error: %v", err)
+	}
+
+	if len(files) != 1 {
+		t.Errorf("Expected 1 directory, got %d", len(files))
+	}
+
+	if len(files) > 0 && files[0] != "repository" {
+		t.Errorf("Expected 'repository', got '%s'", files[0])
+	}
+}
+
+func TestRelativePathRepositoriesDeeplyNested(t *testing.T) {
+	testing, err := os.MkdirTemp("", "testing")
+	if err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+	defer os.RemoveAll(testing)
+
+	outputDirAbsolutePath = testing
+
+	repository := filepath.Join(testing, "deeply", "nested", "repository", ".git")
+	if err := os.MkdirAll(repository, 0o755); err != nil {
+		t.Fatalf("Failed to create repository: %v", err)
+	}
+
+	files, err := getRelativePathRepositories(testing)
+	if err != nil {
+		t.Fatalf("getRelativePathRepositories returned an error: %v", err)
+	}
+
+	if len(files) != 1 {
+		t.Errorf("Expected 1 directory, got %d", len(files))
+	}
+
+	expected := filepath.Join("deeply", "nested", "repository")
+	if len(files) > 0 && files[0] != expected {
+		t.Errorf("Expected '%s', got '%s'", expected, files[0])
+	}
+}
+
+func TestPruneRepos(t *testing.T) {
+	os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
+
+	cloneTargets := []scm.Repo{{Path: "/repository"}}
+
+	testing, err := os.MkdirTemp("", "testing")
+	if err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+	defer os.RemoveAll(testing)
+
+	outputDirAbsolutePath = testing
+
+	repository := filepath.Join(testing, "repository", ".git")
+	if err := os.MkdirAll(repository, 0o755); err != nil {
+		t.Fatalf("Failed to create repository: %v", err)
+	}
+
+	prunable := filepath.Join(testing, "prunnable", ".git")
+	if err := os.MkdirAll(prunable, 0o755); err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
+
+	pruneRepos(cloneTargets)
+
+	if _, err := os.Stat(repository); os.IsNotExist(err) {
+		t.Errorf("Expected '%s' to exist, but it was deleted", repository)
+	}
+
+	if _, err := os.Stat(prunable); !os.IsNotExist(err) {
+		t.Errorf("Expected '%s' to be deleted, but it exists", prunable)
 	}
 }

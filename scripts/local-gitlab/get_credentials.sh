@@ -30,8 +30,3 @@ done
 set -x
 
 docker exec gitlab gitlab-rails runner "token = User.find_by_username('root').personal_access_tokens.create(scopes: [:api, :read_api, :sudo], name: 'CI Test Token', expires_at: 365.days.from_now); token.set_token('password'); token.save!"
-
-API_TOKEN="password"
-
-# seed new instance using
-./scripts/local-gitlab/seed.sh "${API_TOKEN}" "${GITLAB_URL}" "${LOCAL_GITLAB_GHORG_DIR}"

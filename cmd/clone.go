@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"crypto/sha256"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/url"
 	"os"
@@ -556,18 +557,18 @@ func printDryRun(repos []scm.Repo) {
 			// to do.
 			colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
-			files, err := os.ReadDir(outputDirAbsolutePath)
+			repositories, err := getRelativePathRepositories(outputDirAbsolutePath)
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			eligibleForPrune := 0
-			for _, f := range files {
+			for _, repository := range repositories {
 				// for each item in the org's clone directory, let's make sure we found a
 				// corresponding repo on the remote.
-				if !sliceContainsNamedRepo(repos, f.Name()) {
+				if !sliceContainsNamedRepo(repos, repository) {
 					eligibleForPrune++
-					colorlog.PrintSubtleInfo(fmt.Sprintf("%s not found in remote.", f.Name()))
+					colorlog.PrintSubtleInfo(fmt.Sprintf("%s not found in remote.", repository))
 				}
 			}
 			colorlog.PrintSuccess(fmt.Sprintf("Local clones eligible for pruning: %d", eligibleForPrune))
@@ -597,6 +598,29 @@ func getCloneableInventory(allRepos []scm.Repo) (int, int, int, int) {
 	}
 	total = repos + snippets + wikis
 	return total, repos, snippets, wikis
+}
+
+func isGitRepository(path string) bool {
+	stat, err := os.Stat(filepath.Join(path, ".git"))
+	return err == nil && stat.IsDir()
+}
+
+func getRelativePathRepositories(root string) ([]string, error) {
+	var relativePaths []string
+	err := filepath.WalkDir(root, func(path string, file fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if path != outputDirAbsolutePath && file.IsDir() && isGitRepository(path) {
+			rel, err := filepath.Rel(outputDirAbsolutePath, path)
+			if err != nil {
+				return err
+			}
+			relativePaths = append(relativePaths, rel)
+		}
+		return nil
+	})
+	return relativePaths, err
 }
 
 // CloneAllRepos clones all repos
@@ -1294,7 +1318,7 @@ func pruneRepos(cloneTargets []scm.Repo) int {
 	count := 0
 	colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
-	files, err := os.ReadDir(outputDirAbsolutePath)
+	repositories, err := getRelativePathRepositories(outputDirAbsolutePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1303,18 +1327,25 @@ func pruneRepos(cloneTargets []scm.Repo) int {
 	// break out of the loop.
 	userAgreesToDelete := true
 	pruneNoConfirm := os.Getenv("GHORG_PRUNE_NO_CONFIRM") == "true"
-	for _, f := range files {
+	for _, repository := range repositories {
+		absolutePathToDelete := filepath.Join(outputDirAbsolutePath, repository)
+
+		// Safeguard: Ensure the path is within the expected base directory
+		if !strings.HasPrefix(absolutePathToDelete, outputDirAbsolutePath) {
+			colorlog.PrintErrorAndExit(fmt.Sprintf("DANGEROUS ACTION DETECTED! Preventing deletion of %s as it is outside the base directory this deletion is not expected, exiting.", absolutePathToDelete))
+		}
+
 		// For each item in the org's clone directory, let's make sure we found a corresponding
 		// repo on the remote.  We check userAgreesToDelete here too, so that if the user says
 		// "No" at any time, we stop trying to prune things altogether.
-		if userAgreesToDelete && !sliceContainsNamedRepo(cloneTargets, f.Name()) {
+		if userAgreesToDelete && !sliceContainsNamedRepo(cloneTargets, repository) {
 			// If the user specified --prune-no-confirm, we needn't prompt interactively.
 			userAgreesToDelete = pruneNoConfirm || interactiveYesNoPrompt(
-				fmt.Sprintf("%s was not found in remote.  Do you want to prune it?", f.Name()))
+				fmt.Sprintf("%s was not found in remote.  Do you want to prune it? %s", repository, absolutePathToDelete))
 			if userAgreesToDelete {
 				colorlog.PrintSubtleInfo(
-					fmt.Sprintf("Deleting %s", filepath.Join(outputDirAbsolutePath, f.Name())))
-				err = os.RemoveAll(filepath.Join(outputDirAbsolutePath, f.Name()))
+					fmt.Sprintf("Deleting %s", absolutePathToDelete))
+				err = os.RemoveAll(absolutePathToDelete)
 				count++
 				if err != nil {
 					log.Fatal(err)
@@ -1365,18 +1396,19 @@ func interactiveYesNoPrompt(prompt string) bool {
 }
 
 // There's probably a nicer way of finding whether any scm.Repo in the slice matches a given name.
-// TODO, currently this does not work if user sets --preserve-dir see https://github.com/gabrie30/ghorg/issues/210 for more info
 func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
 
-	if os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
-		colorlog.PrintError("GHORG_PRUNE (--prune) does not currently work in combination with GHORG_PRESERVE_DIRECTORY_STRUCTURE (--preserve-dir), this will come in later versions")
-		os.Exit(1)
-	}
+	// GitLab Cloud vs GitLab on Prem seem to have different needle/repo.Paths when it comes to this,
+	// so normalize to handle both
+	// I'm not really sure whats going on here though, could be a bug with how this is set
+	needle = strings.TrimPrefix(needle, "/")
 
 	for _, repo := range haystack {
-		basepath := filepath.Base(repo.Path)
-
-		if basepath == needle {
+		normalizedPath := strings.TrimPrefix(repo.Path, "/")
+		if normalizedPath == fmt.Sprintf("%s", needle) {
+			if os.Getenv("GHORG_DEBUG") != "" {
+				fmt.Printf("Debug: Match found for repo path: %s\n", repo.Path)
+			}
 			return true
 		}
 	}
