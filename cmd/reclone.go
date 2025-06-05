@@ -20,8 +20,9 @@ var reCloneCmd = &cobra.Command{
 }
 
 type ReClone struct {
-	Cmd         string `yaml:"cmd"`
-	Description string `yaml:"description"`
+	Cmd            string `yaml:"cmd"`
+	Description    string `yaml:"description"`
+	PostExecScript string `yaml:"post_exec_script"` // optional
 }
 
 func isQuietReClone() bool {
@@ -196,6 +197,22 @@ func runReClone(rc ReClone, rcIdentifier string) {
 	}
 
 	err = ghorgClone.Wait()
+	status := "success"
+	if err != nil {
+		status = "fail"
+	}
+
+	if rc.PostExecScript != "" {
+		postCmd := exec.Command(rc.PostExecScript, status, rcIdentifier)
+		postCmd.Stdout = os.Stdout
+		postCmd.Stderr = os.Stderr
+		errPost := postCmd.Run()
+		if errPost != nil {
+			colorlog.PrintError(fmt.Sprintf("ERROR: Running post_exec_script %s: %v", rc.PostExecScript, errPost))
+		}
+	}
+
+
 	if err != nil {
 		spinningSpinner.Stop()
 		colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: Running ghorg clone cmd: %v, err: %v", safeToLogCmd, err))

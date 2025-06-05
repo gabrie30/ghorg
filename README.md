@@ -249,6 +249,35 @@ The `ghorg reclone` command is a way to store all your `ghorg clone` commands in
 
 Once your [reclone.yaml](https://github.com/gabrie30/ghorg/blob/master/sample-reclone.yaml) configuration is set you can call `ghorg reclone` to clone each entry individually or clone all at once, see examples below.
 
+Each reclone entry can have:
+- `cmd`: The ghorg clone command to execute (required)
+- `description`: A description of what the command does (optional)
+- `post_exec_script`: Path to a script that will be called after the clone command finishes (optional). The script will always be called, regardless of success or failure, and receives two arguments: the status (`success` or `fail`) and the name of the reclone entry. This allows you to implement custom notifications, monitoring, or other automation (optional)
+
+Example `reclone.yaml` entry:
+
+```yaml
+gitlab-examples:
+  cmd: "ghorg clone gitlab-examples --scm=gitlab --token=XXXXXXX"
+  post_exec_script: "/path/to/notify.sh"
+```
+
+Example script for `post_exec_script` (e.g. `/path/to/notify.sh`):
+
+```sh
+#!/bin/sh
+STATUS="$1"
+NAME="$2"
+
+if [ "$STATUS" = "success" ]; then
+  # Success webhook
+  curl -fsS https://hc-ping.com/your-uuid-here
+else
+  # Failure webhook
+  curl -fsS https://hc-ping.com/your-uuid-here/fail
+fi
+```
+
 ```
 # To clone all the entries in your reclone.yaml omit any arguments
 ghorg reclone
