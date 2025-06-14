@@ -133,6 +133,10 @@ func (g MockGitClient) ShortStatus(repo scm.Repo) (string, error) {
 	return "", nil
 }
 
+func (g MockGitClient) SyncDefaultBranch(repo scm.Repo) error {
+	return nil
+}
+
 func TestInitialClone(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 	dir, err := os.MkdirTemp("", "ghorg_test_initial")
