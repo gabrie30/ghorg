@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -173,24 +174,28 @@ func (g GitClient) hasRemoteHeadsGoGit(repo scm.Repo) (bool, error) {
 }
 
 func (g GitClient) Clone(repo scm.Repo, useGitCLI bool) error {
-	return g.executeGitCLI(useGitCLI, repo, g.buildCloneArgs(repo), func() error {
-		// recurseSubmodules := os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true"
-		// 	return printDebugCmd(cmd, repo)
-		// }
-
-		// err := cmd.Run()
-		// return err
-
+	// First do the normal clone
+	if err := g.executeGitCLI(useGitCLI, repo, g.buildCloneArgs(repo), func() error {
 		recurseSubmodules := os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true"
 		cloneDepth := getCloneDepth()
-		// gitFilter := os.Getenv("GHORG_GIT_FILTER")
+		pathFilter := os.Getenv("GHORG_PATH_FILTER")
+		gitFilter := os.Getenv("GHORG_GIT_FILTER")
 		isMirror := os.Getenv("GHORG_BACKUP") == "true"
+		singleBranch := os.Getenv("GHORG_SINGLE_BRANCH") == "true"
+		branch := repo.CloneBranch
 
 		// Prepare clone options
 		cloneOptions := &git.CloneOptions{
 			URL:               repo.CloneURL,
 			Depth:             cloneDepth,
 			RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+			Progress:          nil, // No progress output
+		}
+
+		// Set the branch if specified
+		if branch != "" {
+			cloneOptions.ReferenceName = plumbing.NewBranchReferenceName(branch)
+			cloneOptions.SingleBranch = singleBranch
 		}
 
 		// Set submodule recursion if enabled
@@ -200,51 +205,251 @@ func (g GitClient) Clone(repo scm.Repo, useGitCLI bool) error {
 			cloneOptions.RecurseSubmodules = 0
 		}
 
-		// // Set filter if specified
-		// if gitFilter != "" {
-		// 	cloneOptions.Filter = gitFilter
-		// }
-
 		// Set mirror option if enabled
 		if isMirror {
 			cloneOptions.Mirror = true
 		}
 
+		// Note about Git filter: go-git doesn't support the equivalent of --filter directly
+		// This is handled through CLI args when useGitCLI is true
+		// For go-git implementation, we clone normally then apply sparse checkout
+
 		// Perform the clone
-		_, err := git.PlainClone(repo.HostPath, false, cloneOptions)
+		r, err := git.PlainClone(repo.HostPath, false, cloneOptions)
 		if err != nil {
 			return fmt.Errorf("failed to clone repository: %w", err)
 		}
 
+		// If git filter was specified, apply it as best we can to the repository config
+		// for future fetch operations
+		if gitFilter != "" {
+			// This is a best-effort approximation as go-git doesn't support
+			// Git filter specifications fully
+			_ = setGitFilterConfig(r, gitFilter)
+		}
+
+		// If a path filter is specified, manually implement sparse checkout
+		if pathFilter != "" {
+			// Split the filter by commas and prepare the sparse checkout directories
+			filterPaths := strings.Split(pathFilter, ",")
+			normalizedPaths := make([]string, 0, len(filterPaths))
+			for _, path := range filterPaths {
+				// Normalize the path
+				path = strings.TrimSpace(path)
+				if path != "" {
+					normalizedPaths = append(normalizedPaths, path)
+				}
+			}
+
+			// Apply manual sparse checkout by removing files that don't match the filter
+			if len(normalizedPaths) > 0 {
+				// Get the root path
+				rootPath := repo.HostPath
+
+				// Create a map of paths to keep - faster lookups
+				pathsToKeep := make(map[string]bool)
+
+				// First scan to collect paths we want to keep
+				err = filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
+					if err != nil {
+						return err
+					}
+
+					// Skip the .git directory
+					if strings.Contains(path, "/.git/") || strings.HasSuffix(path, "/.git") {
+						return nil
+					}
+
+					// Get the relative path from the repo root
+					relPath, err := filepath.Rel(rootPath, path)
+					if err != nil {
+						return err
+					}
+
+					// Skip the root directory
+					if relPath == "." {
+						return nil
+					}
+
+					// Check if this path matches our filters
+					for _, filterPath := range normalizedPaths {
+						// Case 1: Direct match
+						if relPath == filterPath {
+							pathsToKeep[relPath] = true
+							// Mark all parent paths to keep
+							markParentPaths(pathsToKeep, relPath)
+							break
+						}
+
+						// Case 2: Path is within a filtered directory
+						if strings.HasPrefix(relPath, filterPath+"/") {
+							pathsToKeep[relPath] = true
+							break
+						}
+
+						// Case 3: Path is a parent directory of a filter path
+						if strings.HasPrefix(filterPath, relPath+"/") {
+							pathsToKeep[relPath] = true
+							// Also mark all parent paths
+							markParentPaths(pathsToKeep, relPath)
+							break
+						}
+					}
+
+					return nil
+				})
+
+				if err != nil {
+					return fmt.Errorf("failed to identify paths for sparse checkout: %w", err)
+				}
+
+				// Second scan to remove unwanted paths
+				err = filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
+					if err != nil {
+						return err
+					}
+
+					// Skip the .git directory
+					if strings.Contains(path, "/.git/") || strings.HasSuffix(path, "/.git") {
+						return nil
+					}
+
+					// Get the relative path from the repo root
+					relPath, err := filepath.Rel(rootPath, path)
+					if err != nil {
+						return err
+					}
+
+					// Skip the root directory
+					if relPath == "." {
+						return nil
+					}
+
+					// If this path is not in our keep list, remove it
+					if !pathsToKeep[relPath] {
+						if info.IsDir() {
+							// Remove the entire directory
+							if err := os.RemoveAll(path); err != nil {
+								return fmt.Errorf("failed to remove directory %s: %w", path, err)
+							}
+							return filepath.SkipDir // Skip the removed directory
+						} else {
+							// Remove the file
+							if err := os.Remove(path); err != nil {
+								return fmt.Errorf("failed to remove file %s: %w", path, err)
+							}
+						}
+					}
+
+					return nil
+				})
+
+				if err != nil {
+					return fmt.Errorf("failed to set up manual sparse checkout: %w", err)
+				}
+			}
+		}
+
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	// Then set up sparse checkout for CLI users
+	// This is only needed for CLI users because the go-git version handles sparse checkout differently
+	pathFilter := os.Getenv("GHORG_PATH_FILTER")
+	if useGitCLI && pathFilter != "" {
+		// Configure git sparse-checkout
+		if err := g.executeGitCLI(true, repo, []string{"config", "core.sparseCheckout", "true"}, nil); err != nil {
+			return fmt.Errorf("failed to configure sparse checkout: %w", err)
+		}
+
+		// Initialize sparse checkout
+		if err := g.executeGitCLI(true, repo, []string{"sparse-checkout", "init", "--cone"}, nil); err != nil {
+			// If 'sparse-checkout init' fails (older Git versions), try the alternative approach
+			if err := g.executeGitCLI(true, repo, []string{"config", "core.sparseCheckout", "true"}, nil); err != nil {
+				return fmt.Errorf("failed to configure sparse checkout: %w", err)
+			}
+		}
+
+		// Set the sparse checkout patterns
+		if err := g.executeGitCLI(true, repo, []string{"sparse-checkout", "set", pathFilter}, nil); err != nil {
+			// If 'sparse-checkout set' fails (older Git versions), try writing to the sparse-checkout file directly
+			sparseCheckoutFile := filepath.Join(repo.HostPath, ".git", "info", "sparse-checkout")
+			patterns := strings.Split(pathFilter, ",")
+			var content strings.Builder
+
+			for _, pattern := range patterns {
+				pattern = strings.TrimSpace(pattern)
+				if pattern != "" {
+					content.WriteString(pattern)
+					content.WriteString("\n")
+					// Also include all files in subdirectories
+					content.WriteString(pattern)
+					content.WriteString("/**\n")
+				}
+			}
+
+			if err := os.MkdirAll(filepath.Join(repo.HostPath, ".git", "info"), 0755); err != nil {
+				return fmt.Errorf("failed to create sparse checkout directory: %w", err)
+			}
+
+			if err := os.WriteFile(sparseCheckoutFile, []byte(content.String()), 0644); err != nil {
+				return fmt.Errorf("failed to write sparse checkout file: %w", err)
+			}
+
+			// Reset the index to apply sparse checkout
+			if err := g.executeGitCLI(true, repo, []string{"read-tree", "-mu", "HEAD"}, nil); err != nil {
+				return fmt.Errorf("failed to apply sparse checkout: %w", err)
+			}
+		}
+	}
+
+	return nil
 }
 
 // buildCloneArgs builds the arguments for git clone command
 func (g GitClient) buildCloneArgs(repo scm.Repo) []string {
 	args := []string{"clone", repo.CloneURL, repo.HostPath}
+	index := 1
 
 	if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
-		index := 1
 		args = append(args[:index+1], args[index:]...)
 		args[index] = "--recursive"
+		index++
 	}
 
 	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
-		index := 1
 		args = append(args[:index+1], args[index:]...)
 		args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
+		index++
 	}
 
 	if os.Getenv("GHORG_GIT_FILTER") != "" {
-		index := 1
 		args = append(args[:index+1], args[index:]...)
 		args[index] = fmt.Sprintf("--filter=%v", os.Getenv("GHORG_GIT_FILTER"))
+		index++
+	}
+
+	if os.Getenv("GHORG_SINGLE_BRANCH") == "true" {
+		args = append(args[:index+1], args[index:]...)
+		args[index] = "--single-branch"
+		index++
+	}
+
+	// Ensure the branch is specified if it's not empty
+	if repo.CloneBranch != "" {
+		args = append(args[:index+1], args[index:]...)
+		args[index] = fmt.Sprintf("--branch=%v", repo.CloneBranch)
+		index++
 	}
 
 	if os.Getenv("GHORG_BACKUP") == "true" {
 		args = append(args, "--mirror")
 	}
+
+	// For path filtering, when using CLI we need to set up a sparse checkout
+	// after the clone, which will be handled in a separate step
 
 	return args
 }
@@ -714,4 +919,58 @@ func (g GitClient) repoCommitCountGoGit(repo scm.Repo) (int, error) {
 	}
 
 	return count, nil
+}
+
+// setGitFilterConfig configures the Git repository to use the specified filter for partial clones
+func setGitFilterConfig(repo *git.Repository, filterSpec string) error {
+	// Get the repository configuration
+	cfg, err := repo.Config()
+	if err != nil {
+		return fmt.Errorf("failed to get repository config: %w", err)
+	}
+
+	// Make sure we have the origin remote
+	remote, ok := cfg.Remotes["origin"]
+	if !ok || remote == nil {
+		return fmt.Errorf("origin remote not found in repository")
+	}
+
+	// Configure fetch options for the remote to support partial clones
+	// Set up fetch options with the filter
+	fetchRefSpec := []config.RefSpec{"+refs/heads/*:refs/remotes/origin/*"}
+
+	// Update the remote with the new filter settings
+	// Unfortunately go-git doesn't have direct API support for partial clone filters
+	// In a real git repo, we'd set:
+	// git config remote.origin.promisor true
+	// git config remote.origin.partialCloneFilter <filterSpec>
+
+	// Best approximation we can do for now is to set the fetch refspecs
+	remote.Fetch = fetchRefSpec
+
+	// Save the updated configuration
+	err = repo.Storer.SetConfig(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to set repository config for filter: %w", err)
+	}
+
+	// Note: This is a partial implementation as go-git doesn't fully support Git filter specs
+	// For complete support, we'd need to modify the Git config files directly after cloning
+
+	return nil
+}
+
+// markParentPaths marks all parent directories of a path as "keep"
+// This ensures that if we want to keep "src/main/java", we also keep "src" and "src/main"
+func markParentPaths(pathsToKeep map[string]bool, path string) {
+	parts := strings.Split(path, "/")
+	currentPath := ""
+
+	for i, part := range parts {
+		if i > 0 {
+			currentPath += "/"
+		}
+		currentPath += part
+		pathsToKeep[currentPath] = true
+	}
 }
