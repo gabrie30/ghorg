@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - Gitlab prune not working with preserve dir; thanks @Fraguinha
 ### Security
+- Bump github.com/go-viper/mapstructure/v2 from 2.2.1 to 2.3.0 (#539)
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.83 to 0.9.85 (#537)
+- Bump github.com/bradleyfalzon/ghinstallation/v2 from 2.15.0 to 2.16.0 (#536)
+- Bump golang.org/x/oauth2 from 0.29.0 to 0.30.0 (#535)
 
 ## [1.11.1] - 5/1/25
 ### Added
