@@ -16,6 +16,7 @@
 # Example for gitlab; update with your gitlab cloud token
 gitlab-examples:
   cmd: "ghorg clone gitlab-examples --scm=gitlab --preserve-dir --token=XXXXXXX"
+  post_exec_script: "/path/to/notify.sh"
 
 # Examples from README.md; update with your github cloud token
 kubernetes:

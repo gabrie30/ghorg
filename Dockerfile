@@ -28,7 +28,7 @@ ENV GHORG_CONFIG=/config/conf.yaml
 ENV GHORG_RECLONE_PATH=/config/reclone.yaml
 ENV GHORG_ABSOLUTE_PATH_TO_CLONE_TO=/data
 
-RUN apk add -U --no-cache ca-certificates openssh-client tzdata git \
+RUN apk add -U --no-cache ca-certificates openssh-client tzdata git curl \
     && mkdir -p /data $XDG_CONFIG_HOME \
     && addgroup --gid $GID $GROUP \
     && adduser -D -H --gecos "" \
