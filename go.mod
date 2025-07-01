@@ -13,7 +13,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/google/go-github/v62 v62.0.0
 	github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
-	github.com/ktrysmt/go-bitbucket v0.9.85
+	github.com/ktrysmt/go-bitbucket v0.9.86
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
