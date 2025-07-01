@@ -117,7 +117,7 @@ github.com/inconshreveable/mousetrap
 # github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
 ## explicit; go 1.17
 github.com/korovkin/limiter
-# github.com/ktrysmt/go-bitbucket v0.9.85
+# github.com/ktrysmt/go-bitbucket v0.9.86
 ## explicit; go 1.23.0
 github.com/ktrysmt/go-bitbucket
 # github.com/kyokomi/emoji/v2 v2.2.8
