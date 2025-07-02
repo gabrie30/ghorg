@@ -2,14 +2,19 @@ package cmd
 
 import (
 	_ "embed"
-	"log"
 	"os"
 	"os/exec"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/spf13/cobra"
+)
+
+var (
+	recloneRunning bool
+	recloneMutex   sync.Mutex
 )
 
 var recloneCronCmd = &cobra.Command{
@@ -26,27 +31,52 @@ var recloneCronCmd = &cobra.Command{
 }
 
 func startReCloneCron() {
-	if os.Getenv("GHORG_CRON_TIMER_MINUTES") == "" {
+	cronTimer := os.Getenv("GHORG_CRON_TIMER_MINUTES")
+	if cronTimer == "" {
+		colorlog.PrintInfo("GHORG_CRON_TIMER_MINUTES is not set. Cron job will not start.")
 		return
 	}
-	colorlog.PrintInfo("Cron activated and will first run after " + os.Getenv("GHORG_CRON_TIMER_MINUTES") + " minutes ")
 
-	minutes, err := strconv.Atoi(os.Getenv("GHORG_CRON_TIMER_MINUTES"))
+	colorlog.PrintInfo("Cron activated and will first run after " + cronTimer + " minutes ")
+
+	minutes, err := strconv.Atoi(cronTimer)
 	if err != nil {
-		log.Fatalf("Invalid GHORG_CRON_TIMER_MINUTES: %v", err)
+		colorlog.PrintError("Invalid GHORG_CRON_TIMER_MINUTES: " + cronTimer)
+		return
 	}
 
 	ticker := time.NewTicker(time.Duration(minutes) * time.Minute)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		colorlog.PrintInfo("starting reclone cron, time: " + time.Now().Format(time.RFC1123))
+		recloneMutex.Lock()
+		if recloneRunning {
+			recloneMutex.Unlock()
+			continue
+		}
+		recloneRunning = true
+		recloneMutex.Unlock()
+
+		colorlog.PrintInfo("Starting reclone cron, time: " + time.Now().Format(time.RFC1123))
 		cmd := exec.Command("ghorg", "reclone")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
-		if err := cmd.Run(); err != nil {
-			log.Printf("Failed to run ghorg reclone: %v", err)
+		if err := cmd.Start(); err != nil {
+			colorlog.PrintError("Failed to start ghorg reclone: " + err.Error())
+			recloneMutex.Lock()
+			recloneRunning = false
+			recloneMutex.Unlock()
+			continue
 		}
+
+		go func() {
+			if err := cmd.Wait(); err != nil {
+				colorlog.PrintError("ghorg reclone command failed: " + err.Error())
+			}
+			recloneMutex.Lock()
+			recloneRunning = false
+			recloneMutex.Unlock()
+		}()
 	}
 }
