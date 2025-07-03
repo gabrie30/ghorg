@@ -28,7 +28,7 @@ ENV GHORG_CONFIG=/config/conf.yaml
 ENV GHORG_RECLONE_PATH=/config/reclone.yaml
 ENV GHORG_ABSOLUTE_PATH_TO_CLONE_TO=/data
 
-RUN apk add -U --no-cache ca-certificates openssh-client tzdata git curl \
+RUN apk add -U --no-cache ca-certificates openssh-client tzdata git curl tini \
     && mkdir -p /data $XDG_CONFIG_HOME \
     && addgroup --gid $GID $GROUP \
     && adduser -D -H --gecos "" \
@@ -51,5 +51,5 @@ COPY --from=build-image --chown=$USER:$GROUP /go/src/github.com/gabrie30/ghorg/g
 
 VOLUME /data
 
-ENTRYPOINT ["ghorg"]
+ENTRYPOINT ["/sbin/tini", "--", "ghorg"]
 CMD ["--help"]
