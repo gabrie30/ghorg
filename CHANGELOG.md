@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.11.3] - Unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Reclone cron zombie processes; thanks @steinbrueckri
+### Security
+
 ## [1.11.2] - 6/29/25
 ### Added
 - Post exec script to reclone cmd; thanks @steinbrueckri
