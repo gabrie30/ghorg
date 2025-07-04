@@ -71,21 +71,26 @@ func (g GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
 
 	err := cmd.Run()
 	if err == nil {
+		// successfully listed the remote heads
 		return true, nil
 	}
 
 	var exitError *exec.ExitError
 	if !errors.As(err, &exitError) {
+		// error, but no exit code, return err
 		return false, err
 	}
 
 	exitCode := exitError.ExitCode()
 	switch exitCode {
 	case 0:
+		// ls-remote did successfully list the remote heads
 		return true, nil
 	case 2:
+		// repository is empty
 		return false, nil
 	default:
+		// another exit code, simply return err
 		return false, err
 	}
 }
@@ -121,7 +126,8 @@ func (g GitClient) Clone(repo scm.Repo) error {
 		return printDebugCmd(cmd, repo)
 	}
 
-	return cmd.Run()
+	err := cmd.Run()
+	return err
 }
 
 func (g GitClient) SetOriginWithCredentials(repo scm.Repo) error {
@@ -242,6 +248,7 @@ func (g GitClient) Branch(repo scm.Repo) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
+// RevListCompare returns the list of commits in the local branch that are not in the remote branch.
 func (g GitClient) RevListCompare(repo scm.Repo, localBranch string, remoteBranch string) (string, error) {
 	cmd := exec.Command("git", "-C", repo.HostPath, "rev-list", localBranch, "^"+remoteBranch)
 	output, err := cmd.CombinedOutput()
