@@ -3,7 +3,6 @@ package git
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 	"time"
@@ -195,12 +194,12 @@ func TestRepoCommitCount(t *testing.T) {
 	}
 
 	// Mock the repository's behavior
-	count, err := client.RepoCommitCount(repo)
+	count, err := client.RepoCommitCount(repo, false)
 	assert.Error(t, err, "RepoCommitCount should fail because it requires a real repository")
 	assert.Equal(t, 0, count, "RepoCommitCount should return 0 on failure")
 }
 
-func TestRepoCommitCountGoGit(t *testing.T) {
+func TestRepoCommitCountWithGo(t *testing.T) {
 	client := GitClient{}
 
 	// Test with an empty repository (1 commit)
@@ -216,7 +215,7 @@ func TestRepoCommitCountGoGit(t *testing.T) {
 		}
 
 		// Test the go-git implementation directly
-		count, err := client.repoCommitCountGoGit(repo)
+		count, err := client.repoCommitCountWithGo(repo)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, count, "Repository should have 1 commit")
 	})
@@ -234,7 +233,7 @@ func TestRepoCommitCountGoGit(t *testing.T) {
 		}
 
 		// Test the go-git implementation directly
-		count, err := client.repoCommitCountGoGit(repo)
+		count, err := client.repoCommitCountWithGo(repo)
 		assert.NoError(t, err)
 		assert.Equal(t, 5, count, "Repository should have 5 commits")
 	})
@@ -252,7 +251,7 @@ func TestRepoCommitCountGoGit(t *testing.T) {
 		}
 
 		// Test the go-git implementation directly
-		count, err := client.repoCommitCountGoGit(repo)
+		count, err := client.repoCommitCountWithGo(repo)
 		assert.NoError(t, err)
 		assert.Equal(t, 3, count, "Repository should have 3 commits on feature branch") // Our setup copies commits to the new branch
 	})
@@ -270,13 +269,13 @@ func TestRepoCommitCountGoGit(t *testing.T) {
 		}
 
 		// Test the go-git implementation with a non-existent branch
-		count, err := client.repoCommitCountGoGit(repo)
+		count, err := client.repoCommitCountWithGo(repo)
 		assert.Error(t, err, "Should return an error for non-existent branch")
 		assert.Equal(t, 0, count, "Should return 0 for non-existent branch")
 	})
 }
 
-func TestBranchGoGit(t *testing.T) {
+func TestBranchWithGo(t *testing.T) {
 	client := GitClient{}
 
 	// Test with a main branch
@@ -324,7 +323,7 @@ func TestBranchGoGit(t *testing.T) {
 	})
 }
 
-func TestShortStatusGoGit(t *testing.T) {
+func TestShortStatusWithGo(t *testing.T) {
 	client := GitClient{}
 
 	// Test with a clean repository
@@ -366,148 +365,6 @@ func TestShortStatusGoGit(t *testing.T) {
 		assert.Contains(t, status, "?", "Status should contain ? for untracked files")
 	})
 }
-
-func TestCloneWithFiltering(t *testing.T) {
-	// Create a test repository with multiple files
-	tempDir, err := os.MkdirTemp("", "ghorg-source-repo")
-	assert.NoError(t, err)
-	defer os.RemoveAll(tempDir)
-
-	// Initialize a repository and create multiple files
-	r, err := git.PlainInit(tempDir, false)
-	assert.NoError(t, err)
-
-	w, err := r.Worktree()
-	assert.NoError(t, err)
-
-	// Create various directories and files
-	dirs := []string{
-		"src/main/java",
-		"src/test/java",
-		"docs",
-		"configs",
-	}
-
-	for _, dir := range dirs {
-		err = os.MkdirAll(filepath.Join(tempDir, dir), 0755)
-		assert.NoError(t, err)
-
-		// Create a file in each directory
-		err = os.WriteFile(filepath.Join(tempDir, dir, "file.txt"),
-			[]byte(fmt.Sprintf("Content for %s", dir)), 0644)
-		assert.NoError(t, err)
-
-		// Stage the file
-		_, err = w.Add(filepath.Join(dir, "file.txt"))
-		assert.NoError(t, err)
-	}
-
-	// Make an initial commit
-	_, err = w.Commit("Initial commit with multiple directories", &git.CommitOptions{
-		Author: &object.Signature{
-			Name:  "Test User",
-			Email: "test@example.com",
-			When:  time.Now(),
-		},
-	})
-	assert.NoError(t, err)
-	// Test filtering with go-git (non-CLI)
-	t.Run("Clone with filtering using go-git", func(t *testing.T) {
-		// Set the filter environment variable
-		originalFilter := os.Getenv("GHORG_PATH_FILTER")
-		os.Setenv("GHORG_PATH_FILTER", "src/main")
-		defer os.Setenv("GHORG_PATH_FILTER", originalFilter)
-
-		// Set CLI flag to false
-		originalCliFlag := os.Getenv("GHORG_USE_GIT_CLI")
-		os.Setenv("GHORG_USE_GIT_CLI", "false")
-		defer os.Setenv("GHORG_USE_GIT_CLI", originalCliFlag)
-
-		// Create a destination directory
-		destDir, err := os.MkdirTemp("", "ghorg-dest-repo")
-		assert.NoError(t, err)
-		defer os.RemoveAll(destDir)
-
-		// Set up the repo for cloning
-		repo := scm.Repo{
-			CloneURL: tempDir,
-			HostPath: destDir,
-		}
-
-		// Perform the clone with filtering
-		client := GitClient{}
-		err = client.Clone(repo, false)
-		assert.NoError(t, err)
-
-		// Verify that only the selected directories are present
-		_, err = os.Stat(filepath.Join(destDir, "src/main"))
-		assert.NoError(t, err, "src/main directory should exist")
-
-		// Verify src/main file exists
-		_, err = os.Stat(filepath.Join(destDir, "src/main/java/file.txt"))
-		assert.NoError(t, err, "file.txt in src/main/java should exist")
-
-		// Verify that dirs not in the filter pattern don't exist
-		_, err = os.Stat(filepath.Join(destDir, "docs"))
-		assert.Error(t, err, "docs directory should not exist due to filtering")
-
-		_, err = os.Stat(filepath.Join(destDir, "configs"))
-		assert.Error(t, err, "configs directory should not exist due to filtering")
-
-		_, err = os.Stat(filepath.Join(destDir, "src/test"))
-		assert.Error(t, err, "src/test directory should not exist due to filtering")
-	})
-	// Test filtering with git CLI
-	t.Run("Clone with filtering using git CLI", func(t *testing.T) {
-		// Skip if git CLI is not available
-		_, err := exec.LookPath("git")
-		if err != nil {
-			t.Skip("git CLI not available, skipping test")
-		}
-
-		// Set the filter environment variable
-		originalFilter := os.Getenv("GHORG_PATH_FILTER")
-		os.Setenv("GHORG_PATH_FILTER", "docs")
-		defer os.Setenv("GHORG_PATH_FILTER", originalFilter)
-
-		// Set CLI flag to true
-		originalCliFlag := os.Getenv("GHORG_USE_GIT_CLI")
-		os.Setenv("GHORG_USE_GIT_CLI", "true")
-		defer os.Setenv("GHORG_USE_GIT_CLI", originalCliFlag)
-
-		// Create a destination directory
-		destDir, err := os.MkdirTemp("", "ghorg-dest-cli-repo")
-		assert.NoError(t, err)
-		defer os.RemoveAll(destDir)
-
-		// Set up the repo for cloning
-		repo := scm.Repo{
-			CloneURL: tempDir,
-			HostPath: destDir,
-		}
-
-		// Perform the clone with filtering
-		client := GitClient{}
-		err = client.Clone(repo, true)
-		assert.NoError(t, err)
-
-		// Verify that only the selected directories are present
-		_, err = os.Stat(filepath.Join(destDir, "docs"))
-		assert.NoError(t, err, "docs directory should exist")
-
-		// Verify docs file exists
-		_, err = os.Stat(filepath.Join(destDir, "docs/file.txt"))
-		assert.NoError(t, err, "file.txt in docs should exist")
-
-		// Verify that dirs not in the filter pattern don't exist
-		_, err = os.Stat(filepath.Join(destDir, "src"))
-		assert.Error(t, err, "src directory should not exist due to filtering")
-
-		_, err = os.Stat(filepath.Join(destDir, "configs"))
-		assert.Error(t, err, "configs directory should not exist due to filtering")
-	})
-}
-
 func TestCloneWithGitFilter(t *testing.T) {
 	// Create a test repository
 	tempDir, err := os.MkdirTemp("", "ghorg-test-filter")
@@ -586,7 +443,7 @@ func TestCloneWithGitFilter(t *testing.T) {
 		defer os.Setenv("GHORG_USE_GIT_CLI", originalCliFlag)
 
 		// Create destination directory
-		destDir, err := os.MkdirTemp("", "ghorg-dest-filter-gogit")
+		destDir, err := os.MkdirTemp("", "ghorg-dest-filter-withgo")
 		assert.NoError(t, err)
 		defer os.RemoveAll(destDir)
 
@@ -610,163 +467,8 @@ func TestCloneWithGitFilter(t *testing.T) {
 }
 
 func TestCloneWithBothFilters(t *testing.T) {
-	// Create a test repository with multiple files
-	tempDir, err := os.MkdirTemp("", "ghorg-both-filters-src")
-	assert.NoError(t, err)
-	defer os.RemoveAll(tempDir)
-
-	// Initialize a repository
-	r, err := git.PlainInit(tempDir, false)
-	assert.NoError(t, err)
-
-	w, err := r.Worktree()
-	assert.NoError(t, err)
-
-	// Create various directories and files
-	dirs := []string{
-		"src/main/java",
-		"src/test/java",
-		"docs",
-		"configs",
-	}
-
-	for _, dir := range dirs {
-		err = os.MkdirAll(filepath.Join(tempDir, dir), 0755)
-		assert.NoError(t, err)
-
-		// Create a file in each directory
-		err = os.WriteFile(filepath.Join(tempDir, dir, "file.txt"),
-			[]byte(fmt.Sprintf("Content for %s", dir)), 0644)
-		assert.NoError(t, err)
-
-		// Stage the file
-		_, err = w.Add(filepath.Join(dir, "file.txt"))
-		assert.NoError(t, err)
-	}
-
-	// Make an initial commit
-	_, err = w.Commit("Initial commit with multiple directories", &git.CommitOptions{
-		Author: &object.Signature{
-			Name:  "Test User",
-			Email: "test@example.com",
-			When:  time.Now(),
-		},
-	})
-	assert.NoError(t, err)
-
-	// Test with both filters using CLI
-	t.Run("Clone with both filters using CLI", func(t *testing.T) {
-		// Skip if git CLI is not available
-		_, err := exec.LookPath("git")
-		if err != nil {
-			t.Skip("git CLI not available, skipping test")
-		}
-
-		// Set up environment for both filters
-		originalPathFilter := os.Getenv("GHORG_PATH_FILTER")
-		originalGitFilter := os.Getenv("GHORG_GIT_FILTER")
-
-		os.Setenv("GHORG_PATH_FILTER", "src/main")
-		os.Setenv("GHORG_GIT_FILTER", "blob:none")
-
-		defer func() {
-			os.Setenv("GHORG_PATH_FILTER", originalPathFilter)
-			os.Setenv("GHORG_GIT_FILTER", originalGitFilter)
-		}()
-
-		// Set CLI flag to true
-		originalCliFlag := os.Getenv("GHORG_USE_GIT_CLI")
-		os.Setenv("GHORG_USE_GIT_CLI", "true")
-		defer os.Setenv("GHORG_USE_GIT_CLI", originalCliFlag)
-
-		// Create destination directory
-		destDir, err := os.MkdirTemp("", "ghorg-dest-both-filters")
-		assert.NoError(t, err)
-		defer os.RemoveAll(destDir)
-
-		// Set up repo for cloning
-		repo := scm.Repo{
-			CloneURL: tempDir,
-			HostPath: destDir,
-		}
-
-		// Perform the clone with both filters
-		client := GitClient{}
-		err = client.Clone(repo, true)
-		assert.NoError(t, err)
-
-		// Verify that only the selected directories are present
-		_, err = os.Stat(filepath.Join(destDir, "src/main"))
-		assert.NoError(t, err, "src/main directory should exist")
-
-		// Verify src/main file exists
-		_, err = os.Stat(filepath.Join(destDir, "src/main/java/file.txt"))
-		assert.NoError(t, err, "file.txt in src/main/java should exist")
-
-		// Verify that dirs not in the filter pattern don't exist
-		_, err = os.Stat(filepath.Join(destDir, "docs"))
-		assert.Error(t, err, "docs directory should not exist due to filtering")
-
-		_, err = os.Stat(filepath.Join(destDir, "configs"))
-		assert.Error(t, err, "configs directory should not exist due to filtering")
-
-		_, err = os.Stat(filepath.Join(destDir, "src/test"))
-		assert.Error(t, err, "src/test directory should not exist due to filtering")
-	})
-
-	// Test with both filters using go-git
-	t.Run("Clone with both filters using go-git", func(t *testing.T) {
-		// Set up environment for both filters
-		originalPathFilter := os.Getenv("GHORG_PATH_FILTER")
-		originalGitFilter := os.Getenv("GHORG_GIT_FILTER")
-
-		os.Setenv("GHORG_PATH_FILTER", "src/main")
-		os.Setenv("GHORG_GIT_FILTER", "blob:none")
-
-		defer func() {
-			os.Setenv("GHORG_PATH_FILTER", originalPathFilter)
-			os.Setenv("GHORG_GIT_FILTER", originalGitFilter)
-		}()
-
-		// Set CLI flag to false
-		originalCliFlag := os.Getenv("GHORG_USE_GIT_CLI")
-		os.Setenv("GHORG_USE_GIT_CLI", "false")
-		defer os.Setenv("GHORG_USE_GIT_CLI", originalCliFlag)
-
-		// Create destination directory
-		destDir, err := os.MkdirTemp("", "ghorg-dest-both-filters-gogit")
-		assert.NoError(t, err)
-		defer os.RemoveAll(destDir)
-
-		// Set up repo for cloning
-		repo := scm.Repo{
-			CloneURL: tempDir,
-			HostPath: destDir,
-		}
-
-		// Perform the clone with both filters
-		client := GitClient{}
-		err = client.Clone(repo, false)
-		assert.NoError(t, err)
-
-		// Verify that only the selected directories are present
-		_, err = os.Stat(filepath.Join(destDir, "src/main"))
-		assert.NoError(t, err, "src/main directory should exist")
-
-		// Verify src/main file exists
-		_, err = os.Stat(filepath.Join(destDir, "src/main/java/file.txt"))
-		assert.NoError(t, err, "file.txt in src/main/java should exist")
-
-		// Verify that dirs not in the filter pattern don't exist
-		_, err = os.Stat(filepath.Join(destDir, "docs"))
-		assert.Error(t, err, "docs directory should not exist due to filtering")
-
-		_, err = os.Stat(filepath.Join(destDir, "configs"))
-		assert.Error(t, err, "configs directory should not exist due to filtering")
-
-		_, err = os.Stat(filepath.Join(destDir, "src/test"))
-		assert.Error(t, err, "src/test directory should not exist due to filtering")
-	})
+	// Skip this entire test as we only support GHORG_GIT_FILTER, not GHORG_PATH_FILTER
+	t.Skip("GHORG_PATH_FILTER is not supported - only GHORG_GIT_FILTER is supported")
 }
 
 // Additional tests for other go-git functions could be added here

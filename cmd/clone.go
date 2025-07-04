@@ -896,7 +896,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						}
 					}
 
-					count, _ := git.RepoCommitCount(repo)
+					count, _ := git.RepoCommitCount(repo, useGitCLI)
 					if err != nil {
 						e := fmt.Sprintf("Problem trying to get pre pull commit count for on repo: %s", repo.URL)
 						cloneInfos = append(cloneInfos, e)
@@ -928,7 +928,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						return
 					}
 
-					count, err = git.RepoCommitCount(repo)
+					count, err = git.RepoCommitCount(repo, useGitCLI)
 					if err != nil {
 						e := fmt.Sprintf("Problem trying to get post pull commit count for on repo: %s", repo.URL)
 						cloneInfos = append(cloneInfos, e)

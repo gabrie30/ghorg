@@ -117,7 +117,7 @@ func (g MockGitClient) FetchCloneBranch(repo scm.Repo, useGitCLI bool) error {
 	return nil
 }
 
-func (g MockGitClient) RepoCommitCount(repo scm.Repo) (int, error) {
+func (g MockGitClient) RepoCommitCount(repo scm.Repo, useGitCLI bool) (int, error) {
 	return 0, nil
 }
 
