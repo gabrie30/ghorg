@@ -14,6 +14,7 @@ package git
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/gabrie30/ghorg/scm"
@@ -104,6 +105,17 @@ func (g GoGitClient) FetchCloneBranch(repo scm.Repo) error {
 // RepoCommitCount implements the Gitter interface using go-git
 func (g GoGitClient) RepoCommitCount(repo scm.Repo) (int, error) {
 	return g.repoCommitCountWithGo(repo)
+}
+
+// getCloneDepth returns the clone depth from the environment variable GHORG_CLONE_DEPTH
+func getCloneDepth() int {
+	cloneDepthStr := os.Getenv("GHORG_CLONE_DEPTH")
+	if cloneDepthStr != "" {
+		if depth, err := strconv.Atoi(cloneDepthStr); err == nil && depth > 0 {
+			return depth
+		}
+	}
+	return 1 // Default depth
 }
 
 // hasRemoteHeadsWithGo implements HasRemoteHeads using go-git

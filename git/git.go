@@ -65,16 +65,6 @@ func printDebugCmd(cmd *exec.Cmd, repo scm.Repo) error {
 	return nil
 }
 
-func getCloneDepth() int {
-	cloneDepthStr := os.Getenv("GHORG_CLONE_DEPTH")
-	if cloneDepthStr != "" {
-		if depth, err := strconv.Atoi(cloneDepthStr); err == nil && depth > 0 {
-			return depth
-		}
-	}
-	return 1 // Default depth
-}
-
 func (g GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
 	cmd := exec.Command("git", "ls-remote", "--heads", "--quiet", "--exit-code")
 	cmd.Dir = repo.HostPath
@@ -90,11 +80,12 @@ func (g GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
 	}
 
 	exitCode := exitError.ExitCode()
-	if exitCode == 0 {
+	switch exitCode {
+	case 0:
 		return true, nil
-	} else if exitCode == 2 {
+	case 2:
 		return false, nil
-	} else {
+	default:
 		return false, err
 	}
 }

@@ -25,7 +25,7 @@ func setupMockRepo() (*git.Repository, error) {
 
 // setupTempRepo creates a real git repository on the filesystem with commits
 // Don't forget to defer os.RemoveAll(path) in your test
-func setupTempRepo(t *testing.T, commitCount int, branchName string) (string, error) {
+func setupTempRepo(_ *testing.T, commitCount int, branchName string) (string, error) {
 	// Create a temporary directory for the repository
 	path, err := os.MkdirTemp("", "ghorg-test-repo")
 	if err != nil {
