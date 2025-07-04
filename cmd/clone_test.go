@@ -63,14 +63,14 @@ func NewMockGit() MockGitClient {
 	return MockGitClient{}
 }
 
-func (g MockGitClient) HasRemoteHeads(repo scm.Repo, useGitCLI bool) (bool, error) {
+func (g MockGitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
 	if repo.Name == "testRepoEmpty" {
 		return false, nil
 	}
 	return true, nil
 }
 
-func (g MockGitClient) Clone(repo scm.Repo, useGitCLI bool) error {
+func (g MockGitClient) Clone(repo scm.Repo) error {
 	_, err := os.MkdirTemp(os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"), repo.Name)
 	if err != nil {
 		log.Fatal(err)
@@ -78,58 +78,58 @@ func (g MockGitClient) Clone(repo scm.Repo, useGitCLI bool) error {
 	return nil
 }
 
-func (g MockGitClient) SetOrigin(repo scm.Repo, useGitCLI bool) error {
+func (g MockGitClient) SetOrigin(repo scm.Repo) error {
 	return nil
 }
 
-func (g MockGitClient) SetOriginWithCredentials(repo scm.Repo, useGitCLI bool) error {
+func (g MockGitClient) SetOriginWithCredentials(repo scm.Repo) error {
 	return nil
 }
 
-func (g MockGitClient) Checkout(repo scm.Repo, useGitCLI bool) error {
+func (g MockGitClient) Checkout(repo scm.Repo) error {
 	if repo.Name == "testRepoEmpty" {
 		return errors.New("Cannot checkout any specific branch in an empty repository")
 	}
 	return nil
 }
 
-func (g MockGitClient) Clean(repo scm.Repo, useGitCLI bool) error {
+func (g MockGitClient) Clean(repo scm.Repo) error {
 	return nil
 }
 
-func (g MockGitClient) UpdateRemote(repo scm.Repo, useGitCLI bool) error {
+func (g MockGitClient) UpdateRemote(repo scm.Repo) error {
 	return nil
 }
 
-func (g MockGitClient) Pull(repo scm.Repo, useGitCLI bool) error {
+func (g MockGitClient) Pull(repo scm.Repo) error {
 	return nil
 }
 
-func (g MockGitClient) Reset(repo scm.Repo, useGitCLI bool) error {
+func (g MockGitClient) Reset(repo scm.Repo) error {
 	return nil
 }
 
-func (g MockGitClient) FetchAll(repo scm.Repo, useGitCLI bool) error {
+func (g MockGitClient) FetchAll(repo scm.Repo) error {
 	return nil
 }
 
-func (g MockGitClient) FetchCloneBranch(repo scm.Repo, useGitCLI bool) error {
+func (g MockGitClient) FetchCloneBranch(repo scm.Repo) error {
 	return nil
 }
 
-func (g MockGitClient) RepoCommitCount(repo scm.Repo, useGitCLI bool) (int, error) {
+func (g MockGitClient) RepoCommitCount(repo scm.Repo) (int, error) {
 	return 0, nil
 }
 
-func (g MockGitClient) Branch(repo scm.Repo, useGitCLI bool) (string, error) {
+func (g MockGitClient) Branch(repo scm.Repo) (string, error) {
 	return "", nil
 }
 
-func (g MockGitClient) RevListCompare(repo scm.Repo, ref1 string, ref2 string, useGitCLI bool) (string, error) {
+func (g MockGitClient) RevListCompare(repo scm.Repo, ref1 string, ref2 string) (string, error) {
 	return "", nil
 }
 
-func (g MockGitClient) ShortStatus(repo scm.Repo, useGitCLI bool) (string, error) {
+func (g MockGitClient) ShortStatus(repo scm.Repo) (string, error) {
 	return "", nil
 }
 

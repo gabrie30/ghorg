@@ -332,7 +332,7 @@ func setupRepoClone() {
 		colorlog.PrintInfo("No repos found for " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + targetCloneSource + ", please verify you have sufficient permissions to clone target repos, double check spelling and try again.")
 		os.Exit(0)
 	}
-	git := git.NewGit()
+	git := git.NewGitClient(useGitCLI)
 	CloneAllRepos(git, cloneTargets)
 }
 
@@ -769,9 +769,9 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			// 2. No new commits
 			// 3. No modified changes
 			if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" && repoWillBePulled {
-				git.FetchCloneBranch(repo, useGitCLI)
+				git.FetchCloneBranch(repo)
 
-				branches, err := git.Branch(repo, useGitCLI)
+				branches, err := git.Branch(repo)
 				if err != nil {
 					colorlog.PrintError(fmt.Sprintf("Failed to list local branches for repository %s: %v", repo.Name, err))
 					return
@@ -787,7 +787,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					return
 				}
 
-				status, err := git.ShortStatus(repo, useGitCLI)
+				status, err := git.ShortStatus(repo)
 				if err != nil {
 					colorlog.PrintError(fmt.Sprintf("Failed to get short status for repository %s: %v", repo.Name, err))
 					return
@@ -798,7 +798,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				}
 
 				// Check for new commits on the branch that exist locally but not on the remote
-				commits, err := git.RevListCompare(repo, "HEAD", "@{u}", useGitCLI)
+				commits, err := git.RevListCompare(repo, "HEAD", "@{u}")
 				if err != nil {
 					colorlog.PrintError(fmt.Sprintf("Failed to get commit differences for repository %s. The repository may be empty or does not have a .git directory. Error: %v", repo.Name, err))
 					return
@@ -818,7 +818,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			action := "cloning"
 			if repoWillBePulled {
 				// prevents git from asking for user for credentials, needs to be unset so creds aren't stored
-				err := git.SetOriginWithCredentials(repo, useGitCLI)
+				err := git.SetOriginWithCredentials(repo)
 				if err != nil {
 					e := fmt.Sprintf("Problem setting remote with credentials on: %s Error: %v", repo.Name, err)
 					cloneErrors = append(cloneErrors, e)
@@ -826,7 +826,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				}
 
 				if os.Getenv("GHORG_BACKUP") == "true" {
-					err := git.UpdateRemote(repo, useGitCLI)
+					err := git.UpdateRemote(repo)
 					action = "updating remote"
 					// Theres no way to tell if a github repo has a wiki to clone
 					if err != nil && repo.IsWiki {
@@ -843,7 +843,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					updateRemoteCount++
 				} else if os.Getenv("GHORG_NO_CLEAN") == "true" {
 					action = "fetching"
-					err := git.FetchAll(repo, useGitCLI)
+					err := git.FetchAll(repo)
 
 					// Theres no way to tell if a github repo has a wiki to clone
 					if err != nil && repo.IsWiki {
@@ -860,7 +860,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 				} else {
 					if os.Getenv("GHORG_FETCH_ALL") == "true" {
-						err = git.FetchAll(repo, useGitCLI)
+						err = git.FetchAll(repo)
 
 						if err != nil {
 							e := fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, err)
@@ -869,14 +869,14 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						}
 					}
 
-					err := git.Checkout(repo, useGitCLI)
+					err := git.Checkout(repo)
 					if err != nil {
-						git.FetchCloneBranch(repo, useGitCLI)
+						git.FetchCloneBranch(repo)
 
 						// Retry checkout
-						errRetry := git.Checkout(repo, useGitCLI)
+						errRetry := git.Checkout(repo)
 						if errRetry != nil {
-							hasRemoteHeads, errHasRemoteHeads := git.HasRemoteHeads(repo, useGitCLI)
+							hasRemoteHeads, errHasRemoteHeads := git.HasRemoteHeads(repo)
 							if errHasRemoteHeads != nil {
 								e := fmt.Sprintf("Could not checkout %s, branch may not exist or may not have any contents/commits, no changes made on: %s Errors: %v %v", repo.CloneBranch, repo.URL, errRetry, errHasRemoteHeads)
 								cloneErrors = append(cloneErrors, e)
@@ -896,7 +896,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						}
 					}
 
-					count, _ := git.RepoCommitCount(repo, useGitCLI)
+					count, _ := git.RepoCommitCount(repo)
 					if err != nil {
 						e := fmt.Sprintf("Problem trying to get pre pull commit count for on repo: %s", repo.URL)
 						cloneInfos = append(cloneInfos, e)
@@ -904,7 +904,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 					repo.Commits.CountPrePull = count
 
-					err = git.Clean(repo, useGitCLI)
+					err = git.Clean(repo)
 
 					if err != nil {
 						e := fmt.Sprintf("Problem running git clean: %s Error: %v", repo.URL, err)
@@ -912,7 +912,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						return
 					}
 
-					err = git.Reset(repo, useGitCLI)
+					err = git.Reset(repo)
 
 					if err != nil {
 						e := fmt.Sprintf("Problem resetting branch: %s for: %s Error: %v", repo.CloneBranch, repo.URL, err)
@@ -920,7 +920,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						return
 					}
 
-					err = git.Pull(repo, useGitCLI)
+					err = git.Pull(repo)
 
 					if err != nil {
 						e := fmt.Sprintf("Problem trying to pull branch: %v for: %s Error: %v", repo.CloneBranch, repo.URL, err)
@@ -928,7 +928,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 						return
 					}
 
-					count, err = git.RepoCommitCount(repo, useGitCLI)
+					count, err = git.RepoCommitCount(repo)
 					if err != nil {
 						e := fmt.Sprintf("Problem trying to get post pull commit count for on repo: %s", repo.URL)
 						cloneInfos = append(cloneInfos, e)
@@ -941,7 +941,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 					pulledCount++
 				}
 
-				err = git.SetOrigin(repo, useGitCLI)
+				err = git.SetOrigin(repo)
 				if err != nil {
 					e := fmt.Sprintf("Problem resetting remote: %s Error: %v", repo.Name, err)
 					cloneErrors = append(cloneErrors, e)
@@ -950,7 +950,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			} else {
 				// if https clone and github/gitlab add personal access token to url
 
-				err = git.Clone(repo, useGitCLI)
+				err = git.Clone(repo)
 
 				// Theres no way to tell if a github repo has a wiki to clone
 				if err != nil && repo.IsWiki {
@@ -966,7 +966,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				}
 
 				if os.Getenv("GHORG_BRANCH") != "" {
-					err := git.Checkout(repo, useGitCLI)
+					err := git.Checkout(repo)
 					if err != nil {
 						e := fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents/commits, no changes to: %s Error: %v", repo.CloneBranch, repo.URL, err)
 						cloneInfos = append(cloneInfos, e)
@@ -978,7 +978,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 				// TODO: make configs around remote name
 				// we clone with api-key in clone url
-				err = git.SetOrigin(repo, useGitCLI)
+				err = git.SetOrigin(repo)
 
 				// if repo has wiki, but content does not exist this is going to error
 				if err != nil {
@@ -988,7 +988,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 				}
 
 				if os.Getenv("GHORG_FETCH_ALL") == "true" {
-					err = git.FetchAll(repo, useGitCLI)
+					err = git.FetchAll(repo)
 
 					if err != nil {
 						e := fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, err)
