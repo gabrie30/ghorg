@@ -176,181 +176,7 @@ func (g GitClient) hasRemoteHeadsGoGit(repo scm.Repo) (bool, error) {
 func (g GitClient) Clone(repo scm.Repo, useGitCLI bool) error {
 	// First do the normal clone
 	if err := g.executeGitCLI(useGitCLI, repo, g.buildCloneArgs(repo), func() error {
-		recurseSubmodules := os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true"
-		cloneDepth := getCloneDepth()
-		pathFilter := os.Getenv("GHORG_PATH_FILTER")
-		gitFilter := os.Getenv("GHORG_GIT_FILTER")
-		isMirror := os.Getenv("GHORG_BACKUP") == "true"
-		singleBranch := os.Getenv("GHORG_SINGLE_BRANCH") == "true"
-		branch := repo.CloneBranch
-
-		// Prepare clone options
-		cloneOptions := &git.CloneOptions{
-			URL:               repo.CloneURL,
-			Depth:             cloneDepth,
-			RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
-			Progress:          nil, // No progress output
-		}
-
-		// Set the branch if specified
-		if branch != "" {
-			cloneOptions.ReferenceName = plumbing.NewBranchReferenceName(branch)
-			cloneOptions.SingleBranch = singleBranch
-		}
-
-		// Set submodule recursion if enabled
-		if recurseSubmodules {
-			cloneOptions.RecurseSubmodules = git.DefaultSubmoduleRecursionDepth
-		} else {
-			cloneOptions.RecurseSubmodules = 0
-		}
-
-		// Set mirror option if enabled
-		if isMirror {
-			cloneOptions.Mirror = true
-		}
-
-		// Note about Git filter: go-git doesn't support the equivalent of --filter directly
-		// This is handled through CLI args when useGitCLI is true
-		// For go-git implementation, we clone normally then apply sparse checkout
-
-		// Perform the clone
-		r, err := git.PlainClone(repo.HostPath, false, cloneOptions)
-		if err != nil {
-			return fmt.Errorf("failed to clone repository: %w", err)
-		}
-
-		// If git filter was specified, apply it as best we can to the repository config
-		// for future fetch operations
-		if gitFilter != "" {
-			// This is a best-effort approximation as go-git doesn't support
-			// Git filter specifications fully
-			_ = setGitFilterConfig(r, gitFilter)
-		}
-
-		// If a path filter is specified, manually implement sparse checkout
-		if pathFilter != "" {
-			// Split the filter by commas and prepare the sparse checkout directories
-			filterPaths := strings.Split(pathFilter, ",")
-			normalizedPaths := make([]string, 0, len(filterPaths))
-			for _, path := range filterPaths {
-				// Normalize the path
-				path = strings.TrimSpace(path)
-				if path != "" {
-					normalizedPaths = append(normalizedPaths, path)
-				}
-			}
-
-			// Apply manual sparse checkout by removing files that don't match the filter
-			if len(normalizedPaths) > 0 {
-				// Get the root path
-				rootPath := repo.HostPath
-
-				// Create a map of paths to keep - faster lookups
-				pathsToKeep := make(map[string]bool)
-
-				// First scan to collect paths we want to keep
-				err = filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
-					if err != nil {
-						return err
-					}
-
-					// Skip the .git directory
-					if strings.Contains(path, "/.git/") || strings.HasSuffix(path, "/.git") {
-						return nil
-					}
-
-					// Get the relative path from the repo root
-					relPath, err := filepath.Rel(rootPath, path)
-					if err != nil {
-						return err
-					}
-
-					// Skip the root directory
-					if relPath == "." {
-						return nil
-					}
-
-					// Check if this path matches our filters
-					for _, filterPath := range normalizedPaths {
-						// Case 1: Direct match
-						if relPath == filterPath {
-							pathsToKeep[relPath] = true
-							// Mark all parent paths to keep
-							markParentPaths(pathsToKeep, relPath)
-							break
-						}
-
-						// Case 2: Path is within a filtered directory
-						if strings.HasPrefix(relPath, filterPath+"/") {
-							pathsToKeep[relPath] = true
-							break
-						}
-
-						// Case 3: Path is a parent directory of a filter path
-						if strings.HasPrefix(filterPath, relPath+"/") {
-							pathsToKeep[relPath] = true
-							// Also mark all parent paths
-							markParentPaths(pathsToKeep, relPath)
-							break
-						}
-					}
-
-					return nil
-				})
-
-				if err != nil {
-					return fmt.Errorf("failed to identify paths for sparse checkout: %w", err)
-				}
-
-				// Second scan to remove unwanted paths
-				err = filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
-					if err != nil {
-						return err
-					}
-
-					// Skip the .git directory
-					if strings.Contains(path, "/.git/") || strings.HasSuffix(path, "/.git") {
-						return nil
-					}
-
-					// Get the relative path from the repo root
-					relPath, err := filepath.Rel(rootPath, path)
-					if err != nil {
-						return err
-					}
-
-					// Skip the root directory
-					if relPath == "." {
-						return nil
-					}
-
-					// If this path is not in our keep list, remove it
-					if !pathsToKeep[relPath] {
-						if info.IsDir() {
-							// Remove the entire directory
-							if err := os.RemoveAll(path); err != nil {
-								return fmt.Errorf("failed to remove directory %s: %w", path, err)
-							}
-							return filepath.SkipDir // Skip the removed directory
-						} else {
-							// Remove the file
-							if err := os.Remove(path); err != nil {
-								return fmt.Errorf("failed to remove file %s: %w", path, err)
-							}
-						}
-					}
-
-					return nil
-				})
-
-				if err != nil {
-					return fmt.Errorf("failed to set up manual sparse checkout: %w", err)
-				}
-			}
-		}
-
-		return nil
+		return g.cloneGoGit(repo)
 	}); err != nil {
 		return err
 	}
@@ -456,169 +282,37 @@ func (g GitClient) buildCloneArgs(repo scm.Repo) []string {
 
 func (g GitClient) SetOriginWithCredentials(repo scm.Repo, useGitCLI bool) error {
 	return g.executeGitCLI(useGitCLI, repo, []string{"remote", "set-url", "origin", repo.CloneURL}, func() error {
-		r, err := git.PlainOpen(repo.HostPath)
-		if err != nil {
-			return fmt.Errorf("failed to open repository: %w", err)
-		}
-
-		// Get the repository configuration
-		cfg, err := r.Config()
-		if err != nil {
-			return fmt.Errorf("failed to get repository config: %w", err)
-		}
-
-		// Update the remote URL for "origin"
-		cfg.Remotes[git.DefaultRemoteName] = &config.RemoteConfig{
-			Name: git.DefaultRemoteName,
-			URLs: []string{repo.CloneURL},
-		}
-
-		// Save the updated configuration
-		err = r.Storer.SetConfig(cfg)
-		if err != nil {
-			return fmt.Errorf("failed to set repository config: %w", err)
-		}
-
-		return nil
+		return g.setOriginWithCredentialsGoGit(repo)
 	})
 }
 
 func (g GitClient) SetOrigin(repo scm.Repo, useGitCLI bool) error {
 	return g.executeGitCLI(useGitCLI, repo, []string{"remote", "set-url", "origin", repo.URL}, func() error {
-		r, err := git.PlainOpen(repo.HostPath)
-		if err != nil {
-			return fmt.Errorf("failed to open repository: %w", err)
-		}
-
-		// Get the repository configuration
-		cfg, err := r.Config()
-		if err != nil {
-			return fmt.Errorf("failed to get repository config: %w", err)
-		}
-
-		// Update the remote URL for "origin"
-		cfg.Remotes[git.DefaultRemoteName] = &config.RemoteConfig{
-			Name: git.DefaultRemoteName,
-			URLs: []string{repo.URL},
-		}
-
-		// Save the updated configuration
-		err = r.Storer.SetConfig(cfg)
-		if err != nil {
-			return fmt.Errorf("failed to set repository config: %w", err)
-		}
-
-		return nil
+		return g.setOriginGoGit(repo)
 	})
 }
 
 func (g GitClient) Checkout(repo scm.Repo, useGitCLI bool) error {
 	return g.executeGitCLI(useGitCLI, repo, []string{"checkout", repo.CloneBranch}, func() error {
-		r, err := git.PlainOpen(repo.HostPath)
-		if err != nil {
-			return fmt.Errorf("failed to open repository: %w", err)
-		}
-
-		// Get the worktree
-		w, err := r.Worktree()
-		if err != nil {
-			return fmt.Errorf("failed to get worktree: %w", err)
-		}
-
-		// Checkout the specified branch
-		err = w.Checkout(&git.CheckoutOptions{
-			Branch: plumbing.NewBranchReferenceName(repo.CloneBranch),
-		})
-		if err != nil {
-			return fmt.Errorf("failed to checkout branch '%s': %w", repo.CloneBranch, err)
-		}
-
-		return nil
+		return g.checkoutGoGit(repo)
 	})
 }
 
 func (g GitClient) Clean(repo scm.Repo, useGitCLI bool) error {
 	return g.executeGitCLI(useGitCLI, repo, []string{"clean", "-f", "-d"}, func() error {
-		r, err := git.PlainOpen(repo.HostPath)
-		if err != nil {
-			return fmt.Errorf("failed to open repository: %w", err)
-		}
-
-		// Get the worktree
-		w, err := r.Worktree()
-		if err != nil {
-			return fmt.Errorf("failed to get worktree: %w", err)
-		}
-
-		// Get the status of the worktree
-		status, err := w.Status()
-		if err != nil {
-			return fmt.Errorf("failed to get worktree status: %w", err)
-		}
-
-		// Iterate over the status to find untracked files
-		for file, fileStatus := range status {
-			if fileStatus.Worktree == git.Untracked {
-				// Remove untracked files and directories
-				err := os.RemoveAll(fmt.Sprintf("%s/%s", repo.HostPath, file))
-				if err != nil {
-					return fmt.Errorf("failed to remove untracked file or directory '%s': %w", file, err)
-				}
-			}
-		}
-
-		return nil
+		return g.cleanGoGit(repo)
 	})
 }
 
 func (g GitClient) UpdateRemote(repo scm.Repo, useGitCLI bool) error {
 	return g.executeGitCLI(useGitCLI, repo, []string{"remote", "update"}, func() error {
-		r, err := git.PlainOpen(repo.HostPath)
-		if err != nil {
-			return fmt.Errorf("failed to open repository: %w", err)
-		}
-
-		// Fetch updates for all remotes
-		err = r.Fetch(&git.FetchOptions{
-			RemoteName: "origin", // Update the default remote
-			Force:      true,     // Force fetch to ensure updates
-			Tags:       git.AllTags,
-		})
-		if err != nil && err != git.NoErrAlreadyUpToDate {
-			return fmt.Errorf("failed to update remote: %w", err)
-		}
-
-		return nil
+		return g.updateRemoteGoGit(repo)
 	})
 }
 
 func (g GitClient) Pull(repo scm.Repo, useGitCLI bool) error {
 	return g.executeGitCLI(useGitCLI, repo, g.buildPullArgs(repo), func() error {
-		recurseSubmodules := os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true"
-
-		r, err := git.PlainOpen(repo.HostPath)
-		if err != nil {
-			return err
-		}
-
-		w, err := r.Worktree()
-		if err != nil {
-			return err
-		}
-
-		err = w.Pull(&git.PullOptions{
-			RemoteName: git.DefaultRemoteName,
-			Force:      true,
-			Depth:      getCloneDepth(),
-			RecurseSubmodules: git.SubmoduleRescursivity(func() int {
-				if recurseSubmodules {
-					return int(git.DefaultSubmoduleRecursionDepth)
-				}
-				return 0
-			}()),
-		})
-
-		return err
+		return g.pullGoGit(repo)
 	})
 }
 
@@ -643,41 +337,13 @@ func (g GitClient) buildPullArgs(repo scm.Repo) []string {
 
 func (g GitClient) Reset(repo scm.Repo, useGitCLI bool) error {
 	return g.executeGitCLI(useGitCLI, repo, []string{"reset", "--hard", "origin/" + repo.CloneBranch}, func() error {
-		r, err := git.PlainOpen(repo.HostPath)
-		if err != nil {
-			return err
-		}
-
-		w, err := r.Worktree()
-		if err != nil {
-			return err
-		}
-
-		err = w.Reset(&git.ResetOptions{
-			Mode: git.HardReset,
-		})
-
-		return err
+		return g.resetGoGit(repo)
 	})
 }
 
 func (g GitClient) FetchAll(repo scm.Repo, useGitCLI bool) error {
 	return g.executeGitCLI(useGitCLI, repo, g.buildFetchAllArgs(), func() error {
-		r, err := git.PlainOpen(repo.HostPath)
-		if err != nil {
-			return err
-		}
-
-		err = r.Fetch(&git.FetchOptions{
-			RemoteName: git.DefaultRemoteName,
-			RemoteURL:  repo.URL,
-			Depth:      getCloneDepth(),
-		})
-		if err == git.NoErrAlreadyUpToDate {
-			return nil
-		}
-
-		return err
+		return g.fetchAllGoGit(repo)
 	})
 }
 
@@ -696,31 +362,7 @@ func (g GitClient) buildFetchAllArgs() []string {
 
 func (g GitClient) Branch(repo scm.Repo, useGitCLI bool) (string, error) {
 	return g.executeGitCLIWithOutput(useGitCLI, repo, []string{"branch"}, func() (string, error) {
-		r, err := git.PlainOpen(repo.HostPath)
-		if err != nil {
-			return "", fmt.Errorf("failed to open repository: %w", err)
-		}
-
-		// Get the list of references
-		refs, err := r.References()
-		if err != nil {
-			return "", fmt.Errorf("failed to get references: %w", err)
-		}
-
-		var branches []string
-		err = refs.ForEach(func(ref *plumbing.Reference) error {
-			// Filter for branch references
-			if ref.Type() == plumbing.HashReference && strings.HasPrefix(ref.Name().String(), "refs/heads/") {
-				branches = append(branches, strings.TrimPrefix(ref.Name().String(), "refs/heads/"))
-			}
-			return nil
-		})
-		if err != nil {
-			return "", fmt.Errorf("failed to iterate over references: %w", err)
-		}
-
-		// Join the branch names into a single string
-		return strings.Join(branches, "\n"), nil
+		return g.branchGoGit(repo)
 	})
 }
 
@@ -790,25 +432,7 @@ func (g GitClient) revListCompareGoGit(repo scm.Repo, localBranch string, remote
 
 func (g GitClient) FetchCloneBranch(repo scm.Repo, useGitCLI bool) error {
 	return g.executeGitCLI(useGitCLI, repo, g.buildFetchCloneBranchArgs(repo), func() error {
-		r, err := git.PlainOpen(repo.HostPath)
-		if err != nil {
-			return fmt.Errorf("failed to open repository: %w", err)
-		}
-
-		// Prepare fetch options
-		fetchOptions := &git.FetchOptions{
-			RemoteName: "origin",
-			RefSpecs:   []config.RefSpec{config.RefSpec(fmt.Sprintf("+refs/heads/%s:refs/remotes/origin/%s", repo.CloneBranch, repo.CloneBranch))},
-			Depth:      getCloneDepth(),
-		}
-
-		// Perform the fetch
-		err = r.Fetch(fetchOptions)
-		if err != nil && err != git.NoErrAlreadyUpToDate {
-			return fmt.Errorf("failed to fetch branch: %w", err)
-		}
-
-		return nil
+		return g.fetchCloneBranchGoGit(repo)
 	})
 }
 
@@ -827,30 +451,7 @@ func (g GitClient) buildFetchCloneBranchArgs(repo scm.Repo) []string {
 
 func (g GitClient) ShortStatus(repo scm.Repo, useGitCLI bool) (string, error) {
 	return g.executeGitCLIWithOutput(useGitCLI, repo, []string{"status", "--short"}, func() (string, error) {
-		r, err := git.PlainOpen(repo.HostPath)
-		if err != nil {
-			return "", fmt.Errorf("failed to open repository: %w", err)
-		}
-
-		// Get the worktree
-		w, err := r.Worktree()
-		if err != nil {
-			return "", fmt.Errorf("failed to get worktree: %w", err)
-		}
-
-		// Get the status of the worktree
-		status, err := w.Status()
-		if err != nil {
-			return "", fmt.Errorf("failed to get worktree status: %w", err)
-		}
-
-		// Convert the status to a short format string
-		var statusLines []string
-		for file, fileStatus := range status {
-			statusLines = append(statusLines, fmt.Sprintf("%s %s", string(fileStatus.Worktree), file))
-		}
-
-		return strings.Join(statusLines, "\n"), nil
+		return g.shortStatusGoGit(repo)
 	})
 }
 
@@ -973,4 +574,466 @@ func markParentPaths(pathsToKeep map[string]bool, path string) {
 		currentPath += part
 		pathsToKeep[currentPath] = true
 	}
+}
+
+// Go-git implementation functions
+// These functions contain the go-git specific logic separated from the CLI implementations
+
+// cloneGoGit implements the clone operation using go-git library
+func (g GitClient) cloneGoGit(repo scm.Repo) error {
+	recurseSubmodules := os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true"
+	cloneDepth := getCloneDepth()
+	pathFilter := os.Getenv("GHORG_PATH_FILTER")
+	gitFilter := os.Getenv("GHORG_GIT_FILTER")
+	isMirror := os.Getenv("GHORG_BACKUP") == "true"
+	singleBranch := os.Getenv("GHORG_SINGLE_BRANCH") == "true"
+	branch := repo.CloneBranch
+
+	// Prepare clone options
+	cloneOptions := &git.CloneOptions{
+		URL:               repo.CloneURL,
+		Depth:             cloneDepth,
+		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+		Progress:          nil, // No progress output
+	}
+
+	// Set the branch if specified
+	if branch != "" {
+		cloneOptions.ReferenceName = plumbing.NewBranchReferenceName(branch)
+		cloneOptions.SingleBranch = singleBranch
+	}
+
+	// Set submodule recursion if enabled
+	if recurseSubmodules {
+		cloneOptions.RecurseSubmodules = git.DefaultSubmoduleRecursionDepth
+	} else {
+		cloneOptions.RecurseSubmodules = 0
+	}
+
+	// Set mirror option if enabled
+	if isMirror {
+		cloneOptions.Mirror = true
+	}
+
+	// Note about Git filter: go-git doesn't support the equivalent of --filter directly
+	// This is handled through CLI args when useGitCLI is true
+	// For go-git implementation, we clone normally then apply sparse checkout
+
+	// Perform the clone
+	r, err := git.PlainClone(repo.HostPath, false, cloneOptions)
+	if err != nil {
+		return fmt.Errorf("failed to clone repository: %w", err)
+	}
+
+	// If git filter was specified, apply it as best we can to the repository config
+	// for future fetch operations
+	if gitFilter != "" {
+		// This is a best-effort approximation as go-git doesn't support
+		// Git filter specifications fully
+		_ = setGitFilterConfig(r, gitFilter)
+	}
+
+	// If a path filter is specified, manually implement sparse checkout
+	if pathFilter != "" {
+		// Split the filter by commas and prepare the sparse checkout directories
+		filterPaths := strings.Split(pathFilter, ",")
+		normalizedPaths := make([]string, 0, len(filterPaths))
+		for _, path := range filterPaths {
+			// Normalize the path
+			path = strings.TrimSpace(path)
+			if path != "" {
+				normalizedPaths = append(normalizedPaths, path)
+			}
+		}
+
+		// Apply manual sparse checkout by removing files that don't match the filter
+		if len(normalizedPaths) > 0 {
+			// Get the root path
+			rootPath := repo.HostPath
+
+			// Create a map of paths to keep - faster lookups
+			pathsToKeep := make(map[string]bool)
+
+			// First scan to collect paths we want to keep
+			err = filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+
+				// Skip the .git directory
+				if strings.Contains(path, "/.git/") || strings.HasSuffix(path, "/.git") {
+					return nil
+				}
+
+				// Get the relative path from the repo root
+				relPath, err := filepath.Rel(rootPath, path)
+				if err != nil {
+					return err
+				}
+
+				// Skip the root directory
+				if relPath == "." {
+					return nil
+				}
+
+				// Check if this path matches our filters
+				for _, filterPath := range normalizedPaths {
+					// Case 1: Direct match
+					if relPath == filterPath {
+						pathsToKeep[relPath] = true
+						// Mark all parent paths to keep
+						markParentPaths(pathsToKeep, relPath)
+						break
+					}
+
+					// Case 2: Path is within a filtered directory
+					if strings.HasPrefix(relPath, filterPath+"/") {
+						pathsToKeep[relPath] = true
+						break
+					}
+
+					// Case 3: Path is a parent directory of a filter path
+					if strings.HasPrefix(filterPath, relPath+"/") {
+						pathsToKeep[relPath] = true
+						// Also mark all parent paths
+						markParentPaths(pathsToKeep, relPath)
+						break
+					}
+				}
+
+				return nil
+			})
+
+			if err != nil {
+				return fmt.Errorf("failed to identify paths for sparse checkout: %w", err)
+			}
+
+			// Second scan to remove unwanted paths
+			err = filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+
+				// Skip the .git directory
+				if strings.Contains(path, "/.git/") || strings.HasSuffix(path, "/.git") {
+					return nil
+				}
+
+				// Get the relative path from the repo root
+				relPath, err := filepath.Rel(rootPath, path)
+				if err != nil {
+					return err
+				}
+
+				// Skip the root directory
+				if relPath == "." {
+					return nil
+				}
+
+				// If this path is not in our keep list, remove it
+				if !pathsToKeep[relPath] {
+					if info.IsDir() {
+						// Remove the entire directory
+						if err := os.RemoveAll(path); err != nil {
+							return fmt.Errorf("failed to remove directory %s: %w", path, err)
+						}
+						return filepath.SkipDir // Skip the removed directory
+					} else {
+						// Remove the file
+						if err := os.Remove(path); err != nil {
+							return fmt.Errorf("failed to remove file %s: %w", path, err)
+						}
+					}
+				}
+
+				return nil
+			})
+
+			if err != nil {
+				return fmt.Errorf("failed to set up manual sparse checkout: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// setOriginWithCredentialsGoGit implements SetOriginWithCredentials using go-git
+func (g GitClient) setOriginWithCredentialsGoGit(repo scm.Repo) error {
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get the repository configuration
+	cfg, err := r.Config()
+	if err != nil {
+		return fmt.Errorf("failed to get repository config: %w", err)
+	}
+
+	// Update the remote URL for "origin"
+	cfg.Remotes[git.DefaultRemoteName] = &config.RemoteConfig{
+		Name: git.DefaultRemoteName,
+		URLs: []string{repo.CloneURL},
+	}
+
+	// Save the updated configuration
+	err = r.Storer.SetConfig(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to set repository config: %w", err)
+	}
+
+	return nil
+}
+
+// setOriginGoGit implements SetOrigin using go-git
+func (g GitClient) setOriginGoGit(repo scm.Repo) error {
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get the repository configuration
+	cfg, err := r.Config()
+	if err != nil {
+		return fmt.Errorf("failed to get repository config: %w", err)
+	}
+
+	// Update the remote URL for "origin"
+	cfg.Remotes[git.DefaultRemoteName] = &config.RemoteConfig{
+		Name: git.DefaultRemoteName,
+		URLs: []string{repo.URL},
+	}
+
+	// Save the updated configuration
+	err = r.Storer.SetConfig(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to set repository config: %w", err)
+	}
+
+	return nil
+}
+
+// checkoutGoGit implements Checkout using go-git
+func (g GitClient) checkoutGoGit(repo scm.Repo) error {
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get the worktree
+	w, err := r.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	// Checkout the specified branch
+	err = w.Checkout(&git.CheckoutOptions{
+		Branch: plumbing.NewBranchReferenceName(repo.CloneBranch),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to checkout branch '%s': %w", repo.CloneBranch, err)
+	}
+
+	return nil
+}
+
+// cleanGoGit implements Clean using go-git
+func (g GitClient) cleanGoGit(repo scm.Repo) error {
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get the worktree
+	w, err := r.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	// Get the status of the worktree
+	status, err := w.Status()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree status: %w", err)
+	}
+
+	// Iterate over the status to find untracked files
+	for file, fileStatus := range status {
+		if fileStatus.Worktree == git.Untracked {
+			// Remove untracked files and directories
+			err := os.RemoveAll(fmt.Sprintf("%s/%s", repo.HostPath, file))
+			if err != nil {
+				return fmt.Errorf("failed to remove untracked file or directory '%s': %w", file, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// updateRemoteGoGit implements UpdateRemote using go-git
+func (g GitClient) updateRemoteGoGit(repo scm.Repo) error {
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Fetch updates for all remotes
+	err = r.Fetch(&git.FetchOptions{
+		RemoteName: "origin", // Update the default remote
+		Force:      true,     // Force fetch to ensure updates
+		Tags:       git.AllTags,
+	})
+	if err != nil && err != git.NoErrAlreadyUpToDate {
+		return fmt.Errorf("failed to update remote: %w", err)
+	}
+
+	return nil
+}
+
+// pullGoGit implements Pull using go-git
+func (g GitClient) pullGoGit(repo scm.Repo) error {
+	recurseSubmodules := os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true"
+
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return err
+	}
+
+	w, err := r.Worktree()
+	if err != nil {
+		return err
+	}
+
+	err = w.Pull(&git.PullOptions{
+		RemoteName: git.DefaultRemoteName,
+		Force:      true,
+		Depth:      getCloneDepth(),
+		RecurseSubmodules: git.SubmoduleRescursivity(func() int {
+			if recurseSubmodules {
+				return int(git.DefaultSubmoduleRecursionDepth)
+			}
+			return 0
+		}()),
+	})
+
+	return err
+}
+
+// resetGoGit implements Reset using go-git
+func (g GitClient) resetGoGit(repo scm.Repo) error {
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return err
+	}
+
+	w, err := r.Worktree()
+	if err != nil {
+		return err
+	}
+
+	err = w.Reset(&git.ResetOptions{
+		Mode: git.HardReset,
+	})
+
+	return err
+}
+
+// fetchAllGoGit implements FetchAll using go-git
+func (g GitClient) fetchAllGoGit(repo scm.Repo) error {
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return err
+	}
+
+	err = r.Fetch(&git.FetchOptions{
+		RemoteName: git.DefaultRemoteName,
+		RemoteURL:  repo.URL,
+		Depth:      getCloneDepth(),
+	})
+	if err == git.NoErrAlreadyUpToDate {
+		return nil
+	}
+
+	return err
+}
+
+// branchGoGit implements Branch using go-git
+func (g GitClient) branchGoGit(repo scm.Repo) (string, error) {
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get the list of references
+	refs, err := r.References()
+	if err != nil {
+		return "", fmt.Errorf("failed to get references: %w", err)
+	}
+
+	var branches []string
+	err = refs.ForEach(func(ref *plumbing.Reference) error {
+		// Filter for branch references
+		if ref.Type() == plumbing.HashReference && strings.HasPrefix(ref.Name().String(), "refs/heads/") {
+			branches = append(branches, strings.TrimPrefix(ref.Name().String(), "refs/heads/"))
+		}
+		return nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to iterate over references: %w", err)
+	}
+
+	// Join the branch names into a single string
+	return strings.Join(branches, "\n"), nil
+}
+
+// fetchCloneBranchGoGit implements FetchCloneBranch using go-git
+func (g GitClient) fetchCloneBranchGoGit(repo scm.Repo) error {
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Prepare fetch options
+	fetchOptions := &git.FetchOptions{
+		RemoteName: "origin",
+		RefSpecs:   []config.RefSpec{config.RefSpec(fmt.Sprintf("+refs/heads/%s:refs/remotes/origin/%s", repo.CloneBranch, repo.CloneBranch))},
+		Depth:      getCloneDepth(),
+	}
+
+	// Perform the fetch
+	err = r.Fetch(fetchOptions)
+	if err != nil && err != git.NoErrAlreadyUpToDate {
+		return fmt.Errorf("failed to fetch branch: %w", err)
+	}
+
+	return nil
+}
+
+// shortStatusGoGit implements ShortStatus using go-git
+func (g GitClient) shortStatusGoGit(repo scm.Repo) (string, error) {
+	r, err := git.PlainOpen(repo.HostPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get the worktree
+	w, err := r.Worktree()
+	if err != nil {
+		return "", fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	// Get the status of the worktree
+	status, err := w.Status()
+	if err != nil {
+		return "", fmt.Errorf("failed to get worktree status: %w", err)
+	}
+
+	// Convert the status to a short format string
+	var statusLines []string
+	for file, fileStatus := range status {
+		statusLines = append(statusLines, fmt.Sprintf("%s %s", string(fileStatus.Worktree), file))
+	}
+
+	return strings.Join(statusLines, "\n"), nil
 }
