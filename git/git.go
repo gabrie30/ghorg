@@ -36,6 +36,21 @@ func NewGit() GitClient {
 	return GitClient{}
 }
 
+// NewGitClient returns the appropriate Git client based on the useGitCLI flag
+func NewGitClient(useGitCLI bool) Gitter {
+	if !useGitCLI {
+		return GoGitClient{}
+	}
+	return GitClient{}
+}
+
+// NewGitClientForFilter returns the recommended Git client when git filters are needed.
+// This function always returns the CLI implementation because go-git has limited filter support.
+// Use this when GHORG_GIT_FILTER is important for your use case.
+func NewGitClientForFilter() Gitter {
+	return GitClient{} // Always use CLI for filter support
+}
+
 func printDebugCmd(cmd *exec.Cmd, repo scm.Repo) error {
 	fmt.Println("------------- GIT DEBUG -------------")
 	fmt.Printf("GHORG_OUTPUT_DIR=%v\n", os.Getenv("GHORG_OUTPUT_DIR"))
@@ -45,12 +60,9 @@ func printDebugCmd(cmd *exec.Cmd, repo scm.Repo) error {
 	fmt.Print("Command Ran: ")
 	spew.Dump(*cmd)
 	fmt.Println("")
-	output, err := cmd.CombinedOutput()
-	fmt.Printf("Command Output: %s\n", string(output))
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-	}
-	return err
+	// Don't capture output here as it conflicts with main execution
+	// The actual output will be handled by the calling function
+	return nil
 }
 
 func (g GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
@@ -70,17 +82,17 @@ func (g GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
 	}
 
 	exitCode := exitError.ExitCode()
-	if exitCode == 0 {
+	switch exitCode {
+	case 0:
 		// ls-remote did successfully list the remote heads
 		return true, nil
-	} else if exitCode == 2 {
+	case 2:
 		// repository is empty
 		return false, nil
-	} else {
+	default:
 		// another exit code, simply return err
 		return false, err
 	}
-
 }
 
 func (g GitClient) Clone(repo scm.Repo) error {
@@ -263,6 +275,11 @@ func (g GitClient) FetchCloneBranch(repo scm.Repo) error {
 }
 
 func (g GitClient) ShortStatus(repo scm.Repo) (string, error) {
+	// Validate that the repository path is not empty
+	if repo.HostPath == "" {
+		return "", fmt.Errorf("repository path cannot be empty")
+	}
+
 	args := []string{"status", "--short"}
 
 	cmd := exec.Command("git", args...)
@@ -274,6 +291,12 @@ func (g GitClient) ShortStatus(repo scm.Repo) (string, error) {
 	}
 
 	output, err := cmd.Output()
+	if os.Getenv("GHORG_DEBUG") != "" {
+		fmt.Printf("Command Output: %s\n", string(output))
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+		}
+	}
 	if err != nil {
 		return "", err
 	}

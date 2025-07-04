@@ -332,7 +332,7 @@ func setupRepoClone() {
 		colorlog.PrintInfo("No repos found for " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + targetCloneSource + ", please verify you have sufficient permissions to clone target repos, double check spelling and try again.")
 		os.Exit(0)
 	}
-	git := git.NewGit()
+	git := git.NewGitClient(useGitCLI)
 	CloneAllRepos(git, cloneTargets)
 }
 
@@ -1405,7 +1405,7 @@ func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
 
 	for _, repo := range haystack {
 		normalizedPath := strings.TrimPrefix(repo.Path, "/")
-		if normalizedPath == fmt.Sprintf("%s", needle) {
+		if normalizedPath == needle {
 			if os.Getenv("GHORG_DEBUG") != "" {
 				fmt.Printf("Debug: Match found for repo path: %s\n", repo.Path)
 			}
