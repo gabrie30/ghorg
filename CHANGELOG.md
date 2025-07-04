@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.3] - Unreleased
+## [1.11.3] - 7/4/25
 ### Added
 ### Changed
 ### Deprecated
@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - Reclone cron zombie processes; thanks @steinbrueckri
 ### Security
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.85 to 0.9.86 (#540)
 
 ## [1.11.2] - 6/29/25
 ### Added
