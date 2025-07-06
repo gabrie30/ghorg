@@ -75,6 +75,7 @@ var (
 	ghorgPreserveScmHostname     bool
 	ghorgPruneUntouched          bool
 	ghorgPruneUntouchedNoConfirm bool
+	syncDefaultBranch            bool
 	cloneErrors                  []string
 	cloneInfos                   []string
 )
@@ -219,15 +220,18 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "1")
 		case "GHORG_GITHUB_TOKEN_FROM_GITHUB_APP":
 			os.Setenv(envVar, "false")
+		case "GHORG_SYNC_DEFAULT_BRANCH":
+			os.Setenv(envVar, "false")
 		}
 	} else {
 		s := viper.GetString(envVar)
 		// envs that need a trailing slash
-		if envVar == "GHORG_SCM_BASE_URL" {
+		switch envVar {
+		case "GHORG_SCM_BASE_URL":
 			os.Setenv(envVar, configs.EnsureTrailingSlashOnURL(s))
-		} else if envVar == "GHORG_ABSOLUTE_PATH_TO_CLONE_TO" {
+		case "GHORG_ABSOLUTE_PATH_TO_CLONE_TO":
 			os.Setenv(envVar, configs.EnsureTrailingSlashOnFilePath(s))
-		} else {
+		default:
 			os.Setenv(envVar, s)
 		}
 	}
@@ -291,6 +295,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_PRUNE_NO_CONFIRM")
 	getOrSetDefaults("GHORG_PRUNE_UNTOUCHED")
 	getOrSetDefaults("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM")
+	getOrSetDefaults("GHORG_SYNC_DEFAULT_BRANCH")
 	getOrSetDefaults("GHORG_DRY_RUN")
 	getOrSetDefaults("GHORG_GITHUB_USER_OPTION")
 	getOrSetDefaults("GHORG_CLONE_WIKI")
@@ -385,6 +390,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&ghorgPreserveScmHostname, "preserve-scm-hostname", false, "GHORG_PRESERVE_SCM_HOSTNAME - Appends the scm hostname to the GHORG_ABSOLUTE_PATH_TO_CLONE_TO which will organize your clones into specific folders by the scm provider. e.g. /github.com/kuberentes")
 	cloneCmd.Flags().BoolVar(&ghorgPruneUntouched, "prune-untouched", false, "GHORG_PRUNE_UNTOUCHED - Prune repositories that don't have any local changes, see sample-conf.yaml for more details")
 	cloneCmd.Flags().BoolVar(&ghorgPruneUntouchedNoConfirm, "prune-untouched-no-confirm", false, "GHORG_PRUNE_UNTOUCHED_NO_CONFIRM - Automatically delete repos without showing an interactive confirmation prompt.")
+	cloneCmd.Flags().BoolVar(&syncDefaultBranch, "sync-default-branch", false, "GHORG_SYNC_DEFAULT_BRANCH - Enable or disable automatic synchronization with default branches when recloning repositories")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - Change SCM base url, for on self hosted instances (currently gitlab, gitea and github (use format of https://git.mydomain.com/api/v3))")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - Max goroutines to spin up while cloning (default 25)")
 	cloneCmd.Flags().StringVarP(&cloneDepth, "clone-depth", "", "", "GHORG_CLONE_DEPTH - Create a shallow clone with a history truncated to the specified number of commits")

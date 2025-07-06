@@ -200,6 +200,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM", "true")
 	}
 
+	if cmd.Flags().Changed("sync-default-branch") {
+		os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "true")
+	}
+
 	if cmd.Flags().Changed("fetch-all") {
 		os.Setenv("GHORG_FETCH_ALL", "true")
 	}
@@ -1405,7 +1409,7 @@ func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
 
 	for _, repo := range haystack {
 		normalizedPath := strings.TrimPrefix(repo.Path, "/")
-		if normalizedPath == fmt.Sprintf("%s", needle) {
+		if normalizedPath == needle {
 			if os.Getenv("GHORG_DEBUG") != "" {
 				fmt.Printf("Debug: Match found for repo path: %s\n", repo.Path)
 			}

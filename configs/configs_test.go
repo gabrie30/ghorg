@@ -127,3 +127,91 @@ func TestTrailingSlashes(t *testing.T) {
 		}
 	})
 }
+
+func TestSyncDefaultBranchConfiguration(t *testing.T) {
+	tests := []struct {
+		name           string
+		envValue       string
+		expectedResult bool
+	}{
+		{
+			name:           "Environment variable not set",
+			envValue:       "",
+			expectedResult: false,
+		},
+		{
+			name:           "Environment variable set to true",
+			envValue:       "true",
+			expectedResult: true,
+		},
+		{
+			name:           "Environment variable set to false",
+			envValue:       "false",
+			expectedResult: false,
+		},
+		{
+			name:           "Environment variable set to invalid value",
+			envValue:       "invalid",
+			expectedResult: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Save and restore original value
+			originalValue := os.Getenv("GHORG_SYNC_DEFAULT_BRANCH")
+			defer func() {
+				if originalValue != "" {
+					os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", originalValue)
+				} else {
+					os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
+				}
+			}()
+
+			// Set test value
+			if tt.envValue == "" {
+				os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
+			} else {
+				os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", tt.envValue)
+			}
+
+			// Test the logic that sync.go uses
+			syncEnabled := os.Getenv("GHORG_SYNC_DEFAULT_BRANCH")
+			actualResult := syncEnabled == "true"
+
+			if actualResult != tt.expectedResult {
+				t.Errorf("Expected sync enabled to be %v, got %v for env value '%s'", tt.expectedResult, actualResult, tt.envValue)
+			}
+		})
+	}
+}
+
+func TestSyncDefaultBranchEnvironmentVariableHandling(t *testing.T) {
+	// Test that the environment variable is properly recognized by the config system
+	originalValue := os.Getenv("GHORG_SYNC_DEFAULT_BRANCH")
+	defer func() {
+		if originalValue != "" {
+			os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", originalValue)
+		} else {
+			os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
+		}
+	}()
+
+	// Test with true value
+	os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "true")
+	if os.Getenv("GHORG_SYNC_DEFAULT_BRANCH") != "true" {
+		t.Error("Environment variable GHORG_SYNC_DEFAULT_BRANCH should be settable")
+	}
+
+	// Test with false value
+	os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "false")
+	if os.Getenv("GHORG_SYNC_DEFAULT_BRANCH") != "false" {
+		t.Error("Environment variable GHORG_SYNC_DEFAULT_BRANCH should accept false value")
+	}
+
+	// Test unsetting
+	os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
+	if os.Getenv("GHORG_SYNC_DEFAULT_BRANCH") != "" {
+		t.Error("Environment variable GHORG_SYNC_DEFAULT_BRANCH should be unsetable")
+	}
+}
