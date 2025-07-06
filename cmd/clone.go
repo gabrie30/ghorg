@@ -200,6 +200,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM", "true")
 	}
 
+	if cmd.Flags().Changed("sync-default-branch") {
+		os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "true")
+	}
+
 	if cmd.Flags().Changed("fetch-all") {
 		os.Setenv("GHORG_FETCH_ALL", "true")
 	}
