@@ -220,15 +220,18 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "1")
 		case "GHORG_GITHUB_TOKEN_FROM_GITHUB_APP":
 			os.Setenv(envVar, "false")
+		case "GHORG_SYNC_DEFAULT_BRANCH":
+			os.Setenv(envVar, "false")
 		}
 	} else {
 		s := viper.GetString(envVar)
 		// envs that need a trailing slash
-		if envVar == "GHORG_SCM_BASE_URL" {
+		switch envVar {
+		case "GHORG_SCM_BASE_URL":
 			os.Setenv(envVar, configs.EnsureTrailingSlashOnURL(s))
-		} else if envVar == "GHORG_ABSOLUTE_PATH_TO_CLONE_TO" {
+		case "GHORG_ABSOLUTE_PATH_TO_CLONE_TO":
 			os.Setenv(envVar, configs.EnsureTrailingSlashOnFilePath(s))
-		} else {
+		default:
 			os.Setenv(envVar, s)
 		}
 	}

@@ -1409,7 +1409,7 @@ func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
 
 	for _, repo := range haystack {
 		normalizedPath := strings.TrimPrefix(repo.Path, "/")
-		if normalizedPath == fmt.Sprintf("%s", needle) {
+		if normalizedPath == needle {
 			if os.Getenv("GHORG_DEBUG") != "" {
 				fmt.Printf("Debug: Match found for repo path: %s\n", repo.Path)
 			}

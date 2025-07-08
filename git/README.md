@@ -1,12 +1,89 @@
-# Git Sync Functionality Documentation
+# Git Package Documentation
 
-This document provides comprehensive documentation for the Git synchronization functionality in ghorg, which enables automatic synchronization of local repositories with their remote default branches.
+This document provides comprehensive documentation for the Git package in ghorg, which handles all Git repository operations including cloning, synchronization, and repository management through a clean interface-based design.
 
 ## Overview
 
-The sync functionality provides automatic synchronization of local default branches with their remote counterparts. This is particularly useful when recloning repositories that may have received updates since the last clone operation.
+The Git package provides a unified interface for Git operations in ghorg through the `Gitter` interface. This includes:
 
-## Configuration
+- Repository cloning with various options (depth, filters, submodules)
+- Automatic synchronization of local default branches with remote counterparts
+- Working directory and commit status checking
+- Branch management and checkout operations
+- Remote repository URL handling
+
+## Architecture
+
+### Gitter Interface
+
+The package is built around the `Gitter` interface, which defines all Git operations:
+
+```go
+type Gitter interface {
+    Clone(repo scm.Repo) error
+    SyncDefaultBranch(repo scm.Repo) error
+    HasLocalChanges(repo scm.Repo) (bool, error)
+    HasUnpushedCommits(repo scm.Repo) (bool, error)
+    HasCommitsNotOnDefaultBranch(repo scm.Repo, currentBranch string) (bool, error)
+    GetCurrentBranch(repo scm.Repo) (string, error)
+    GetRemoteURL(repo scm.Repo, remoteName string) (string, error)
+    Checkout(repo scm.Repo) error
+    FetchCloneBranch(repo scm.Repo) error
+    UpdateRef(repo scm.Repo, refName, commitRef string) error
+}
+```
+
+### GitClient Implementation
+
+The `GitClient` struct implements the `Gitter` interface and provides the concrete implementation for all Git operations using the git CLI.
+
+```go
+type GitClient struct{}
+
+func NewGit() Gitter {
+    return GitClient{}
+}
+```
+
+### Interface Benefits
+
+The interface-based design provides several advantages:
+
+- **Testability**: Easy mocking for unit tests
+- **Flexibility**: Multiple implementations possible (e.g., different Git backends)
+- **Consistency**: All Git operations go through the same interface
+- **Maintainability**: Clear separation of concerns between Git operations and business logic
+
+### Usage Pattern
+
+Throughout ghorg, Git operations are accessed via the interface:
+
+```go
+gitClient := git.NewGit()
+err := gitClient.Clone(repo)
+if err != nil {
+    return fmt.Errorf("clone failed: %w", err)
+}
+
+// Sync is automatically called if enabled
+```
+
+## Clone Functionality
+
+### Supported Features
+
+- **Standard Cloning**: Full repository clones with complete history
+- **Shallow Clones**: Limited history depth via `GHORG_CLONE_DEPTH`
+- **Partial Clones**: Blob filtering via `GHORG_GIT_FILTER` (e.g., `blob:none`)
+- **Submodules**: Optional submodule inclusion via `GHORG_INCLUDE_SUBMODULES`
+- **Branch Selection**: Clone specific branches via `GHORG_BRANCH`
+- **Protocol Support**: Both HTTPS and SSH protocols
+
+### Integration with Sync
+
+The `Clone` method automatically calls `SyncDefaultBranch` when `GHORG_SYNC_DEFAULT_BRANCH=true`, providing seamless integration between cloning and synchronization.
+
+## Sync Configuration
 
 ### Environment Variable
 
@@ -69,24 +146,39 @@ The sync functionality follows a **safety-first approach** to prevent data loss 
 
 ## Technical Implementation
 
-### Core Functions
+### Interface Methods
 
-- `SyncDefaultBranch(repo scm.Repo) error`: Main sync function
-- `hasLocalChanges(repo scm.Repo) (bool, error)`: Checks for uncommitted changes
-- `hasUnpushedCommits(repo scm.Repo) (bool, error)`: Checks for unpushed commits
-- `hasCommitsNotOnDefaultBranch(repo scm.Repo) (bool, error)`: Checks for divergent commits
-- `getCurrentBranch(repo scm.Repo) (string, error)`: Gets current branch name
+#### Core Git Operations
+
+- `Clone(repo scm.Repo) error`: Complete repository cloning with all configured options
+- `SyncDefaultBranch(repo scm.Repo) error`: Safe synchronization with remote default branch
+
+#### Repository State Checking
+
+- `HasLocalChanges(repo scm.Repo) (bool, error)`: Detects uncommitted changes in working directory
+- `HasUnpushedCommits(repo scm.Repo) (bool, error)`: Checks for local commits not pushed to remote
+- `HasCommitsNotOnDefaultBranch(repo scm.Repo, currentBranch string) (bool, error)`: Detects divergent commits
+- `GetCurrentBranch(repo scm.Repo) (string, error)`: Returns current branch name
+
+#### Repository Management
+
+- `GetRemoteURL(repo scm.Repo, remoteName string) (string, error)`: Retrieves remote repository URLs
+- `Checkout(repo scm.Repo) error`: Switches to target branch
+- `FetchCloneBranch(repo scm.Repo) error`: Fetches latest changes from remote
+- `UpdateRef(repo scm.Repo, refName, commitRef string) error`: Updates branch references
 
 ### Sync Process
 
-1. Check if sync is enabled via `GHORG_SYNC_DEFAULT_BRANCH`
-2. Verify remote origin exists and is accessible
-3. Check for working directory changes
-4. Check for unpushed commits
-5. Check for commits not on default branch
-6. If all safety checks pass, perform git operations:
+1. **Configuration Check**: Verify sync is enabled via `GHORG_SYNC_DEFAULT_BRANCH`
+2. **Remote Validation**: Confirm remote origin exists and is accessible
+3. **Safety Checks**: Perform all safety validations:
+   - Check for working directory changes
+   - Check for unpushed commits
+   - Check for commits not on default branch
+4. **Branch Operations**: If all checks pass:
+   - Switch to target branch if necessary
    - Fetch latest changes from remote
-   - Reset local default branch to match remote
+   - Update local branch reference to match remote
 
 ### Error Handling
 
@@ -110,14 +202,34 @@ Debug output includes:
 - Skip reasons when sync is not performed
 - Git command execution details
 
+### Integration with Clone Process
+
+The sync functionality is seamlessly integrated into the clone workflow:
+
+```go
+func (g GitClient) Clone(repo scm.Repo) error {
+    // ... clone operations ...
+    
+    // Automatically sync if enabled
+    if os.Getenv("GHORG_SYNC_DEFAULT_BRANCH") == "true" {
+        if err := g.SyncDefaultBranch(repo); err != nil {
+            // Log error but don't fail the clone
+        }
+    }
+    
+    return nil
+}
+```
+
 ## Integration with Other Features
 
 ### Partial Clone Support
 
-Sync functionality works with:
-- Blob filters (`--filter=blob:none`)
-- Sparse checkout patterns
-- Shallow clones with depth limitations
+Sync functionality works seamlessly with:
+- **Blob filters**: `GHORG_GIT_FILTER=blob:none` for excluding file contents
+- **Tree filters**: `GHORG_GIT_FILTER=tree:0` for commit and tree objects only
+- **Shallow clones**: `GHORG_CLONE_DEPTH` for limited history depth
+- **Submodules**: `GHORG_INCLUDE_SUBMODULES` for recursive submodule handling
 
 ### Compatibility
 
@@ -127,25 +239,34 @@ Sync functionality works with:
 
 ## Testing
 
-Comprehensive test coverage includes:
+The package maintains high test coverage with well-organized test suites:
 
-### Unit Tests
-- Configuration handling
-- Safety check functions
-- Error conditions
-- Edge cases
+### Test Organization
 
-### Integration Tests
-- Flag processing
-- Environment variable handling
-- Complete sync workflows
+- **`git_test.go`**: Unit tests for individual Gitter interface methods
+- **`sync_test.go`**: Integration tests and comprehensive sync functionality testing
+- **Coverage**: 70.2% code coverage for `sync.go` with targeted testing of all major paths
+
+### Test Categories
+
+#### Unit Tests (`git_test.go`)
+- Individual method testing for each interface method
+- Error condition handling
+- Edge case validation
+- Mock-friendly interface testing
+
+#### Integration Tests (`sync_test.go`)
+- End-to-end sync workflows
 - Multi-repository scenarios
+- Configuration testing
+- Debug output validation
+- Safety check verification
 
-### Test Helpers
-- `setupTestRepo()`: Creates temporary test repositories
-- `createCommitInRepo()`: Adds commits for testing
-- `configureGitIdentity()`: Sets up git user/email for tests
-- `disableGPGSigning()`: Disables GPG signing in test repos
+#### Test Infrastructure
+- `createTestRepo()`: Creates temporary Git repositories for testing
+- `createTestRepoWithMultipleFiles()`: Creates repositories with various file types
+- `configureGitInRepo()`: Sets up Git configuration in test repositories
+- Comprehensive cleanup and isolation between tests
 
 ## Troubleshooting
 
@@ -190,24 +311,31 @@ This will show:
 5. **Push commits** before enabling sync to avoid conflicts
 6. **Test sync behavior** in non-production environments first
 
-## Migration Notes
+## Package Structure
 
-### From Previous Versions
+```
+git/
+├── git.go           # Gitter interface and GitClient implementation
+├── sync.go          # Sync functionality implementation
+├── git_test.go      # Unit tests for git.go methods
+├── sync_test.go     # Integration tests for sync functionality
+└── README.md        # This documentation
+```
 
-If upgrading from a version without sync functionality:
-- No action required - sync is disabled by default
-- Existing clone operations continue to work unchanged
-- Enable sync explicitly when ready to use the feature
+### Key Files
 
-### Configuration Changes
+- **`git.go`**: Defines the `Gitter` interface and provides the `GitClient` implementation with all core Git operations
+- **`sync.go`**: Contains the `SyncDefaultBranch` method implementation with safety checks and sync logic
+- **Test files**: Comprehensive test coverage ensuring reliability and maintainability
 
-- `GHORG_SYNC_DEFAULT` was renamed to `GHORG_SYNC_DEFAULT_BRANCH`
-- All references have been updated in code, tests, and documentation
-- Old environment variable name is no longer supported
 
 ## See Also
 
-- Main ghorg README for general usage
-- `sample-conf.yaml` for configuration examples
-- Test files (`sync_test.go`, `clone_test.go`) for usage examples
-- Source code in `git/sync.go` for implementation details
+- **Main ghorg README**: General usage and configuration
+- **`sample-conf.yaml`**: Complete configuration examples
+- **`cmd/root.go`**: Command-line flag definitions and defaults
+- **Interface Usage**: All ghorg components use `git.NewGit()` for Git operations
+- **Source Code**: 
+  - `git/git.go`: Interface definition and implementation
+  - `git/sync.go`: Sync functionality details
+  - `git/*_test.go`: Comprehensive test examples

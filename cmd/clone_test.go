@@ -138,6 +138,31 @@ func (g MockGitClient) SyncDefaultBranch(repo scm.Repo) error {
 	return nil
 }
 
+// Additional methods for sync functionality
+func (g MockGitClient) GetCurrentBranch(repo scm.Repo) (string, error) {
+	return "main", nil
+}
+
+func (g MockGitClient) HasLocalChanges(repo scm.Repo) (bool, error) {
+	return false, nil
+}
+
+func (g MockGitClient) HasUnpushedCommits(repo scm.Repo) (bool, error) {
+	return false, nil
+}
+
+func (g MockGitClient) HasCommitsNotOnDefaultBranch(repo scm.Repo, currentBranch string) (bool, error) {
+	return false, nil
+}
+
+func (g MockGitClient) UpdateRef(repo scm.Repo, refName string, commitRef string) error {
+	return nil
+}
+
+func (g MockGitClient) GetRemoteURL(repo scm.Repo, remoteName string) (string, error) {
+	return "https://example.com/repo.git", nil
+}
+
 func TestInitialClone(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 	dir, err := os.MkdirTemp("", "ghorg_test_initial")

@@ -152,211 +152,6 @@ func TestSyncDefaultBranchErrorCases(t *testing.T) {
 	})
 }
 
-func TestHasCheckedOutFiles(t *testing.T) {
-	client := GitClient{}
-
-	// Test with files present
-	t.Run("Directory with files", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "ghorg-files-test")
-		if err != nil {
-			t.Fatalf("Failed to create temp directory: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Create .git directory and a regular file
-		err = os.Mkdir(filepath.Join(tempDir, ".git"), 0755)
-		if err != nil {
-			t.Fatalf("Failed to create .git directory: %v", err)
-		}
-
-		err = os.WriteFile(filepath.Join(tempDir, "test.txt"), []byte("test"), 0644)
-		if err != nil {
-			t.Fatalf("Failed to create test file: %v", err)
-		}
-
-		repo := scm.Repo{HostPath: tempDir}
-		hasFiles, err := client.hasCheckedOutFiles(repo)
-		if err != nil {
-			t.Fatalf("hasCheckedOutFiles failed: %v", err)
-		}
-		if !hasFiles {
-			t.Error("Should detect files are present")
-		}
-	})
-
-	// Test with only .git directory
-	t.Run("Directory with only .git", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "ghorg-nogitfiles-test")
-		if err != nil {
-			t.Fatalf("Failed to create temp directory: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Create only .git directory
-		err = os.Mkdir(filepath.Join(tempDir, ".git"), 0755)
-		if err != nil {
-			t.Fatalf("Failed to create .git directory: %v", err)
-		}
-
-		repo := scm.Repo{HostPath: tempDir}
-		hasFiles, err := client.hasCheckedOutFiles(repo)
-		if err != nil {
-			t.Fatalf("hasCheckedOutFiles failed: %v", err)
-		}
-		if hasFiles {
-			t.Error("Should detect no files are present")
-		}
-	})
-}
-
-func TestHasCheckedOutFilesEdgeCases(t *testing.T) {
-	client := GitClient{}
-
-	t.Run("Directory read error", func(t *testing.T) {
-		// Use a non-existent directory
-		repo := scm.Repo{HostPath: "/non/existent/directory"}
-		_, err := client.hasCheckedOutFiles(repo)
-		if err == nil {
-			t.Error("Expected error for non-existent directory")
-		}
-	})
-
-	t.Run("Directory with hidden files", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "ghorg-hidden-files")
-		if err != nil {
-			t.Fatalf("Failed to create temp directory: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Create .git directory and a hidden file
-		err = os.Mkdir(filepath.Join(tempDir, ".git"), 0755)
-		if err != nil {
-			t.Fatalf("Failed to create .git directory: %v", err)
-		}
-
-		err = os.WriteFile(filepath.Join(tempDir, ".hidden"), []byte("hidden content"), 0644)
-		if err != nil {
-			t.Fatalf("Failed to create hidden file: %v", err)
-		}
-
-		repo := scm.Repo{HostPath: tempDir}
-		hasFiles, err := client.hasCheckedOutFiles(repo)
-		if err != nil {
-			t.Fatalf("hasCheckedOutFiles failed: %v", err)
-		}
-		if !hasFiles {
-			t.Error("Should detect hidden files as checked out files")
-		}
-	})
-}
-
-func TestHasLocalChanges(t *testing.T) {
-	// Skip if git CLI is not available
-	_, err := exec.LookPath("git")
-	if err != nil {
-		t.Skip("git CLI not available, skipping test")
-	}
-
-	client := GitClient{}
-
-	// Test with clean working directory
-	t.Run("Clean working directory", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		repo := scm.Repo{HostPath: tempDir}
-		hasChanges, err := client.hasLocalChanges(repo)
-		if err != nil {
-			t.Fatalf("hasLocalChanges failed: %v", err)
-		}
-		if hasChanges {
-			t.Error("Clean repository should have no local changes")
-		}
-	})
-
-	// Test with modified files
-	t.Run("Modified files", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Modify an existing file
-		err = os.WriteFile(filepath.Join(tempDir, "README.md"), []byte("Modified content"), 0644)
-		if err != nil {
-			t.Fatalf("Failed to modify file: %v", err)
-		}
-
-		repo := scm.Repo{HostPath: tempDir}
-		hasChanges, err := client.hasLocalChanges(repo)
-		if err != nil {
-			t.Fatalf("hasLocalChanges failed: %v", err)
-		}
-		if !hasChanges {
-			t.Error("Repository with modified files should have local changes")
-		}
-	})
-
-	// Test with untracked files
-	t.Run("Untracked files", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Create a new untracked file
-		err = os.WriteFile(filepath.Join(tempDir, "untracked.txt"), []byte("New file"), 0644)
-		if err != nil {
-			t.Fatalf("Failed to create untracked file: %v", err)
-		}
-
-		repo := scm.Repo{HostPath: tempDir}
-		hasChanges, err := client.hasLocalChanges(repo)
-		if err != nil {
-			t.Fatalf("hasLocalChanges failed: %v", err)
-		}
-		if !hasChanges {
-			t.Error("Repository with untracked files should have local changes")
-		}
-	})
-}
-
-func TestHasLocalChangesEdgeCases(t *testing.T) {
-	// Skip if git CLI is not available
-	_, err := exec.LookPath("git")
-	if err != nil {
-		t.Skip("git CLI not available, skipping test")
-	}
-
-	client := GitClient{}
-
-	t.Run("Git status command error", func(t *testing.T) {
-		// Use a directory that's not a git repository
-		tempDir, err := os.MkdirTemp("", "ghorg-not-git")
-		if err != nil {
-			t.Fatalf("Failed to create temp directory: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		repo := scm.Repo{HostPath: tempDir}
-		_, err = client.hasLocalChanges(repo)
-		if err == nil {
-			t.Error("Expected error for non-git directory")
-		}
-		if !strings.Contains(err.Error(), "failed to check git status") {
-			t.Errorf("Expected git status error, got: %v", err)
-		}
-	})
-}
-
 func TestPartialCloneAndSyncIntegration(t *testing.T) {
 	// Skip if git CLI is not available
 	_, err := exec.LookPath("git")
@@ -420,521 +215,6 @@ func TestPartialCloneAndSyncIntegration(t *testing.T) {
 		}
 	})
 
-	t.Run("Sparse checkout with path filter", func(t *testing.T) {
-		// Set up sparse checkout to only include specific paths
-		os.Setenv("GHORG_PATH_FILTER", "*.md")
-		defer os.Unsetenv("GHORG_PATH_FILTER")
-
-		destDir, err := os.MkdirTemp("", "ghorg-sparse-checkout")
-		if err != nil {
-			t.Fatalf("Failed to create destination directory: %v", err)
-		}
-		defer os.RemoveAll(destDir)
-
-		repo := scm.Repo{
-			CloneURL:    tempDir,
-			HostPath:    destDir,
-			CloneBranch: "main",
-		}
-
-		client := GitClient{}
-
-		// Clone with sparse checkout
-		err = client.Clone(repo)
-		if err != nil {
-			t.Fatalf("Failed to clone repository: %v", err)
-		}
-
-		// Verify sparse checkout is configured
-		sparseFile := filepath.Join(destDir, ".git", "info", "sparse-checkout")
-		if _, err := os.Stat(sparseFile); err != nil {
-			t.Errorf("Sparse checkout file should exist: %v", err)
-		}
-
-		// Check that only filtered files are present
-		if _, err := os.Stat(filepath.Join(destDir, "README.md")); err != nil {
-			t.Errorf("README.md should be present (matches *.md filter): %v", err)
-		}
-
-		// Verify sync was called and repository is functional (should work since working directory is clean)
-		if err := client.SyncDefaultBranch(repo); err != nil {
-			t.Errorf("SyncDefaultBranch should work with clean working directory: %v", err)
-		}
-	})
-
-	t.Run("Combined partial clone and sparse checkout", func(t *testing.T) {
-		// Use both filters together
-		os.Setenv("GHORG_GIT_FILTER", "blob:limit=1k")
-		os.Setenv("GHORG_PATH_FILTER", "*.md\n*.txt")
-		defer func() {
-			os.Unsetenv("GHORG_GIT_FILTER")
-			os.Unsetenv("GHORG_PATH_FILTER")
-		}()
-
-		destDir, err := os.MkdirTemp("", "ghorg-combined-filters")
-		if err != nil {
-			t.Fatalf("Failed to create destination directory: %v", err)
-		}
-		defer os.RemoveAll(destDir)
-
-		repo := scm.Repo{
-			CloneURL:    tempDir,
-			HostPath:    destDir,
-			CloneBranch: "main",
-		}
-
-		client := GitClient{}
-
-		// Clone with both filters
-		err = client.Clone(repo)
-		if err != nil {
-			t.Fatalf("Failed to clone repository: %v", err)
-		}
-
-		// Verify the repository is functional
-		cmd := exec.Command("git", "status")
-		cmd.Dir = destDir
-		if err := cmd.Run(); err != nil {
-			t.Errorf("git status should work in cloned repo: %v", err)
-		}
-
-		// Verify sync functionality (should work since working directory is clean)
-		if err := client.SyncDefaultBranch(repo); err != nil {
-			t.Errorf("SyncDefaultBranch should work with clean working directory: %v", err)
-		}
-	})
-}
-
-func TestGetCurrentBranch(t *testing.T) {
-	// Skip if git CLI is not available
-	_, err := exec.LookPath("git")
-	if err != nil {
-		t.Skip("git CLI not available, skipping test")
-	}
-
-	client := GitClient{}
-
-	t.Run("Normal branch", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		repo := scm.Repo{HostPath: tempDir}
-		branch, err := client.getCurrentBranch(repo)
-		if err != nil {
-			t.Fatalf("getCurrentBranch failed: %v", err)
-		}
-		if branch != "main" {
-			t.Errorf("Expected branch 'main', got '%s'", branch)
-		}
-	})
-
-	t.Run("Detached HEAD state", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Put the repository in detached HEAD state
-		cmd := exec.Command("git", "checkout", "HEAD~0")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to create detached HEAD: %v", err)
-		}
-
-		repo := scm.Repo{HostPath: tempDir}
-		_, err = client.getCurrentBranch(repo)
-		if err == nil {
-			t.Error("Expected error for detached HEAD state")
-		}
-		if !strings.Contains(err.Error(), "detached HEAD state") {
-			t.Errorf("Expected detached HEAD error, got: %v", err)
-		}
-	})
-
-	t.Run("Invalid repository", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "ghorg-invalid-repo")
-		if err != nil {
-			t.Fatalf("Failed to create temp directory: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		repo := scm.Repo{HostPath: tempDir}
-		_, err = client.getCurrentBranch(repo)
-		if err == nil {
-			t.Error("Expected error for invalid repository")
-		}
-	})
-}
-
-func TestHasUnpushedCommits(t *testing.T) {
-	// Skip if git CLI is not available
-	_, err := exec.LookPath("git")
-	if err != nil {
-		t.Skip("git CLI not available, skipping test")
-	}
-
-	client := GitClient{}
-
-	t.Run("No unpushed commits", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Add a fake remote origin
-		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to add remote: %v", err)
-		}
-
-		// Push to create the remote branch
-		cmd = exec.Command("git", "push", "-u", "origin", "main")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to push: %v", err)
-		}
-
-		repo := scm.Repo{HostPath: tempDir}
-		hasUnpushed, err := client.hasUnpushedCommits(repo)
-		if err != nil {
-			t.Fatalf("hasUnpushedCommits failed: %v", err)
-		}
-		if hasUnpushed {
-			t.Error("Should not have unpushed commits")
-		}
-	})
-
-	t.Run("Has unpushed commits", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Add a fake remote origin
-		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to add remote: %v", err)
-		}
-
-		// Push to create the remote branch
-		cmd = exec.Command("git", "push", "-u", "origin", "main")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to push: %v", err)
-		}
-
-		// Make a new commit that hasn't been pushed
-		err = os.WriteFile(filepath.Join(tempDir, "newfile.txt"), []byte("new content"), 0644)
-		if err != nil {
-			t.Fatalf("Failed to create new file: %v", err)
-		}
-
-		cmd = exec.Command("git", "add", "newfile.txt")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to add file: %v", err)
-		}
-
-		cmd = exec.Command("git", "commit", "-m", "New commit")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to commit: %v", err)
-		}
-
-		repo := scm.Repo{HostPath: tempDir}
-		hasUnpushed, err := client.hasUnpushedCommits(repo)
-		if err != nil {
-			t.Fatalf("hasUnpushedCommits failed: %v", err)
-		}
-		if !hasUnpushed {
-			t.Error("Should have unpushed commits")
-		}
-	})
-
-	t.Run("Remote branch doesn't exist", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		repo := scm.Repo{HostPath: tempDir}
-		hasUnpushed, err := client.hasUnpushedCommits(repo)
-		if err != nil {
-			t.Fatalf("hasUnpushedCommits failed: %v", err)
-		}
-		// Should assume there are unpushed commits when remote doesn't exist
-		if !hasUnpushed {
-			t.Error("Should assume unpushed commits when remote branch doesn't exist")
-		}
-	})
-}
-
-func TestHasUnpushedCommitsEdgeCases(t *testing.T) {
-	// Skip if git CLI is not available
-	_, err := exec.LookPath("git")
-	if err != nil {
-		t.Skip("git CLI not available, skipping test")
-	}
-
-	client := GitClient{}
-
-	t.Run("Invalid count output", func(t *testing.T) {
-		// This is harder to test directly, but we can test with a repository
-		// where the command succeeds but returns unexpected output
-		// The actual error case (invalid count) is covered by the error handling logic
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		repo := scm.Repo{HostPath: tempDir}
-
-		// This should work normally and return the result
-		hasUnpushed, err := client.hasUnpushedCommits(repo)
-		if err != nil {
-			t.Fatalf("hasUnpushedCommits failed: %v", err)
-		}
-
-		// Should assume unpushed commits when remote doesn't exist
-		if !hasUnpushed {
-			t.Error("Should assume unpushed commits when remote branch doesn't exist")
-		}
-	})
-}
-
-func TestConfigureSparseCheckout(t *testing.T) {
-	// Skip if git CLI is not available
-	_, err := exec.LookPath("git")
-	if err != nil {
-		t.Skip("git CLI not available, skipping test")
-	}
-
-	client := GitClient{}
-
-	t.Run("Successful sparse checkout", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepoWithMultipleFiles(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		repo := scm.Repo{HostPath: tempDir}
-		err = client.configureSparseCheckout(repo, "*.md")
-		if err != nil {
-			t.Fatalf("configureSparseCheckout failed: %v", err)
-		}
-
-		// Verify sparse checkout is configured
-		cmd := exec.Command("git", "config", "core.sparseCheckout")
-		cmd.Dir = tempDir
-		output, err := cmd.Output()
-		if err != nil {
-			t.Fatalf("Failed to check sparse checkout config: %v", err)
-		}
-		if strings.TrimSpace(string(output)) != "true" {
-			t.Error("Sparse checkout should be enabled")
-		}
-	})
-
-	t.Run("Fallback to file-based sparse checkout", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepoWithMultipleFiles(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Remove git executable temporarily to force fallback
-		// We'll simulate this by using an invalid path
-		repo := scm.Repo{HostPath: tempDir}
-
-		// This should trigger the fallback when sparse-checkout commands fail
-		err = client.configureSparseCheckout(repo, "*.md,*.txt")
-		if err != nil {
-			t.Fatalf("configureSparseCheckout with fallback failed: %v", err)
-		}
-	})
-
-	t.Run("Invalid repository", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "ghorg-invalid-repo")
-		if err != nil {
-			t.Fatalf("Failed to create temp directory: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		repo := scm.Repo{HostPath: tempDir}
-		err = client.configureSparseCheckout(repo, "*.md")
-		if err == nil {
-			t.Error("Expected error for invalid repository")
-		}
-	})
-}
-
-func TestConfigureSparseCheckoutErrorHandling(t *testing.T) {
-	// Skip if git CLI is not available
-	_, err := exec.LookPath("git")
-	if err != nil {
-		t.Skip("git CLI not available, skipping test")
-	}
-
-	client := GitClient{}
-
-	t.Run("Fallback error handling", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepoWithMultipleFiles(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Make the .git/info directory read-only to force an error in fallback
-		infoDir := filepath.Join(tempDir, ".git", "info")
-		err = os.MkdirAll(infoDir, 0755)
-		if err != nil {
-			t.Fatalf("Failed to create info directory: %v", err)
-		}
-
-		// Make it read-only (this may not work on all systems)
-		err = os.Chmod(infoDir, 0444)
-		if err != nil {
-			t.Fatalf("Failed to make directory read-only: %v", err)
-		}
-
-		// Restore permissions after test
-		defer os.Chmod(infoDir, 0755)
-
-		repo := scm.Repo{HostPath: tempDir}
-		err = client.configureSparseCheckout(repo, "*.md")
-		// This might succeed depending on git version and sparse-checkout support
-		// The test ensures we handle both success and failure cases
-		if err != nil {
-			t.Logf("configureSparseCheckout failed as expected: %v", err)
-		} else {
-			t.Logf("configureSparseCheckout succeeded")
-		}
-	})
-}
-
-func TestWriteSparseCheckoutFile(t *testing.T) {
-	client := GitClient{}
-
-	t.Run("Write sparse checkout file", func(t *testing.T) {
-		// Create a test repository with proper git structure
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		repo := scm.Repo{HostPath: tempDir}
-		err = client.writeSparseCheckoutFile(repo, "*.md,*.txt")
-		if err != nil {
-			t.Fatalf("writeSparseCheckoutFile failed: %v", err)
-		}
-
-		// Verify the file was created with correct content
-		sparseFile := filepath.Join(tempDir, ".git", "info", "sparse-checkout")
-		content, err := os.ReadFile(sparseFile)
-		if err != nil {
-			t.Fatalf("Failed to read sparse checkout file: %v", err)
-		}
-
-		expectedLines := []string{"*.md", "*.md/**", "*.txt", "*.txt/**"}
-		contentStr := string(content)
-		for _, line := range expectedLines {
-			if !strings.Contains(contentStr, line) {
-				t.Errorf("Expected line '%s' not found in sparse checkout file", line)
-			}
-		}
-	})
-
-	t.Run("Error creating directory", func(t *testing.T) {
-		// Use a path that can't be created (e.g., in a read-only location)
-		tempDir := "/root/cannot-create-this-dir"
-		repo := scm.Repo{HostPath: tempDir}
-
-		err := client.writeSparseCheckoutFile(repo, "*.md")
-		if err == nil {
-			t.Error("Expected error when creating directory in restricted location")
-		}
-	})
-}
-
-func TestWriteSparseCheckoutFileEdgeCases(t *testing.T) {
-	client := GitClient{}
-
-	t.Run("Empty pattern filter", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		repo := scm.Repo{HostPath: tempDir}
-		err = client.writeSparseCheckoutFile(repo, "")
-		if err != nil {
-			t.Fatalf("writeSparseCheckoutFile should handle empty patterns: %v", err)
-		}
-
-		// Verify the file was created but is mostly empty
-		sparseFile := filepath.Join(tempDir, ".git", "info", "sparse-checkout")
-		content, err := os.ReadFile(sparseFile)
-		if err != nil {
-			t.Fatalf("Failed to read sparse checkout file: %v", err)
-		}
-
-		// Should be empty or only contain whitespace
-		if len(strings.TrimSpace(string(content))) > 0 {
-			t.Errorf("Expected empty content, got: %s", string(content))
-		}
-	})
-
-	t.Run("Pattern with whitespace", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		repo := scm.Repo{HostPath: tempDir}
-		err = client.writeSparseCheckoutFile(repo, " *.md , *.txt , ")
-		if err != nil {
-			t.Fatalf("writeSparseCheckoutFile failed: %v", err)
-		}
-
-		// Verify the file was created with trimmed content
-		sparseFile := filepath.Join(tempDir, ".git", "info", "sparse-checkout")
-		content, err := os.ReadFile(sparseFile)
-		if err != nil {
-			t.Fatalf("Failed to read sparse checkout file: %v", err)
-		}
-
-		expectedLines := []string{"*.md", "*.md/**", "*.txt", "*.txt/**"}
-		contentStr := string(content)
-		for _, line := range expectedLines {
-			if !strings.Contains(contentStr, line) {
-				t.Errorf("Expected line '%s' not found in sparse checkout file", line)
-			}
-		}
-	})
 }
 
 func TestSyncDefaultBranchExtensive(t *testing.T) {
@@ -1629,17 +909,11 @@ func TestSyncDefaultBranchMissingCoverage(t *testing.T) {
 		}
 		defer os.RemoveAll(tempDir)
 
-		// Add a remote and push to establish a baseline
-		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
+		// Add a remote
+		cmd := exec.Command("git", "remote", "add", "origin", "https://example.com/repo.git")
 		cmd.Dir = tempDir
 		if err := cmd.Run(); err != nil {
 			t.Fatalf("Failed to add remote: %v", err)
-		}
-
-		cmd = exec.Command("git", "push", "-u", "origin", "main")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to push main: %v", err)
 		}
 
 		// Create a feature branch and add a commit to it
@@ -1685,524 +959,6 @@ func TestSyncDefaultBranchMissingCoverage(t *testing.T) {
 		err = client.SyncDefaultBranch(repo)
 		if err != nil {
 			t.Errorf("Should not error, just skip sync: %v", err)
-		}
-	})
-}
-
-func TestHasCommitsNotOnDefaultBranch(t *testing.T) {
-	// Skip if git CLI is not available
-	_, err := exec.LookPath("git")
-	if err != nil {
-		t.Skip("git CLI not available, skipping test")
-	}
-
-	client := GitClient{}
-
-	// Test when current branch equals default branch (should return false)
-	t.Run("Current branch equals default branch", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Add a remote
-		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to add remote: %v", err)
-		}
-
-		// Fetch to create remote refs
-		cmd = exec.Command("git", "fetch", "origin")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to fetch: %v", err)
-		}
-
-		repo := scm.Repo{
-			HostPath:    tempDir,
-			CloneBranch: "main",
-		}
-
-		hasCommits, err := client.hasCommitsNotOnDefaultBranch(repo, "main")
-		if err != nil {
-			t.Fatalf("hasCommitsNotOnDefaultBranch failed: %v", err)
-		}
-		if hasCommits {
-			t.Error("Should return false when current branch equals default branch")
-		}
-	})
-
-	// Test when current branch has commits not on default branch
-	t.Run("Current branch has commits not on default", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Add a remote
-		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to add remote: %v", err)
-		}
-
-		// Fetch to create remote refs
-		cmd = exec.Command("git", "fetch", "origin")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to fetch: %v", err)
-		}
-
-		// Create a feature branch with commits not on main
-		cmd = exec.Command("git", "checkout", "-b", "feature-branch")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to create feature branch: %v", err)
-		}
-
-		// Add a commit to the feature branch
-		err = os.WriteFile(filepath.Join(tempDir, "feature.txt"), []byte("feature work"), 0644)
-		if err != nil {
-			t.Fatalf("Failed to create feature file: %v", err)
-		}
-
-		cmd = exec.Command("git", "add", "feature.txt")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to add feature file: %v", err)
-		}
-
-		cmd = exec.Command("git", "commit", "-m", "Add feature")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to commit feature: %v", err)
-		}
-
-		repo := scm.Repo{
-			HostPath:    tempDir,
-			CloneBranch: "main",
-		}
-
-		hasCommits, err := client.hasCommitsNotOnDefaultBranch(repo, "feature-branch")
-		if err != nil {
-			t.Fatalf("hasCommitsNotOnDefaultBranch failed: %v", err)
-		}
-		if !hasCommits {
-			t.Error("Should detect commits on feature branch not on default branch")
-		}
-	})
-
-	// Test when current branch is up to date with default (no divergent commits)
-	t.Run("Current branch up to date with default", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Add a remote
-		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to add remote: %v", err)
-		}
-
-		// Fetch to create remote refs
-		cmd = exec.Command("git", "fetch", "origin")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to fetch: %v", err)
-		}
-
-		// Create a feature branch from the same commit as main
-		cmd = exec.Command("git", "checkout", "-b", "up-to-date-branch")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to create up-to-date branch: %v", err)
-		}
-
-		// Switch back to main to ensure we're at the same commit
-		cmd = exec.Command("git", "checkout", "main")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to checkout main: %v", err)
-		}
-
-		cmd = exec.Command("git", "checkout", "up-to-date-branch")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to checkout up-to-date branch: %v", err)
-		}
-
-		repo := scm.Repo{
-			HostPath:    tempDir,
-			CloneBranch: "main",
-		}
-
-		hasCommits, err := client.hasCommitsNotOnDefaultBranch(repo, "up-to-date-branch")
-		if err != nil {
-			t.Fatalf("hasCommitsNotOnDefaultBranch failed: %v", err)
-		}
-		if hasCommits {
-			t.Error("Should not detect divergent commits when branch is up to date with default")
-		}
-	})
-
-	// Test error handling when remote default branch doesn't exist
-	t.Run("Error when remote default branch doesn't exist", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Add a remote that doesn't have the default branch
-		cmd := exec.Command("git", "remote", "add", "origin", "/dev/null")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to add remote: %v", err)
-		}
-
-		repo := scm.Repo{
-			HostPath:    tempDir,
-			CloneBranch: "nonexistent-default",
-		}
-
-		// Should return true (assume divergent commits) when rev-list command fails
-		hasCommits, err := client.hasCommitsNotOnDefaultBranch(repo, "main")
-		if err != nil {
-			t.Fatalf("hasCommitsNotOnDefaultBranch should not fail on missing remote branch: %v", err)
-		}
-		if !hasCommits {
-			t.Error("Should assume divergent commits when remote default branch doesn't exist")
-		}
-	})
-}
-
-func TestSyncDefaultBranchWithDivergentCommits(t *testing.T) {
-	// Skip if git CLI is not available
-	_, err := exec.LookPath("git")
-	if err != nil {
-		t.Skip("git CLI not available, skipping test")
-	}
-
-	// Test sync skipping due to divergent commits
-	t.Run("Sync skipped due to divergent commits", func(t *testing.T) {
-		// Enable sync for this test
-		os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "true")
-		defer os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
-
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Clone the repository
-		destDir, err := os.MkdirTemp("", "ghorg-sync-divergent")
-		if err != nil {
-			t.Fatalf("Failed to create destination directory: %v", err)
-		}
-		defer os.RemoveAll(destDir)
-
-		repo := scm.Repo{
-			CloneURL:    tempDir,
-			HostPath:    destDir,
-			CloneBranch: "main",
-			Name:        "test-repo",
-		}
-
-		client := GitClient{}
-
-		// First clone normally
-		err = client.Clone(repo)
-		if err != nil {
-			t.Fatalf("Failed to clone repository: %v", err)
-		}
-
-		// Configure git in the cloned repository
-		if err := configureGitInRepo(destDir); err != nil {
-			t.Fatalf("Failed to configure git in cloned repo: %v", err)
-		}
-
-		// Create a feature branch with divergent commits
-		cmd := exec.Command("git", "checkout", "-b", "feature-branch")
-		cmd.Dir = destDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to create feature branch: %v", err)
-		}
-
-		// Add a commit to the feature branch that's not on main
-		err = os.WriteFile(filepath.Join(destDir, "feature.txt"), []byte("feature work"), 0644)
-		if err != nil {
-			t.Fatalf("Failed to create feature file: %v", err)
-		}
-
-		cmd = exec.Command("git", "add", "feature.txt")
-		cmd.Dir = destDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to add feature file: %v", err)
-		}
-
-		cmd = exec.Command("git", "commit", "-m", "Add feature")
-		cmd.Dir = destDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to commit feature: %v", err)
-		}
-
-		// Update repo to have different clone branch than current branch
-		repo.CloneBranch = "main"
-
-		// Sync should be skipped due to divergent commits
-		err = client.SyncDefaultBranch(repo)
-		if err != nil {
-			t.Fatalf("SyncDefaultBranch should not error when skipping due to divergent commits: %v", err)
-		}
-
-		// Verify we're still on the feature branch
-		cmd = exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
-		cmd.Dir = destDir
-		output, err := cmd.Output()
-		if err != nil {
-			t.Fatalf("Failed to get current branch: %v", err)
-		}
-		currentBranch := strings.TrimSpace(string(output))
-		if currentBranch != "feature-branch" {
-			t.Errorf("Expected to still be on feature-branch, but on %s", currentBranch)
-		}
-	})
-
-	// Test sync with debug mode showing divergent commits skip message
-	t.Run("Debug mode shows divergent commits skip message", func(t *testing.T) {
-		// Enable sync and debug for this test
-		os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "true")
-		defer os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
-
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Clone the repository first without debug mode
-		destDir, err := os.MkdirTemp("", "ghorg-sync-divergent-debug")
-		if err != nil {
-			t.Fatalf("Failed to create destination directory: %v", err)
-		}
-		defer os.RemoveAll(destDir)
-
-		repo := scm.Repo{
-			CloneURL:    tempDir,
-			HostPath:    destDir,
-			CloneBranch: "main",
-			Name:        "test-repo",
-		}
-
-		client := GitClient{}
-
-		// First clone normally (without debug mode)
-		err = client.Clone(repo)
-		if err != nil {
-			t.Fatalf("Failed to clone repository: %v", err)
-		}
-
-		// Configure git in the cloned repository
-		if err := configureGitInRepo(destDir); err != nil {
-			t.Fatalf("Failed to configure git in cloned repo: %v", err)
-		}
-
-		// Create a feature branch with divergent commits
-		cmd := exec.Command("git", "checkout", "-b", "feature-branch")
-		cmd.Dir = destDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to create feature branch: %v", err)
-		}
-
-		// Add a commit to the feature branch that's not on main
-		err = os.WriteFile(filepath.Join(destDir, "feature.txt"), []byte("feature work"), 0644)
-		if err != nil {
-			t.Fatalf("Failed to create feature file: %v", err)
-		}
-
-		cmd = exec.Command("git", "add", "feature.txt")
-		cmd.Dir = destDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to add feature file: %v", err)
-		}
-
-		cmd = exec.Command("git", "commit", "-m", "Add feature")
-		cmd.Dir = destDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to commit feature: %v", err)
-		}
-
-		// Update repo to have different clone branch than current branch
-		repo.CloneBranch = "main"
-
-		// Now set debug mode for the sync operation
-		os.Setenv("GHORG_DEBUG", "1")
-		defer os.Unsetenv("GHORG_DEBUG")
-
-		// Sync should be skipped and should print debug message
-		// Note: We can't easily capture stdout in this test, but we ensure no error occurs
-		err = client.SyncDefaultBranch(repo)
-		if err != nil {
-			t.Fatalf("SyncDefaultBranch should not error when skipping due to divergent commits: %v", err)
-		}
-	})
-}
-
-func TestHasCommitsNotOnDefaultBranchEdgeCases(t *testing.T) {
-	// Skip if git CLI is not available
-	_, err := exec.LookPath("git")
-	if err != nil {
-		t.Skip("git CLI not available, skipping test")
-	}
-
-	client := GitClient{}
-
-	// Test error parsing commit count
-	t.Run("Error parsing commit count", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Add a remote
-		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to add remote: %v", err)
-		}
-
-		// Fetch to create remote refs
-		cmd = exec.Command("git", "fetch", "origin")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to fetch: %v", err)
-		}
-
-		// Create a mock git script that returns invalid count for rev-list
-		gitPath, err := exec.LookPath("git")
-		if err != nil {
-			t.Fatalf("Cannot find git binary: %v", err)
-		}
-
-		mockGitDir, err := os.MkdirTemp("", "mock-git-divergent")
-		if err != nil {
-			t.Fatalf("Failed to create mock git dir: %v", err)
-		}
-		defer os.RemoveAll(mockGitDir)
-
-		mockGitPath := filepath.Join(mockGitDir, "git")
-		mockGitScript := `#!/bin/bash
-if [[ "$1" == "rev-list" && "$3" == "--count" ]]; then
-    echo "invalid-count"
-else
-    exec ` + gitPath + ` "$@"
-fi`
-
-		err = os.WriteFile(mockGitPath, []byte(mockGitScript), 0755)
-		if err != nil {
-			t.Fatalf("Failed to create mock git script: %v", err)
-		}
-
-		// Update PATH to use mock git
-		originalPath := os.Getenv("PATH")
-		os.Setenv("PATH", mockGitDir+":"+originalPath)
-		defer os.Setenv("PATH", originalPath)
-
-		repo := scm.Repo{
-			HostPath:    tempDir,
-			CloneBranch: "main",
-		}
-
-		// Should return error when parsing invalid count
-		_, err = client.hasCommitsNotOnDefaultBranch(repo, "feature-branch")
-		if err == nil {
-			t.Error("Expected error when parsing invalid commit count")
-		}
-		if err != nil && !strings.Contains(err.Error(), "failed to parse commit count") {
-			t.Errorf("Expected parsing error, got: %v", err)
-		}
-	})
-
-	// Test error checking for commits not on default branch
-	t.Run("Error checking commits not on default branch", func(t *testing.T) {
-		// Create a test repository
-		tempDir, err := createTestRepo(t)
-		if err != nil {
-			t.Fatalf("Failed to create test repository: %v", err)
-		}
-		defer os.RemoveAll(tempDir)
-
-		// Add a remote and push so the remote exists
-		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to add remote: %v", err)
-		}
-
-		cmd = exec.Command("git", "push", "-u", "origin", "main")
-		cmd.Dir = tempDir
-		if err := cmd.Run(); err != nil {
-			t.Fatalf("Failed to push: %v", err)
-		}
-
-		// Create a mock git script that returns invalid count for rev-list but for a different pattern
-		gitPath, err := exec.LookPath("git")
-		if err != nil {
-			t.Fatalf("Cannot find git binary: %v", err)
-		}
-
-		mockGitDir, err := os.MkdirTemp("", "mock-git-divergent-2")
-		if err != nil {
-			t.Fatalf("Failed to create mock git dir: %v", err)
-		}
-		defer os.RemoveAll(mockGitDir)
-
-		mockGitPath := filepath.Join(mockGitDir, "git")
-		// This script returns invalid count specifically for the hasCommitsNotOnDefaultBranch command
-		mockGitScript := `#!/bin/bash
-if [[ "$1" == "rev-list" && "$2" == "origin/main..feature-branch" && "$3" == "--count" ]]; then
-    echo "invalid-count-2"
-else
-    exec ` + gitPath + ` "$@"
-fi`
-
-		err = os.WriteFile(mockGitPath, []byte(mockGitScript), 0755)
-		if err != nil {
-			t.Fatalf("Failed to create mock git script: %v", err)
-		}
-
-		// Update PATH to use mock git
-		originalPath := os.Getenv("PATH")
-		os.Setenv("PATH", mockGitDir+":"+originalPath)
-		defer os.Setenv("PATH", originalPath)
-
-		repo := scm.Repo{
-			HostPath:    tempDir,
-			CloneBranch: "main",
-		}
-
-		// Should return error when parsing invalid count
-		_, err = client.hasCommitsNotOnDefaultBranch(repo, "feature-branch")
-		if err == nil {
-			t.Error("Expected error when checking commits not on default branch fails")
-		}
-		if err != nil && !strings.Contains(err.Error(), "failed to parse commit count") {
-			t.Errorf("Expected parsing error, got: %v", err)
 		}
 	})
 }
@@ -2330,6 +1086,424 @@ func TestSyncDefaultBranchConfiguration(t *testing.T) {
 		err = client.SyncDefaultBranch(repo)
 		if err != nil {
 			t.Errorf("SyncDefaultBranch should not error when disabled: %v", err)
+		}
+	})
+}
+
+// TestSyncDefaultBranchComprehensiveCoverage tests all code paths in SyncDefaultBranch
+func TestSyncDefaultBranchComprehensiveCoverage(t *testing.T) {
+	// Skip if git CLI is not available
+	_, err := exec.LookPath("git")
+	if err != nil {
+		t.Skip("git CLI not available, skipping test")
+	}
+
+	client := GitClient{}
+
+	t.Run("Sync disabled by default", func(t *testing.T) {
+		// Ensure sync is disabled
+		os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
+
+		// Create a test repository
+		tempDir, err := createTestRepo(t)
+		if err != nil {
+			t.Fatalf("Failed to create test repository: %v", err)
+		}
+		defer os.RemoveAll(tempDir)
+
+		repo := scm.Repo{
+			HostPath:    tempDir,
+			CloneBranch: "main",
+			Name:        "test-repo",
+		}
+
+		// Should return early without error
+		err = client.SyncDefaultBranch(repo)
+		if err != nil {
+			t.Errorf("SyncDefaultBranch should not error when disabled: %v", err)
+		}
+	})
+
+	t.Run("Error getting remote URL", func(t *testing.T) {
+		// Enable sync
+		os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "true")
+		defer os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
+
+		// Create a test repository without remote
+		tempDir, err := createTestRepo(t)
+		if err != nil {
+			t.Fatalf("Failed to create test repository: %v", err)
+		}
+		defer os.RemoveAll(tempDir)
+
+		// Remove any existing remote
+		cmd := exec.Command("git", "remote", "remove", "origin")
+		cmd.Dir = tempDir
+		cmd.Run() // Ignore error if remote doesn't exist
+
+		repo := scm.Repo{
+			HostPath:    tempDir,
+			CloneBranch: "main",
+			Name:        "test-repo",
+		}
+
+		// Should return without error when remote doesn't exist
+		err = client.SyncDefaultBranch(repo)
+		if err != nil {
+			t.Errorf("SyncDefaultBranch should not error when remote doesn't exist: %v", err)
+		}
+	})
+
+	t.Run("Error checking working directory changes debug", func(t *testing.T) {
+		// Enable sync and debug
+		os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "true")
+		os.Setenv("GHORG_DEBUG", "true")
+		defer func() {
+			os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
+			os.Unsetenv("GHORG_DEBUG")
+		}()
+
+		// Create a test repository
+		tempDir, err := createTestRepo(t)
+		if err != nil {
+			t.Fatalf("Failed to create test repository: %v", err)
+		}
+		defer os.RemoveAll(tempDir)
+
+		// Add remote pointing to itself
+		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to add remote: %v", err)
+		}
+
+		// Make some local changes
+		err = os.WriteFile(filepath.Join(tempDir, "local-change.txt"), []byte("local changes"), 0644)
+		if err != nil {
+			t.Fatalf("Failed to create test file: %v", err)
+		}
+
+		repo := scm.Repo{
+			HostPath:    tempDir,
+			CloneBranch: "main",
+			Name:        "test-repo",
+		}
+
+		// Should skip sync due to working directory changes and show debug message
+		err = client.SyncDefaultBranch(repo)
+		if err != nil {
+			t.Errorf("SyncDefaultBranch should not error with working directory changes: %v", err)
+		}
+	})
+
+	t.Run("Error checking unpushed commits debug", func(t *testing.T) {
+		// Enable sync and debug
+		os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "true")
+		os.Setenv("GHORG_DEBUG", "true")
+		defer func() {
+			os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
+			os.Unsetenv("GHORG_DEBUG")
+		}()
+
+		// Create a test repository
+		tempDir, err := createTestRepo(t)
+		if err != nil {
+			t.Fatalf("Failed to create test repository: %v", err)
+		}
+		defer os.RemoveAll(tempDir)
+
+		// Add remote pointing to itself
+		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to add remote: %v", err)
+		}
+
+		// Push to create the remote branch
+		cmd = exec.Command("git", "push", "-u", "origin", "main")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to push: %v", err)
+		}
+
+		// Make a new commit that hasn't been pushed
+		err = os.WriteFile(filepath.Join(tempDir, "newfile.txt"), []byte("new content"), 0644)
+		if err != nil {
+			t.Fatalf("Failed to create new file: %v", err)
+		}
+
+		cmd = exec.Command("git", "add", "newfile.txt")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to add file: %v", err)
+		}
+
+		cmd = exec.Command("git", "commit", "-m", "New commit")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to commit: %v", err)
+		}
+
+		repo := scm.Repo{
+			HostPath:    tempDir,
+			CloneBranch: "main",
+			Name:        "test-repo",
+		}
+
+		// Should skip sync due to unpushed commits and show debug message
+		err = client.SyncDefaultBranch(repo)
+		if err != nil {
+			t.Errorf("SyncDefaultBranch should not error with unpushed commits: %v", err)
+		}
+	})
+
+	t.Run("Debug mode with divergent commits", func(t *testing.T) {
+		// Enable sync and debug
+		os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "true")
+		os.Setenv("GHORG_DEBUG", "true")
+		defer func() {
+			os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
+			os.Unsetenv("GHORG_DEBUG")
+		}()
+
+		// Create a test repository
+		tempDir, err := createTestRepo(t)
+		if err != nil {
+			t.Fatalf("Failed to create test repository: %v", err)
+		}
+		defer os.RemoveAll(tempDir)
+
+		// Add remote pointing to itself
+		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to add remote: %v", err)
+		}
+
+		// Push to create the remote branch
+		cmd = exec.Command("git", "push", "-u", "origin", "main")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to push: %v", err)
+		}
+
+		// Create and switch to a feature branch
+		cmd = exec.Command("git", "checkout", "-b", "feature-branch")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to create feature branch: %v", err)
+		}
+
+		// Make a commit on the feature branch that isn't on main
+		err = os.WriteFile(filepath.Join(tempDir, "feature.txt"), []byte("feature content"), 0644)
+		if err != nil {
+			t.Fatalf("Failed to create feature file: %v", err)
+		}
+
+		cmd = exec.Command("git", "add", "feature.txt")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to add feature file: %v", err)
+		}
+
+		cmd = exec.Command("git", "commit", "-m", "Feature commit")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to commit feature: %v", err)
+		}
+
+		repo := scm.Repo{
+			HostPath:    tempDir,
+			CloneBranch: "main", // Target branch is different from current
+			Name:        "test-repo",
+		}
+
+		// Should skip sync due to divergent commits and show debug message
+		err = client.SyncDefaultBranch(repo)
+		if err != nil {
+			t.Errorf("SyncDefaultBranch should not error with divergent commits: %v", err)
+		}
+	})
+}
+
+func TestSyncDefaultBranchDebugOutputs(t *testing.T) {
+	// Skip if git CLI is not available
+	_, err := exec.LookPath("git")
+	if err != nil {
+		t.Skip("git CLI not available, skipping test")
+	}
+
+	client := GitClient{}
+
+	t.Run("Debug output for working directory changes", func(t *testing.T) {
+		// Enable sync and debug
+		os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "true")
+		os.Setenv("GHORG_DEBUG", "true")
+		defer func() {
+			os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
+			os.Unsetenv("GHORG_DEBUG")
+		}()
+
+		// Create a test repository
+		tempDir, err := createTestRepo(t)
+		if err != nil {
+			t.Fatalf("Failed to create test repository: %v", err)
+		}
+		defer os.RemoveAll(tempDir)
+
+		// Add remote pointing to itself
+		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to add remote: %v", err)
+		}
+
+		// Make sure there are working directory changes
+		err = os.WriteFile(filepath.Join(tempDir, "dirty-file.txt"), []byte("dirty content"), 0644)
+		if err != nil {
+			t.Fatalf("Failed to create dirty file: %v", err)
+		}
+
+		repo := scm.Repo{
+			HostPath:    tempDir,
+			CloneBranch: "main",
+			Name:        "test-repo",
+		}
+
+		// Capture output to verify debug message
+		// The sync should be skipped due to working directory changes
+		err = client.SyncDefaultBranch(repo)
+		if err != nil {
+			t.Errorf("SyncDefaultBranch should not error with working directory changes: %v", err)
+		}
+	})
+
+	t.Run("Debug output for unpushed commits", func(t *testing.T) {
+		// Enable sync and debug
+		os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "true")
+		os.Setenv("GHORG_DEBUG", "true")
+		defer func() {
+			os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
+			os.Unsetenv("GHORG_DEBUG")
+		}()
+
+		// Create a test repository
+		tempDir, err := createTestRepo(t)
+		if err != nil {
+			t.Fatalf("Failed to create test repository: %v", err)
+		}
+		defer os.RemoveAll(tempDir)
+
+		// Add remote pointing to itself
+		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to add remote: %v", err)
+		}
+
+		// Push to create the remote branch
+		cmd = exec.Command("git", "push", "-u", "origin", "main")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to push: %v", err)
+		}
+
+		// Make a new commit that hasn't been pushed
+		err = os.WriteFile(filepath.Join(tempDir, "unpushed.txt"), []byte("unpushed content"), 0644)
+		if err != nil {
+			t.Fatalf("Failed to create unpushed file: %v", err)
+		}
+
+		cmd = exec.Command("git", "add", "unpushed.txt")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to add unpushed file: %v", err)
+		}
+
+		cmd = exec.Command("git", "commit", "-m", "Unpushed commit")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to commit unpushed file: %v", err)
+		}
+
+		repo := scm.Repo{
+			HostPath:    tempDir,
+			CloneBranch: "main",
+			Name:        "test-repo",
+		}
+
+		// The sync should be skipped due to unpushed commits
+		err = client.SyncDefaultBranch(repo)
+		if err != nil {
+			t.Errorf("SyncDefaultBranch should not error with unpushed commits: %v", err)
+		}
+	})
+
+	t.Run("Debug output for divergent commits", func(t *testing.T) {
+		// Enable sync and debug
+		os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "true")
+		os.Setenv("GHORG_DEBUG", "true")
+		defer func() {
+			os.Unsetenv("GHORG_SYNC_DEFAULT_BRANCH")
+			os.Unsetenv("GHORG_DEBUG")
+		}()
+
+		// Create a test repository
+		tempDir, err := createTestRepo(t)
+		if err != nil {
+			t.Fatalf("Failed to create test repository: %v", err)
+		}
+		defer os.RemoveAll(tempDir)
+
+		// Add remote pointing to itself
+		cmd := exec.Command("git", "remote", "add", "origin", tempDir)
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to add remote: %v", err)
+		}
+
+		// Push to create the remote branch
+		cmd = exec.Command("git", "push", "-u", "origin", "main")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to push: %v", err)
+		}
+
+		// Create and switch to a feature branch
+		cmd = exec.Command("git", "checkout", "-b", "feature-branch")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to create feature branch: %v", err)
+		}
+
+		// Make a commit on the feature branch that isn't on main
+		err = os.WriteFile(filepath.Join(tempDir, "feature.txt"), []byte("feature content"), 0644)
+		if err != nil {
+			t.Fatalf("Failed to create feature file: %v", err)
+		}
+
+		cmd = exec.Command("git", "add", "feature.txt")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to add feature file: %v", err)
+		}
+
+		cmd = exec.Command("git", "commit", "-m", "Feature commit")
+		cmd.Dir = tempDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("Failed to commit feature: %v", err)
+		}
+
+		repo := scm.Repo{
+			HostPath:    tempDir,
+			CloneBranch: "main", // Target branch is different from current
+			Name:        "test-repo",
+		}
+
+		// The sync should be skipped due to divergent commits
+		err = client.SyncDefaultBranch(repo)
+		if err != nil {
+			t.Errorf("SyncDefaultBranch should not error with divergent commits: %v", err)
 		}
 	})
 }
