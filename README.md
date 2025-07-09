@@ -16,6 +16,8 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
 > 1. Will clone a repo if its not inside the clone directory.
 > 2. If repo does exists locally in the clone directory it will perform a git pull and git clean on the repo.
 
+> **Repository Synchronization**: By default, ghorg does **not** automatically sync local repositories with remote default branches for safety. You can enable sync using the `--sync-default-branch` flag or `GHORG_SYNC_DEFAULT_BRANCH=true` configuration. When enabled, ghorg will safely synchronize existing repositories with their remote default branches, but only after performing safety checks to prevent data loss.
+
 > So when running ghorg a second time on the same org/user, all local changes in the cloned directory by default will be overwritten by what's on GitHub. If you want to work out of this directory, make sure you either rename the directory or set the `--no-clean` flag on all future clones to prevent losing your changes locally.
 
 <p align="center">
@@ -38,6 +40,7 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
 
 - [Filter](#selective-repository-cloning) or select specific repositories for cloning
 - Create [backups](#creating-backups) of repositories
+- [Sync](#repository-synchronization) existing repositories with remote default branches
 - Simplify complex clone commands using [reclone](#reclone-command) shortcuts
 - Initiate clone operations via [HTTP server](#reclone-server-command)
 - Schedule cloning tasks using [cron](#reclone-cron-command)
@@ -167,6 +170,8 @@ $ ghorg clone davecheney --clone-type=user --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc
 $ ghorg clone gitlab-examples --scm=gitlab --preserve-dir --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 $ ghorg clone gitlab-examples/wayne-enterprises --scm=gitlab --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 $ ghorg clone all-groups --scm=gitlab --base-url=https://gitlab.internal.yourcompany.com --preserve-dir
+# Example with sync enabled to keep repositories up-to-date
+$ ghorg clone kubernetes --sync-default-branch --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 $ ghorg clone --help
 # view cloned resources
 $ ghorg ls
@@ -242,6 +247,75 @@ mv -f * .git # moves all contents into .git directory
 git init
 git checkout master
 ```
+
+## Repository Synchronization
+
+ghorg provides automatic synchronization functionality to keep your local repositories up-to-date with their remote default branches. This feature is particularly useful when recloning repositories that may have received updates since the last clone operation.
+
+### Sync Safety Philosophy
+
+Sync functionality follows a **safety-first approach** to prevent data loss:
+
+- **Disabled by default** - sync must be explicitly enabled
+- **Multiple safety checks** - skips sync if working directory has changes, unpushed commits, or divergent branches
+- **Non-destructive** - only updates when it's safe to do so
+
+### Enable Sync
+
+Sync can be enabled in several ways:
+
+**Command line flag (recommended):**
+```bash
+ghorg clone myorg --sync-default-branch
+```
+
+**Environment variable:**
+```bash
+export GHORG_SYNC_DEFAULT_BRANCH=true
+ghorg clone myorg
+```
+
+**Configuration file:**
+```yaml
+# In $HOME/.config/ghorg/conf.yaml
+GHORG_SYNC_DEFAULT_BRANCH: true
+```
+
+### Sync Behavior
+
+When sync is enabled, ghorg will:
+
+1. **Check safety conditions** before any sync operation
+   - Skip if working directory has uncommitted changes
+   - Skip if current branch has unpushed commits
+   - Skip if current branch has commits not on the default branch
+   - Skip if remote is not accessible
+
+2. **Perform sync** only when all safety checks pass
+   - Fetch latest changes from remote
+   - Reset local default branch to match remote
+
+3. **Provide detailed logging** in debug mode
+   ```bash
+   export GHORG_DEBUG=true
+   ghorg clone myorg --sync-default-branch
+   ```
+
+### When Sync is Useful
+
+- **Automated environments** where repositories need to stay current
+- **Scheduled cloning** to ensure latest code is always available
+- **Team synchronization** to pull in updates from multiple contributors
+- **CI/CD pipelines** that need fresh repository states
+
+### Safety Considerations
+
+- Always commit or stash local changes before enabling sync
+- Push any unpushed commits to avoid conflicts
+- Test sync behavior in non-production environments first
+- Use debug mode to understand sync decisions
+
+For comprehensive documentation on sync functionality, safety checks, troubleshooting, and implementation details, see [git/README.md](git/README.md).
 
 ## Reclone Command
 
