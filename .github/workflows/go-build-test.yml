@@ -63,7 +63,11 @@ jobs:
         env:
           BITBUCKET_TOKEN: ${{ secrets.GHORG_BITBUCKET_APP_PASSWORD }}
           BITBUCKET_USERNAME: ${{ secrets.GHORG_BITBUCKET_USERNAME }}
-      - name: Run GitLab Cloud Integration Tests
+      - name: Run GitLab Cloud Integration Tests Linux
         run: scripts/gitlab_cloud_integration_tests.sh
+        env:
+          GITLAB_TOKEN: ${{ secrets.GHORG_GITLAB_TOKEN }}
+      - name: Run GitLab Cloud Integration Tests Windows
+        run: scripts/windows_gitlab_integration_tests.bat
         env:
           GITLAB_TOKEN: ${{ secrets.GHORG_GITLAB_TOKEN }}
