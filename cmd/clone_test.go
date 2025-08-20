@@ -716,6 +716,66 @@ func TestPruneRepos(t *testing.T) {
 	}
 }
 
+func TestSliceContainsNamedRepoWithPathSeparators(t *testing.T) {
+	// Test that path separator normalization works correctly
+	// This simulates the Windows issue where GitLab API returns forward slashes
+	// but Windows filesystem uses backslashes
+
+	testCases := []struct {
+		name        string
+		repos       []scm.Repo
+		needle      string
+		shouldMatch bool
+	}{
+		{
+			name:        "Forward slash in repo, forward slash in needle",
+			repos:       []scm.Repo{{Path: "group/subgroup/repo"}},
+			needle:      "group/subgroup/repo",
+			shouldMatch: true,
+		},
+		{
+			name:        "Forward slash in repo, backslash in needle (Windows case)",
+			repos:       []scm.Repo{{Path: "group/subgroup/repo"}},
+			needle:      "group\\subgroup\\repo",
+			shouldMatch: true,
+		},
+		{
+			name:        "Backslash in repo, forward slash in needle",
+			repos:       []scm.Repo{{Path: "group\\subgroup\\repo"}},
+			needle:      "group/subgroup/repo",
+			shouldMatch: true,
+		},
+		{
+			name:        "Leading slash normalization",
+			repos:       []scm.Repo{{Path: "/group/subgroup/repo"}},
+			needle:      "group\\subgroup\\repo",
+			shouldMatch: true,
+		},
+		{
+			name:        "Mixed separators",
+			repos:       []scm.Repo{{Path: "group/subgroup\\repo"}},
+			needle:      "group\\subgroup/repo",
+			shouldMatch: true,
+		},
+		{
+			name:        "No match case",
+			repos:       []scm.Repo{{Path: "group/subgroup/repo"}},
+			needle:      "different/path",
+			shouldMatch: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := sliceContainsNamedRepo(tc.repos, tc.needle)
+			if result != tc.shouldMatch {
+				t.Errorf("Expected %v, got %v for needle '%s' in repos %+v",
+					tc.shouldMatch, result, tc.needle, tc.repos)
+			}
+		})
+	}
+}
+
 func TestSyncDefaultBranchFlagSetsEnvironmentVariable(t *testing.T) {
 	// Save current environment state
 	originalValue := os.Getenv("GHORG_SYNC_DEFAULT_BRANCH")

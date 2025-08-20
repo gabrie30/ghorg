@@ -1407,8 +1407,19 @@ func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
 	// I'm not really sure whats going on here though, could be a bug with how this is set
 	needle = strings.TrimPrefix(needle, "/")
 
+	// Normalize path separators for cross-platform compatibility (Windows vs Unix)
+	// Convert both needle and repo paths to use forward slashes for comparison
+	// We need to handle both forward and back slashes regardless of OS
+	needle = strings.ReplaceAll(needle, "\\", "/")
+	needle = filepath.ToSlash(needle)
+
 	for _, repo := range haystack {
 		normalizedPath := strings.TrimPrefix(repo.Path, "/")
+		// Convert repo path to forward slashes for comparison
+		// We need to handle both forward and back slashes regardless of OS
+		normalizedPath = strings.ReplaceAll(normalizedPath, "\\", "/")
+		normalizedPath = filepath.ToSlash(normalizedPath)
+
 		if normalizedPath == needle {
 			if os.Getenv("GHORG_DEBUG") != "" {
 				fmt.Printf("Debug: Match found for repo path: %s\n", repo.Path)
