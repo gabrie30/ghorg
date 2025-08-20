@@ -79,25 +79,37 @@ REM First, do an initial clone with preserve-dir, prune, and prune-no-confirm
 ghorg.exe clone %GITLAB_GROUP% --token=%GITLAB_TOKEN% --scm=gitlab --preserve-dir --prune --prune-no-confirm
 
 REM Create a fake git repository that should be pruned in the next run
-mkdir "%USERPROFILE%\ghorg\%GITLAB_GROUP%\%GITLAB_SUB_GROUP%\wayne-industries\fake-repo-to-prune"
-cd "%USERPROFILE%\ghorg\%GITLAB_GROUP%\%GITLAB_SUB_GROUP%\wayne-industries\fake-repo-to-prune"
-git init > nul 2>&1
-cd /d "%~dp0\.."
+REM Use same approach as Linux test: git init with full path
+echo Creating fake git repository for prune test...
+git init "%USERPROFILE%\ghorg\%GITLAB_GROUP%\%GITLAB_SUB_GROUP%\wayne-industries\prunable"
+IF NOT EXIST "%USERPROFILE%\ghorg\%GITLAB_GROUP%\%GITLAB_SUB_GROUP%\wayne-industries\prunable\.git" (
+    echo ERROR: Failed to create .git directory in fake repository
+    exit /b 1
+)
+echo Fake git repository created successfully
 
 REM Run clone again with prune - this should remove the fake repo we just created
+echo Running second clone with prune to test prune functionality...
 ghorg.exe clone %GITLAB_GROUP% --token=%GITLAB_TOKEN% --scm=gitlab --preserve-dir --prune --prune-no-confirm
 
+echo Checking results...
 REM Check that legitimate repository still exists
 IF NOT EXIST "%USERPROFILE%\ghorg\%GITLAB_GROUP%\%GITLAB_SUB_GROUP%\wayne-industries\microservice" (
     echo FAIL: Prune test failed - legitimate repository was removed
+    echo Expected path: "%USERPROFILE%\ghorg\%GITLAB_GROUP%\%GITLAB_SUB_GROUP%\wayne-industries\microservice"
     exit /b 1
 )
+echo Legitimate repository still exists: OK
 
 REM Check that fake repository was pruned (removed)
-IF EXIST "%USERPROFILE%\ghorg\%GITLAB_GROUP%\%GITLAB_SUB_GROUP%\wayne-industries\fake-repo-to-prune" (
+IF EXIST "%USERPROFILE%\ghorg\%GITLAB_GROUP%\%GITLAB_SUB_GROUP%\wayne-industries\prunable" (
     echo FAIL: Prune test failed - fake repository was not removed
+    echo Fake repository still exists at: "%USERPROFILE%\ghorg\%GITLAB_GROUP%\%GITLAB_SUB_GROUP%\wayne-industries\prunable"
+    echo Listing contents of wayne-industries directory:
+    dir "%USERPROFILE%\ghorg\%GITLAB_GROUP%\%GITLAB_SUB_GROUP%\wayne-industries" /b
     exit /b 1
 )
+echo Fake repository was successfully pruned: OK
 echo PASS: GitLab prune with preserve directory test
 
 REM Clean up for next test
