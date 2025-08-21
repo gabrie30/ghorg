@@ -80,7 +80,7 @@ github.com/fsnotify/fsnotify/internal
 # github.com/go-fed/httpsig v1.1.0
 ## explicit; go 1.13
 github.com/go-fed/httpsig
-# github.com/go-viper/mapstructure/v2 v2.3.0
+# github.com/go-viper/mapstructure/v2 v2.4.0
 ## explicit; go 1.18
 github.com/go-viper/mapstructure/v2
 github.com/go-viper/mapstructure/v2/internal/errors
