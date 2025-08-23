@@ -50,7 +50,7 @@ func (rp *RepositoryProcessor) ProcessRepository(repo *scm.Repo, repoNameWithCol
 	repo.HostPath = rp.buildHostPath(*repo, finalRepoSlug)
 
 	// Handle prune untouched logic
-	if rp.shouldPruneUntouched(*repo) {
+	if rp.shouldPruneUntouched(repo) {
 		return
 	}
 
@@ -59,11 +59,28 @@ func (rp *RepositoryProcessor) ProcessRepository(repo *scm.Repo, repoNameWithCol
 		return
 	}
 
+	// Determine if this repo exists locally
+	repoWillBePulled := repoExistsLocally(*repo)
+	var action string
+
 	// Process the repository (clone or update)
-	if repoExistsLocally(*repo) {
-		rp.handleExistingRepository(*repo)
+	if repoWillBePulled {
+		success := rp.handleExistingRepository(repo, &action)
+		if !success {
+			return
+		}
 	} else {
-		rp.handleNewRepository(*repo)
+		success := rp.handleNewRepository(repo, &action)
+		if !success {
+			return
+		}
+	}
+
+	// Print unified success message (matching original behavior)
+	if repoWillBePulled && repo.Commits.CountDiff > 0 {
+		colorlog.PrintSuccess(fmt.Sprintf("Success %s %s, branch: %s, new commits: %d", action, repo.URL, repo.CloneBranch, repo.Commits.CountDiff))
+	} else {
+		colorlog.PrintSuccess(fmt.Sprintf("Success %s %s, branch: %s", action, repo.URL, repo.CloneBranch))
 	}
 }
 
@@ -129,15 +146,15 @@ func (rp *RepositoryProcessor) buildHostPath(repo scm.Repo, repoSlug string) str
 }
 
 // shouldPruneUntouched determines if a repository should be pruned as untouched
-func (rp *RepositoryProcessor) shouldPruneUntouched(repo scm.Repo) bool {
-	if os.Getenv("GHORG_PRUNE_UNTOUCHED") != "true" || !repoExistsLocally(repo) {
+func (rp *RepositoryProcessor) shouldPruneUntouched(repo *scm.Repo) bool {
+	if os.Getenv("GHORG_PRUNE_UNTOUCHED") != "true" || !repoExistsLocally(*repo) {
 		return false
 	}
 
 	// Fetch and check branches
-	rp.git.FetchCloneBranch(repo)
+	rp.git.FetchCloneBranch(*repo)
 
-	branches, err := rp.git.Branch(repo)
+	branches, err := rp.git.Branch(*repo)
 	if err != nil {
 		colorlog.PrintError(fmt.Sprintf("Failed to list local branches for repository %s: %v", repo.Name, err))
 		return false
@@ -155,7 +172,7 @@ func (rp *RepositoryProcessor) shouldPruneUntouched(repo scm.Repo) bool {
 	}
 
 	// Check for modified changes
-	status, err := rp.git.ShortStatus(repo)
+	status, err := rp.git.ShortStatus(*repo)
 	if err != nil {
 		colorlog.PrintError(fmt.Sprintf("Failed to get short status for repository %s: %v", repo.Name, err))
 		return false
@@ -166,7 +183,7 @@ func (rp *RepositoryProcessor) shouldPruneUntouched(repo scm.Repo) bool {
 	}
 
 	// Check for new commits on the branch that exist locally but not on the remote
-	commits, err := rp.git.RevListCompare(repo, "HEAD", "@{u}")
+	commits, err := rp.git.RevListCompare(*repo, "HEAD", "@{u}")
 	if err != nil {
 		colorlog.PrintError(fmt.Sprintf("Failed to get commit differences for repository %s. The repository may be empty or does not have a .git directory. Error: %v", repo.Name, err))
 		return false
@@ -181,68 +198,73 @@ func (rp *RepositoryProcessor) shouldPruneUntouched(repo scm.Repo) bool {
 }
 
 // handleExistingRepository processes repositories that already exist locally
-func (rp *RepositoryProcessor) handleExistingRepository(repo scm.Repo) {
-	action := "pulling"
+func (rp *RepositoryProcessor) handleExistingRepository(repo *scm.Repo, action *string) bool {
+	*action = "pulling"
 
 	// Set origin with credentials
-	err := rp.git.SetOriginWithCredentials(repo)
+	err := rp.git.SetOriginWithCredentials(*repo)
 	if err != nil {
 		rp.addError(fmt.Sprintf("Problem setting remote with credentials on: %s Error: %v", repo.Name, err))
-		return
+		return false
 	}
 
 	if os.Getenv("GHORG_BACKUP") == "true" {
-		rp.handleBackupMode(repo)
-		return
+		*action = "updating remote"
+		success := rp.handleBackupMode(repo)
+		if !success {
+			return false
+		}
+	} else if os.Getenv("GHORG_NO_CLEAN") == "true" {
+		*action = "fetching"
+		success := rp.handleNoCleanMode(repo)
+		if !success {
+			return false
+		}
+	} else {
+		// Standard pull mode
+		success := rp.handleStandardPull(repo)
+		if !success {
+			return false
+		}
 	}
-
-	if os.Getenv("GHORG_NO_CLEAN") == "true" {
-		rp.handleNoCleanMode(repo)
-		return
-	}
-
-	// Standard pull mode
-	rp.handleStandardPull(repo)
 
 	// Reset origin
-	err = rp.git.SetOrigin(repo)
+	err = rp.git.SetOrigin(*repo)
 	if err != nil {
 		rp.addError(fmt.Sprintf("Problem resetting remote: %s Error: %v", repo.Name, err))
-		return
+		return false
 	}
 
 	rp.mutex.Lock()
 	rp.stats.PulledCount++
 	rp.mutex.Unlock()
 
-	if repo.Commits.CountDiff > 0 {
-		colorlog.PrintSuccess(fmt.Sprintf("Success %s %s, branch: %s, new commits: %d", action, repo.URL, repo.CloneBranch, repo.Commits.CountDiff))
-	} else {
-		colorlog.PrintSuccess(fmt.Sprintf("Success %s %s, branch: %s", action, repo.URL, repo.CloneBranch))
-	}
+	return true
 }
 
 // handleNewRepository processes repositories that don't exist locally
-func (rp *RepositoryProcessor) handleNewRepository(repo scm.Repo) {
-	err := rp.git.Clone(repo)
+func (rp *RepositoryProcessor) handleNewRepository(repo *scm.Repo, action *string) bool {
+	*action = "cloning"
+
+	err := rp.git.Clone(*repo)
 
 	// Handle wiki clone attempts that might fail
 	if err != nil && repo.IsWiki {
 		rp.addInfo(fmt.Sprintf("Wiki may be enabled but there was no content to clone: %s Error: %v", repo.URL, err))
-		return
+		return false
 	}
 
 	if err != nil {
 		rp.addError(fmt.Sprintf("Problem trying to clone: %s Error: %v", repo.URL, err))
-		return
+		return false
 	}
 
 	// Checkout specific branch if specified
 	if os.Getenv("GHORG_BRANCH") != "" {
-		err := rp.git.Checkout(repo)
+		err := rp.git.Checkout(*repo)
 		if err != nil {
 			rp.addInfo(fmt.Sprintf("Could not checkout out %s, branch may not exist or may not have any contents/commits, no changes to: %s Error: %v", repo.CloneBranch, repo.URL, err))
-			return
+			return false
 		}
 	}
 
@@ -251,127 +273,126 @@ func (rp *RepositoryProcessor) handleNewRepository(repo scm.Repo) {
 	rp.mutex.Unlock()
 
 	// Set origin to remove credentials from URL
-	err = rp.git.SetOrigin(repo)
+	err = rp.git.SetOrigin(*repo)
 	if err != nil {
 		rp.addError(fmt.Sprintf("Problem trying to set remote: %s Error: %v", repo.URL, err))
-		return
+		return false
 	}
 
 	// Fetch all if enabled
 	if os.Getenv("GHORG_FETCH_ALL") == "true" {
-		err = rp.git.FetchAll(repo)
+		err = rp.git.FetchAll(*repo)
 		if err != nil {
 			rp.addError(fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, err))
-			return
+			return false
 		}
 	}
 
-	colorlog.PrintSuccess(fmt.Sprintf("Success cloning %s, branch: %s", repo.URL, repo.CloneBranch))
+	return true
 }
 
 // handleBackupMode processes repositories in backup mode
-func (rp *RepositoryProcessor) handleBackupMode(repo scm.Repo) {
-	err := rp.git.UpdateRemote(repo)
+func (rp *RepositoryProcessor) handleBackupMode(repo *scm.Repo) bool {
+	err := rp.git.UpdateRemote(*repo)
 
 	if err != nil && repo.IsWiki {
 		rp.addInfo(fmt.Sprintf("Wiki may be enabled but there was no content to clone on: %s Error: %v", repo.URL, err))
-		return
+		return false
 	}
 
 	if err != nil {
 		rp.addError(fmt.Sprintf("Could not update remotes: %s Error: %v", repo.URL, err))
-		return
+		return false
 	}
 
 	rp.mutex.Lock()
 	rp.stats.UpdateRemoteCount++
 	rp.mutex.Unlock()
+
+	return true
 }
 
 // handleNoCleanMode processes repositories in no-clean mode
-func (rp *RepositoryProcessor) handleNoCleanMode(repo scm.Repo) {
-	err := rp.git.FetchAll(repo)
+func (rp *RepositoryProcessor) handleNoCleanMode(repo *scm.Repo) bool {
+	err := rp.git.FetchAll(*repo)
 
 	if err != nil && repo.IsWiki {
 		rp.addInfo(fmt.Sprintf("Wiki may be enabled but there was no content to clone on: %s Error: %v", repo.URL, err))
-		return
+		return false
 	}
 
 	if err != nil {
 		rp.addError(fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, err))
-		return
+		return false
 	}
 
-	// Increment pulled count for no-clean mode
-	rp.mutex.Lock()
-	rp.stats.PulledCount++
-	rp.mutex.Unlock()
+	return true
 }
 
 // handleStandardPull processes repositories in standard pull mode
-func (rp *RepositoryProcessor) handleStandardPull(repo scm.Repo) {
+func (rp *RepositoryProcessor) handleStandardPull(repo *scm.Repo) bool {
 	// Fetch all if enabled
 	if os.Getenv("GHORG_FETCH_ALL") == "true" {
-		err := rp.git.FetchAll(repo)
+		err := rp.git.FetchAll(*repo)
 		if err != nil {
 			rp.addError(fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, err))
-			return
+			return false
 		}
 	}
 
 	// Checkout branch
-	err := rp.git.Checkout(repo)
+	err := rp.git.Checkout(*repo)
 	if err != nil {
-		rp.git.FetchCloneBranch(repo)
+		rp.git.FetchCloneBranch(*repo)
 
 		// Retry checkout
-		errRetry := rp.git.Checkout(repo)
+		errRetry := rp.git.Checkout(*repo)
 		if errRetry != nil {
-			hasRemoteHeads, errHasRemoteHeads := rp.git.HasRemoteHeads(repo)
+			hasRemoteHeads, errHasRemoteHeads := rp.git.HasRemoteHeads(*repo)
 			if errHasRemoteHeads != nil {
 				rp.addError(fmt.Sprintf("Could not checkout %s, branch may not exist or may not have any contents/commits, no changes made on: %s Errors: %v %v", repo.CloneBranch, repo.URL, errRetry, errHasRemoteHeads))
-				return
+				return false
 			}
 			if hasRemoteHeads {
 				rp.addError(fmt.Sprintf("Could not checkout %s, branch may not exist or may not have any contents/commits, no changes made on: %s Error: %v", repo.CloneBranch, repo.URL, errRetry))
-				return
+				return false
 			} else {
 				rp.addInfo(fmt.Sprintf("Could not checkout %s due to repository being empty, no changes made on: %s", repo.CloneBranch, repo.URL))
-				return
+				return false
 			}
 		}
 	}
 
 	// Get pre-pull commit count
-	count, err := rp.git.RepoCommitCount(repo)
+	count, err := rp.git.RepoCommitCount(*repo)
 	if err != nil {
 		rp.addInfo(fmt.Sprintf("Problem trying to get pre pull commit count for on repo: %s", repo.URL))
 	}
 	repo.Commits.CountPrePull = count
 
 	// Clean
-	err = rp.git.Clean(repo)
+	err = rp.git.Clean(*repo)
 	if err != nil {
 		rp.addError(fmt.Sprintf("Problem running git clean: %s Error: %v", repo.URL, err))
-		return
+		return false
 	}
 
 	// Reset
-	err = rp.git.Reset(repo)
+	err = rp.git.Reset(*repo)
 	if err != nil {
 		rp.addError(fmt.Sprintf("Problem resetting branch: %s for: %s Error: %v", repo.CloneBranch, repo.URL, err))
-		return
+		return false
 	}
 
 	// Pull
-	err = rp.git.Pull(repo)
+	err = rp.git.Pull(*repo)
 	if err != nil {
 		rp.addError(fmt.Sprintf("Problem trying to pull branch: %v for: %s Error: %v", repo.CloneBranch, repo.URL, err))
-		return
+		return false
 	}
 
 	// Get post-pull commit count
-	count, err = rp.git.RepoCommitCount(repo)
+	count, err = rp.git.RepoCommitCount(*repo)
 	if err != nil {
 		rp.addInfo(fmt.Sprintf("Problem trying to get post pull commit count for on repo: %s", repo.URL))
 	}
@@ -382,6 +403,8 @@ func (rp *RepositoryProcessor) handleStandardPull(repo scm.Repo) {
 	rp.mutex.Lock()
 	rp.stats.NewCommits += repo.Commits.CountDiff
 	rp.mutex.Unlock()
+
+	return true
 }
 
 // addError adds an error to the stats in a thread-safe manner

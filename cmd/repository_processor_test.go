@@ -165,6 +165,12 @@ func TestRepositoryProcessor_ProcessRepository_ExistingRepository(t *testing.T) 
 		t.Errorf("Expected new commits to be %d, got %d",
 			mockGit.postCommitCount-mockGit.preCommitCount, stats.NewCommits)
 	}
+
+	// Verify that CountDiff was properly calculated on the repo
+	if repo.Commits.CountDiff != (mockGit.postCommitCount - mockGit.preCommitCount) {
+		t.Errorf("Expected repo CountDiff to be %d, got %d",
+			mockGit.postCommitCount-mockGit.preCommitCount, repo.Commits.CountDiff)
+	}
 }
 
 func TestRepositoryProcessor_ProcessRepository_CloneError(t *testing.T) {
