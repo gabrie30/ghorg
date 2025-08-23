@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -436,74 +435,6 @@ func readGhorgIgnore() ([]string, error) {
 		}
 	}
 	return lines, scanner.Err()
-}
-
-func filterByRegexMatch(repos []scm.Repo) []scm.Repo {
-	filteredRepos := []scm.Repo{}
-	regex := fmt.Sprint(os.Getenv("GHORG_MATCH_REGEX"))
-
-	for i, r := range repos {
-		re := regexp.MustCompile(regex)
-		match := re.FindString(r.Name)
-		if match != "" {
-			filteredRepos = append(filteredRepos, repos[i])
-		}
-	}
-
-	return filteredRepos
-}
-
-func filterByExcludeRegexMatch(repos []scm.Repo) []scm.Repo {
-	filteredRepos := []scm.Repo{}
-	regex := fmt.Sprint(os.Getenv("GHORG_EXCLUDE_MATCH_REGEX"))
-
-	for i, r := range repos {
-		exclude := false
-		re := regexp.MustCompile(regex)
-		match := re.FindString(r.Name)
-		if match != "" {
-			exclude = true
-		}
-
-		if !exclude {
-			filteredRepos = append(filteredRepos, repos[i])
-		}
-	}
-
-	return filteredRepos
-}
-
-func filterByMatchPrefix(repos []scm.Repo) []scm.Repo {
-	filteredRepos := []scm.Repo{}
-	for i, r := range repos {
-		pfs := strings.Split(os.Getenv("GHORG_MATCH_PREFIX"), ",")
-		for _, p := range pfs {
-			if strings.HasPrefix(strings.ToLower(r.Name), strings.ToLower(p)) {
-				filteredRepos = append(filteredRepos, repos[i])
-			}
-		}
-	}
-
-	return filteredRepos
-}
-
-func filterByExcludeMatchPrefix(repos []scm.Repo) []scm.Repo {
-	filteredRepos := []scm.Repo{}
-	for i, r := range repos {
-		var exclude bool
-		pfs := strings.Split(os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX"), ",")
-		for _, p := range pfs {
-			if strings.HasPrefix(strings.ToLower(r.Name), strings.ToLower(p)) {
-				exclude = true
-			}
-		}
-
-		if !exclude {
-			filteredRepos = append(filteredRepos, repos[i])
-		}
-	}
-
-	return filteredRepos
 }
 
 func hasRepoNameCollisions(repos []scm.Repo) (map[string]bool, bool) {
