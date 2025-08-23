@@ -43,7 +43,7 @@ if [ -z "$(ls -A $HOME/ghorg/github.com/$GITHUB_ORG)" ]
 then
     echo "Pass: github org clone preserving scm hostname prune untouched"
 else
-    echo "Fail: github org clone preserving scm hostnamey prune untouched"
+    echo "Fail: github org clone preserving scm hostname prune untouched"
     exit 1
 fi
 
