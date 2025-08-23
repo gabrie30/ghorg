@@ -100,7 +100,10 @@ func (rp *RepositoryProcessor) handleNameCollisions(repo scm.Repo, repoNameWithC
 	rp.mutex.Unlock()
 
 	if inHash {
-		repoSlug = trimCollisionFilename(strings.Replace(repo.Path, string(os.PathSeparator), "_", -1))
+		// Replace both forward slashes and backslashes with underscores for cross-platform compatibility
+		pathWithUnderscores := strings.ReplaceAll(repo.Path, "/", "_")
+		pathWithUnderscores = strings.ReplaceAll(pathWithUnderscores, "\\", "_")
+		repoSlug = trimCollisionFilename(pathWithUnderscores)
 		repoSlug = rp.addSuffixesIfNeeded(repo, repoSlug)
 
 		rp.mutex.Lock()

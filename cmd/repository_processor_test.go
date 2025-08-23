@@ -365,6 +365,61 @@ func TestRepositoryProcessor_ProcessRepository_NameCollisions(t *testing.T) {
 	}
 }
 
+func TestRepositoryProcessor_ProcessRepository_CrossPlatformPaths(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+
+	dir, err := os.MkdirTemp("", "ghorg_test_cross_platform")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	outputDirAbsolutePath = dir
+
+	mockGit := NewExtendedMockGit()
+	processor := NewRepositoryProcessor(mockGit)
+
+	// Test with forward slashes (Unix-style)
+	repoUnix := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+		Path:        "group/subgroup/test-repo",
+	}
+
+	// Test with backslashes (Windows-style)
+	repoWindows := scm.Repo{
+		Name:        "test-repo2",
+		URL:         "https://github.com/org/test-repo2",
+		CloneBranch: "main",
+		Path:        "group\\subgroup\\test-repo2",
+	}
+
+	repoNameWithCollisions := map[string]bool{
+		"test-repo":  true,
+		"test-repo2": true,
+	}
+
+	// Process Unix-style path
+	processor.ProcessRepository(&repoUnix, repoNameWithCollisions, true, "test-repo", 0)
+	expectedUnixPath := filepath.Join(outputDirAbsolutePath, "group_subgroup_test-repo")
+	if repoUnix.HostPath != expectedUnixPath {
+		t.Errorf("Expected Unix-style path to be %s, got %s", expectedUnixPath, repoUnix.HostPath)
+	}
+
+	// Process Windows-style path
+	processor.ProcessRepository(&repoWindows, repoNameWithCollisions, true, "test-repo2", 1)
+	expectedWindowsPath := filepath.Join(outputDirAbsolutePath, "group_subgroup_test-repo2")
+	if repoWindows.HostPath != expectedWindowsPath {
+		t.Errorf("Expected Windows-style path to be %s, got %s", expectedWindowsPath, repoWindows.HostPath)
+	}
+
+	stats := processor.GetStats()
+	if stats.CloneCount != 2 {
+		t.Errorf("Expected clone count to be 2, got %d", stats.CloneCount)
+	}
+}
+
 func TestRepositoryProcessor_ProcessRepository_GitLabSnippets(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 
