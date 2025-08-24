@@ -211,30 +211,27 @@ func (rp *RepositoryProcessor) handleExistingRepository(repo *scm.Repo, action *
 		return false
 	}
 
+	var success bool
 	if os.Getenv("GHORG_BACKUP") == "true" {
 		*action = "updating remote"
-		success := rp.handleBackupMode(repo)
-		if !success {
-			return false
-		}
+		success = rp.handleBackupMode(repo)
 	} else if os.Getenv("GHORG_NO_CLEAN") == "true" {
 		*action = "fetching"
-		success := rp.handleNoCleanMode(repo)
-		if !success {
-			return false
-		}
+		success = rp.handleNoCleanMode(repo)
 	} else {
 		// Standard pull mode
-		success := rp.handleStandardPull(repo)
-		if !success {
-			return false
-		}
+		success = rp.handleStandardPull(repo)
 	}
 
-	// Reset origin
+	// Always reset origin to remove credentials, even if processing failed
 	err = rp.git.SetOrigin(*repo)
 	if err != nil {
 		rp.addError(fmt.Sprintf("Problem resetting remote: %s Error: %v", repo.Name, err))
+		return false
+	}
+
+	// Return success after ensuring tokens are stripped
+	if !success {
 		return false
 	}
 
