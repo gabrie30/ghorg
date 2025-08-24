@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Gitlab prune and preseve dir on windows; thanks @derekhes
 - Directory structure of repos and wikis cloned from users on Gitlab; thanks @MickaelFontes
 - GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX to work on subgroups; thanks @deepzeafish
+- GHORG_FETCH_ALL is incompatible with cloning via fine-grained token over https; thanks @brainplot
 ### Security
 
 ## [1.11.3] - 7/4/25
