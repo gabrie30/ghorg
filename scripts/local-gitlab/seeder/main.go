@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 type Snippet struct {
@@ -70,7 +70,7 @@ func NewGitLabSeeder(token, baseURL string) (*GitLabSeeder, error) {
 }
 
 func (g *GitLabSeeder) LoadSeedData(configPath string) error {
-	data, err := ioutil.ReadFile(configPath)
+	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return fmt.Errorf("failed to read seed config: %w", err)
 	}
