@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 type Snippet struct {
@@ -70,7 +70,7 @@ func NewGitLabSeeder(token, baseURL string) (*GitLabSeeder, error) {
 }
 
 func (g *GitLabSeeder) LoadSeedData(configPath string) error {
-	data, err := ioutil.ReadFile(configPath)
+	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return fmt.Errorf("failed to read seed config: %w", err)
 	}
@@ -98,9 +98,9 @@ func (g *GitLabSeeder) createGroup(group *Group, parentID *int) error {
 	log.Printf("Creating group: %s", group.Name)
 
 	createOptions := &gitlab.CreateGroupOptions{
-		Name:        gitlab.String(group.Name),
-		Path:        gitlab.String(group.Path),
-		Description: gitlab.String(group.Description),
+		Name:        &group.Name,
+		Path:        &group.Path,
+		Description: &group.Description,
 	}
 
 	if parentID != nil {
@@ -135,8 +135,8 @@ func (g *GitLabSeeder) createRepository(repo *Repository, namespaceID *int, grou
 	log.Printf("Creating repository: %s", repo.Name)
 
 	createOptions := &gitlab.CreateProjectOptions{
-		Name:                 gitlab.String(repo.Name),
-		InitializeWithReadme: gitlab.Bool(repo.InitializeWithReadme),
+		Name:                 &repo.Name,
+		InitializeWithReadme: gitlab.Ptr(repo.InitializeWithReadme),
 	}
 
 	if namespaceID != nil {
@@ -172,11 +172,11 @@ func (g *GitLabSeeder) createProjectSnippet(snippet *Snippet, projectID int, gro
 	}
 
 	createOptions := &gitlab.CreateProjectSnippetOptions{
-		Title:       gitlab.String(snippet.Title),
-		FileName:    gitlab.String(snippet.FileName),
-		Content:     gitlab.String(snippet.Content),
+		Title:       &snippet.Title,
+		FileName:    &snippet.FileName,
+		Content:     &snippet.Content,
 		Visibility:  &visibility,
-		Description: gitlab.String(snippet.Description),
+		Description: &snippet.Description,
 	}
 
 	_, _, err := g.client.ProjectSnippets.CreateSnippet(projectID, createOptions)
@@ -203,10 +203,10 @@ func (g *GitLabSeeder) createUser(user *User) error {
 	log.Printf("Creating user: %s", user.Username)
 
 	createOptions := &gitlab.CreateUserOptions{
-		Username: gitlab.String(user.Username),
-		Email:    gitlab.String(user.Email),
-		Password: gitlab.String(user.Password),
-		Name:     gitlab.String(user.Name),
+		Username: &user.Username,
+		Email:    &user.Email,
+		Password: &user.Password,
+		Name:     &user.Name,
 	}
 
 	createdUser, _, err := g.client.Users.CreateUser(createOptions)
@@ -231,8 +231,8 @@ func (g *GitLabSeeder) createUserRepository(repo *Repository, userID int, userna
 
 	// Create project for user using the correct API format
 	createOptions := &gitlab.CreateProjectOptions{
-		Name:                 gitlab.String(repo.Name),
-		InitializeWithReadme: gitlab.Bool(repo.InitializeWithReadme),
+		Name:                 &repo.Name,
+		InitializeWithReadme: gitlab.Ptr(repo.InitializeWithReadme),
 	}
 
 	// We need to get the user's namespace first
@@ -312,11 +312,11 @@ func (g *GitLabSeeder) createRootSnippet(snippet *Snippet) error {
 	}
 
 	createOptions := &gitlab.CreateSnippetOptions{
-		Title:       gitlab.String(snippet.Title),
-		FileName:    gitlab.String(snippet.FileName),
-		Content:     gitlab.String(snippet.Content),
+		Title:       &snippet.Title,
+		FileName:    &snippet.FileName,
+		Content:     &snippet.Content,
 		Visibility:  &visibility,
-		Description: gitlab.String(snippet.Description),
+		Description: &snippet.Description,
 	}
 
 	_, _, err := g.client.Snippets.CreateSnippet(createOptions)

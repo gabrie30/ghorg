@@ -1,0 +1,4 @@
+golang        1.23
+golangci-lint 2.3.1
+gofumpt       0.8.0
+buf           1.55.1
