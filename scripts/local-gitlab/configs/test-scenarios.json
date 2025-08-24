@@ -606,6 +606,18 @@
             ]
         },
         {
+            "name": "fetch-all-https-token-compatibility-test",
+            "description": "Test that FETCH_ALL + HTTPS token authentication works correctly by temporarily restoring credentials and tokens are stripped from remotes",
+            "command": "ghorg clone local-gitlab-group1 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --fetch-all --output-dir=fetch-all-https-token-test",
+            "run_twice": false,
+            "expected_structure": [
+                "fetch-all-https-token-test/baz0",
+                "fetch-all-https-token-test/baz1", 
+                "fetch-all-https-token-test/baz2",
+                "fetch-all-https-token-test/baz3"
+            ]
+        },
+        {
             "_comment": "COMMENTED OUT TEST FROM ORIGINAL SCRIPT - TODO FIXME",
             "name": "root-level-snippets-test-disabled",
             "description": "Test root level snippets (DISABLED - was commented in original)",
