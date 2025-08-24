@@ -25,7 +25,7 @@ echo "GitLab host: ${GITLAB_HOST}"
 echo "GitLab URL: ${GITLAB_URL}"
 echo "Ghorg dir: ${LOCAL_GITLAB_GHORG_DIR}"
 
-if [ "${ENV}" == "ci" ];then
+if [ "${ENV:-}" == "ci" ];then
     echo "127.0.0.1 gitlab.example.com" >> /etc/hosts
 fi
 
