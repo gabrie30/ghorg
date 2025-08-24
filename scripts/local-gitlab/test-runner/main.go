@@ -21,6 +21,7 @@ type TestScenario struct {
 	SetupCommands     []string `json:"setup_commands,omitempty"`
 	VerifyCommands    []string `json:"verify_commands,omitempty"`
 	ExpectedStructure []string `json:"expected_structure"`
+	Disabled          bool     `json:"disabled,omitempty"`
 }
 
 type TestConfig struct {
@@ -57,12 +58,12 @@ func NewTestRunner(configPath string, context *TestContext) (*TestRunner, error)
 
 func (tr *TestRunner) RunAllTests() error {
 	log.Printf("Starting integration tests with %d scenarios...", len(tr.config.TestScenarios))
-	
+
 	// Ensure the ghorg directory exists
 	if err := tr.ensureGhorgDirectoryExists(); err != nil {
 		return fmt.Errorf("failed to create ghorg directory: %w", err)
 	}
-	
+
 	// Clean up any existing test directories
 	if err := tr.cleanupTestDirectories(); err != nil {
 		log.Printf("Warning: Failed to clean up test directories: %v", err)
@@ -70,10 +71,17 @@ func (tr *TestRunner) RunAllTests() error {
 
 	passed := 0
 	failed := 0
+	skipped := 0
 
 	for i, scenario := range tr.config.TestScenarios {
 		log.Printf("\n=== Running Test %d/%d: %s ===", i+1, len(tr.config.TestScenarios), scenario.Name)
 		log.Printf("Description: %s", scenario.Description)
+
+		if scenario.Disabled {
+			log.Printf("⏭️ SKIPPED: %s (test is disabled)", scenario.Name)
+			skipped++
+			continue
+		}
 
 		if err := tr.runTest(&scenario); err != nil {
 			log.Printf("❌ FAILED: %s - %v", scenario.Name, err)
@@ -87,6 +95,7 @@ func (tr *TestRunner) RunAllTests() error {
 	log.Printf("\n=== Test Results ===")
 	log.Printf("Passed: %d", passed)
 	log.Printf("Failed: %d", failed)
+	log.Printf("Skipped: %d", skipped)
 	log.Printf("Total: %d", len(tr.config.TestScenarios))
 
 	if failed > 0 {
@@ -205,31 +214,31 @@ func (tr *TestRunner) verifyExpectedStructure(expectedPaths []string) error {
 
 func (tr *TestRunner) ensureGhorgDirectoryExists() error {
 	log.Printf("Ensuring ghorg directory exists: %s", tr.context.GhorgDir)
-	
+
 	// Check if directory already exists
 	if _, err := os.Stat(tr.context.GhorgDir); err == nil {
 		log.Printf("Ghorg directory already exists: %s", tr.context.GhorgDir)
 		return nil
 	}
-	
+
 	// Create the directory with appropriate permissions
 	if err := os.MkdirAll(tr.context.GhorgDir, 0755); err != nil {
 		return fmt.Errorf("failed to create directory %s: %w", tr.context.GhorgDir, err)
 	}
-	
+
 	log.Printf("Created ghorg directory: %s", tr.context.GhorgDir)
 	return nil
 }
 
 func (tr *TestRunner) cleanupTestDirectories() error {
 	log.Println("Cleaning up test directories...")
-	
+
 	// Delete all folders that start with local-gitlab-* in the ghorg directory
 	matches, err := filepath.Glob(filepath.Join(tr.context.GhorgDir, "local-gitlab-*"))
 	if err != nil {
 		return err
 	}
-	
+
 	for _, match := range matches {
 		if err := os.RemoveAll(match); err != nil {
 			log.Printf("Warning: Failed to remove %s: %v", match, err)
@@ -237,7 +246,7 @@ func (tr *TestRunner) cleanupTestDirectories() error {
 			log.Printf("Removed: %s", match)
 		}
 	}
-	
+
 	// Also clean up gitlab.example.com directory if it exists
 	gitlabDir := filepath.Join(tr.context.GhorgDir, "gitlab.example.com")
 	if _, err := os.Stat(gitlabDir); err == nil {
@@ -247,7 +256,7 @@ func (tr *TestRunner) cleanupTestDirectories() error {
 			log.Printf("Removed: %s", gitlabDir)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -256,9 +265,12 @@ func (tr *TestRunner) RunSpecificTest(testName string) error {
 	if err := tr.ensureGhorgDirectoryExists(); err != nil {
 		return fmt.Errorf("failed to create ghorg directory: %w", err)
 	}
-	
+
 	for _, scenario := range tr.config.TestScenarios {
 		if scenario.Name == testName {
+			if scenario.Disabled {
+				return fmt.Errorf("test '%s' is disabled and cannot be run", testName)
+			}
 			log.Printf("Running specific test: %s", testName)
 			return tr.runTest(&scenario)
 		}
@@ -270,7 +282,11 @@ func (tr *TestRunner) RunSpecificTest(testName string) error {
 func (tr *TestRunner) ListTests() {
 	log.Printf("Available tests:")
 	for i, scenario := range tr.config.TestScenarios {
-		log.Printf("%d. %s - %s", i+1, scenario.Name, scenario.Description)
+		status := ""
+		if scenario.Disabled {
+			status = " (DISABLED)"
+		}
+		log.Printf("%d. %s - %s%s", i+1, scenario.Name, scenario.Description, status)
 	}
 }
 

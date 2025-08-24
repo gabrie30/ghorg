@@ -83,4 +83,4 @@ else
 fi
 
 echo ""
-echo "🎉 GitLab EE integration tests completed successfully with refactored framework!"
+echo "🎉 GitLab EE integration tests completed successfully!"

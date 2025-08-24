@@ -43,6 +43,178 @@ scripts/local-gitlab/
 ./start-ee.sh true false latest
 ```
 
+## Script Arguments
+
+### Quick Reference
+
+| **Script** | **Arguments** | **Purpose** |
+|---|---|---|
+| `start-ee.sh` | 7 optional args | Main entry point - runs entire test suite |
+| `seed.sh` | 3 optional args | Seeds GitLab with test data |
+| `integration-tests.sh` | 3 optional args | Runs integration tests only |
+| `run-ee.sh` | 4 optional args | Starts GitLab container (internal) |
+
+### `start-ee.sh` Arguments
+
+The main entry point script accepts up to 7 optional arguments. All arguments have sensible defaults if not provided.
+
+**Usage:**
+```bash
+./start-ee.sh [STOP_GITLAB_WHEN_FINISHED] [PERSIST_GITLAB_LOCALLY] [GITLAB_IMAGE_TAG] [GITLAB_HOME] [GITLAB_HOST] [GITLAB_URL] [LOCAL_GITLAB_GHORG_DIR]
+```
+
+| **Argument** | **Default** | **Description** |
+|---|---|---|
+| `STOP_GITLAB_WHEN_FINISHED` | `'true'` | Whether to stop and remove the GitLab container after tests complete. Set to `'false'` to keep GitLab running for debugging. |
+| `PERSIST_GITLAB_LOCALLY` | `'false'` | Whether to persist GitLab data locally across container restarts. Set to `'true'` to keep data between runs. |
+| `GITLAB_IMAGE_TAG` | `'latest'` | GitLab Docker image tag to use. Can be specific version like `'16.4.0-ce.0'` or `'latest'`. |
+| `GITLAB_HOME` | `"$HOME/ghorg/local-gitlab-ee-data-${GITLAB_IMAGE_TAG}"` | Directory where GitLab stores persistent data on the host machine. |
+| `GITLAB_HOST` | `'gitlab.example.com'` | Hostname for the GitLab instance. Used for container networking and /etc/hosts entries. |
+| `GITLAB_URL` | `'http://gitlab.example.com'` | Full URL to access the GitLab instance. Used by ghorg and the test tools. |
+| `LOCAL_GITLAB_GHORG_DIR` | `"${HOME}/ghorg"` | Local directory where ghorg will clone repositories and store its working files. |
+
+**Examples:**
+
+```bash
+# Default behavior - run tests and clean up
+./start-ee.sh
+
+# Keep GitLab running after tests for debugging
+./start-ee.sh false
+
+# Use specific GitLab version and keep it running
+./start-ee.sh false false 16.4.0-ce.0
+
+# Full custom configuration
+./start-ee.sh true true latest /tmp/gitlab-data gitlab.local http://gitlab.local /tmp/ghorg
+```
+
+**Common Scenarios:**
+
+```bash
+# Development - keep GitLab running for multiple test iterations
+./start-ee.sh false false latest
+
+# CI/CD - use clean environment and cleanup afterwards (default)
+./start-ee.sh true false latest
+
+# Testing specific GitLab version
+./start-ee.sh true false 16.3.0-ce.0
+
+# Custom data persistence for repeated testing
+./start-ee.sh false true latest /data/gitlab-persistent
+```
+
+### Individual Component Arguments
+
+#### `seed.sh` Arguments
+
+Seeds the GitLab instance with test data using the Go-based seeder.
+
+**Usage:**
+```bash
+./seed.sh [API_TOKEN] [GITLAB_URL] [LOCAL_GITLAB_GHORG_DIR]
+```
+
+| **Argument** | **Default** | **Description** |
+|---|---|---|
+| `API_TOKEN` | `"password"` | GitLab API token for authentication (default root password) |
+| `GITLAB_URL` | `"http://gitlab.example.com"` | Full URL to the GitLab instance |
+| `LOCAL_GITLAB_GHORG_DIR` | `"${HOME}/ghorg"` | Directory where ghorg stores its configuration and temp files |
+
+**Example:**
+```bash
+# Use defaults
+./seed.sh
+
+# Custom parameters
+./seed.sh "my-token" "http://gitlab.local:8080" "/tmp/ghorg"
+```
+
+#### `integration-tests.sh` Arguments
+
+Runs the integration tests using the Go-based test runner.
+
+**Usage:**
+```bash
+./integration-tests.sh [LOCAL_GITLAB_GHORG_DIR] [API_TOKEN] [GITLAB_URL]
+```
+
+| **Argument** | **Default** | **Description** |
+|---|---|---|
+| `LOCAL_GITLAB_GHORG_DIR` | `"${HOME}/ghorg"` | Directory where ghorg will clone repositories for testing |
+| `API_TOKEN` | `"password"` | GitLab API token for authentication |
+| `GITLAB_URL` | `"http://gitlab.example.com"` | Full URL to the GitLab instance |
+
+**Example:**
+```bash
+# Use defaults
+./integration-tests.sh
+
+# Custom parameters
+./integration-tests.sh "/tmp/ghorg" "my-token" "http://gitlab.local:8080"
+```
+
+#### `run-ee.sh` Arguments (Internal)
+
+Starts the GitLab Docker container. Called internally by `start-ee.sh`.
+
+**Usage:**
+```bash
+./run-ee.sh [GITLAB_IMAGE_TAG] [GITLAB_HOME] [GITLAB_HOST] [PERSIST_GITLAB_LOCALLY]
+```
+
+| **Argument** | **Default** | **Description** |
+|---|---|---|
+| `GITLAB_IMAGE_TAG` | `"latest"` | GitLab Docker image tag |
+| `GITLAB_HOME` | Dynamic | Host directory for GitLab data persistence |
+| `GITLAB_HOST` | `"gitlab.example.com"` | Container hostname |
+| `PERSIST_GITLAB_LOCALLY` | `"false"` | Whether to persist data between container restarts |
+
+#### Go Tool Arguments (Direct Usage)
+
+For advanced usage, you can run the Go tools directly:
+
+**Seeder (`seeder/gitlab-seeder`)**:
+```bash
+./gitlab-seeder [flags]
+  -config string
+        Path to seed data configuration file (default "configs/seed-data.json")
+  -token string
+        GitLab API token (required)
+  -base-url string
+        GitLab base URL (required)
+```
+
+**Test Runner (`test-runner/gitlab-test-runner`)**:
+```bash
+./gitlab-test-runner [flags]
+  -config string
+        Path to test scenarios configuration file (default "configs/test-scenarios.json")
+  -token string
+        GitLab API token (required)
+  -base-url string
+        GitLab base URL (required)
+  -ghorg-dir string
+        Ghorg directory path (default "${HOME}/ghorg")
+  -test string
+        Run specific test by name (optional)
+  -list
+        List all available tests and exit
+```
+
+**Examples:**
+```bash
+# List all available test scenarios
+./test-runner/gitlab-test-runner -list -token="password"
+
+# Run specific test
+./test-runner/gitlab-test-runner -test="all-groups-preserve-dir-output-dir" -token="password" -base-url="http://gitlab.example.com"
+
+# Seed with custom config
+./seeder/gitlab-seeder -config="my-seed-data.json" -token="password" -base-url="http://gitlab.example.com"
+```
+
 ### Running Individual Components
 
 ```bash
