@@ -121,8 +121,8 @@ func (c Gitlab) GetTopLevelGroups() ([]string, error) {
 			PerPage: perPage,
 			Page:    1,
 		},
-		TopLevelOnly: gitlab.Bool(true),
-		AllAvailable: gitlab.Bool(true),
+		TopLevelOnly: &[]bool{true}[0],
+		AllAvailable: &[]bool{true}[0],
 	}
 
 	for {
@@ -351,7 +351,7 @@ func (c Gitlab) GetGroupRepos(targetGroup string) ([]Repo, error) {
 			PerPage: perPage,
 			Page:    1,
 		},
-		IncludeSubGroups: gitlab.Bool(true),
+		IncludeSubGroups: gitlab.Ptr(true),
 	}
 
 	for {
