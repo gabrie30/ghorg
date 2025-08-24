@@ -612,11 +612,12 @@
             "run_twice": false,
             "expected_structure": [
                 "fetch-all-https-token-test/baz0",
-                "fetch-all-https-token-test/baz1", 
+                "fetch-all-https-token-test/baz1",
                 "fetch-all-https-token-test/baz2",
                 "fetch-all-https-token-test/baz3"
             ]
         },
+        {
             "name": "gitlab-group-exclude-regex-subgroup-a",
             "description": "Test GitLab group exclude regex excludes all repos from subgroup-a",
             "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-exclude-match-regex=\".*\\/subgroup-a($|\\/.*$)\" --output-dir=gitlab-exclude-subgroup-a-test",

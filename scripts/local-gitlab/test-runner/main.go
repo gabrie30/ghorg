@@ -13,15 +13,15 @@ import (
 )
 
 type TestScenario struct {
-	Name                   string   `json:"name"`
-	Description            string   `json:"description"`
-	Command                string   `json:"command"`
-	RunTwice               bool     `json:"run_twice"`
-	SetupCommands          []string `json:"setup_commands,omitempty"`
-	VerifyCommands         []string `json:"verify_commands,omitempty"`
-	ExpectedStructure      []string `json:"expected_structure"`
-	Disabled               bool     `json:"disabled,omitempty"`
-	SkipTokenVerification  bool     `json:"skip_token_verification,omitempty"`
+	Name                  string   `json:"name"`
+	Description           string   `json:"description"`
+	Command               string   `json:"command"`
+	RunTwice              bool     `json:"run_twice"`
+	SetupCommands         []string `json:"setup_commands,omitempty"`
+	VerifyCommands        []string `json:"verify_commands,omitempty"`
+	ExpectedStructure     []string `json:"expected_structure"`
+	Disabled              bool     `json:"disabled,omitempty"`
+	SkipTokenVerification bool     `json:"skip_token_verification,omitempty"`
 }
 
 type TestConfig struct {
@@ -220,8 +220,6 @@ func (tr *TestRunner) verifyExpectedStructure(expectedPaths []string) error {
 }
 
 func (tr *TestRunner) verifyNoTokensInRemotes(expectedPaths []string, token string) error {
-	log.Printf("Verifying no tokens in git remotes...")
-
 	for _, expectedPath := range expectedPaths {
 		fullPath := filepath.Join(tr.context.GhorgDir, expectedPath)
 
@@ -248,8 +246,6 @@ func (tr *TestRunner) verifyNoTokensInRemotes(expectedPaths []string, token stri
 		if strings.Contains(remoteOutput, token) {
 			return fmt.Errorf("token found in git remote URLs for %s:\n%s", expectedPath, remoteOutput)
 		}
-
-		log.Printf("✓ No tokens found in remotes for: %s", expectedPath)
 	}
 
 	return nil

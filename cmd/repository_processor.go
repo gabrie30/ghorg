@@ -290,17 +290,17 @@ func (rp *RepositoryProcessor) handleNewRepository(repo *scm.Repo, action *strin
 			rp.addError(fmt.Sprintf("Problem trying to set remote with credentials: %s Error: %v", repo.URL, err))
 			return false
 		}
-		
+
 		err = rp.git.FetchAll(*repo)
 		fetchErr := err // Store fetch error for later reporting
-		
+
 		// Always strip credentials again for security, even if fetch failed
 		err = rp.git.SetOrigin(*repo)
 		if err != nil {
 			rp.addError(fmt.Sprintf("Problem trying to reset remote after fetch: %s Error: %v", repo.URL, err))
 			return false
 		}
-		
+
 		// Report fetch error if it occurred
 		if fetchErr != nil {
 			rp.addError(fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, fetchErr))
@@ -340,10 +340,10 @@ func (rp *RepositoryProcessor) handleNoCleanMode(repo *scm.Repo) bool {
 		rp.addError(fmt.Sprintf("Problem trying to set remote with credentials: %s Error: %v", repo.URL, err))
 		return false
 	}
-	
+
 	err = rp.git.FetchAll(*repo)
 	fetchErr := err // Store fetch error for later reporting
-	
+
 	// Always strip credentials again for security, even if fetch failed
 	err = rp.git.SetOrigin(*repo)
 	if err != nil {
@@ -374,17 +374,17 @@ func (rp *RepositoryProcessor) handleStandardPull(repo *scm.Repo) bool {
 			rp.addError(fmt.Sprintf("Problem trying to set remote with credentials: %s Error: %v", repo.URL, err))
 			return false
 		}
-		
+
 		err = rp.git.FetchAll(*repo)
 		fetchErr := err // Store fetch error for later reporting
-		
+
 		// Always strip credentials again for security, even if fetch failed
 		err = rp.git.SetOrigin(*repo)
 		if err != nil {
 			rp.addError(fmt.Sprintf("Problem trying to reset remote after fetch: %s Error: %v", repo.URL, err))
 			return false
 		}
-		
+
 		// Report fetch error if it occurred
 		if fetchErr != nil {
 			rp.addError(fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, fetchErr))
