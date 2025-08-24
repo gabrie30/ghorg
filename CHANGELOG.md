@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 ### Fixed
 - Gitlab prune and preseve dir on windows; thanks @derekhes
+- Directory structure of repos and wikis cloned from users on Gitlab; thanks @MickaelFontes
 ### Security
 
 ## [1.11.3] - 7/4/25
