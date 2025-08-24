@@ -19,11 +19,31 @@ echo "Config: ${CONFIG_PATH}"
 
 # Build the seeder if it doesn't exist or if source files are newer
 SEEDER_BINARY="${SEEDER_DIR}/gitlab-seeder"
-if [[ ! -f "${SEEDER_BINARY}" ]] || [[ "${SEEDER_DIR}/main.go" -nt "${SEEDER_BINARY}" ]]; then
+
+# Force rebuild in CI environments or if binary doesn't exist or is newer
+FORCE_BUILD=false
+if [[ "${CI:-}" == "true" ]] || [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    echo "CI environment detected - forcing clean build of seeder..."
+    FORCE_BUILD=true
+fi
+
+if [[ ! -f "${SEEDER_BINARY}" ]] || [[ "${SEEDER_DIR}/main.go" -nt "${SEEDER_BINARY}" ]] || [[ "${FORCE_BUILD}" == "true" ]]; then
     echo "Building GitLab seeder..."
     cd "${SEEDER_DIR}"
+    
+    # Remove existing binary to ensure clean build
+    rm -f gitlab-seeder
+    
     go mod download
     go build -o gitlab-seeder main.go
+    
+    # Verify binary was created and is executable
+    if [[ ! -f "gitlab-seeder" ]]; then
+        echo "Error: Failed to build gitlab-seeder binary"
+        exit 1
+    fi
+    
+    chmod +x gitlab-seeder
     cd -
 fi
 

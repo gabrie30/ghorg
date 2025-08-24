@@ -20,11 +20,31 @@ echo "Config: ${CONFIG_PATH}"
 
 # Build the test runner if it doesn't exist or if source files are newer
 TEST_RUNNER_BINARY="${TEST_RUNNER_DIR}/gitlab-test-runner"
-if [[ ! -f "${TEST_RUNNER_BINARY}" ]] || [[ "${TEST_RUNNER_DIR}/main.go" -nt "${TEST_RUNNER_BINARY}" ]]; then
+
+# Force rebuild in CI environments or if binary doesn't exist or is newer
+FORCE_BUILD=false
+if [[ "${CI:-}" == "true" ]] || [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    echo "CI environment detected - forcing clean build of test runner..."
+    FORCE_BUILD=true
+fi
+
+if [[ ! -f "${TEST_RUNNER_BINARY}" ]] || [[ "${TEST_RUNNER_DIR}/main.go" -nt "${TEST_RUNNER_BINARY}" ]] || [[ "${FORCE_BUILD}" == "true" ]]; then
     echo "Building GitLab test runner..."
     cd "${TEST_RUNNER_DIR}"
+    
+    # Remove existing binary to ensure clean build
+    rm -f gitlab-test-runner
+    
     go mod download
     go build -o gitlab-test-runner main.go
+    
+    # Verify binary was created and is executable
+    if [[ ! -f "gitlab-test-runner" ]]; then
+        echo "Error: Failed to build gitlab-test-runner binary"
+        exit 1
+    fi
+    
+    chmod +x gitlab-test-runner
     cd -
 fi
 
