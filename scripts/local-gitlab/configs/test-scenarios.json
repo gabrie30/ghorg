@@ -1,0 +1,212 @@
+{
+    "test_scenarios": [
+        {
+            "name": "all-groups-preserve-dir-output-dir",
+            "description": "Test cloning all groups with preserve dir and output dir",
+            "command": "ghorg clone all-groups --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --preserve-dir --output-dir=local-gitlab-latest-repos",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitlab-latest-repos/local-gitlab-group1/baz0",
+                "local-gitlab-latest-repos/local-gitlab-group1/baz1",
+                "local-gitlab-latest-repos/local-gitlab-group1/baz2",
+                "local-gitlab-latest-repos/local-gitlab-group1/baz3",
+                "local-gitlab-latest-repos/local-gitlab-group2/baz0",
+                "local-gitlab-latest-repos/local-gitlab-group2/baz1",
+                "local-gitlab-latest-repos/local-gitlab-group2/baz2",
+                "local-gitlab-latest-repos/local-gitlab-group2/baz3",
+                "local-gitlab-latest-repos/local-gitlab-group3/subgroup-a/subgroup-b",
+                "local-gitlab-latest-repos/local-gitlab-group3/subgroup-a/subgroup_a_repo_0",
+                "local-gitlab-latest-repos/local-gitlab-group3/subgroup-a/subgroup_a_repo_1",
+                "local-gitlab-latest-repos/local-gitlab-group3/subgroup-a/subgroup_a_repo_2",
+                "local-gitlab-latest-repos/local-gitlab-group3/subgroup-a/subgroup_a_repo_3"
+            ]
+        },
+        {
+            "name": "all-groups-preserve-dir-output-dir-snippets",
+            "description": "Test cloning all groups with preserve dir, output dir, and snippets",
+            "command": "ghorg clone all-groups --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --preserve-dir --output-dir=local-gitlab-latest-repos-snippets --clone-snippets",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitlab-latest-repos-snippets/_ghorg_root_level_snippets",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group1/baz0",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group1/baz1",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group1/baz2",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group1/baz3",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group2/baz0",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group2/baz0.snippets",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group2/baz1",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group2/baz1.snippets",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group2/baz2",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group2/baz2.snippets",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group2/baz3",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group2/baz3.snippets",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup-b",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_0",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_0.snippets",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_1",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_1.snippets",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_2",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_2.snippets",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_3",
+                "local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_3.snippets"
+            ]
+        },
+        {
+            "name": "all-groups-preserve-dir-output-dir-snippets-preserve-scm-hostname",
+            "description": "Test cloning all groups with preserve dir, output dir, snippets, and preserve SCM hostname",
+            "command": "ghorg clone all-groups --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --preserve-dir --output-dir=local-gitlab-latest-repos-snippets --clone-snippets --preserve-scm-hostname",
+            "run_twice": true,
+            "expected_structure": [
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/_ghorg_root_level_snippets",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group1/baz0",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group1/baz1",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group1/baz2",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group1/baz3",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group2/baz0",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group2/baz0.snippets",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group2/baz1",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group2/baz1.snippets",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group2/baz2",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group2/baz2.snippets",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group2/baz3",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group2/baz3.snippets",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup-b",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_0",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_0.snippets",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_1",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_1.snippets",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_2",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_2.snippets",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_3",
+                "gitlab.example.com/local-gitlab-latest-repos-snippets/local-gitlab-group3/subgroup-a/subgroup_a_repo_3.snippets"
+            ]
+        },
+        {
+            "name": "all-groups-flat-output-dir",
+            "description": "Test cloning all groups to flat output directory",
+            "command": "ghorg clone all-groups --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --output-dir=local-gitlab-latest-repos-flat",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitlab-latest-repos-flat/local-gitlab-group1_baz0",
+                "local-gitlab-latest-repos-flat/local-gitlab-group1_baz1",
+                "local-gitlab-latest-repos-flat/local-gitlab-group1_baz2",
+                "local-gitlab-latest-repos-flat/local-gitlab-group1_baz3",
+                "local-gitlab-latest-repos-flat/local-gitlab-group2_baz0",
+                "local-gitlab-latest-repos-flat/local-gitlab-group2_baz1",
+                "local-gitlab-latest-repos-flat/local-gitlab-group2_baz2",
+                "local-gitlab-latest-repos-flat/local-gitlab-group2_baz3",
+                "local-gitlab-latest-repos-flat/subgroup_a_repo_0",
+                "local-gitlab-latest-repos-flat/subgroup_a_repo_1",
+                "local-gitlab-latest-repos-flat/subgroup_a_repo_2",
+                "local-gitlab-latest-repos-flat/subgroup_a_repo_3",
+                "local-gitlab-latest-repos-flat/subgroup_b_repo_0",
+                "local-gitlab-latest-repos-flat/subgroup_b_repo_1",
+                "local-gitlab-latest-repos-flat/subgroup_b_repo_2",
+                "local-gitlab-latest-repos-flat/subgroup_b_repo_3"
+            ]
+        },
+        {
+            "name": "all-groups-clone-wiki",
+            "description": "Test cloning all groups with wiki",
+            "command": "ghorg clone all-groups --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --clone-wiki --output-dir=local-gitlab-latest-repos-flat-wiki",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group1_baz0",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group1_baz0.wiki",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group1_baz1",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group1_baz1.wiki",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group1_baz2",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group1_baz2.wiki",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group1_baz3",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group1_baz3.wiki",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group2_baz0",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group2_baz0.wiki",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group2_baz1",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group2_baz1.wiki",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group2_baz2",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group2_baz2.wiki",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group2_baz3",
+                "local-gitlab-latest-repos-flat-wiki/local-gitlab-group2_baz3.wiki",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_a_repo_0",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_a_repo_0.wiki",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_a_repo_1",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_a_repo_1.wiki",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_a_repo_2",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_a_repo_2.wiki",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_a_repo_3",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_a_repo_3.wiki",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_b_repo_0",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_b_repo_0.wiki",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_b_repo_1",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_b_repo_1.wiki",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_b_repo_2",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_b_repo_2.wiki",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_b_repo_3",
+                "local-gitlab-latest-repos-flat-wiki/subgroup_b_repo_3.wiki"
+            ]
+        },
+        {
+            "name": "all-groups-prune-test",
+            "description": "Test cloning all groups with prune functionality",
+            "command": "ghorg clone all-groups --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --preserve-dir --output-dir=local-gitlab-latest-repos-prune --prune --prune-no-confirm",
+            "run_twice": true,
+            "setup_commands": [
+                "git init {{.GhorgDir}}/local-gitlab-latest-repos-prune/local-gitlab-group1/prune-me"
+            ],
+            "verify_commands": [
+                "test ! -d '{{.GhorgDir}}/local-gitlab-latest-repos-prune/local-gitlab-group1/prune-me/'"
+            ],
+            "expected_structure": [
+                "local-gitlab-latest-repos-prune/local-gitlab-group1/baz0",
+                "local-gitlab-latest-repos-prune/local-gitlab-group1/baz1",
+                "local-gitlab-latest-repos-prune/local-gitlab-group1/baz2",
+                "local-gitlab-latest-repos-prune/local-gitlab-group1/baz3"
+            ]
+        },
+        {
+            "name": "single-group-basic-test",
+            "description": "Test cloning a single top-level group",
+            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --output-dir=local-gitlab-latest-top-level-group",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitlab-latest-top-level-group/subgroup_a_repo_0",
+                "local-gitlab-latest-top-level-group/subgroup_a_repo_1",
+                "local-gitlab-latest-top-level-group/subgroup_a_repo_2",
+                "local-gitlab-latest-top-level-group/subgroup_a_repo_3",
+                "local-gitlab-latest-top-level-group/subgroup_b_repo_0",
+                "local-gitlab-latest-top-level-group/subgroup_b_repo_1",
+                "local-gitlab-latest-top-level-group/subgroup_b_repo_2",
+                "local-gitlab-latest-top-level-group/subgroup_b_repo_3"
+            ]
+        },
+        {
+            "name": "subgroup-test",
+            "description": "Test cloning a subgroup with nested subgroups",
+            "command": "ghorg clone local-gitlab-group3/subgroup-a --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}}",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitlab-group3/subgroup-a/subgroup_a_repo_0",
+                "local-gitlab-group3/subgroup-a/subgroup_a_repo_1",
+                "local-gitlab-group3/subgroup-a/subgroup_a_repo_2",
+                "local-gitlab-group3/subgroup-a/subgroup_a_repo_3",
+                "local-gitlab-group3/subgroup-a/subgroup_b_repo_0",
+                "local-gitlab-group3/subgroup-a/subgroup_b_repo_1",
+                "local-gitlab-group3/subgroup-a/subgroup_b_repo_2",
+                "local-gitlab-group3/subgroup-a/subgroup_b_repo_3"
+            ]
+        },
+        {
+            "name": "all-users-test",
+            "description": "Test cloning all users",
+            "command": "ghorg clone all-users --scm=gitlab --clone-type=user --base-url={{.BaseURL}} --token={{.Token}} --output-dir=local-gitlab-latest-all-users",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitlab-latest-all-users/rootrepos0",
+                "local-gitlab-latest-all-users/rootrepos1",
+                "local-gitlab-latest-all-users/rootrepos2",
+                "local-gitlab-latest-all-users/rootrepos3",
+                "local-gitlab-latest-all-users/testuser1-repo"
+            ]
+        }
+    ]
+}
