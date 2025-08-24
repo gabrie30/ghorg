@@ -11,6 +11,7 @@ GHORG_TEST_REPO=ghorg-ci-test
 GHORG_TEST_SELF_PRIVATE_REPO=ghorg_testing_private
 REPO_WITH_TESTING_TOPIC=ghorg-repo-with-topic-of-testing
 GITHUB_SELF=gabrie30
+GHORG_EXIT_CODE_ON_CLONE_ISSUES=0
 
 ghorg version
 
