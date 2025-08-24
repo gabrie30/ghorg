@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -40,7 +39,7 @@ type TestRunner struct {
 }
 
 func NewTestRunner(configPath string, context *TestContext) (*TestRunner, error) {
-	data, err := ioutil.ReadFile(configPath)
+	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read test config: %w", err)
 	}

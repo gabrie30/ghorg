@@ -299,6 +299,12 @@ func (c Gitlab) GetSnippets(cloneData []Repo, target string) ([]Repo, error) {
 					allSnippetsToClone = append(allSnippetsToClone, snippet)
 				}
 			}
+		} else if os.Getenv("GHORG_CLONE_TYPE") != "user" {
+			// Handle single group clones on hosted instances
+			for _, repo := range cloneData {
+				repoSnippets := c.getRepoSnippets(repo)
+				allSnippetsToClone = append(allSnippetsToClone, repoSnippets...)
+			}
 		}
 
 		if os.Getenv("GHORG_CLONE_TYPE") == "user" && os.Getenv("GHORG_SCM_BASE_URL") == "" {
@@ -571,7 +577,7 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 			wiki.CloneURL = strings.Replace(r.CloneURL, ".git", ".wiki.git", 1)
 			wiki.URL = strings.Replace(r.URL, ".git", ".wiki.git", 1)
 			wiki.CloneBranch = "master"
-			wiki.Path = fmt.Sprintf("%s%s", p.PathWithNamespace, ".wiki")
+			wiki.Path = fmt.Sprintf("%s%s", path, ".wiki")
 			repoData = append(repoData, wiki)
 		}
 	}

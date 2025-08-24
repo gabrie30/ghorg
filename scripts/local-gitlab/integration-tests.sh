@@ -48,6 +48,17 @@ if [[ ! -f "${TEST_RUNNER_BINARY}" ]] || [[ "${TEST_RUNNER_DIR}/main.go" -nt "${
     cd -
 fi
 
+# Install ghorg binary for testing if not in CI
+if [[ "${CI:-}" != "true" ]] && [[ "${GITHUB_ACTIONS:-}" != "true" ]]; then
+    echo "Installing ghorg binary for testing..."
+    GHORG_PROJECT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+    cd "${GHORG_PROJECT_DIR}"
+    go install .
+    cd -
+    echo "Using ghorg binary: $(which ghorg)"
+    echo "Ghorg version: $(ghorg version)"
+fi
+
 # Run the integration tests
 echo "Running GitLab integration tests..."
 "${TEST_RUNNER_BINARY}" \

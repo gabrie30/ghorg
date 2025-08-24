@@ -5,6 +5,7 @@ echo Starting Windows GitLab Integration Tests
 REM Set GitLab test group (same as Linux version)
 set GITLAB_GROUP=gitlab-examples
 set GITLAB_SUB_GROUP=wayne-enterprises
+set GHORG_EXIT_CODE_ON_CLONE_ISSUES=0
 
 echo.
 echo ========================================
