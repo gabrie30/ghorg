@@ -526,6 +526,15 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 			continue
 		}
 
+		// Apply GitLab group exclude regex to repository path
+		if os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX") != "" {
+			regex := os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX")
+			re := regexp.MustCompile(regex)
+			if re.FindString(p.PathWithNamespace) != "" {
+				continue // Skip this repository as it matches the exclude pattern
+			}
+		}
+
 		r := Repo{}
 
 		r.Name = p.Name
