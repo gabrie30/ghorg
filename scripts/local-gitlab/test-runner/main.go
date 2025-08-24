@@ -13,14 +13,15 @@ import (
 )
 
 type TestScenario struct {
-	Name              string   `json:"name"`
-	Description       string   `json:"description"`
-	Command           string   `json:"command"`
-	RunTwice          bool     `json:"run_twice"`
-	SetupCommands     []string `json:"setup_commands,omitempty"`
-	VerifyCommands    []string `json:"verify_commands,omitempty"`
-	ExpectedStructure []string `json:"expected_structure"`
-	Disabled          bool     `json:"disabled,omitempty"`
+	Name                  string   `json:"name"`
+	Description           string   `json:"description"`
+	Command               string   `json:"command"`
+	RunTwice              bool     `json:"run_twice"`
+	SetupCommands         []string `json:"setup_commands,omitempty"`
+	VerifyCommands        []string `json:"verify_commands,omitempty"`
+	ExpectedStructure     []string `json:"expected_structure"`
+	Disabled              bool     `json:"disabled,omitempty"`
+	SkipTokenVerification bool     `json:"skip_token_verification,omitempty"`
 }
 
 type TestConfig struct {
@@ -144,6 +145,13 @@ func (tr *TestRunner) runTest(scenario *TestScenario) error {
 		return fmt.Errorf("structure verification failed: %w", err)
 	}
 
+	// Verify no tokens in git remotes by default (unless explicitly skipped)
+	if len(scenario.ExpectedStructure) > 0 && !scenario.SkipTokenVerification {
+		if err := tr.verifyNoTokensInRemotes(scenario.ExpectedStructure, tr.context.Token); err != nil {
+			return fmt.Errorf("token verification failed: %w", err)
+		}
+	}
+
 	// Execute verification commands if any
 	for _, verifyCmd := range scenario.VerifyCommands {
 		renderedCmd, err := tr.renderTemplate(verifyCmd)
@@ -206,6 +214,38 @@ func (tr *TestRunner) verifyExpectedStructure(expectedPaths []string) error {
 		}
 
 		log.Printf("✓ Found: %s", expectedPath)
+	}
+
+	return nil
+}
+
+func (tr *TestRunner) verifyNoTokensInRemotes(expectedPaths []string, token string) error {
+	for _, expectedPath := range expectedPaths {
+		fullPath := filepath.Join(tr.context.GhorgDir, expectedPath)
+
+		// Check if this is a git repository directory
+		if _, err := os.Stat(filepath.Join(fullPath, ".git")); err != nil {
+			if os.IsNotExist(err) {
+				// Not a git repository, skip
+				continue
+			}
+			return fmt.Errorf("failed to check .git directory in %s: %w", expectedPath, err)
+		}
+
+		// Run git remote -v to get all remotes
+		cmd := exec.Command("git", "remote", "-v")
+		cmd.Dir = fullPath
+
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("failed to get git remotes for %s: %w\nOutput: %s", expectedPath, err, string(output))
+		}
+
+		// Check if the token appears in any remote URL
+		remoteOutput := string(output)
+		if strings.Contains(remoteOutput, token) {
+			return fmt.Errorf("token found in git remote URLs for %s:\n%s", expectedPath, remoteOutput)
+		}
 	}
 
 	return nil

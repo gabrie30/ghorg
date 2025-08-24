@@ -297,6 +297,8 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Exit(1)
 	}
 
+
+
 	if os.Getenv("GHORG_PRESERVE_SCM_HOSTNAME") == "true" {
 		updateAbsolutePathToCloneToWithHostname()
 	}
@@ -1236,3 +1238,5 @@ func filterByGhorgignore(cloneTargets []scm.Repo) []scm.Repo {
 
 	return cloneTargets
 }
+
+
