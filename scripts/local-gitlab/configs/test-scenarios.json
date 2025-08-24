@@ -496,6 +496,116 @@
             ]
         },
         {
+            "name": "user-clone-wiki-preserve-dir-consistency",
+            "description": "Test that user cloning with wikis and preserve-dir produces consistent directory structure for repos and wikis",
+            "command": "ghorg clone testuser1 --scm=gitlab --clone-type=user --base-url={{.BaseURL}} --token={{.Token}} --preserve-dir --clone-wiki --output-dir=testuser1-wiki-preserve-dir-test",
+            "run_twice": true,
+            "expected_structure": [
+                "testuser1-wiki-preserve-dir-test/testuser1-repo",
+                "testuser1-wiki-preserve-dir-test/testuser1-repo.wiki"
+            ]
+        },
+        {
+            "name": "group-clone-wiki-preserve-dir-consistency",
+            "description": "Test group cloning with wikis preserves consistent directory structure",
+            "command": "ghorg clone local-gitlab-group1 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --preserve-dir --clone-wiki --output-dir=group1-wiki-preserve-dir-test",
+            "run_twice": false,
+            "expected_structure": [
+                "group1-wiki-preserve-dir-test/baz0",
+                "group1-wiki-preserve-dir-test/baz0.wiki",
+                "group1-wiki-preserve-dir-test/baz1",
+                "group1-wiki-preserve-dir-test/baz1.wiki",
+                "group1-wiki-preserve-dir-test/baz2",
+                "group1-wiki-preserve-dir-test/baz2.wiki",
+                "group1-wiki-preserve-dir-test/baz3",
+                "group1-wiki-preserve-dir-test/baz3.wiki"
+            ]
+        },
+        {
+            "name": "all-groups-clone-wiki-preserve-dir-consistency",
+            "description": "Test all-groups cloning with wikis preserves consistent directory structure",
+            "command": "ghorg clone all-groups --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --preserve-dir --clone-wiki --output-dir=all-groups-wiki-preserve-dir-test",
+            "run_twice": false,
+            "expected_structure": [
+                "all-groups-wiki-preserve-dir-test/local-gitlab-group1/baz0",
+                "all-groups-wiki-preserve-dir-test/local-gitlab-group1/baz0.wiki",
+                "all-groups-wiki-preserve-dir-test/local-gitlab-group1/baz1",
+                "all-groups-wiki-preserve-dir-test/local-gitlab-group1/baz1.wiki",
+                "all-groups-wiki-preserve-dir-test/local-gitlab-group2/baz0",
+                "all-groups-wiki-preserve-dir-test/local-gitlab-group2/baz0.wiki",
+                "all-groups-wiki-preserve-dir-test/local-gitlab-group3/subgroup-a/subgroup_a_repo_0",
+                "all-groups-wiki-preserve-dir-test/local-gitlab-group3/subgroup-a/subgroup_a_repo_0.wiki"
+            ]
+        },
+        {
+            "name": "all-users-clone-wiki-preserve-dir-consistency",
+            "description": "Test all-users cloning with wikis preserves consistent directory structure",
+            "command": "ghorg clone all-users --clone-type=user --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --preserve-dir --clone-wiki --output-dir=all-users-wiki-preserve-dir-test",
+            "run_twice": false,
+            "expected_structure": [
+                "all-users-wiki-preserve-dir-test/root/rootrepos0",
+                "all-users-wiki-preserve-dir-test/root/rootrepos0.wiki",
+                "all-users-wiki-preserve-dir-test/testuser1/testuser1-repo",
+                "all-users-wiki-preserve-dir-test/testuser1/testuser1-repo.wiki"
+            ]
+        },
+        {
+            "name": "single-group-snippets-hosted-instance-fix",
+            "description": "Test that single group snippet cloning works on hosted instances (regression test for bug fix)",
+            "command": "ghorg clone local-gitlab-group2 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --clone-snippets --output-dir=single-group-snippets-test",
+            "run_twice": false,
+            "expected_structure": [
+                "single-group-snippets-test/baz0",
+                "single-group-snippets-test/baz0.snippets",
+                "single-group-snippets-test/baz1",
+                "single-group-snippets-test/baz1.snippets",
+                "single-group-snippets-test/baz2",
+                "single-group-snippets-test/baz2.snippets",
+                "single-group-snippets-test/baz3",
+                "single-group-snippets-test/baz3.snippets"
+            ]
+        },
+        {
+            "name": "group-clone-snippets-preserve-dir-consistency",
+            "description": "Test group cloning with snippets preserves consistent directory structure",
+            "command": "ghorg clone local-gitlab-group2 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --preserve-dir --clone-snippets --output-dir=group2-snippets-preserve-dir-test",
+            "run_twice": false,
+            "expected_structure": [
+                "group2-snippets-preserve-dir-test/baz0",
+                "group2-snippets-preserve-dir-test/baz0.snippets",
+                "group2-snippets-preserve-dir-test/baz1",
+                "group2-snippets-preserve-dir-test/baz1.snippets",
+                "group2-snippets-preserve-dir-test/baz2",
+                "group2-snippets-preserve-dir-test/baz2.snippets",
+                "group2-snippets-preserve-dir-test/baz3",
+                "group2-snippets-preserve-dir-test/baz3.snippets"
+            ]
+        },
+        {
+            "name": "all-groups-clone-snippets-preserve-dir-consistency",
+            "description": "Test all-groups cloning with snippets preserves consistent directory structure",
+            "command": "ghorg clone all-groups --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --preserve-dir --clone-snippets --output-dir=all-groups-snippets-preserve-dir-test",
+            "run_twice": false,
+            "expected_structure": [
+                "all-groups-snippets-preserve-dir-test/local-gitlab-group2/baz0",
+                "all-groups-snippets-preserve-dir-test/local-gitlab-group2/baz0.snippets",
+                "all-groups-snippets-preserve-dir-test/local-gitlab-group3/subgroup-a/subgroup_a_repo_0",
+                "all-groups-snippets-preserve-dir-test/local-gitlab-group3/subgroup-a/subgroup_a_repo_0.snippets"
+            ]
+        },
+        {
+            "name": "all-users-clone-snippets-preserve-dir-consistency",
+            "description": "Test all-users cloning with snippets preserves consistent directory structure",
+            "command": "ghorg clone all-users --clone-type=user --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --preserve-dir --clone-snippets --output-dir=all-users-snippets-preserve-dir-test",
+            "run_twice": false,
+            "expected_structure": [
+                "all-users-snippets-preserve-dir-test/root/rootrepos1",
+                "all-users-snippets-preserve-dir-test/root/rootrepos1.snippets",
+                "all-users-snippets-preserve-dir-test/testuser1/testuser1-repo",
+                "all-users-snippets-preserve-dir-test/testuser1/testuser1-repo.snippets"
+            ]
+        },
+        {
             "_comment": "COMMENTED OUT TEST FROM ORIGINAL SCRIPT - TODO FIXME",
             "name": "root-level-snippets-test-disabled",
             "description": "Test root level snippets (DISABLED - was commented in original)",
