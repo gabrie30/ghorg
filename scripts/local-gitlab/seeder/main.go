@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"time"
 
 	"github.com/xanzy/go-gitlab"
 )
@@ -115,9 +114,6 @@ func (g *GitLabSeeder) createGroup(group *Group, parentID *int) error {
 
 	log.Printf("Created group: %s (ID: %d)", createdGroup.Name, createdGroup.ID)
 
-	// Wait for group to be fully created
-	time.Sleep(1 * time.Second)
-
 	// Create repositories in this group
 	for _, repo := range group.Repositories {
 		if err := g.createRepository(&repo, &createdGroup.ID, group.Path); err != nil {
@@ -153,9 +149,6 @@ func (g *GitLabSeeder) createRepository(repo *Repository, namespaceID *int, grou
 	}
 
 	log.Printf("Created repository: %s (ID: %d)", project.Name, project.ID)
-
-	// Wait for repository to be fully created
-	time.Sleep(1 * time.Second)
 
 	// Create snippets for this repository
 	for _, snippet := range repo.Snippets {
@@ -223,9 +216,6 @@ func (g *GitLabSeeder) createUser(user *User) error {
 
 	log.Printf("Created user: %s (ID: %d)", createdUser.Username, createdUser.ID)
 
-	// Wait for user to be fully created
-	time.Sleep(1 * time.Second)
-
 	// Create repositories for this user
 	for _, repo := range user.Repositories {
 		if err := g.createUserRepository(&repo, createdUser.ID, user.Username); err != nil {
@@ -277,9 +267,6 @@ func (g *GitLabSeeder) createUserRepository(repo *Repository, userID int, userna
 	}
 
 	log.Printf("Created user repository: %s (ID: %d)", project.Name, project.ID)
-
-	// Wait for repository to be fully created
-	time.Sleep(1 * time.Second)
 
 	// Create snippets for this repository
 	for _, snippet := range repo.Snippets {

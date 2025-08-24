@@ -57,7 +57,12 @@ func NewTestRunner(configPath string, context *TestContext) (*TestRunner, error)
 
 func (tr *TestRunner) RunAllTests() error {
 	log.Printf("Starting integration tests with %d scenarios...", len(tr.config.TestScenarios))
-
+	
+	// Ensure the ghorg directory exists
+	if err := tr.ensureGhorgDirectoryExists(); err != nil {
+		return fmt.Errorf("failed to create ghorg directory: %w", err)
+	}
+	
 	// Clean up any existing test directories
 	if err := tr.cleanupTestDirectories(); err != nil {
 		log.Printf("Warning: Failed to clean up test directories: %v", err)
@@ -198,15 +203,33 @@ func (tr *TestRunner) verifyExpectedStructure(expectedPaths []string) error {
 	return nil
 }
 
+func (tr *TestRunner) ensureGhorgDirectoryExists() error {
+	log.Printf("Ensuring ghorg directory exists: %s", tr.context.GhorgDir)
+	
+	// Check if directory already exists
+	if _, err := os.Stat(tr.context.GhorgDir); err == nil {
+		log.Printf("Ghorg directory already exists: %s", tr.context.GhorgDir)
+		return nil
+	}
+	
+	// Create the directory with appropriate permissions
+	if err := os.MkdirAll(tr.context.GhorgDir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", tr.context.GhorgDir, err)
+	}
+	
+	log.Printf("Created ghorg directory: %s", tr.context.GhorgDir)
+	return nil
+}
+
 func (tr *TestRunner) cleanupTestDirectories() error {
 	log.Println("Cleaning up test directories...")
-
+	
 	// Delete all folders that start with local-gitlab-* in the ghorg directory
 	matches, err := filepath.Glob(filepath.Join(tr.context.GhorgDir, "local-gitlab-*"))
 	if err != nil {
 		return err
 	}
-
+	
 	for _, match := range matches {
 		if err := os.RemoveAll(match); err != nil {
 			log.Printf("Warning: Failed to remove %s: %v", match, err)
@@ -214,7 +237,7 @@ func (tr *TestRunner) cleanupTestDirectories() error {
 			log.Printf("Removed: %s", match)
 		}
 	}
-
+	
 	// Also clean up gitlab.example.com directory if it exists
 	gitlabDir := filepath.Join(tr.context.GhorgDir, "gitlab.example.com")
 	if _, err := os.Stat(gitlabDir); err == nil {
@@ -224,11 +247,16 @@ func (tr *TestRunner) cleanupTestDirectories() error {
 			log.Printf("Removed: %s", gitlabDir)
 		}
 	}
-
+	
 	return nil
 }
 
 func (tr *TestRunner) RunSpecificTest(testName string) error {
+	// Ensure the ghorg directory exists
+	if err := tr.ensureGhorgDirectoryExists(); err != nil {
+		return fmt.Errorf("failed to create ghorg directory: %w", err)
+	}
+	
 	for _, scenario := range tr.config.TestScenarios {
 		if scenario.Name == testName {
 			log.Printf("Running specific test: %s", testName)
