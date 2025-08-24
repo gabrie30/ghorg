@@ -610,8 +610,7 @@
             "description": "Test GitLab group exclude regex excludes all repos from subgroup-a",
             "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-exclude-match-regex=\".*\\/subgroup-a($|\\/.*$)\" --output-dir=gitlab-exclude-subgroup-a-test",
             "run_twice": false,
-            "expected_structure": [
-            ]
+            "expected_structure": []
         },
         {
             "name": "gitlab-group-exclude-regex-subgroup-b-only",
@@ -630,8 +629,7 @@
             "description": "Test GitLab group exclude regex works with case insensitive matching",
             "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-exclude-match-regex=\"(?i:.*\\/subgroup-a($|\\/.*$))\" --output-dir=gitlab-exclude-case-insensitive-test",
             "run_twice": false,
-            "expected_structure": [
-            ]
+            "expected_structure": []
         },
         {
             "name": "gitlab-group-exclude-regex-no-match",
@@ -640,7 +638,7 @@
             "run_twice": false,
             "expected_structure": [
                 "gitlab-exclude-no-match-test/subgroup_a_repo_0",
-                "gitlab-exclude-no-match-test/subgroup_a_repo_1", 
+                "gitlab-exclude-no-match-test/subgroup_a_repo_1",
                 "gitlab-exclude-no-match-test/subgroup_a_repo_2",
                 "gitlab-exclude-no-match-test/subgroup_a_repo_3",
                 "gitlab-exclude-no-match-test/subgroup_b_repo_0",
