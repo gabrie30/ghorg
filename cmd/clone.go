@@ -297,8 +297,6 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Exit(1)
 	}
 
-
-
 	if os.Getenv("GHORG_PRESERVE_SCM_HOSTNAME") == "true" {
 		updateAbsolutePathToCloneToWithHostname()
 	}
@@ -557,6 +555,9 @@ func getRelativePathRepositories(root string) ([]string, error) {
 
 // CloneAllRepos clones all repos
 func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
+	// Record start time for duration tracking
+	startTime := time.Now()
+
 	// Initialize filter and apply all filtering
 	filter := NewRepositoryFilter()
 	cloneTargets = filter.ApplyAllFilters(cloneTargets)
@@ -621,6 +622,11 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	}
 
 	limit.WaitAndClose()
+
+	// Calculate total duration and set it on the processor
+	totalDuration := time.Since(startTime)
+	totalDurationSeconds := int(totalDuration.Seconds() + 0.5) // Round to nearest second
+	processor.SetTotalDuration(totalDurationSeconds)
 
 	// Get statistics and untouched repos from processor
 	stats := processor.GetStats()
@@ -688,7 +694,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	// This needs to be called after printFinishedWithDirSize()
 	if os.Getenv("GHORG_STATS_ENABLED") == "true" {
 		date := time.Now().Format("2006-01-02 15:04:05")
-		writeGhorgStats(date, allReposToCloneCount, stats.CloneCount, stats.PulledCount, cloneInfosCount, cloneErrorsCount, stats.UpdateRemoteCount, stats.NewCommits, pruneCount, hasCollisions)
+		writeGhorgStats(date, allReposToCloneCount, stats.CloneCount, stats.PulledCount, cloneInfosCount, cloneErrorsCount, stats.UpdateRemoteCount, stats.NewCommits, pruneCount, stats.TotalDurationSeconds, hasCollisions)
 	}
 
 	if os.Getenv("GHORG_DONT_EXIT_UNDER_TEST") != "true" {
@@ -731,7 +737,7 @@ func getGhorgStatsFilePath() string {
 	return statsFilePath
 }
 
-func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount int, hasCollisions bool) error {
+func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount, cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits, pruneCount, totalDurationSeconds int, hasCollisions bool) error {
 
 	statsFilePath := getGhorgStatsFilePath()
 	fileExists := true
@@ -740,7 +746,7 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 		fileExists = false
 	}
 
-	header := "datetime,clonePath,scm,cloneType,cloneTarget,totalCount,newClonesCount,existingResourcesPulledCount,dirSizeInMB,newCommits,cloneInfosCount,cloneErrorsCount,updateRemoteCount,pruneCount,hasCollisions,ghorgignore,ghorgVersion\n"
+	header := "datetime,clonePath,scm,cloneType,cloneTarget,totalCount,newClonesCount,existingResourcesPulledCount,dirSizeInMB,newCommits,cloneInfosCount,cloneErrorsCount,updateRemoteCount,pruneCount,hasCollisions,ghorgignore,totalDurationSeconds,ghorgVersion\n"
 
 	var file *os.File
 	var err error
@@ -789,7 +795,7 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 	}
 	defer file.Close()
 
-	data := fmt.Sprintf("%v,%v,%v,%v,%v,%v,%v,%v,%.2f,%v,%v,%v,%v,%v,%v,%v,%v\n",
+	data := fmt.Sprintf("%v,%v,%v,%v,%v,%v,%v,%v,%.2f,%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
 		date,
 		outputDirAbsolutePath,
 		os.Getenv("GHORG_SCM_TYPE"),
@@ -806,6 +812,7 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 		pruneCount,
 		hasCollisions,
 		configs.GhorgIgnoreDetected(),
+		totalDurationSeconds,
 		GetVersion())
 	if _, err := file.WriteString(data); err != nil {
 		colorlog.PrintError(fmt.Sprintf("Error writing data to GHORG_STATS file: %v", err))
@@ -1238,5 +1245,3 @@ func filterByGhorgignore(cloneTargets []scm.Repo) []scm.Repo {
 
 	return cloneTargets
 }
-
-

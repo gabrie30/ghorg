@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gabrie30/ghorg/scm"
 )
@@ -735,5 +736,169 @@ func TestSliceContainsNamedRepoWithPathSeparators(t *testing.T) {
 					tc.shouldMatch, result, tc.needle, tc.repos)
 			}
 		})
+	}
+}
+
+func TestCloneAllRepos_Timing(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	dir, err := os.MkdirTemp("", "ghorg_test_timing")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	os.Setenv("GHORG_CONCURRENCY", "1")
+
+	var testRepos = []scm.Repo{
+		{
+			Name: "testRepoOne",
+		},
+		{
+			Name: "testRepoTwo",
+		},
+	}
+
+	// Create an extended mock that can simulate timing
+	mockGit := NewMockGit()
+
+	// Record time before calling CloneAllRepos
+	before := time.Now()
+	CloneAllRepos(mockGit, testRepos)
+	after := time.Now()
+
+	// The actual duration should be close to what we measured
+	actualDuration := int(after.Sub(before).Seconds() + 0.5)
+
+	// Since we can't easily access the processor from this test,
+	// we verify that the timing functionality doesn't break anything
+	got, _ := os.ReadDir(dir)
+	expected := len(testRepos)
+	if len(got) != expected {
+		t.Errorf("Wrong number of repos in clone (timing test), expected: %v, got: %v", expected, got)
+	}
+
+	// Verify that actual duration is reasonable (should be less than 5 seconds for this simple test)
+	if actualDuration > 5 {
+		t.Errorf("Test took too long, expected less than 5 seconds, got %d seconds", actualDuration)
+	}
+}
+
+// DelayedMockGit is a mock that adds delay to clone operations for timing tests
+type DelayedMockGit struct {
+	MockGitClient
+}
+
+func (g DelayedMockGit) Clone(repo scm.Repo) error {
+	time.Sleep(100 * time.Millisecond) // Add 100ms delay
+	return g.MockGitClient.Clone(repo)
+}
+
+func TestCloneAllRepos_TimingWithDelay(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	dir, err := os.MkdirTemp("", "ghorg_test_timing_delay")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	os.Setenv("GHORG_CONCURRENCY", "1")
+
+	var testRepos = []scm.Repo{
+		{
+			Name: "testRepoDelayed",
+		},
+	}
+
+	delayedMock := DelayedMockGit{MockGitClient: NewMockGit()}
+
+	before := time.Now()
+	CloneAllRepos(delayedMock, testRepos)
+	after := time.Now()
+
+	actualDuration := after.Sub(before)
+
+	// Should be at least 100ms due to our delay
+	if actualDuration < 100*time.Millisecond {
+		t.Errorf("Expected at least 100ms duration due to delay, got %v", actualDuration)
+	}
+
+	// Should still complete in reasonable time (less than 2 seconds)
+	if actualDuration > 2*time.Second {
+		t.Errorf("Test took too long, expected less than 2 seconds, got %v", actualDuration)
+	}
+}
+
+func TestWriteGhorgStats_WithTiming(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+
+	// Create temporary directory for stats file
+	dir, err := os.MkdirTemp("", "ghorg_stats_timing_test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+
+	// Create some test data
+	date := "2023-12-01 15:04:05"
+	allReposToCloneCount := 5
+	cloneCount := 3
+	pulledCount := 2
+	cloneInfosCount := 1
+	cloneErrorsCount := 0
+	updateRemoteCount := 1
+	newCommits := 10
+	pruneCount := 0
+	totalDurationSeconds := 45
+	hasCollisions := false
+
+	// Call writeGhorgStats with timing data
+	err = writeGhorgStats(date, allReposToCloneCount, cloneCount, pulledCount,
+		cloneInfosCount, cloneErrorsCount, updateRemoteCount, newCommits,
+		pruneCount, totalDurationSeconds, hasCollisions)
+
+	if err != nil {
+		t.Fatalf("writeGhorgStats returned error: %v", err)
+	}
+
+	// Read the stats file and verify timing is included
+	statsFilePath := getGhorgStatsFilePath()
+	content, err := os.ReadFile(statsFilePath)
+	if err != nil {
+		t.Fatalf("Failed to read stats file: %v", err)
+	}
+
+	contentStr := string(content)
+
+	// Verify header includes timing
+	if !strings.Contains(contentStr, "totalDurationSeconds") {
+		t.Error("Stats file header should contain 'totalDurationSeconds'")
+	}
+
+	// Verify data includes the timing value (45)
+	if !strings.Contains(contentStr, ",45,") {
+		t.Error("Stats file data should contain the timing value ',45,'")
+	}
+
+	// Count the number of commas in header to ensure we have the right number of fields
+	lines := strings.Split(strings.TrimSpace(contentStr), "\n")
+	if len(lines) < 2 {
+		t.Fatal("Stats file should have at least 2 lines (header + data)")
+	}
+
+	headerCommas := strings.Count(lines[0], ",")
+	dataCommas := strings.Count(lines[1], ",")
+
+	if headerCommas != dataCommas {
+		t.Errorf("Header and data should have same number of commas. Header: %d, Data: %d", headerCommas, dataCommas)
+	}
+
+	// Should have 17 commas (18 fields total including the new timing field)
+	expectedCommas := 17
+	if headerCommas != expectedCommas {
+		t.Errorf("Expected %d commas in header, got %d", expectedCommas, headerCommas)
 	}
 }
