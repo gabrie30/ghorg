@@ -41,8 +41,12 @@ Or see examples directory at https://github.com/gabrie30/ghorg/tree/master/examp
 
 var cachedDirSizeMB float64
 var isDirSizeCached bool
+var commandStartTime time.Time
 
 func cloneFunc(cmd *cobra.Command, argz []string) {
+	// Record start time for the entire command duration including SCM API calls
+	commandStartTime = time.Now()
+
 	if cmd.Flags().Changed("path") {
 		absolutePath := configs.EnsureTrailingSlashOnFilePath((cmd.Flag("path").Value.String()))
 		os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", absolutePath)
@@ -555,9 +559,6 @@ func getRelativePathRepositories(root string) ([]string, error) {
 
 // CloneAllRepos clones all repos
 func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
-	// Record start time for duration tracking
-	startTime := time.Now()
-
 	// Initialize filter and apply all filtering
 	filter := NewRepositoryFilter()
 	cloneTargets = filter.ApplyAllFilters(cloneTargets)
@@ -623,8 +624,8 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	limit.WaitAndClose()
 
-	// Calculate total duration and set it on the processor
-	totalDuration := time.Since(startTime)
+	// Calculate total duration from command start (including SCM API calls) and set it on the processor
+	totalDuration := time.Since(commandStartTime)
 	totalDurationSeconds := int(totalDuration.Seconds() + 0.5) // Round to nearest second
 	processor.SetTotalDuration(totalDurationSeconds)
 
@@ -658,7 +659,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	cloneErrors = stats.CloneErrors
 
 	printRemainingMessages()
-	printCloneStatsMessage(stats.CloneCount, stats.PulledCount, stats.UpdateRemoteCount, stats.NewCommits, untouchedPrunes)
+	printCloneStatsMessage(stats.CloneCount, stats.PulledCount, stats.UpdateRemoteCount, stats.NewCommits, untouchedPrunes, stats.TotalDurationSeconds)
 
 	if hasCollisions {
 		fmt.Println("")
@@ -987,23 +988,40 @@ func pruneRepos(cloneTargets []scm.Repo) int {
 	return count
 }
 
-func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits, untouchedPrunes int) {
+// formatDurationText formats duration in seconds to a human-readable string
+func formatDurationText(durationSeconds int) string {
+	if durationSeconds >= 60 {
+		minutes := durationSeconds / 60
+		seconds := durationSeconds % 60
+		if seconds > 0 {
+			return fmt.Sprintf(" (completed in %dm%ds)", minutes, seconds)
+		} else {
+			return fmt.Sprintf(" (completed in %dm)", minutes)
+		}
+	} else {
+		return fmt.Sprintf(" (completed in %ds)", durationSeconds)
+	}
+}
+
+func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits, untouchedPrunes, durationSeconds int) {
+	durationText := formatDurationText(durationSeconds)
+
 	if updateRemoteCount > 0 {
-		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v, remotes updated: %v", cloneCount, pulledCount, newCommits, updateRemoteCount))
+		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v, remotes updated: %v%s", cloneCount, pulledCount, newCommits, updateRemoteCount, durationText))
 		return
 	}
 
 	if newCommits > 0 {
-		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v", cloneCount, pulledCount, newCommits))
+		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v%s", cloneCount, pulledCount, newCommits, durationText))
 		return
 	}
 
 	if untouchedPrunes > 0 {
-		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total prunes: %v", cloneCount, pulledCount, untouchedPrunes))
+		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total prunes: %v%s", cloneCount, pulledCount, untouchedPrunes, durationText))
 		return
 	}
 
-	colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v", cloneCount, pulledCount))
+	colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v%s", cloneCount, pulledCount, durationText))
 }
 
 func interactiveYesNoPrompt(prompt string) bool {
