@@ -548,3 +548,87 @@ func TestRepositoryProcessor_ThreadSafety(t *testing.T) {
 		t.Errorf("Expected %d clone infos, got %d", numGoroutines, len(stats.CloneInfos))
 	}
 }
+
+func TestRepositoryProcessor_SetTotalDuration(t *testing.T) {
+	mockGit := NewExtendedMockGit()
+	processor := NewRepositoryProcessor(mockGit)
+
+	// Test setting timing
+	processor.SetTotalDuration(42)
+
+	stats := processor.GetStats()
+	if stats.TotalDurationSeconds != 42 {
+		t.Errorf("Expected total duration to be 42, got %d", stats.TotalDurationSeconds)
+	}
+}
+
+func TestRepositoryProcessor_SetTotalDuration_ThreadSafety(t *testing.T) {
+	mockGit := NewExtendedMockGit()
+	processor := NewRepositoryProcessor(mockGit)
+
+	// Test concurrent timing updates
+	numGoroutines := 10
+	done := make(chan bool, numGoroutines)
+
+	for i := 0; i < numGoroutines; i++ {
+		go func(index int) {
+			processor.SetTotalDuration(index * 10)
+			done <- true
+		}(i)
+	}
+
+	// Wait for all goroutines to complete
+	for i := 0; i < numGoroutines; i++ {
+		<-done
+	}
+
+	// The final value should be one of the set values (race condition, but still valid)
+	stats := processor.GetStats()
+	validValues := make(map[int]bool)
+	for i := 0; i < numGoroutines; i++ {
+		validValues[i*10] = true
+	}
+
+	if !validValues[stats.TotalDurationSeconds] {
+		t.Errorf("Expected total duration to be one of the set values, got %d", stats.TotalDurationSeconds)
+	}
+}
+
+func TestCloneStats_NewStruct(t *testing.T) {
+	stats := CloneStats{
+		CloneCount:           5,
+		PulledCount:          3,
+		UpdateRemoteCount:    2,
+		NewCommits:           10,
+		UntouchedPrunes:      1,
+		TotalDurationSeconds: 120,
+		CloneInfos:           []string{"info1", "info2"},
+		CloneErrors:          []string{"error1"},
+	}
+
+	// Verify all fields are properly set
+	if stats.CloneCount != 5 {
+		t.Errorf("Expected CloneCount to be 5, got %d", stats.CloneCount)
+	}
+	if stats.PulledCount != 3 {
+		t.Errorf("Expected PulledCount to be 3, got %d", stats.PulledCount)
+	}
+	if stats.UpdateRemoteCount != 2 {
+		t.Errorf("Expected UpdateRemoteCount to be 2, got %d", stats.UpdateRemoteCount)
+	}
+	if stats.NewCommits != 10 {
+		t.Errorf("Expected NewCommits to be 10, got %d", stats.NewCommits)
+	}
+	if stats.UntouchedPrunes != 1 {
+		t.Errorf("Expected UntouchedPrunes to be 1, got %d", stats.UntouchedPrunes)
+	}
+	if stats.TotalDurationSeconds != 120 {
+		t.Errorf("Expected TotalDurationSeconds to be 120, got %d", stats.TotalDurationSeconds)
+	}
+	if len(stats.CloneInfos) != 2 {
+		t.Errorf("Expected 2 CloneInfos, got %d", len(stats.CloneInfos))
+	}
+	if len(stats.CloneErrors) != 1 {
+		t.Errorf("Expected 1 CloneError, got %d", len(stats.CloneErrors))
+	}
+}

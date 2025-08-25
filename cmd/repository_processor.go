@@ -23,13 +23,14 @@ type RepositoryProcessor struct {
 
 // CloneStats tracks statistics during clone operations
 type CloneStats struct {
-	CloneCount        int
-	PulledCount       int
-	UpdateRemoteCount int
-	NewCommits        int
-	UntouchedPrunes   int
-	CloneInfos        []string
-	CloneErrors       []string
+	CloneCount           int
+	PulledCount          int
+	UpdateRemoteCount    int
+	NewCommits           int
+	UntouchedPrunes      int
+	TotalDurationSeconds int
+	CloneInfos           []string
+	CloneErrors          []string
 }
 
 // NewRepositoryProcessor creates a new repository processor
@@ -476,17 +477,25 @@ func (rp *RepositoryProcessor) GetStats() CloneStats {
 	defer rp.mutex.RUnlock()
 
 	return CloneStats{
-		CloneCount:        rp.stats.CloneCount,
-		PulledCount:       rp.stats.PulledCount,
-		UpdateRemoteCount: rp.stats.UpdateRemoteCount,
-		NewCommits:        rp.stats.NewCommits,
-		UntouchedPrunes:   rp.stats.UntouchedPrunes,
-		CloneInfos:        append([]string(nil), rp.stats.CloneInfos...),
-		CloneErrors:       append([]string(nil), rp.stats.CloneErrors...),
+		CloneCount:           rp.stats.CloneCount,
+		PulledCount:          rp.stats.PulledCount,
+		UpdateRemoteCount:    rp.stats.UpdateRemoteCount,
+		NewCommits:           rp.stats.NewCommits,
+		UntouchedPrunes:      rp.stats.UntouchedPrunes,
+		TotalDurationSeconds: rp.stats.TotalDurationSeconds,
+		CloneInfos:           append([]string(nil), rp.stats.CloneInfos...),
+		CloneErrors:          append([]string(nil), rp.stats.CloneErrors...),
 	}
 }
 
 // GetUntouchedRepos returns the list of untouched repositories
 func (rp *RepositoryProcessor) GetUntouchedRepos() []string {
 	return rp.untouchedRepos
+}
+
+// SetTotalDuration sets the total duration in seconds for the clone operation
+func (rp *RepositoryProcessor) SetTotalDuration(durationSeconds int) {
+	rp.mutex.Lock()
+	rp.stats.TotalDurationSeconds = durationSeconds
+	rp.mutex.Unlock()
 }
