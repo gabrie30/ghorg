@@ -1,15 +1,6 @@
-# Refactored GitLab Integration Tests
+# GitLab Integration Tests
 
-This directory contains the refactored GitLab integration test system that replaces the monolithic bash scripts with modular, maintainable Go-based tools.
-
-## Overview
-
-The refactored system consists of:
-
-1. **Configuration-based Seeding**: JSON configuration files define the seed data
-2. **Go-based Seeder**: A Go tool that reads configuration and creates GitLab resources
-3. **Test Framework**: A Go-based test runner that executes configurable test scenarios
-4. **Modular Scripts**: Clean shell scripts that orchestrate the components
+This directory contains the refactored GitLab integration test system.
 
 ## Directory Structure
 
@@ -33,7 +24,7 @@ scripts/local-gitlab/
 
 ## Quick Start
 
-### Running All Tests (Refactored Version)
+### Running All Tests
 
 ```bash
 # Run the refactored integration tests
@@ -364,25 +355,6 @@ go run main.go -test="all-groups-preserve-dir-output-dir" -token="password" -bas
 # List all available test scenarios
 go run main.go -list -token="password"
 ```
-
-## Advantages of Refactored System
-
-1. **Maintainability**: Configuration-driven approach makes it easy to modify tests and seed data
-2. **Modularity**: Separate components for seeding and testing
-3. **Reusability**: Test scenarios can be easily copied and modified
-4. **Better Error Handling**: Go-based tools provide clearer error messages
-5. **Extensibility**: Easy to add new test scenarios or seed data configurations
-6. **Documentation**: Clear separation of concerns and self-documenting configuration
-
-## Migration from Old System
-
-The refactored system is designed to be fully backward-compatible. The original scripts (`seed.sh`, `integration-tests.sh`, `start-ee.sh`) remain unchanged and continue to work.
-
-To migrate to the refactored system:
-
-1. Use `start-ee.sh` for the refactored system
-2. All existing test scenarios have been converted to the new configuration format
-3. The test results should be identical between old and new systems
 
 ## Troubleshooting
 
