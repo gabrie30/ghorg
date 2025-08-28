@@ -93,9 +93,6 @@ github.com/gomarkdown/markdown
 github.com/gomarkdown/markdown/ast
 github.com/gomarkdown/markdown/html
 github.com/gomarkdown/markdown/parser
-# github.com/google/go-github/v62 v62.0.0
-## explicit; go 1.21
-github.com/google/go-github/v62/github
 # github.com/google/go-github/v72 v72.0.0
 ## explicit; go 1.23.0
 github.com/google/go-github/v72/github
