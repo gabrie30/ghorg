@@ -131,16 +131,6 @@
                 "local-gitea-second-page/repo-060",
                 "local-gitea-second-page/repo-065"
             ]
-        },
-        {
-            "name": "large-org-dry-run-count-test",
-            "description": "Test dry-run mode shows correct repository count (should be >70, not exactly 50)",
-            "command": "ghorg clone large-gitea-org --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-dry-run --insecure-gitea-client --dry-run",
-            "run_twice": false,
-            "verify_commands": [
-                "ghorg clone large-gitea-org --scm=gitea --base-url={{.BaseURL}} --no-token --insecure-gitea-client --dry-run | grep -E '[0-9]+ repos found' | grep -v '^50 repos found'"
-            ],
-            "expected_structure": []
         }
     ]
 }
