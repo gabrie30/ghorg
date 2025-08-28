@@ -1,0 +1,127 @@
+{
+    "organizations": [
+        {
+            "name": "Local Gitea Org1",
+            "username": "local-gitea-org1",
+            "description": "Test organization 1 for Gitea integration tests",
+            "repositories": [
+                {
+                    "name": "baz0",
+                    "initialize_with_readme": true,
+                    "description": "Test repository baz0 in org1"
+                },
+                {
+                    "name": "baz1",
+                    "initialize_with_readme": true,
+                    "description": "Test repository baz1 in org1"
+                },
+                {
+                    "name": "baz2",
+                    "initialize_with_readme": true,
+                    "description": "Test repository baz2 in org1"
+                },
+                {
+                    "name": "baz3",
+                    "initialize_with_readme": true,
+                    "description": "Test repository baz3 in org1"
+                }
+            ]
+        },
+        {
+            "name": "Local Gitea Org2",
+            "username": "local-gitea-org2",
+            "description": "Test organization 2 for Gitea integration tests",
+            "repositories": [
+                {
+                    "name": "baz0",
+                    "initialize_with_readme": true,
+                    "description": "Test repository baz0 in org2"
+                },
+                {
+                    "name": "baz1",
+                    "initialize_with_readme": true,
+                    "description": "Test repository baz1 in org2"
+                },
+                {
+                    "name": "baz2",
+                    "initialize_with_readme": true,
+                    "description": "Test repository baz2 in org2"
+                }
+            ]
+        },
+        {
+            "name": "Local Gitea Org3",
+            "username": "local-gitea-org3",
+            "description": "Test organization 3 for Gitea integration tests",
+            "repositories": [
+                {
+                    "name": "foo0",
+                    "initialize_with_readme": true,
+                    "description": "Test repository foo0 in org3"
+                },
+                {
+                    "name": "foo1",
+                    "initialize_with_readme": true,
+                    "description": "Test repository foo1 in org3"
+                },
+                {
+                    "name": "bar0",
+                    "initialize_with_readme": true,
+                    "description": "Test repository bar0 in org3"
+                }
+            ]
+        }
+    ],
+    "users": [
+        {
+            "username": "local-gitea-user1",
+            "email": "user1@gitea.local",
+            "password": "password123",
+            "full_name": "Local Gitea User 1",
+            "repositories": [
+                {
+                    "name": "user1-repo1",
+                    "initialize_with_readme": true,
+                    "description": "User 1 repository 1"
+                },
+                {
+                    "name": "user1-repo2",
+                    "initialize_with_readme": true,
+                    "description": "User 1 repository 2"
+                }
+            ]
+        },
+        {
+            "username": "local-gitea-user2",
+            "email": "user2@gitea.local",
+            "password": "password123",
+            "full_name": "Local Gitea User 2",
+            "repositories": [
+                {
+                    "name": "user2-repo1",
+                    "initialize_with_readme": true,
+                    "description": "User 2 repository 1"
+                }
+            ]
+        }
+    ],
+    "root_user": {
+        "repositories": [
+            {
+                "name": "root-repo1",
+                "initialize_with_readme": true,
+                "description": "Root user repository 1"
+            },
+            {
+                "name": "root-repo2",
+                "initialize_with_readme": true,
+                "description": "Root user repository 2"
+            },
+            {
+                "name": "root-repo3",
+                "initialize_with_readme": true,
+                "description": "Root user repository 3"
+            }
+        ]
+    }
+}
