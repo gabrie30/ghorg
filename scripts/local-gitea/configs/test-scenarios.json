@@ -89,6 +89,48 @@
                 "local-gitea-backup/foo1",
                 "local-gitea-backup/bar0"
             ]
+        },
+        {
+            "name": "large-org-pagination-test",
+            "description": "Test pagination with large organization (105+ repositories) - should find more than 50 repos",
+            "command": "ghorg clone large-gitea-org --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-large-org --insecure-gitea-client",
+            "run_twice": false,
+            "expected_structure": [
+                "local-gitea-large-org/repo-001",
+                "local-gitea-large-org/repo-010",
+                "local-gitea-large-org/repo-025",
+                "local-gitea-large-org/repo-050",
+                "local-gitea-large-org/repo-051",
+                "local-gitea-large-org/repo-060",
+                "local-gitea-large-org/repo-070",
+                "local-gitea-large-org/special-repo-011",
+                "local-gitea-large-org/special-repo-056"
+            ]
+        },
+        {
+            "name": "large-org-regex-pagination-test",
+            "description": "Test regex filtering across pagination - should find special repos from multiple pages",
+            "command": "ghorg clone large-gitea-org --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-regex-pagination --match-regex=special-.* --insecure-gitea-client",
+            "run_twice": false,
+            "expected_structure": [
+                "local-gitea-regex-pagination/special-repo-011",
+                "local-gitea-regex-pagination/special-repo-012",
+                "local-gitea-regex-pagination/special-repo-056",
+                "local-gitea-regex-pagination/special-repo-057"
+            ]
+        },
+        {
+            "name": "large-org-second-page-test",
+            "description": "Test that repositories beyond page 1 (>50) are discovered - critical for pagination bug detection",
+            "command": "ghorg clone large-gitea-org --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-second-page --match-regex=repo-05[1-9]|repo-06[0-9] --insecure-gitea-client",
+            "run_twice": false,
+            "expected_structure": [
+                "local-gitea-second-page/repo-051",
+                "local-gitea-second-page/repo-052",
+                "local-gitea-second-page/repo-055",
+                "local-gitea-second-page/repo-060",
+                "local-gitea-second-page/repo-065"
+            ]
         }
     ]
 }

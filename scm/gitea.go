@@ -57,7 +57,7 @@ func (c Gitea) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		repoData = append(repoData, repoDataFiltered...)
 
 		// Exit the loop when we've seen all pages.
-		if len(rps) < perPage {
+		if len(rps) < c.perPage {
 			break
 		}
 	}
@@ -92,7 +92,7 @@ func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
 		repoData = append(repoData, repoDataFiltered...)
 
 		// Exit the loop when we've seen all pages.
-		if len(rps) < perPage {
+		if len(rps) < c.perPage {
 			break
 		}
 	}
