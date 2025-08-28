@@ -1,0 +1,28 @@
+name: Run Gitea Integration Tests
+on: [pull_request]
+jobs:
+  gitea_integration_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "^1.20"
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Install Go dependencies and build the project
+        run: |
+          go mod download
+          go install .
+      - name: Add Go binaries to PATH
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v4
+      - name: Add hosts to /etc/hosts
+        run: |
+          sudo echo "127.0.0.1 gitea.example.com" | sudo tee -a /etc/hosts
+      - name: Run Gitea Integration Test
+        run: |
+          echo "Using ghorg version: $(ghorg version)"
+          export GHORG_GHA_CI=true
+          ./scripts/local-gitea/start.sh true false latest

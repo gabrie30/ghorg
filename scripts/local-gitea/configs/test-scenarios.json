@@ -1,0 +1,94 @@
+{
+    "test_scenarios": [
+        {
+            "name": "single-org-basic",
+            "description": "Test to clone a single organization",
+            "command": "ghorg clone local-gitea-org1 --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-single-org --insecure-gitea-client",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitea-single-org/baz0",
+                "local-gitea-single-org/baz1",
+                "local-gitea-single-org/baz2",
+                "local-gitea-single-org/baz3"
+            ]
+        },
+        {
+            "name": "single-org-basic-2",
+            "description": "Test to clone a single organization (org2)",
+            "command": "ghorg clone local-gitea-org2 --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-single-org-2 --insecure-gitea-client",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitea-single-org-2/baz0",
+                "local-gitea-single-org-2/baz1",
+                "local-gitea-single-org-2/baz2"
+            ]
+        },
+        {
+            "name": "user-repos-basic",
+            "description": "Test to clone user repositories",
+            "command": "ghorg clone testuser --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-user-repos --clone-type=user --insecure-gitea-client",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitea-user-repos/root-repo1",
+                "local-gitea-user-repos/root-repo2",
+                "local-gitea-user-repos/root-repo3"
+            ]
+        },
+        {
+            "name": "match-regex-test",
+            "description": "Test to clone repositories matching regex pattern",
+            "command": "ghorg clone local-gitea-org3 --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-regex --match-regex=foo.* --insecure-gitea-client",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitea-regex/foo0",
+                "local-gitea-regex/foo1"
+            ]
+        },
+        {
+            "name": "skip-archived-test",
+            "description": "Test skip-archived flag (basic test since we have no archived repos)",
+            "command": "ghorg clone local-gitea-org1 --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-skip-archived --skip-archived --insecure-gitea-client",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitea-skip-archived/baz0",
+                "local-gitea-skip-archived/baz1",
+                "local-gitea-skip-archived/baz2",
+                "local-gitea-skip-archived/baz3"
+            ]
+        },
+        {
+            "name": "skip-forks-test",
+            "description": "Test skip-forks flag (basic test since we have no forked repos)",
+            "command": "ghorg clone local-gitea-org2 --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-skip-forks --skip-forks --insecure-gitea-client",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitea-skip-forks/baz0",
+                "local-gitea-skip-forks/baz1",
+                "local-gitea-skip-forks/baz2"
+            ]
+        },
+        {
+            "name": "concurrent-test",
+            "description": "Test concurrent cloning",
+            "command": "ghorg clone local-gitea-org1 --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-concurrent --concurrency=3 --insecure-gitea-client",
+            "run_twice": false,
+            "expected_structure": [
+                "local-gitea-concurrent/baz0",
+                "local-gitea-concurrent/baz1",
+                "local-gitea-concurrent/baz2",
+                "local-gitea-concurrent/baz3"
+            ]
+        },
+        {
+            "name": "backup-test",
+            "description": "Test backup functionality",
+            "command": "ghorg clone local-gitea-org3 --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-backup --backup --insecure-gitea-client",
+            "run_twice": false,
+            "expected_structure": [
+                "local-gitea-backup/foo0",
+                "local-gitea-backup/foo1",
+                "local-gitea-backup/bar0"
+            ]
+        }
+    ]
+}
