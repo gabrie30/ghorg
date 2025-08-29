@@ -1,5 +1,6 @@
 # This is an example .goreleaser.yml file with some sensible defaults.
 # Make sure to check the documentation at https://goreleaser.com
+version: 2
 project_name: ghorg
 before:
   hooks:
@@ -25,8 +26,6 @@ archives:
       {{- if .Arm }}v{{ .Arm }}{{ end -}}
 checksum:
   name_template: "checksums.txt"
-snapshot:
-  name_template: "{{ incpatch .Version }}-next"
 changelog:
   disable: true
 brews:
