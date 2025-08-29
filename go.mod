@@ -1,8 +1,6 @@
 module github.com/gabrie30/ghorg
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.24.6
 
 require (
 	code.gitea.io/sdk/gitea v0.21.0
