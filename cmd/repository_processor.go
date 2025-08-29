@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/git"
@@ -205,6 +206,16 @@ func (rp *RepositoryProcessor) shouldPruneUntouched(repo *scm.Repo) bool {
 func (rp *RepositoryProcessor) handleExistingRepository(repo *scm.Repo, action *string) bool {
 	*action = "pulling"
 
+	// Apply clone delay if configured
+	if delayStr := os.Getenv("GHORG_CLONE_DELAY_SECONDS"); delayStr != "" {
+		if delaySeconds, err := strconv.Atoi(delayStr); err == nil && delaySeconds > 0 {
+			if os.Getenv("GHORG_DEBUG") != "" {
+				colorlog.PrintInfo(fmt.Sprintf("Applying %d second delay before updating %s", delaySeconds, repo.URL))
+			}
+			time.Sleep(time.Duration(delaySeconds) * time.Second)
+		}
+	}
+
 	// Set origin with credentials
 	err := rp.git.SetOriginWithCredentials(*repo)
 	if err != nil {
@@ -246,6 +257,16 @@ func (rp *RepositoryProcessor) handleExistingRepository(repo *scm.Repo, action *
 // handleNewRepository processes repositories that don't exist locally
 func (rp *RepositoryProcessor) handleNewRepository(repo *scm.Repo, action *string) bool {
 	*action = "cloning"
+
+	// Apply clone delay if configured
+	if delayStr := os.Getenv("GHORG_CLONE_DELAY_SECONDS"); delayStr != "" {
+		if delaySeconds, err := strconv.Atoi(delayStr); err == nil && delaySeconds > 0 {
+			if os.Getenv("GHORG_DEBUG") != "" {
+				colorlog.PrintInfo(fmt.Sprintf("Applying %d second delay before cloning %s", delaySeconds, repo.URL))
+			}
+			time.Sleep(time.Duration(delaySeconds) * time.Second)
+		}
+	}
 
 	err := rp.git.Clone(*repo)
 

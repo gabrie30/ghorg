@@ -110,6 +110,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_CONCURRENCY", f)
 	}
 
+	if cmd.Flags().Changed("clone-delay-seconds") {
+		f := cmd.Flag("clone-delay-seconds").Value.String()
+		os.Setenv("GHORG_CLONE_DELAY_SECONDS", f)
+	}
+
 	if cmd.Flags().Changed("clone-depth") {
 		f := cmd.Flag("clone-depth").Value.String()
 		os.Setenv("GHORG_CLONE_DEPTH", f)
@@ -308,6 +313,19 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	setOutputDirName(argz)
 	setOuputDirAbsolutePath()
 	targetCloneSource = argz[0]
+
+	// Auto-adjust concurrency for clone delay before setup (silently)
+	if delayStr := os.Getenv("GHORG_CLONE_DELAY_SECONDS"); delayStr != "" {
+		if delaySeconds, err := strconv.Atoi(delayStr); err == nil && delaySeconds > 0 {
+			if concurrencyStr := os.Getenv("GHORG_CONCURRENCY"); concurrencyStr != "" {
+				if concurrency, err := strconv.Atoi(concurrencyStr); err == nil && concurrency > 1 {
+					os.Setenv("GHORG_CONCURRENCY", "1")
+					os.Setenv("GHORG_CONCURRENCY_AUTO_ADJUSTED", "true")
+				}
+			}
+		}
+	}
+
 	setupRepoClone()
 }
 
@@ -576,6 +594,17 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		colorlog.PrintInfo(m)
 	} else {
 		colorlog.PrintInfo(strconv.Itoa(reposToCloneCount) + " repos found in " + targetCloneSource + "\n")
+	}
+
+	// Show concurrency adjustment message if it was auto-adjusted
+	if os.Getenv("GHORG_CONCURRENCY_AUTO_ADJUSTED") == "true" {
+		if delayStr := os.Getenv("GHORG_CLONE_DELAY_SECONDS"); delayStr != "" {
+			if delaySeconds, err := strconv.Atoi(delayStr); err == nil && delaySeconds > 0 {
+				colorlog.PrintInfo(fmt.Sprintf("GHORG_CLONE_DELAY_SECONDS is set to %d seconds. Automatically setting GHORG_CONCURRENCY to 1 for predictable rate limiting.", delaySeconds))
+			}
+		}
+		// Clear the tracking variable
+		os.Unsetenv("GHORG_CONCURRENCY_AUTO_ADJUSTED")
 	}
 
 	if os.Getenv("GHORG_DRY_RUN") == "true" {
@@ -1094,6 +1123,11 @@ func PrintConfigs() {
 	colorlog.PrintInfo("* Protocol      : " + os.Getenv("GHORG_CLONE_PROTOCOL"))
 	colorlog.PrintInfo("* Location      : " + os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
 	colorlog.PrintInfo("* Concurrency   : " + os.Getenv("GHORG_CONCURRENCY"))
+	if delayStr := os.Getenv("GHORG_CLONE_DELAY_SECONDS"); delayStr != "" {
+		if delaySeconds, err := strconv.Atoi(delayStr); err == nil && delaySeconds > 0 {
+			colorlog.PrintInfo("* Clone Delay   : " + delayStr + " seconds")
+		}
+	}
 
 	if os.Getenv("GHORG_BRANCH") != "" {
 		colorlog.PrintInfo("* Branch        : " + getGhorgBranch())
