@@ -571,6 +571,7 @@ skupjoe
 ## [1.7.1] - 9/27/21
 ### Added
 - all-groups for cloning all groups on a hosted gitlab instance
+- GHORG_CLONE_DELAY_SECONDS; thanks @batagy
 ### Changed
 - go version in go.mod to 1.17 and updated all dependencies
 ### Deprecated
