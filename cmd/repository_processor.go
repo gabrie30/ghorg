@@ -14,6 +14,19 @@ import (
 	"github.com/gabrie30/ghorg/scm"
 )
 
+// Helper function to apply clone delay if configured
+func applyCloneDelay(repoURL string) {
+	delaySeconds, hasDelay := getCloneDelaySeconds()
+	if !hasDelay {
+		return
+	}
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		colorlog.PrintInfo(fmt.Sprintf("Applying %d second delay before processing %s", delaySeconds, repoURL))
+	}
+	time.Sleep(time.Duration(delaySeconds) * time.Second)
+}
+
 // RepositoryProcessor handles the processing of individual repositories
 type RepositoryProcessor struct {
 	git            git.Gitter
@@ -60,6 +73,9 @@ func (rp *RepositoryProcessor) ProcessRepository(repo *scm.Repo, repoNameWithCol
 	if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" {
 		return
 	}
+
+	// Apply clone delay if configured (before any repository operations)
+	applyCloneDelay(repo.URL)
 
 	// Determine if this repo exists locally
 	repoWillBePulled := repoExistsLocally(*repo)
@@ -206,16 +222,6 @@ func (rp *RepositoryProcessor) shouldPruneUntouched(repo *scm.Repo) bool {
 func (rp *RepositoryProcessor) handleExistingRepository(repo *scm.Repo, action *string) bool {
 	*action = "pulling"
 
-	// Apply clone delay if configured
-	if delayStr := os.Getenv("GHORG_CLONE_DELAY_SECONDS"); delayStr != "" {
-		if delaySeconds, err := strconv.Atoi(delayStr); err == nil && delaySeconds > 0 {
-			if os.Getenv("GHORG_DEBUG") != "" {
-				colorlog.PrintInfo(fmt.Sprintf("Applying %d second delay before updating %s", delaySeconds, repo.URL))
-			}
-			time.Sleep(time.Duration(delaySeconds) * time.Second)
-		}
-	}
-
 	// Set origin with credentials
 	err := rp.git.SetOriginWithCredentials(*repo)
 	if err != nil {
@@ -257,16 +263,6 @@ func (rp *RepositoryProcessor) handleExistingRepository(repo *scm.Repo, action *
 // handleNewRepository processes repositories that don't exist locally
 func (rp *RepositoryProcessor) handleNewRepository(repo *scm.Repo, action *string) bool {
 	*action = "cloning"
-
-	// Apply clone delay if configured
-	if delayStr := os.Getenv("GHORG_CLONE_DELAY_SECONDS"); delayStr != "" {
-		if delaySeconds, err := strconv.Atoi(delayStr); err == nil && delaySeconds > 0 {
-			if os.Getenv("GHORG_DEBUG") != "" {
-				colorlog.PrintInfo(fmt.Sprintf("Applying %d second delay before cloning %s", delaySeconds, repo.URL))
-			}
-			time.Sleep(time.Duration(delaySeconds) * time.Second)
-		}
-	}
 
 	err := rp.git.Clone(*repo)
 

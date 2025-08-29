@@ -23,6 +23,39 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Helper function to safely parse integer environment variables
+func parseIntEnv(envVar string) (int, error) {
+	value := os.Getenv(envVar)
+	if value == "" {
+		return 0, fmt.Errorf("environment variable %s not set", envVar)
+	}
+	return strconv.Atoi(value)
+}
+
+// Helper function to get clone delay configuration
+func getCloneDelaySeconds() (int, bool) {
+	delaySeconds, err := parseIntEnv("GHORG_CLONE_DELAY_SECONDS")
+	if err != nil || delaySeconds <= 0 {
+		return 0, false
+	}
+	return delaySeconds, true
+}
+
+// Helper function to check if concurrency should be auto-adjusted for delay
+func shouldAutoAdjustConcurrency() (int, bool, bool) {
+	delaySeconds, hasDelay := getCloneDelaySeconds()
+	if !hasDelay {
+		return 0, false, false
+	}
+
+	concurrency, err := parseIntEnv("GHORG_CONCURRENCY")
+	if err != nil || concurrency <= 1 {
+		return delaySeconds, false, false
+	}
+
+	return delaySeconds, true, true
+}
+
 var cloneCmd = &cobra.Command{
 	Use:   "clone [org/user]",
 	Short: "Clone user or org repos from GitHub, GitLab, Gitea or Bitbucket",
@@ -315,15 +348,9 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	targetCloneSource = argz[0]
 
 	// Auto-adjust concurrency for clone delay before setup (silently)
-	if delayStr := os.Getenv("GHORG_CLONE_DELAY_SECONDS"); delayStr != "" {
-		if delaySeconds, err := strconv.Atoi(delayStr); err == nil && delaySeconds > 0 {
-			if concurrencyStr := os.Getenv("GHORG_CONCURRENCY"); concurrencyStr != "" {
-				if concurrency, err := strconv.Atoi(concurrencyStr); err == nil && concurrency > 1 {
-					os.Setenv("GHORG_CONCURRENCY", "1")
-					os.Setenv("GHORG_CONCURRENCY_AUTO_ADJUSTED", "true")
-				}
-			}
-		}
+	if _, _, shouldAdjust := shouldAutoAdjustConcurrency(); shouldAdjust {
+		os.Setenv("GHORG_CONCURRENCY", "1")
+		os.Setenv("GHORG_CONCURRENCY_AUTO_ADJUSTED", "true")
 	}
 
 	setupRepoClone()
@@ -598,10 +625,8 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	// Show concurrency adjustment message if it was auto-adjusted
 	if os.Getenv("GHORG_CONCURRENCY_AUTO_ADJUSTED") == "true" {
-		if delayStr := os.Getenv("GHORG_CLONE_DELAY_SECONDS"); delayStr != "" {
-			if delaySeconds, err := strconv.Atoi(delayStr); err == nil && delaySeconds > 0 {
-				colorlog.PrintInfo(fmt.Sprintf("GHORG_CLONE_DELAY_SECONDS is set to %d seconds. Automatically setting GHORG_CONCURRENCY to 1 for predictable rate limiting.", delaySeconds))
-			}
+		if delaySeconds, hasDelay := getCloneDelaySeconds(); hasDelay {
+			colorlog.PrintInfo(fmt.Sprintf("GHORG_CLONE_DELAY_SECONDS is set to %d seconds. Automatically setting GHORG_CONCURRENCY to 1 for predictable rate limiting.", delaySeconds))
 		}
 		// Clear the tracking variable
 		os.Unsetenv("GHORG_CONCURRENCY_AUTO_ADJUSTED")
@@ -1123,10 +1148,8 @@ func PrintConfigs() {
 	colorlog.PrintInfo("* Protocol      : " + os.Getenv("GHORG_CLONE_PROTOCOL"))
 	colorlog.PrintInfo("* Location      : " + os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO"))
 	colorlog.PrintInfo("* Concurrency   : " + os.Getenv("GHORG_CONCURRENCY"))
-	if delayStr := os.Getenv("GHORG_CLONE_DELAY_SECONDS"); delayStr != "" {
-		if delaySeconds, err := strconv.Atoi(delayStr); err == nil && delaySeconds > 0 {
-			colorlog.PrintInfo("* Clone Delay   : " + delayStr + " seconds")
-		}
+	if delaySeconds, hasDelay := getCloneDelaySeconds(); hasDelay {
+		colorlog.PrintInfo("* Clone Delay   : " + strconv.Itoa(delaySeconds) + " seconds")
 	}
 
 	if os.Getenv("GHORG_BRANCH") != "" {
