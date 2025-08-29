@@ -50,6 +50,7 @@ var (
 	githubFilterLanguage         string
 	cronTimerMinutes             string
 	recloneServerPort            string
+	cloneDelaySeconds            string
 	includeSubmodules            bool
 	skipArchived                 bool
 	skipForks                    bool
@@ -209,6 +210,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		case "GHORG_CONCURRENCY":
 			os.Setenv(envVar, "25")
+		case "GHORG_CLONE_DELAY_SECONDS":
+			os.Setenv(envVar, "0")
 		case "GHORG_QUIET":
 			os.Setenv(envVar, "false")
 		case "GHORG_STATS_ENABLED":
@@ -301,6 +304,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_RECLONE_ENV_CONFIG_ONLY")
 	getOrSetDefaults("GHORG_RECLONE_QUIET")
 	getOrSetDefaults("GHORG_CONCURRENCY")
+	getOrSetDefaults("GHORG_CLONE_DELAY_SECONDS")
 	getOrSetDefaults("GHORG_INCLUDE_SUBMODULES")
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_INFOS")
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_ISSUES")
@@ -387,6 +391,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&ghorgPruneUntouchedNoConfirm, "prune-untouched-no-confirm", false, "GHORG_PRUNE_UNTOUCHED_NO_CONFIRM - Automatically delete repos without showing an interactive confirmation prompt.")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - Change SCM base url, for on self hosted instances (currently gitlab, gitea and github (use format of https://git.mydomain.com/api/v3))")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - Max goroutines to spin up while cloning (default 25)")
+	cloneCmd.Flags().StringVarP(&cloneDelaySeconds, "clone-delay-seconds", "", "", "GHORG_CLONE_DELAY_SECONDS - Delay in seconds between cloning repos. Useful for rate limiting. Automatically sets concurrency to 1 when > 0 (default 0)")
 	cloneCmd.Flags().StringVarP(&cloneDepth, "clone-depth", "", "", "GHORG_CLONE_DEPTH - Create a shallow clone with a history truncated to the specified number of commits")
 	cloneCmd.Flags().StringVarP(&topics, "topics", "", "", "GHORG_TOPICS - Comma separated list of github/gitea topics to filter for")
 	cloneCmd.Flags().StringVarP(&outputDir, "output-dir", "", "", "GHORG_OUTPUT_DIR - Name of directory repos will be cloned into (default name of org/repo being cloned")

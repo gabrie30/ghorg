@@ -7,11 +7,25 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/gabrie30/ghorg/git"
 	"github.com/gabrie30/ghorg/scm"
 )
+
+// Helper function to apply clone delay if configured
+func applyCloneDelay(repoURL string) {
+	delaySeconds, hasDelay := getCloneDelaySeconds()
+	if !hasDelay {
+		return
+	}
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		colorlog.PrintInfo(fmt.Sprintf("Applying %d second delay before processing %s", delaySeconds, repoURL))
+	}
+	time.Sleep(time.Duration(delaySeconds) * time.Second)
+}
 
 // RepositoryProcessor handles the processing of individual repositories
 type RepositoryProcessor struct {
@@ -59,6 +73,9 @@ func (rp *RepositoryProcessor) ProcessRepository(repo *scm.Repo, repoNameWithCol
 	if os.Getenv("GHORG_PRUNE_UNTOUCHED") == "true" {
 		return
 	}
+
+	// Apply clone delay if configured (before any repository operations)
+	applyCloneDelay(repo.URL)
 
 	// Determine if this repo exists locally
 	repoWillBePulled := repoExistsLocally(*repo)
