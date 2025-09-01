@@ -268,6 +268,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_INSECURE_GITEA_CLIENT", "true")
 	}
 
+	if cmd.Flags().Changed("insecure-bitbucket-client") {
+		os.Setenv("GHORG_INSECURE_BITBUCKET_CLIENT", "true")
+	}
+
 	if cmd.Flags().Changed("skip-forks") {
 		os.Setenv("GHORG_SKIP_FORKS", "true")
 	}

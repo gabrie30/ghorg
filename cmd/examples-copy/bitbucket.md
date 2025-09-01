@@ -19,3 +19,23 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     ```
     ghorg clone microsoft --scm=bitbucket --token=<oauth-token>
     ```
+
+## Bitbucket Server (Self-hosted)
+
+1. Clone a project using username and password
+
+    ```
+    ghorg clone PROJECT_KEY --scm=bitbucket --base-url=https://bitbucket.company.com --bitbucket-username=<your-username> --token=<your-password>
+    ```
+
+1. Clone a project with insecure HTTP connection
+
+    ```
+    GHORG_INSECURE_BITBUCKET_CLIENT=true ghorg clone PROJECT_KEY --scm=bitbucket --base-url=http://bitbucket.company.com --bitbucket-username=<your-username> --token=<your-password>
+    ```
+
+1. Clone all repositories the user has access to
+
+    ```
+    ghorg clone <username> --clone-type=user --scm=bitbucket --base-url=https://bitbucket.company.com --bitbucket-username=<your-username> --token=<your-password>
+    ```

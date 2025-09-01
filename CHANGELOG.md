@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.11.5] - unreleased
 ### Added
+- Self hosted Bitbucket support
 ### Changed
 ### Deprecated
 ### Removed
