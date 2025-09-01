@@ -64,6 +64,7 @@ var (
 	preserveDir                  bool
 	insecureGitlabClient         bool
 	insecureGiteaClient          bool
+	insecureBitbucketClient      bool
 	fetchAll                     bool
 	ghorgReCloneQuiet            bool
 	ghorgReCloneList             bool
@@ -190,6 +191,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_GITEA_CLIENT":
 			os.Setenv(envVar, "false")
+		case "GHORG_INSECURE_BITBUCKET_CLIENT":
+			os.Setenv(envVar, "false")
 		case "GHORG_GITHUB_USER_OPTION":
 			os.Setenv(envVar, "owner")
 		case "GHORG_BACKUP":
@@ -300,6 +303,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_CLONE_SNIPPETS")
 	getOrSetDefaults("GHORG_INSECURE_GITLAB_CLIENT")
 	getOrSetDefaults("GHORG_INSECURE_GITEA_CLIENT")
+	getOrSetDefaults("GHORG_INSECURE_BITBUCKET_CLIENT")
 	getOrSetDefaults("GHORG_BACKUP")
 	getOrSetDefaults("GHORG_RECLONE_ENV_CONFIG_ONLY")
 	getOrSetDefaults("GHORG_RECLONE_QUIET")
@@ -376,6 +380,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&dryRun, "dry-run", false, "GHORG_DRY_RUN - Perform a dry run of the clone; fetches repos but does not clone them")
 	cloneCmd.Flags().BoolVar(&insecureGitlabClient, "insecure-gitlab-client", false, "GHORG_INSECURE_GITLAB_CLIENT - Skip TLS certificate verification for hosted gitlab instances")
 	cloneCmd.Flags().BoolVar(&insecureGiteaClient, "insecure-gitea-client", false, "GHORG_INSECURE_GITEA_CLIENT - Must be set to clone from a Gitea instance using http")
+	cloneCmd.Flags().BoolVar(&insecureBitbucketClient, "insecure-bitbucket-client", false, "GHORG_INSECURE_BITBUCKET_CLIENT - Must be set to clone from a Bitbucket Server instance using http")
 	cloneCmd.Flags().BoolVar(&cloneWiki, "clone-wiki", false, "GHORG_CLONE_WIKI - Additionally clone the wiki page for repo")
 	cloneCmd.Flags().BoolVar(&cloneSnippets, "clone-snippets", false, "GHORG_CLONE_SNIPPETS - Additionally clone all snippets, gitlab only")
 	cloneCmd.Flags().BoolVar(&skipForks, "skip-forks", false, "GHORG_SKIP_FORKS - Skips repo if its a fork, github/gitlab/gitea only")

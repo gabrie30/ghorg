@@ -11,3 +11,5 @@ scripts/local-gitlab/seeder/gitlab-seeder
 scripts/local-gitlab/test-runner/gitlab-test-runner
 scripts/local-gitea/seeder/gitea-seeder
 scripts/local-gitea/test-runner/gitea-test-runner
+scripts/local-bitbucket/seeder/bitbucket-seeder
+scripts/local-bitbucket/test-runner/bitbucket-test-runner

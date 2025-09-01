@@ -27,8 +27,9 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
   - [Install](https://github.com/gabrie30/ghorg#installation) | [Setup](https://github.com/gabrie30/ghorg#github-setup) | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/github.md)
 - GitLab (Self Hosted & Cloud)
   - [Install](https://github.com/gabrie30/ghorg#installation) | [Setup](https://github.com/gabrie30/ghorg#gitlab-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/gitlab.md)
-- Bitbucket (Cloud Only)
+- Bitbucket (Cloud & Self-hosted Server)
   - [Install](https://github.com/gabrie30/ghorg#installation) | [Setup](https://github.com/gabrie30/ghorg#bitbucket-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/bitbucket.md)
+  - **Note**: Bitbucket Server requires manual setup for local testing (see setup documentation)
 - Gitea (Self Hosted Only)
   - [Install](https://github.com/gabrie30/ghorg#installation) | [Setup](https://github.com/gabrie30/ghorg#gitea-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/gitea.md)
 
@@ -139,7 +140,7 @@ Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wi
 
 ### Bitbucket Setup
 
-> Note: ghorg only supports bitbucket cloud, it does not support self hosted instances at this time
+> Note: ghorg supports both Bitbucket Cloud and Bitbucket Server (self-hosted instances)
 
 #### App Passwords
 
@@ -154,6 +155,13 @@ Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wi
 1. Update SCM TYPE to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
 1. See [examples/bitbucket.md](https://github.com/gabrie30/ghorg/blob/master/examples/bitbucket.md) on how to run
 
+#### Bitbucket Server (Self-hosted)
+
+1. To configure with Bitbucket Server you will need to provide your instance URL via `GHORG_SCM_BASE_URL` in your `$HOME/.config/ghorg/conf.yaml` or use the `--base-url` flag.
+1. Create credentials (username/password or app password) and update your configuration or use the `--bitbucket-username` and `--token` flags.
+1. For insecure connections (HTTP), set `GHORG_INSECURE_BITBUCKET_CLIENT=true`
+1. Update [SCM type](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L54-L57) to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
+1. See [examples/bitbucket.md](https://github.com/gabrie30/ghorg/blob/master/examples/bitbucket.md) on how to run
 
 ## How to Use
 
