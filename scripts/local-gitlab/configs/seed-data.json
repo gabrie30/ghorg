@@ -1,0 +1,273 @@
+{
+    "groups": [
+        {
+            "name": "local-gitlab-group1",
+            "path": "local-gitlab-group1",
+            "description": "Test group 1 for GitLab integration tests",
+            "repositories": [
+                {
+                    "name": "baz0",
+                    "initialize_with_readme": true
+                },
+                {
+                    "name": "baz1",
+                    "initialize_with_readme": true
+                },
+                {
+                    "name": "baz2",
+                    "initialize_with_readme": true
+                },
+                {
+                    "name": "baz3",
+                    "initialize_with_readme": true
+                }
+            ]
+        },
+        {
+            "name": "local-gitlab-group2",
+            "path": "local-gitlab-group2",
+            "description": "Test group 2 for GitLab integration tests",
+            "repositories": [
+                {
+                    "name": "baz0",
+                    "initialize_with_readme": true,
+                    "snippets": [
+                        {
+                            "title": "Snippet for baz0",
+                            "file_name": "snippet.txt",
+                            "content": "This is a snippet for baz0",
+                            "visibility": "public"
+                        }
+                    ]
+                },
+                {
+                    "name": "baz1",
+                    "initialize_with_readme": true,
+                    "snippets": [
+                        {
+                            "title": "Snippet for baz1",
+                            "file_name": "snippet.txt",
+                            "content": "This is a snippet for baz1",
+                            "visibility": "public"
+                        }
+                    ]
+                },
+                {
+                    "name": "baz2",
+                    "initialize_with_readme": true,
+                    "snippets": [
+                        {
+                            "title": "Snippet for baz2",
+                            "file_name": "snippet.txt",
+                            "content": "This is a snippet for baz2",
+                            "visibility": "public"
+                        }
+                    ]
+                },
+                {
+                    "name": "baz3",
+                    "initialize_with_readme": true,
+                    "snippets": [
+                        {
+                            "title": "Snippet for baz3",
+                            "file_name": "snippet.txt",
+                            "content": "This is a snippet for baz3",
+                            "visibility": "public"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "local-gitlab-group3",
+            "path": "local-gitlab-group3",
+            "description": "Test group 3 with nested subgroups",
+            "subgroups": [
+                {
+                    "name": "subgroup-a",
+                    "path": "subgroup-a",
+                    "description": "Subgroup A for testing nested structures",
+                    "repositories": [
+                        {
+                            "name": "subgroup_a_repo_0",
+                            "initialize_with_readme": true,
+                            "snippets": [
+                                {
+                                    "title": "Snippet for subgroup_a_repo_0",
+                                    "file_name": "snippet.txt",
+                                    "content": "This is a snippet for subgroup_a_repo_0",
+                                    "visibility": "public"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "subgroup_a_repo_1",
+                            "initialize_with_readme": true,
+                            "snippets": [
+                                {
+                                    "title": "Snippet for subgroup_a_repo_1",
+                                    "file_name": "snippet.txt",
+                                    "content": "This is a snippet for subgroup_a_repo_1",
+                                    "visibility": "public"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "subgroup_a_repo_2",
+                            "initialize_with_readme": true,
+                            "snippets": [
+                                {
+                                    "title": "Snippet for subgroup_a_repo_2",
+                                    "file_name": "snippet.txt",
+                                    "content": "This is a snippet for subgroup_a_repo_2",
+                                    "visibility": "public"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "subgroup_a_repo_3",
+                            "initialize_with_readme": true,
+                            "snippets": [
+                                {
+                                    "title": "Snippet for subgroup_a_repo_3",
+                                    "file_name": "snippet.txt",
+                                    "content": "This is a snippet for subgroup_a_repo_3",
+                                    "visibility": "public"
+                                }
+                            ]
+                        }
+                    ],
+                    "subgroups": [
+                        {
+                            "name": "subgroup-b",
+                            "path": "subgroup-b",
+                            "description": "Nested subgroup B for testing deeper structures",
+                            "repositories": [
+                                {
+                                    "name": "subgroup_b_repo_0",
+                                    "initialize_with_readme": true,
+                                    "snippets": [
+                                        {
+                                            "title": "Snippet for subgroup_b_repo_0",
+                                            "file_name": "snippet.txt",
+                                            "content": "This is a snippet for subgroup_b_repo_0",
+                                            "visibility": "public"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "subgroup_b_repo_1",
+                                    "initialize_with_readme": true,
+                                    "snippets": [
+                                        {
+                                            "title": "Snippet for subgroup_b_repo_1",
+                                            "file_name": "snippet.txt",
+                                            "content": "This is a snippet for subgroup_b_repo_1",
+                                            "visibility": "public"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "subgroup_b_repo_2",
+                                    "initialize_with_readme": true,
+                                    "snippets": [
+                                        {
+                                            "title": "Snippet for subgroup_b_repo_2",
+                                            "file_name": "snippet.txt",
+                                            "content": "This is a snippet for subgroup_b_repo_2",
+                                            "visibility": "public"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "subgroup_b_repo_3",
+                                    "initialize_with_readme": true,
+                                    "snippets": [
+                                        {
+                                            "title": "Snippet for subgroup_b_repo_3",
+                                            "file_name": "snippet.txt",
+                                            "content": "This is a snippet for subgroup_b_repo_3",
+                                            "visibility": "public"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "users": [
+        {
+            "username": "testuser1",
+            "email": "testuser1@example.com",
+            "password": "adminadmin1",
+            "name": "testuser1",
+            "repositories": [
+                {
+                    "name": "testuser1-repo",
+                    "initialize_with_readme": true,
+                    "snippets": [
+                        {
+                            "title": "my-first-snippet",
+                            "file_name": "snippet.txt",
+                            "content": "This is my first snippet",
+                            "visibility": "public"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "username": "testuser2",
+            "email": "testuser2@example.com",
+            "password": "adminadmin1",
+            "name": "testuser2"
+        }
+    ],
+    "root_user": {
+        "repositories": [
+            {
+                "name": "rootrepos0",
+                "initialize_with_readme": true
+            },
+            {
+                "name": "rootrepos1",
+                "initialize_with_readme": true,
+                "snippets": [
+                    {
+                        "title": "my-first-snippet",
+                        "file_name": "snippet.txt",
+                        "content": "This is my first snippet",
+                        "visibility": "public"
+                    }
+                ]
+            },
+            {
+                "name": "rootrepos2",
+                "initialize_with_readme": true
+            },
+            {
+                "name": "rootrepos3",
+                "initialize_with_readme": true
+            }
+        ]
+    },
+    "root_snippets": [
+        {
+            "title": "snippet1",
+            "file_name": "file1",
+            "content": "content1",
+            "description": "description1",
+            "visibility": "public"
+        },
+        {
+            "title": "snippet2",
+            "file_name": "file2",
+            "content": "content2",
+            "description": "description2",
+            "visibility": "public"
+        }
+    ]
+}

@@ -1,0 +1,93 @@
+services:
+  postgres:
+    image: postgres:16
+    platform: linux/arm64
+    container_name: bitbucket-postgres
+    environment:
+      POSTGRES_DB: bitbucket
+      POSTGRES_USER: bitbucket
+      POSTGRES_PASSWORD: bitbucket123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - bitbucket-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bitbucket -d bitbucket"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  bitbucket:
+    image: atlassian/bitbucket:latest
+    container_name: bitbucket-server-local
+    platform: linux/arm64
+    restart: unless-stopped
+    environment:
+      - BITBUCKET_PROXY_NAME=localhost
+      - BITBUCKET_PROXY_PORT=7990
+      - SERVER_PROXY_NAME=localhost
+      - SERVER_PROXY_PORT=7990
+      - BITBUCKET_CONTEXT_PATH=
+      - JVM_MINIMUM_MEMORY=3072m
+      - JVM_MAXIMUM_MEMORY=5120m
+      - JVM_SUPPORT_RECOMMENDED_ARGS=-XX:MaxMetaspaceSize=512m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=80.0
+      - SEARCH_ENABLED=false
+      - JAVA_VERSION=21
+      - JDBC_DRIVER=org.postgresql.Driver
+      - JDBC_USER=bitbucket
+      - JDBC_PASSWORD=bitbucket123
+      - JDBC_URL=jdbc:postgresql://bitbucket-postgres:5432/bitbucket
+      - SET_PERMISSIONS=true
+      - SERVER_ID=bitbucket-server-local
+      - JAVA_OPTS=-Dfile.encoding=UTF-8 -Duser.timezone=UTC
+      - ATL_FORCE_CFG_UPDATE=true
+      - SETUP_DISPLAYNAME=Administrator
+      - SETUP_EMAILADDRESS=admin@bitbucket.local
+      - SETUP_LICENSE=
+      - SETUP_USERNAME=admin
+      - SETUP_PASSWORD=admin
+      - ATL_DB_TYPE=postgresql
+      - ATL_DB_DRIVER=org.postgresql.Driver
+      - ATL_JDBC_URL=jdbc:postgresql://bitbucket-postgres:5432/bitbucket
+      - ATL_JDBC_USER=bitbucket
+      - ATL_JDBC_PASSWORD=bitbucket123
+    volumes:
+      - ${HOME}/ghorg/bitbucket-server-data:/var/atlassian/application-data/bitbucket
+    ports:
+      - "7990:7990"
+      - "7999:7999"
+      - "2222:7999"
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+          cpus: '2.0'
+        reservations:
+          memory: 3G
+          cpus: '1.0'
+    extra_hosts:
+      - "bitbucket.example.com:127.0.0.1"
+    networks:
+      - bitbucket-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:7990/status || exit 1"]
+      interval: 45s
+      timeout: 15s
+      retries: 10
+      start_period: 300s
+
+volumes:
+  postgres_data:
+    driver: local
+  bitbucket_data:
+    driver: local
+
+networks:
+  bitbucket-net:
+    driver: bridge

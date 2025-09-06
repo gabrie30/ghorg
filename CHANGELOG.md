@@ -3,13 +3,35 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.4] - unreleased
+## [1.11.5] - unreleased
 ### Added
+- Self hosted Bitbucket support
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 ### Security
+
+## [1.11.4] - 8/29/25
+### Added
+- Total clone time to ghorg stats
+- Gitea integration test suite
+- Clone delay option with auto concurrency adjustment; thanks @batagy
+### Changed
+- GitLab clone examples and notes
+### Deprecated
+### Removed
+### Fixed
+- Gitlab prune and preseve dir on windows; thanks @derekhes
+- Directory structure of repos and wikis cloned from users on Gitlab; thanks @MickaelFontes
+- GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX to work on subgroups; thanks @deepzeafish
+- GHORG_FETCH_ALL is incompatible with cloning via fine-grained token over https; thanks @brainplot
+### Security
+- Bump go-github from v62 to v72; thanks @alexandre-orca
+- Bump golang.org/x/crypto in /scripts/local-gitea/test-runner (#565)
+- Bump github.com/hashicorp/go-retryablehttp (#555)
+- Bump golang.org/x/oauth2 in /scripts/local-gitlab/seeder (#553)
+- Bump github.com/go-viper/mapstructure/v2 from 2.3.0 to 2.4.0 (#550)
 
 ## [1.11.3] - 7/4/25
 ### Added
@@ -566,6 +588,7 @@ skupjoe
 ## [1.7.1] - 9/27/21
 ### Added
 - all-groups for cloning all groups on a hosted gitlab instance
+- GHORG_CLONE_DELAY_SECONDS; thanks @batagy
 ### Changed
 - go version in go.mod to 1.17 and updated all dependencies
 ### Deprecated

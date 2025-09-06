@@ -99,6 +99,11 @@ GHORG_BACKUP: false
 # flag (--concurrency) eg: --concurrency=1
 GHORG_CONCURRENCY: 25
 
+# Delay in seconds between cloning repos. Useful for rate limiting
+# flag (--clone-delay-seconds) eg: --clone-delay-seconds=5
+# NOTE: When set to > 0, GHORG_CONCURRENCY is automatically set to 1
+GHORG_CLONE_DELAY_SECONDS: 0
+
 # Create a shallow clone with a history truncated to the specified number of commits
 # https://git-scm.com/docs/git-clone#Documentation/git-clone.txt---depthltdepthgt
 # flag (--clone-depth) eg: --clone-depth=1

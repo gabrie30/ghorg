@@ -1,8 +1,6 @@
 module github.com/gabrie30/ghorg
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.24.6
 
 require (
 	code.gitea.io/sdk/gitea v0.21.0
@@ -11,13 +9,13 @@ require (
 	github.com/briandowns/spinner v1.23.2
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/fatih/color v1.18.0
-	github.com/google/go-github/v62 v62.0.0
+	github.com/google/go-github/v72 v72.0.0
 	github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
 	github.com/ktrysmt/go-bitbucket v0.9.86
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
-	github.com/xanzy/go-gitlab v0.115.0
+	gitlab.com/gitlab-org/api/client-go v0.142.0
 	golang.org/x/oauth2 v0.30.0
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -33,13 +31,12 @@ require (
 	github.com/eliukblau/pixterm/pkg/ansimage v0.0.0-20191210081756-9fb6cf8c2f75 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/go-fed/httpsig v1.1.0 // indirect
-	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/gomarkdown/markdown v0.0.0-20191123064959-2c17d62f5098 // indirect
-	github.com/google/go-github/v72 v72.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kyokomi/emoji/v2 v2.2.8 // indirect
@@ -61,9 +58,9 @@ require (
 	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/image v0.18.0 // indirect
 	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/term v0.31.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
-	golang.org/x/time v0.8.0 // indirect
+	golang.org/x/text v0.27.0 // indirect
+	golang.org/x/time v0.12.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

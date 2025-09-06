@@ -19,7 +19,7 @@ PERSIST_GITLAB_LOCALLY=$4
 echo ""
 echo "Starting fresh install of GitLab Enterprise Edition, using tag: ${GITLAB_IMAGE_TAG}"
 
-if [ "${GHORG_GHA_CI}" == "true" ]; then
+if [ "${GHORG_GHA_CI:-}" == "true" ]; then
   GHORG_SSH_PORT=2222
 else
   GHORG_SSH_PORT=22

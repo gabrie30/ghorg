@@ -1,0 +1,79 @@
+{
+    "test_scenarios": [
+        {
+            "name": "single-project-basic",
+            "description": "Test to clone a single project",
+            "command": "ghorg clone LBP1 --scm=bitbucket --base-url={{.BaseURL}} --token={{.Token}} --output-dir=local-bitbucket-single-project --bitbucket-username=admin --concurrency=1",
+            "run_twice": true,
+            "expected_structure": [
+                "local-bitbucket-single-project/baz0",
+                "local-bitbucket-single-project/baz1"
+            ]
+        },
+        {
+            "name": "single-project-basic-2",
+            "description": "Test to clone a single project (LBP2)",
+            "command": "ghorg clone LBP2 --scm=bitbucket --base-url={{.BaseURL}} --token={{.Token}} --output-dir=local-bitbucket-single-project-2 --bitbucket-username=admin --concurrency=1",
+            "run_twice": true,
+            "expected_structure": [
+                "local-bitbucket-single-project-2/baz0"
+            ]
+        },
+        {
+            "name": "match-regex-test",
+            "description": "Test to clone repositories matching regex pattern",
+            "command": "ghorg clone LBP1 --scm=bitbucket --base-url={{.BaseURL}} --token={{.Token}} --output-dir=local-bitbucket-regex --match-regex=baz0 --bitbucket-username=admin --concurrency=1",
+            "run_twice": true,
+            "expected_structure": [
+                "local-bitbucket-regex/baz0"
+            ]
+        },
+        {
+            "name": "skip-archived-test",
+            "description": "Test skip-archived flag (basic test since we have no archived repos)",
+            "command": "ghorg clone LBP1 --scm=bitbucket --base-url={{.BaseURL}} --token={{.Token}} --output-dir=local-bitbucket-skip-archived --skip-archived --bitbucket-username=admin --concurrency=1",
+            "run_twice": true,
+            "expected_structure": [
+                "local-bitbucket-skip-archived/baz0",
+                "local-bitbucket-skip-archived/baz1"
+            ]
+        },
+        {
+            "name": "skip-forks-test",
+            "description": "Test skip-forks flag (basic test since we have no forked repos)",
+            "command": "ghorg clone LBP2 --scm=bitbucket --base-url={{.BaseURL}} --token={{.Token}} --output-dir=local-bitbucket-skip-forks --skip-forks --bitbucket-username=admin --concurrency=1",
+            "run_twice": true,
+            "expected_structure": [
+                "local-bitbucket-skip-forks/baz0"
+            ]
+        },
+        {
+            "name": "backup-test",
+            "description": "Test backup functionality",
+            "command": "ghorg clone LBPLARGE --scm=bitbucket --base-url={{.BaseURL}} --token={{.Token}} --output-dir=local-bitbucket-backup --backup --bitbucket-username=admin --concurrency=1",
+            "run_twice": false,
+            "expected_structure": [
+                "local-bitbucket-backup/repo-001",
+                "local-bitbucket-backup/repo-002"
+            ]
+        },
+        {
+            "name": "output-dir-custom-path-test",
+            "description": "Test custom output directory path",
+            "command": "ghorg clone LBP2 --scm=bitbucket --base-url={{.BaseURL}} --token={{.Token}} --path=/tmp --output-dir=bitbucket-custom-path --bitbucket-username=admin --concurrency=1",
+            "run_twice": true,
+            "expected_structure": [
+                "/tmp/bitbucket-custom-path/baz0"
+            ]
+        },
+        {
+            "name": "exclude-match-regex-test",
+            "description": "Test exclude-match-regex functionality to exclude specific repositories",
+            "command": "ghorg clone LBP1 --scm=bitbucket --base-url={{.BaseURL}} --token={{.Token}} --output-dir=local-bitbucket-exclude-regex --exclude-match-regex=baz1 --bitbucket-username=admin --concurrency=1",
+            "run_twice": false,
+            "expected_structure": [
+                "local-bitbucket-exclude-regex/baz0"
+            ]
+        }
+    ]
+}

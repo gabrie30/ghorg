@@ -1,0 +1,184 @@
+{
+    "workspaces": [
+        {
+            "name": "Local Bitbucket Workspace 1",
+            "key": "local-bitbucket-workspace1",
+            "description": "Test workspace 1 for Bitbucket integration tests",
+            "projects": [
+                {
+                    "name": "Local Bitbucket Project 1",
+                    "key": "LBP1",
+                    "description": "Test project 1 in workspace 1",
+                    "repositories": [
+                        {
+                            "name": "baz0",
+                            "initialize_with_readme": true,
+                            "description": "Test repository baz0 in project 1",
+                            "is_private": false
+                        },
+                        {
+                            "name": "baz1",
+                            "initialize_with_readme": true,
+                            "description": "Test repository baz1 in project 1",
+                            "is_private": false
+                        },
+                        {
+                            "name": "baz2",
+                            "initialize_with_readme": true,
+                            "description": "Test repository baz2 in project 1",
+                            "is_private": false
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Local Bitbucket Workspace 2",
+            "key": "local-bitbucket-workspace2",
+            "description": "Test workspace 2 for Bitbucket integration tests",
+            "projects": [
+                {
+                    "name": "Local Bitbucket Project 2",
+                    "key": "LBP2",
+                    "description": "Test project 2 in workspace 2",
+                    "repositories": [
+                        {
+                            "name": "baz0",
+                            "initialize_with_readme": true,
+                            "description": "Test repository baz0 in project 2",
+                            "is_private": false
+                        },
+                        {
+                            "name": "baz1",
+                            "initialize_with_readme": true,
+                            "description": "Test repository baz1 in project 2",
+                            "is_private": false
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Local Bitbucket Large Workspace",
+            "key": "local-bitbucket-large-workspace",
+            "description": "Smaller test workspace for pagination testing (reduced for stability)",
+            "projects": [
+                {
+                    "name": "Large Bitbucket Project",
+                    "key": "LBPLARGE",
+                    "description": "Large project with repositories for testing pagination (10 repos for stability)",
+                    "repositories": [
+                        {
+                            "name": "repo-001",
+                            "initialize_with_readme": true,
+                            "description": "Test repository 001",
+                            "is_private": false
+                        },
+                        {
+                            "name": "repo-002",
+                            "initialize_with_readme": true,
+                            "description": "Test repository 002",
+                            "is_private": false
+                        },
+                        {
+                            "name": "repo-003",
+                            "initialize_with_readme": true,
+                            "description": "Test repository 003",
+                            "is_private": false
+                        },
+                        {
+                            "name": "repo-004",
+                            "initialize_with_readme": true,
+                            "description": "Test repository 004",
+                            "is_private": false
+                        },
+                        {
+                            "name": "repo-005",
+                            "initialize_with_readme": true,
+                            "description": "Test repository 005",
+                            "is_private": false
+                        },
+                        {
+                            "name": "repo-006",
+                            "initialize_with_readme": true,
+                            "description": "Test repository 006",
+                            "is_private": false
+                        },
+                        {
+                            "name": "repo-007",
+                            "initialize_with_readme": true,
+                            "description": "Test repository 007",
+                            "is_private": false
+                        },
+                        {
+                            "name": "repo-008",
+                            "initialize_with_readme": true,
+                            "description": "Test repository 008",
+                            "is_private": false
+                        },
+                        {
+                            "name": "repo-009",
+                            "initialize_with_readme": true,
+                            "description": "Test repository 009",
+                            "is_private": false
+                        },
+                        {
+                            "name": "repo-010",
+                            "initialize_with_readme": true,
+                            "description": "Test repository 010",
+                            "is_private": false
+                        },
+                        {
+                            "name": "special-repo-001",
+                            "initialize_with_readme": true,
+                            "description": "Special test repository 001",
+                            "is_private": false
+                        },
+                        {
+                            "name": "special-repo-002",
+                            "initialize_with_readme": true,
+                            "description": "Special test repository 002",
+                            "is_private": false
+                        },
+                        {
+                            "name": "special-repo-003",
+                            "initialize_with_readme": true,
+                            "description": "Special test repository 003",
+                            "is_private": false
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "users": [
+        {
+            "username": "local-bitbucket-user1",
+            "email": "user1@bitbucket.local",
+            "password": "password123",
+            "display_name": "Local Bitbucket User 1",
+            "repositories": [
+                {
+                    "name": "user1-repo1",
+                    "initialize_with_readme": true,
+                    "description": "User 1 repository 1",
+                    "is_private": false
+                }
+            ]
+        }
+    ],
+    "admin_user": {
+        "username": "admin",
+        "password": "admin",
+        "email": "admin@bitbucket.local",
+        "display_name": "Administrator",
+        "repositories": [
+            {
+                "name": "admin-repo1",
+                "initialize_with_readme": true,
+                "description": "Admin user repository 1",
+                "is_private": false
+            }
+        ]
+    }
+}

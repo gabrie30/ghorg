@@ -135,15 +135,17 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
     ghorg clone group3/subgroup1 --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX
     ```
 
-    This would produce a directory structure like, where `projectX` is a project in a subgroup nested inside `subgroup1`
+    This would produce a directory structure like, where `projectX` is a project in a subgroup nested inside `subgroup1`. Note that projects from nested subgroups will appear both flattened and in their original structure.
 
     ```sh
     /GHORG_ABSOLUTE_PATH_TO_CLONE_TO
     └── group3
         └── subgroup1
-            ├── projectX
             ├── project3
-            └── project4
+            ├── project4
+            ├── projectX
+            └── subgroup2
+                └── projectX
     ```
 
 1. Clone **a specific subgroup**, **preserving the directory structure** of subgroups
@@ -188,10 +190,12 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
 > Note: You must set `--base-url` which is the url to your instance. If your instance requires an insecure connection you can use the `--insecure-gitlab-client` flag
 
+> Note: When using "all-users", you must include the `--clone-type=user` flag
+
 1. Clone **all users**, **preserving the directory structure** of users
 
     ```sh
-    ghorg clone all-users --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir
+    ghorg clone all-users --clone-type=user --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir
     ```
 
     This would produce a directory structure like
@@ -210,7 +214,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 1. Clone **all users**, **WITHOUT preserving the directory structure** of users
 
     ```sh
-    ghorg clone all-users --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX
+    ghorg clone all-users --clone-type=user --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX
     ```
 
     This would produce a directory structure like
@@ -225,7 +229,7 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 1. Clone **all users**, **preserving the directory structure** of users, preserving scm hostname
 
     ```sh
-    ghorg clone all-users --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir --preserve-scm-hostname
+    ghorg clone all-users --clone-type=user --base-url=https://<your.instance.gitlab.com> --scm=gitlab --token=XXXXXX --preserve-dir --preserve-scm-hostname
     ```
 
     This would produce a directory structure like

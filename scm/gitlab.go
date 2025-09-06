@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
-	gitlab "github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 var (
@@ -121,8 +121,8 @@ func (c Gitlab) GetTopLevelGroups() ([]string, error) {
 			PerPage: perPage,
 			Page:    1,
 		},
-		TopLevelOnly: gitlab.Bool(true),
-		AllAvailable: gitlab.Bool(true),
+		TopLevelOnly: &[]bool{true}[0],
+		AllAvailable: &[]bool{true}[0],
 	}
 
 	for {
@@ -299,6 +299,12 @@ func (c Gitlab) GetSnippets(cloneData []Repo, target string) ([]Repo, error) {
 					allSnippetsToClone = append(allSnippetsToClone, snippet)
 				}
 			}
+		} else if os.Getenv("GHORG_CLONE_TYPE") != "user" {
+			// Handle single group clones on hosted instances
+			for _, repo := range cloneData {
+				repoSnippets := c.getRepoSnippets(repo)
+				allSnippetsToClone = append(allSnippetsToClone, repoSnippets...)
+			}
 		}
 
 		if os.Getenv("GHORG_CLONE_TYPE") == "user" && os.Getenv("GHORG_SCM_BASE_URL") == "" {
@@ -351,7 +357,7 @@ func (c Gitlab) GetGroupRepos(targetGroup string) ([]Repo, error) {
 			PerPage: perPage,
 			Page:    1,
 		},
-		IncludeSubGroups: gitlab.Bool(true),
+		IncludeSubGroups: gitlab.Ptr(true),
 	}
 
 	for {
@@ -520,6 +526,15 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 			continue
 		}
 
+		// Apply GitLab group exclude regex to repository path
+		if os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX") != "" {
+			regex := os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX")
+			re := regexp.MustCompile(regex)
+			if re.FindString(p.PathWithNamespace) != "" {
+				continue // Skip this repository as it matches the exclude pattern
+			}
+		}
+
 		r := Repo{}
 
 		r.Name = p.Name
@@ -571,7 +586,7 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 			wiki.CloneURL = strings.Replace(r.CloneURL, ".git", ".wiki.git", 1)
 			wiki.URL = strings.Replace(r.URL, ".git", ".wiki.git", 1)
 			wiki.CloneBranch = "master"
-			wiki.Path = fmt.Sprintf("%s%s", p.PathWithNamespace, ".wiki")
+			wiki.Path = fmt.Sprintf("%s%s", path, ".wiki")
 			repoData = append(repoData, wiki)
 		}
 	}

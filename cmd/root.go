@@ -50,6 +50,7 @@ var (
 	githubFilterLanguage         string
 	cronTimerMinutes             string
 	recloneServerPort            string
+	cloneDelaySeconds            string
 	includeSubmodules            bool
 	skipArchived                 bool
 	skipForks                    bool
@@ -63,6 +64,7 @@ var (
 	preserveDir                  bool
 	insecureGitlabClient         bool
 	insecureGiteaClient          bool
+	insecureBitbucketClient      bool
 	fetchAll                     bool
 	ghorgReCloneQuiet            bool
 	ghorgReCloneList             bool
@@ -190,6 +192,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_GITEA_CLIENT":
 			os.Setenv(envVar, "false")
+		case "GHORG_INSECURE_BITBUCKET_CLIENT":
+			os.Setenv(envVar, "false")
 		case "GHORG_GITHUB_USER_OPTION":
 			os.Setenv(envVar, "owner")
 		case "GHORG_BACKUP":
@@ -210,6 +214,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		case "GHORG_CONCURRENCY":
 			os.Setenv(envVar, "25")
+		case "GHORG_CLONE_DELAY_SECONDS":
+			os.Setenv(envVar, "0")
 		case "GHORG_QUIET":
 			os.Setenv(envVar, "false")
 		case "GHORG_STATS_ENABLED":
@@ -302,10 +308,12 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_CLONE_SNIPPETS")
 	getOrSetDefaults("GHORG_INSECURE_GITLAB_CLIENT")
 	getOrSetDefaults("GHORG_INSECURE_GITEA_CLIENT")
+	getOrSetDefaults("GHORG_INSECURE_BITBUCKET_CLIENT")
 	getOrSetDefaults("GHORG_BACKUP")
 	getOrSetDefaults("GHORG_RECLONE_ENV_CONFIG_ONLY")
 	getOrSetDefaults("GHORG_RECLONE_QUIET")
 	getOrSetDefaults("GHORG_CONCURRENCY")
+	getOrSetDefaults("GHORG_CLONE_DELAY_SECONDS")
 	getOrSetDefaults("GHORG_INCLUDE_SUBMODULES")
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_INFOS")
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_ISSUES")
@@ -377,6 +385,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&dryRun, "dry-run", false, "GHORG_DRY_RUN - Perform a dry run of the clone; fetches repos but does not clone them")
 	cloneCmd.Flags().BoolVar(&insecureGitlabClient, "insecure-gitlab-client", false, "GHORG_INSECURE_GITLAB_CLIENT - Skip TLS certificate verification for hosted gitlab instances")
 	cloneCmd.Flags().BoolVar(&insecureGiteaClient, "insecure-gitea-client", false, "GHORG_INSECURE_GITEA_CLIENT - Must be set to clone from a Gitea instance using http")
+	cloneCmd.Flags().BoolVar(&insecureBitbucketClient, "insecure-bitbucket-client", false, "GHORG_INSECURE_BITBUCKET_CLIENT - Must be set to clone from a Bitbucket Server instance using http")
 	cloneCmd.Flags().BoolVar(&cloneWiki, "clone-wiki", false, "GHORG_CLONE_WIKI - Additionally clone the wiki page for repo")
 	cloneCmd.Flags().BoolVar(&cloneSnippets, "clone-snippets", false, "GHORG_CLONE_SNIPPETS - Additionally clone all snippets, gitlab only")
 	cloneCmd.Flags().BoolVar(&skipForks, "skip-forks", false, "GHORG_SKIP_FORKS - Skips repo if its a fork, github/gitlab/gitea only")
@@ -393,6 +402,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&syncDefaultBranch, "sync-default-branch", false, "GHORG_SYNC_DEFAULT_BRANCH - Enable or disable automatic synchronization with default branches when recloning repositories")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - Change SCM base url, for on self hosted instances (currently gitlab, gitea and github (use format of https://git.mydomain.com/api/v3))")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - Max goroutines to spin up while cloning (default 25)")
+	cloneCmd.Flags().StringVarP(&cloneDelaySeconds, "clone-delay-seconds", "", "", "GHORG_CLONE_DELAY_SECONDS - Delay in seconds between cloning repos. Useful for rate limiting. Automatically sets concurrency to 1 when > 0 (default 0)")
 	cloneCmd.Flags().StringVarP(&cloneDepth, "clone-depth", "", "", "GHORG_CLONE_DEPTH - Create a shallow clone with a history truncated to the specified number of commits")
 	cloneCmd.Flags().StringVarP(&topics, "topics", "", "", "GHORG_TOPICS - Comma separated list of github/gitea topics to filter for")
 	cloneCmd.Flags().StringVarP(&outputDir, "output-dir", "", "", "GHORG_OUTPUT_DIR - Name of directory repos will be cloned into (default name of org/repo being cloned")

@@ -11,6 +11,7 @@ GITLAB_GROUP=gitlab-examples
 GITLAB_SUB_GROUP=wayne-enterprises
 
 GITLAB_GROUP_2=ghorg-test-group
+GHORG_EXIT_CODE_ON_CLONE_ISSUES=0
 
 ghorg clone $GITLAB_GROUP --token="${GITLAB_TOKEN}" --scm=gitlab --output-dir=examples-flat
 

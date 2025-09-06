@@ -7,6 +7,7 @@ echo "Running BitBucket Integration Tests"
 cp ./ghorg /usr/local/bin
 
 BITBUCKET_WORKSPACE=ghorg
+GHORG_EXIT_CODE_ON_CLONE_ISSUES=0
 
 # clone an org with no config file
 ghorg clone $BITBUCKET_WORKSPACE --token="${BITBUCKET_TOKEN}" --bitbucket-username="${BITBUCKET_USERNAME}" --scm=bitbucket --output-dir=bb-test-1
