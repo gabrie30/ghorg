@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- File path in tokens; thanks @blackcodersec
 ### Security
 
 ## [1.11.4] - 8/29/25
