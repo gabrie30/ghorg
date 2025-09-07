@@ -185,7 +185,26 @@ func GetTokenFromFile(path string) string {
 	if err != nil {
 		log.Fatal("Error while reading file")
 	}
-	return strings.TrimSpace(string(fileContents))
+
+	// Convert to string and remove all whitespace and control characters
+	token := string(fileContents)
+
+	// Remove BOM if present
+	if len(token) >= 3 && token[:3] == "\xef\xbb\xbf" {
+		token = token[3:]
+	}
+
+	// Remove all whitespace and control characters, keeping only printable characters
+	var cleaned strings.Builder
+	for _, r := range token {
+		// Keep only printable ASCII characters (32-126) and exclude space (32)
+		// This ensures the token contains only valid characters for HTTP headers
+		if r > 32 && r <= 126 {
+			cleaned.WriteRune(r)
+		}
+	}
+
+	return cleaned.String()
 }
 
 // GetOrSetToken will set token based on scm
