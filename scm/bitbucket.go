@@ -124,9 +124,9 @@ func (_ Bitbucket) NewClient() (Client, error) {
 
 // Bitbucket Server API structures
 type ServerRepository struct {
-	Name    string                 `json:"name"`
-	Slug    string                 `json:"slug"`
-	Links   map[string]interface{} `json:"links"`
+	Name    string         `json:"name"`
+	Slug    string         `json:"slug"`
+	Links   map[string]any `json:"links"`
 	Project struct {
 		Key string `json:"key"`
 	} `json:"project"`
@@ -249,13 +249,13 @@ func (c Bitbucket) filterServerRepos(repos []ServerRepository) []Repo {
 
 	for _, repo := range repos {
 		if repo.Links != nil && repo.Links["clone"] != nil {
-			cloneLinks, ok := repo.Links["clone"].([]interface{})
+			cloneLinks, ok := repo.Links["clone"].([]any)
 			if !ok {
 				continue
 			}
 
 			for _, linkInterface := range cloneLinks {
-				link, ok := linkInterface.(map[string]interface{})
+				link, ok := linkInterface.(map[string]any)
 				if !ok {
 					continue
 				}
@@ -329,10 +329,10 @@ func (_ Bitbucket) filter(resp []bitbucket.Repository) (repoData []Repo, err err
 	cloneData := []Repo{}
 
 	for _, a := range resp {
-		links := a.Links["clone"].([]interface{})
+		links := a.Links["clone"].([]any)
 		for _, l := range links {
-			link := l.(map[string]interface{})["href"]
-			linkType := l.(map[string]interface{})["name"]
+			link := l.(map[string]any)["href"]
+			linkType := l.(map[string]any)["name"]
 
 			if os.Getenv("GHORG_TOPICS") != "" {
 				colorlog.PrintError("WARNING: Filtering by topics is not supported for Bitbucket SCM")

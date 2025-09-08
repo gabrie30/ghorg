@@ -45,7 +45,7 @@ func setupGiteaTest() (client Gitea, mux *http.ServeMux, serverURL string, teard
 	mux.HandleFunc("/api/v1/settings/api", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		json.NewEncoder(w).Encode(map[string]any{
 			"max_response_items": 50,
 		})
 	})

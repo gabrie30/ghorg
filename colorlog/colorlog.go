@@ -9,7 +9,7 @@ import (
 )
 
 // PrintInfo prints yellow colored text to standard out
-func PrintInfo(msg interface{}) {
+func PrintInfo(msg any) {
 	if os.Getenv("GHORG_QUIET") == "true" {
 		return
 	}
@@ -23,7 +23,7 @@ func PrintInfo(msg interface{}) {
 }
 
 // PrintSuccess prints green colored text to standard out
-func PrintSuccess(msg interface{}) {
+func PrintSuccess(msg any) {
 	switch os.Getenv("GHORG_COLOR") {
 	case "enabled":
 		color.New(color.FgGreen).Println(msg)
@@ -33,7 +33,7 @@ func PrintSuccess(msg interface{}) {
 }
 
 // PrintError prints red colored text to standard out
-func PrintError(msg interface{}) {
+func PrintError(msg any) {
 	switch os.Getenv("GHORG_COLOR") {
 	case "enabled":
 		color.New(color.FgRed).Println(msg)
@@ -43,7 +43,7 @@ func PrintError(msg interface{}) {
 }
 
 // PrintErrorAndExit prints red colored text to standard out then exits 1
-func PrintErrorAndExit(msg interface{}) {
+func PrintErrorAndExit(msg any) {
 	switch os.Getenv("GHORG_COLOR") {
 	case "enabled":
 		color.New(color.FgRed).Println(msg)
@@ -55,7 +55,7 @@ func PrintErrorAndExit(msg interface{}) {
 }
 
 // PrintSubtleInfo prints magenta colored text to standard out
-func PrintSubtleInfo(msg interface{}) {
+func PrintSubtleInfo(msg any) {
 	if os.Getenv("GHORG_QUIET") == "true" {
 		return
 	}

@@ -101,3 +101,4 @@ func TestGetTokenFromFileNonExistent(t *testing.T) {
 	// without changing the implementation. This is a design consideration for future improvement.
 	t.Skip("Skipping test for non-existent file as current implementation calls log.Fatal")
 }
+

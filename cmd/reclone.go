@@ -212,7 +212,6 @@ func runReClone(rc ReClone, rcIdentifier string) {
 		}
 	}
 
-
 	if err != nil {
 		spinningSpinner.Stop()
 		colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: Running ghorg clone cmd: %v, err: %v", safeToLogCmd, err))

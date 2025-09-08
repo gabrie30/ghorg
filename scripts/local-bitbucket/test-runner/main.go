@@ -94,15 +94,15 @@ func (tr *TestRunner) RunAllTests() error {
 
 			// Wait longer before continuing after server health failure
 			if i < len(tr.config.TestScenarios)-1 {
-						log.Printf("⏳ Skipping server recovery wait for faster testing...")
-		// time.Sleep removed
+				log.Printf("⏳ Skipping server recovery wait for faster testing...")
+				// time.Sleep removed
 			}
 			continue
 		}
 
 		// Additional delay before starting test to ensure server stability
-			log.Printf("⏳ Starting test immediately...")
-	time.Sleep(1 * time.Second) // Minimal coordination delay
+		log.Printf("⏳ Starting test immediately...")
+		time.Sleep(1 * time.Second) // Minimal coordination delay
 
 		// Execute the test
 		if err := tr.runTest(&scenario); err != nil {
