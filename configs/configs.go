@@ -62,7 +62,7 @@ func GetRequiredString(key string) string {
 	return value
 }
 
-func isZero(value interface{}) bool {
+func isZero(value any) bool {
 	return value == reflect.Zero(reflect.TypeOf(value)).Interface()
 }
 

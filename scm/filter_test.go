@@ -107,6 +107,6 @@ func TestMatchingTopicsWithMultipleEnvTopics(t *testing.T) {
 			tt.Errorf("Expected %v repo, got: %v", want, got)
 		}
 	})
-	
+
 	os.Setenv("GHORG_TOPICS", "")
 }

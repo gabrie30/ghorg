@@ -313,7 +313,7 @@ func (b *BitbucketSeeder) createBitbucketServerProject(project *Project) error {
 	}
 
 	// Create project payload
-	payload := map[string]interface{}{
+	payload := map[string]any{
 		"key":         project.Key,
 		"name":        project.Name,
 		"description": project.Description,
@@ -372,7 +372,7 @@ func (b *BitbucketSeeder) createBitbucketServerRepository(repo *Repository, proj
 	}
 
 	// Create repository payload
-	payload := map[string]interface{}{
+	payload := map[string]any{
 		"name":        repo.Name,
 		"description": repo.Description,
 		"public":      !repo.IsPrivate, // Convert private to public
@@ -479,7 +479,7 @@ Thumbs.db
 	createURL := fmt.Sprintf("%s/rest/api/1.0/projects/%s/repos/%s/browse/.gitignore", b.baseURL, projectKey, repoName)
 
 	// Create form data for file creation
-	payload := map[string]interface{}{
+	payload := map[string]any{
 		"content":        gitignoreContent,
 		"message":        "Initial commit: Add .gitignore",
 		"sourceCommitId": "", // Empty for new file
