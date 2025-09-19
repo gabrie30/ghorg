@@ -28,6 +28,16 @@ type Gitter interface {
 	FetchCloneBranch(scm.Repo) error
 	RepoCommitCount(scm.Repo) (int, error)
 	HasRemoteHeads(scm.Repo) (bool, error)
+	SyncDefaultBranch(scm.Repo) error
+	// Additional methods for sync functionality
+	GetCurrentBranch(scm.Repo) (string, error)
+	HasLocalChanges(scm.Repo) (bool, error)
+	HasUnpushedCommits(scm.Repo) (bool, error)
+	HasCommitsNotOnDefaultBranch(scm.Repo, string) (bool, error)
+	UpdateRef(scm.Repo, string, string) error
+	GetRemoteURL(scm.Repo, string) (string, error)
+	IsDefaultBranchBehindHead(scm.Repo, string) (bool, error)
+	MergeIntoDefaultBranch(scm.Repo, string) error
 }
 
 type GitClient struct{}
@@ -70,13 +80,14 @@ func (g GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
 	}
 
 	exitCode := exitError.ExitCode()
-	if exitCode == 0 {
+	switch exitCode {
+	case 0:
 		// ls-remote did successfully list the remote heads
 		return true, nil
-	} else if exitCode == 2 {
+	case 2:
 		// repository is empty
 		return false, nil
-	} else {
+	default:
 		// another exit code, simply return err
 		return false, err
 	}
@@ -110,12 +121,17 @@ func (g GitClient) Clone(repo scm.Repo) error {
 
 	cmd := exec.Command("git", args...)
 
+	var err error
 	if os.Getenv("GHORG_DEBUG") != "" {
-		return printDebugCmd(cmd, repo)
+		err = printDebugCmd(cmd, repo)
+	} else {
+		err = cmd.Run()
 	}
 
-	err := cmd.Run()
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (g GitClient) SetOriginWithCredentials(repo scm.Repo) error {
@@ -214,6 +230,13 @@ func (g GitClient) FetchAll(repo scm.Repo) error {
 	if os.Getenv("GHORG_DEBUG") != "" {
 		return printDebugCmd(cmd, repo)
 	}
+
+	if err := g.SyncDefaultBranch(repo); err != nil {
+		// Log the sync error but don't fail the fetch operation
+		if os.Getenv("GHORG_DEBUG") != "" {
+			fmt.Printf("Warning: Failed to sync default branch after fetch: %v\n", err)
+		}
+	}
 	return cmd.Run()
 }
 
@@ -304,4 +327,240 @@ func (g GitClient) RepoCommitCount(repo scm.Repo) (int, error) {
 	}
 
 	return count, nil
+}
+
+// GetCurrentBranch returns the name of the currently checked out branch
+func (g GitClient) GetCurrentBranch(repo scm.Repo) (string, error) {
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			return "", err
+		}
+	}
+
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to get current branch: %w", err)
+	}
+
+	branch := strings.TrimSpace(string(output))
+
+	// Handle the case where we're in a detached HEAD state
+	if branch == "HEAD" {
+		return "", fmt.Errorf("repository is in detached HEAD state")
+	}
+
+	return branch, nil
+}
+
+// HasLocalChanges checks if there are any uncommitted changes in the working directory
+func (g GitClient) HasLocalChanges(repo scm.Repo) (bool, error) {
+	cmd := exec.Command("git", "status", "--porcelain")
+	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			return false, err
+		}
+	}
+
+	output, err := cmd.Output()
+	if err != nil {
+		return false, fmt.Errorf("failed to check git status: %w", err)
+	}
+
+	// If output is empty, there are no changes
+	return len(strings.TrimSpace(string(output))) > 0, nil
+}
+
+// HasUnpushedCommits checks if the current branch has commits that haven't been pushed to the remote
+func (g GitClient) HasUnpushedCommits(repo scm.Repo) (bool, error) {
+	// Get the current branch name
+	currentBranch, err := g.GetCurrentBranch(repo)
+	if err != nil {
+		return false, err
+	}
+
+	// Compare local branch with remote branch to see if there are unpushed commits
+	cmd := exec.Command("git", "rev-list", fmt.Sprintf("origin/%s..%s", currentBranch, currentBranch), "--count")
+	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			// If the command fails, it might be because the remote branch doesn't exist
+			// In this case, assume there are unpushed commits to be safe
+			return true, nil
+		}
+	}
+
+	output, err := cmd.Output()
+	if err != nil {
+		// If the command fails, it might be because the remote branch doesn't exist
+		// In this case, assume there are unpushed commits to be safe
+		return true, nil
+	}
+
+	count, err := strconv.Atoi(strings.TrimSpace(string(output)))
+	if err != nil {
+		return false, fmt.Errorf("failed to parse commit count: %w", err)
+	}
+
+	return count > 0, nil
+}
+
+// HasCommitsNotOnDefaultBranch checks if the current branch has commits that are not on the default branch
+func (g GitClient) HasCommitsNotOnDefaultBranch(repo scm.Repo, currentBranch string) (bool, error) {
+	// Skip the check if we're already on the default branch
+	if currentBranch == repo.CloneBranch {
+		return false, nil
+	}
+
+	// Compare current branch with default branch to see if there are commits not on default
+	cmd := exec.Command("git", "rev-list", fmt.Sprintf("origin/%s..%s", repo.CloneBranch, currentBranch), "--count")
+	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			// If the command fails, it might be because the remote default branch doesn't exist
+			// In this case, assume there are divergent commits to be safe
+			return true, nil
+		}
+	}
+
+	output, err := cmd.Output()
+	if err != nil {
+		// If the command fails, it might be because the remote default branch doesn't exist
+		// In this case, assume there are divergent commits to be safe
+		return true, nil
+	}
+
+	count, err := strconv.Atoi(strings.TrimSpace(string(output)))
+	if err != nil {
+		return false, fmt.Errorf("failed to parse commit count: %w", err)
+	}
+
+	return count > 0, nil
+}
+
+// UpdateRef updates a git reference to point to a specific commit
+func (g GitClient) UpdateRef(repo scm.Repo, refName string, commitRef string) error {
+	cmd := exec.Command("git", "update-ref", refName, commitRef)
+	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		return printDebugCmd(cmd, repo)
+	}
+
+	return cmd.Run()
+}
+
+// GetRemoteURL retrieves the URL for the specified remote
+func (g GitClient) GetRemoteURL(repo scm.Repo, remoteName string) (string, error) {
+	cmd := exec.Command("git", "remote", "get-url", remoteName)
+	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			return "", err
+		}
+	}
+
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to get remote URL: %w", err)
+	}
+
+	return strings.TrimSpace(string(output)), nil
+}
+
+// IsDefaultBranchBehindHead checks if the default branch is behind HEAD
+// Returns true if the default branch is missing commits that exist on the current branch
+func (g GitClient) IsDefaultBranchBehindHead(repo scm.Repo, currentBranch string) (bool, error) {
+	if currentBranch == repo.CloneBranch {
+		// If we're already on the default branch, it can't be behind itself
+		return false, nil
+	}
+
+	// Check if the default branch has commits that the current branch doesn't have
+	// git rev-list default_branch ^current_branch
+	defaultRef := fmt.Sprintf("refs/remotes/origin/%s", repo.CloneBranch)
+	currentRef := fmt.Sprintf("refs/heads/%s", currentBranch)
+
+	cmd := exec.Command("git", "rev-list", defaultRef, "^"+currentRef)
+	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			return false, err
+		}
+	}
+
+	output, err := cmd.Output()
+	if err != nil {
+		// If there's an error, assume not behind to be safe
+		return false, nil
+	}
+
+	// If there are commits in the default branch that aren't in current branch,
+	// then default is ahead, not behind
+	defaultAheadCommits := strings.TrimSpace(string(output))
+	if defaultAheadCommits != "" {
+		return false, nil
+	}
+
+	// Now check if current branch has commits that default branch doesn't have
+	// git rev-list current_branch ^default_branch
+	cmd = exec.Command("git", "rev-list", currentRef, "^"+defaultRef)
+	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			return false, err
+		}
+	}
+
+	output, err = cmd.Output()
+	if err != nil {
+		return false, nil
+	}
+
+	// If there are commits in current branch that aren't in default branch,
+	// then default is behind
+	currentAheadCommits := strings.TrimSpace(string(output))
+	return currentAheadCommits != "", nil
+}
+
+// MergeIntoDefaultBranch merges the current branch into the default branch
+func (g GitClient) MergeIntoDefaultBranch(repo scm.Repo, sourceBranch string) error {
+	// First, checkout the default branch
+	currentBranch, err := g.GetCurrentBranch(repo)
+	if err != nil {
+		return fmt.Errorf("failed to get current branch: %w", err)
+	}
+
+	if currentBranch != repo.CloneBranch {
+		err := g.Checkout(repo)
+		if err != nil {
+			return fmt.Errorf("failed to checkout default branch %s: %w", repo.CloneBranch, err)
+		}
+	}
+
+	// Perform the merge
+	cmd := exec.Command("git", "merge", "--ff-only", sourceBranch)
+	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			return err
+		}
+	}
+
+	err = cmd.Run()
+	if err != nil {
+		return fmt.Errorf("failed to merge %s into %s: %w", sourceBranch, repo.CloneBranch, err)
+	}
+
+	return nil
 }
