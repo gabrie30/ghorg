@@ -13,7 +13,7 @@ require (
 	github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
 	github.com/ktrysmt/go-bitbucket v0.9.87
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/spf13/cobra v1.9.1
+	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
 	gitlab.com/gitlab-org/api/client-go v0.142.0
 	golang.org/x/oauth2 v0.31.0
