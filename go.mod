@@ -11,7 +11,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/google/go-github/v72 v72.0.0
 	github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
-	github.com/ktrysmt/go-bitbucket v0.9.86
+	github.com/ktrysmt/go-bitbucket v0.9.87
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.21.0
@@ -57,7 +57,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/image v0.18.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
+	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/term v0.32.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
