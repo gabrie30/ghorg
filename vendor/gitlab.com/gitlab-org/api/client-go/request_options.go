@@ -72,12 +72,12 @@ func WithHeaders(headers map[string]string) RequestOptionFunc {
 // query parameter in the request with its corresponding response parameter.
 func WithKeysetPaginationParameters(nextLink string) RequestOptionFunc {
 	return func(req *retryablehttp.Request) error {
-		nextUrl, err := url.Parse(nextLink)
+		nextURL, err := url.Parse(nextLink)
 		if err != nil {
 			return err
 		}
 		q := req.URL.Query()
-		for k, values := range nextUrl.Query() {
+		for k, values := range nextURL.Query() {
 			q.Del(k)
 			for _, v := range values {
 				q.Add(k, v)

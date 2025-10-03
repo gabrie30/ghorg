@@ -17,9 +17,12 @@
 package gitlab
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
+
+	"golang.org/x/exp/constraints"
 )
 
 type PipelineSource string
@@ -362,6 +365,10 @@ func (s *PipelinesService) GetLatestPipeline(pid any, opt *GetLatestPipelineOpti
 type CreatePipelineOptions struct {
 	Ref       *string                     `url:"ref" json:"ref"`
 	Variables *[]*PipelineVariableOptions `url:"variables,omitempty" json:"variables,omitempty"`
+
+	// Inputs contains pipeline input parameters.
+	// See PipelineInputsOption for supported types and usage.
+	Inputs PipelineInputsOption `url:"inputs,omitempty" json:"inputs,omitempty"`
 }
 
 // PipelineVariableOptions represents a pipeline variable option.
@@ -371,6 +378,67 @@ type PipelineVariableOptions struct {
 	Key          *string            `url:"key,omitempty" json:"key,omitempty"`
 	Value        *string            `url:"value,omitempty" json:"value,omitempty"`
 	VariableType *VariableTypeValue `url:"variable_type,omitempty" json:"variable_type,omitempty"`
+}
+
+// PipelineInputsOption represents pipeline input parameters with type-safe values.
+// Each value must be wrapped using NewPipelineInputValue() to ensure compile-time type safety.
+//
+// Supported value types:
+//   - string
+//   - integers (int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64)
+//   - floats (float32, float64)
+//   - bool
+//   - []string
+//
+// Example:
+//
+//	inputs := PipelineInputsOption{
+//	    "environment": NewPipelineInputValue("production"),
+//	    "replicas":    NewPipelineInputValue(3),
+//	    "debug":       NewPipelineInputValue(false),
+//	    "regions":     NewPipelineInputValue([]string{"us-east", "eu-west"}),
+//	}
+//
+// GitLab API docs:
+// - https://docs.gitlab.com/api/pipelines/#create-a-new-pipeline
+// - https://docs.gitlab.com/api/pipeline_triggers/#trigger-a-pipeline-with-a-token
+type PipelineInputsOption map[string]PipelineInputValueInterface
+
+// PipelineInputValueInterface is implemented by PipelineInputValue[T] for supported pipeline input types.
+// Use NewPipelineInputValue() to create instances - do not implement this interface directly.
+//
+// See PipelineInputsOption for supported types and usage examples.
+type PipelineInputValueInterface interface {
+	pipelineInputValue()
+}
+
+// PipelineInputValueType is a type constraint for valid pipeline input value types.
+// This constraint ensures only supported GitLab pipeline input types can be used.
+type PipelineInputValueType interface {
+	~string | constraints.Integer | constraints.Float | ~bool | []string
+}
+
+// PipelineInputValue wraps a pipeline input value with compile-time type safety.
+// Use NewPipelineInputValue() to create instances of this type.
+type PipelineInputValue[T PipelineInputValueType] struct {
+	Value T
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (v PipelineInputValue[T]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(v.Value)
+}
+
+// pipelineInputValue implements PipelineInputValueInterface.
+func (PipelineInputValue[T]) pipelineInputValue() {}
+
+// NewPipelineInputValue wraps a value for use in pipeline inputs.
+// Similar to Ptr(), this ensures type safety at compile time.
+// Supported types: string, integers, floats, bool, []string
+func NewPipelineInputValue[T PipelineInputValueType](value T) PipelineInputValue[T] {
+	return PipelineInputValue[T]{
+		Value: value,
+	}
 }
 
 // CreatePipeline creates a new project pipeline.

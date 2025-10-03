@@ -45,6 +45,7 @@ linters:
         - name: get-return
         - name: redundant-import-alias
         - name: time-date
+        - name: var-naming
     staticcheck:
       checks:
         - ST1020
@@ -90,6 +91,30 @@ linters:
       - source: "// GitLab API docs:"
         linters:
           - staticcheck
+      - text: "var-naming: struct field PipelineId should be PipelineID"
+        path: commits\.go
+        linters:
+          - revive
+      - text: "var-naming: struct field SelectiveSyncNamespaceIds should be SelectiveSyncNamespaceIDs"
+        path: geo_nodes\.go
+        linters:
+          - revive
+      - text: "var-naming: struct field RefsUrl should be RefsURL"
+        path: import\.go
+        linters:
+          - revive
+      - text: "var-naming: struct field BitbucketServerUrl should be BitbucketServerURL"
+        path: import\.go
+        linters:
+          - revive
+      - text: "var-naming: struct field CrlUrl should be CrlURL"
+        path: tags\.go
+        linters:
+          - revive
+      - text: "var-naming: type ServicePingNonSqlMetrics should be ServicePingNonSQLMetrics"
+        path: usage_data\.go
+        linters:
+          - revive
     paths:
       - third_party$
       - builtin$
