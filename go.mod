@@ -3,7 +3,7 @@ module github.com/gabrie30/ghorg
 go 1.24.6
 
 require (
-	code.gitea.io/sdk/gitea v0.21.0
+	code.gitea.io/sdk/gitea v0.22.0
 	github.com/MichaelMure/go-term-markdown v0.1.4
 	github.com/bradleyfalzon/ghinstallation/v2 v2.17.0
 	github.com/briandowns/spinner v1.23.2
@@ -21,7 +21,7 @@ require (
 )
 
 require (
-	github.com/42wim/httpsig v1.2.2 // indirect
+	github.com/42wim/httpsig v1.2.3 // indirect
 	github.com/MichaelMure/go-term-text v0.3.1 // indirect
 	github.com/alecthomas/chroma v0.7.1 // indirect
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
@@ -55,11 +55,11 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.37.0 // indirect
+	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/image v0.18.0 // indirect
 	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/term v0.31.0 // indirect
+	golang.org/x/term v0.32.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 )
