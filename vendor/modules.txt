@@ -1,8 +1,8 @@
-# code.gitea.io/sdk/gitea v0.21.0
-## explicit; go 1.23
+# code.gitea.io/sdk/gitea v0.22.0
+## explicit; go 1.23.0
 code.gitea.io/sdk/gitea
-# github.com/42wim/httpsig v1.2.2
-## explicit; go 1.18
+# github.com/42wim/httpsig v1.2.3
+## explicit; go 1.23.0
 github.com/42wim/httpsig
 # github.com/MichaelMure/go-term-markdown v0.1.4
 ## explicit; go 1.12
@@ -117,7 +117,7 @@ github.com/inconshreveable/mousetrap
 # github.com/korovkin/limiter v0.0.0-20220422174850-01f593e64cf7
 ## explicit; go 1.17
 github.com/korovkin/limiter
-# github.com/ktrysmt/go-bitbucket v0.9.86
+# github.com/ktrysmt/go-bitbucket v0.9.87
 ## explicit; go 1.23.0
 github.com/ktrysmt/go-bitbucket
 # github.com/kyokomi/emoji/v2 v2.2.8
@@ -191,7 +191,7 @@ gitlab.com/gitlab-org/api/client-go
 # go.yaml.in/yaml/v3 v3.0.4
 ## explicit; go 1.16
 go.yaml.in/yaml/v3
-# golang.org/x/crypto v0.37.0
+# golang.org/x/crypto v0.39.0
 ## explicit; go 1.23.0
 golang.org/x/crypto/blake2b
 golang.org/x/crypto/blake2s
@@ -216,7 +216,7 @@ golang.org/x/image/tiff/lzw
 golang.org/x/image/vp8
 golang.org/x/image/vp8l
 golang.org/x/image/webp
-# golang.org/x/net v0.39.0
+# golang.org/x/net v0.41.0
 ## explicit; go 1.23.0
 golang.org/x/net/context
 golang.org/x/net/html
@@ -233,7 +233,7 @@ golang.org/x/sys/cpu
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.31.0
+# golang.org/x/term v0.32.0
 ## explicit; go 1.23.0
 golang.org/x/term
 # golang.org/x/text v0.28.0
