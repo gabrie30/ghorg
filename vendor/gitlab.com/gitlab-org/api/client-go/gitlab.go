@@ -28,6 +28,7 @@ import (
 	"math"
 	"math/rand"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"net/url"
 	"sort"
@@ -105,6 +106,10 @@ type Client struct {
 
 	// Default request options applied to every request.
 	defaultRequestOptions []RequestOptionFunc
+
+	// interceptors contain the stack of *http.Client round tripper builder func
+	// which are used to decorate the http.Client#Transport value.
+	interceptors []Interceptor
 
 	// User agent used when communicating with the GitLab API.
 	UserAgent string
@@ -212,6 +217,7 @@ type Client struct {
 	Pipelines                        PipelinesServiceInterface
 	PlanLimits                       PlanLimitsServiceInterface
 	ProjectAccessTokens              ProjectAccessTokensServiceInterface
+	ProjectAliases                   ProjectAliasesServiceInterface
 	ProjectBadges                    ProjectBadgesServiceInterface
 	ProjectCluster                   ProjectClustersServiceInterface
 	ProjectFeatureFlags              ProjectFeatureFlagServiceInterface
@@ -260,6 +266,32 @@ type Client struct {
 	Version                          VersionServiceInterface
 	Wikis                            WikisServiceInterface
 }
+
+// Interceptor is used to build a *http.Client request pipeline,
+//
+// It receives the next RoundTripper in the chain and returns a new one that
+// will be used for the request.
+//
+// This next RoundTripper might or might not be the actual transporter,
+// which actually does the request call,
+// but it is safe to assume that calling the next will result in the expected HTTP call.
+//
+// Example:
+//
+//	// Simple logger interceptor.
+//	logger := func(next http.RoundTripper) http.RoundTripper {
+//	    return roundtripperFunc(func(req *http.Request) (*http.Response, error) {
+//	        fmt.Printf("Request: %s %s\n", req.Method, req.URL)
+//	        resp, err := next.RoundTrip(req)
+//	        if err == nil {
+//	            fmt.Printf("Response status: %d\n", resp.StatusCode)
+//	        }
+//	        return resp, err
+//	    })
+//	}
+//
+// The Interceptor type lets you add such middlewares to a client by chaining them.
+type Interceptor func(next http.RoundTripper) http.RoundTripper
 
 // ListOptions specifies the optional parameters to various List methods that
 // support pagination.
@@ -364,6 +396,8 @@ func NewAuthSourceClient(as AuthSource, options ...ClientOptionFunc) (*Client, e
 			return nil, err
 		}
 	}
+
+	decorateHTTPClientTransportWithInterceptors(c)
 
 	// Wire up the cookie jar.
 	// The ClientOptionFunc can't do it directly,
@@ -491,6 +525,7 @@ func NewAuthSourceClient(as AuthSource, options ...ClientOptionFunc) (*Client, e
 	c.Pipelines = &PipelinesService{client: c}
 	c.PlanLimits = &PlanLimitsService{client: c}
 	c.ProjectAccessTokens = &ProjectAccessTokensService{client: c}
+	c.ProjectAliases = &ProjectAliasesService{client: c}
 	c.ProjectBadges = &ProjectBadgesService{client: c}
 	c.ProjectCluster = &ProjectClustersService{client: c}
 	c.ProjectFeatureFlags = &ProjectFeatureFlagService{client: c}
@@ -542,22 +577,119 @@ func NewAuthSourceClient(as AuthSource, options ...ClientOptionFunc) (*Client, e
 	return c, nil
 }
 
+func decorateHTTPClientTransportWithInterceptors(c *Client) {
+	if len(c.interceptors) == 0 {
+		return
+	}
+	c.client.HTTPClient.Transport = chainInterceptors(c.client.HTTPClient.Transport, c.interceptors...)
+}
+
+func chainInterceptors(rt http.RoundTripper, interceptors ...Interceptor) http.RoundTripper {
+	for i := len(interceptors) - 1; i >= 0; i-- {
+		rt = interceptors[i](rt)
+	}
+	return rt
+}
+
 func (c *Client) HTTPClient() *http.Client {
 	return c.client.HTTPClient
 }
 
 // retryHTTPCheck provides a callback for Client.CheckRetry which
-// will retry both rate limit (429) and server (>= 500) errors.
+// respects default retries and retries what is safe to retry.
 func (c *Client) retryHTTPCheck(ctx context.Context, resp *http.Response, err error) (bool, error) {
+	// do not retry if retries are disabled completely
+	if c.disableRetries {
+		return false, nil
+	}
+
+	// do not retry on context.Canceled or context.DeadlineExceeded
 	if ctx.Err() != nil {
 		return false, ctx.Err()
 	}
+
 	if err != nil {
-		return false, err
+		// We should be able to retry requests with assumed idempotent HTTP methods.
+		// In a future iteration we might want to annotate requests that are idempotent
+		// to further improve this logic here.
+		if resp != nil && resp.Request != nil {
+			switch resp.Request.Method {
+			case http.MethodConnect, http.MethodOptions, http.MethodTrace, http.MethodHead, http.MethodGet:
+				return true, nil
+			}
+		}
+
+		// Only retry errors that we know happened before writing to the wire
+		var urlErr *url.Error
+		var netOpErr *net.OpError
+		var dnsErr *net.DNSError
+		// see Go src/net/http/transport.go
+		var potentialTLSHandshakeErr interface {
+			Timeout() bool
+			Temporary() bool
+		}
+
+		switch {
+		// DNS errors are safe - they happen before any connection
+		case errors.As(err, &dnsErr):
+			// NXDOMAIN should not be retried
+			if dnsErr.IsNotFound {
+				return false, err
+			}
+			// Other DNS errors are safe to retry
+			return true, nil
+
+		// Direct net.OpError for dial operations
+		case errors.As(err, &netOpErr):
+			// from the comments in the implementation of net.OpError.Temporary
+			// it seems that it's safe to retry temporary OpErrors.
+			if netOpErr.Temporary() {
+				return true, nil
+			}
+
+			if strings.EqualFold(netOpErr.Op, "dial") {
+				return true, nil
+			}
+
+		// Connection refused errors are safe - they happen at TCP establishment
+		case errors.As(err, &urlErr):
+			if strings.Contains(urlErr.Error(), "connection refused") {
+				return true, nil
+			}
+
+		// TLS handshake errors are safe if we can identify them
+		case errors.As(err, &potentialTLSHandshakeErr):
+			// Check if this is a TLS handshake timeout specifically
+			if strings.Contains(err.Error(), "net/http: TLS handshake timeout") {
+				return true, nil
+			}
+		}
+
+		// we are conservative here and do not want to retry any "unknown" errors, because
+		// they could have happened when the connection was already established and the request
+		// partially fulfilled. We don't have the insights here if the request
+		// was idempotent or not, so we reject a retry.
+		return false, nil
 	}
-	if !c.disableRetries && (resp.StatusCode == 429 || resp.StatusCode >= 500) {
+
+	// 429 Too Many Requests is recoverable. Sometimes the server puts
+	// a Retry-After response header to indicate when the server is
+	// available to start processing request from client.
+	if resp.StatusCode == http.StatusTooManyRequests {
 		return true, nil
 	}
+
+	// Check the response code. We retry on 500-range responses to allow
+	// the server time to recover, as 500's are typically not permanent
+	// errors and may relate to outages on the server side. This will catch
+	// invalid response codes as well, like 0 and 999.
+	// Status code 0 is especially important for AWS ALB:
+	// https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-troubleshooting.html#response-code-000
+	if resp.StatusCode == 0 || (resp.StatusCode >= 500 && resp.StatusCode != http.StatusNotImplemented) {
+		// return true, fmt.Errorf("unexpected HTTP status %s", resp.Status)
+		return true, nil
+	}
+
 	return false, nil
 }
 

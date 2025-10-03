@@ -718,9 +718,10 @@ type ResourceGroupProcessMode string
 // GitLab API docs:
 // https://docs.gitlab.com/ci/resource_groups/#process-modes
 const (
-	Unordered   ResourceGroupProcessMode = "unordered"
-	OldestFirst ResourceGroupProcessMode = "oldest_first"
-	NewestFirst ResourceGroupProcessMode = "newest_first"
+	Unordered        ResourceGroupProcessMode = "unordered"
+	OldestFirst      ResourceGroupProcessMode = "oldest_first"
+	NewestFirst      ResourceGroupProcessMode = "newest_first"
+	NewestReadyFirst ResourceGroupProcessMode = "newest_ready_first"
 )
 
 // SharedRunnersSettingValue determines whether shared runners are enabled for a
