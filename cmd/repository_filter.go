@@ -51,6 +51,9 @@ func (rf *RepositoryFilter) ApplyAllFilters(cloneTargets []scm.Repo) []scm.Repo 
 		cloneTargets = rf.FilterByTargetReposPath(cloneTargets)
 	}
 
+	// Apply ghorgonly filter (must be applied before ghorgignore)
+	cloneTargets = rf.FilterByGhorgonly(cloneTargets)
+
 	// Apply ghorgignore filter
 	cloneTargets = rf.FilterByGhorgignore(cloneTargets)
 
@@ -208,6 +211,48 @@ func (rf *RepositoryFilter) FilterByTargetReposPath(cloneTargets []scm.Repo) []s
 		if !seen {
 			msg := fmt.Sprintf("Target in GHORG_TARGET_REPOS_PATH was not found in the org, repo: %v", targetRepo)
 			cloneInfos = append(cloneInfos, msg)
+		}
+	}
+
+	return filteredCloneTargets
+}
+
+// FilterByGhorgonly filters repositories to only include those matching patterns in ghorgonly file
+func (rf *RepositoryFilter) FilterByGhorgonly(cloneTargets []scm.Repo) []scm.Repo {
+	onlyLocation := os.Getenv("GHORG_ONLY_PATH")
+	if onlyLocation != "" {
+		_, err := os.Stat(onlyLocation)
+		if os.IsNotExist(err) {
+			return cloneTargets
+		}
+	} else {
+		// Use default location
+		defaultOnlyPath := filepath.Join(os.Getenv("HOME"), ".config", "ghorg", "ghorgonly")
+		_, err := os.Stat(defaultOnlyPath)
+		if os.IsNotExist(err) {
+			return cloneTargets
+		}
+	}
+
+	// Read ghorgonly patterns
+	toInclude, err := readGhorgOnly()
+	if err != nil {
+		colorlog.PrintErrorAndExit(fmt.Sprintf("Error parsing your ghorgonly, error: %v", err))
+	}
+
+	colorlog.PrintInfo("Using ghorgonly, filtering repos down...")
+
+	filteredCloneTargets := []scm.Repo{}
+	for _, repo := range cloneTargets {
+		included := false
+		for _, includePattern := range toInclude {
+			if strings.Contains(repo.URL, includePattern) {
+				included = true
+				break
+			}
+		}
+		if included {
+			filteredCloneTargets = append(filteredCloneTargets, repo)
 		}
 	}
 

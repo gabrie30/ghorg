@@ -292,6 +292,72 @@ func TestRepositoryFilter_FilterByGhorgignore(t *testing.T) {
 	}
 }
 
+func TestRepositoryFilter_FilterByGhorgonly(t *testing.T) {
+	filter := NewRepositoryFilter()
+
+	testCases := []struct {
+		name        string
+		onlyContent string
+		repos       []scm.Repo
+		expectedRepos []scm.Repo
+	}{
+		{
+			name:        "includes only matching URLs",
+			onlyContent: "important",
+			repos: []scm.Repo{
+				{Name: "repo1", URL: "https://github.com/org/repo1"},
+				{Name: "important-repo", URL: "https://github.com/org/important-repo"},
+				{Name: "another-repo", URL: "https://github.com/org/another-repo"},
+			},
+			expectedRepos: []scm.Repo{
+				{Name: "important-repo", URL: "https://github.com/org/important-repo"},
+			},
+		},
+		{
+			name:        "includes multiple patterns",
+			onlyContent: "api\nservice",
+			repos: []scm.Repo{
+				{Name: "repo1", URL: "https://github.com/org/repo1"},
+				{Name: "api-gateway", URL: "https://github.com/org/api-gateway"},
+				{Name: "user-service", URL: "https://github.com/org/user-service"},
+				{Name: "frontend", URL: "https://github.com/org/frontend"},
+			},
+			expectedRepos: []scm.Repo{
+				{Name: "api-gateway", URL: "https://github.com/org/api-gateway"},
+				{Name: "user-service", URL: "https://github.com/org/user-service"},
+			},
+		},
+		{
+			name:        "no matches returns empty",
+			onlyContent: "nonexistent",
+			repos: []scm.Repo{
+				{Name: "repo1", URL: "https://github.com/org/repo1"},
+				{Name: "repo2", URL: "https://github.com/org/repo2"},
+			},
+			expectedRepos: []scm.Repo{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create temporary only file
+			tmpfile, err := createTempFileWithContent(tc.onlyContent)
+			if err != nil {
+				t.Fatalf("Failed to create temp file: %v", err)
+			}
+			defer os.Remove(tmpfile.Name())
+
+			os.Setenv("GHORG_ONLY_PATH", tmpfile.Name())
+			defer os.Unsetenv("GHORG_ONLY_PATH")
+
+			result := filter.FilterByGhorgonly(tc.repos)
+			if !reflect.DeepEqual(result, tc.expectedRepos) {
+				t.Errorf("Expected %v, got %v", tc.expectedRepos, result)
+			}
+		})
+	}
+}
+
 func TestRepositoryFilter_FilterByTargetReposPath(t *testing.T) {
 	filter := NewRepositoryFilter()
 
@@ -369,6 +435,9 @@ func TestRepositoryFilter_ApplyAllFilters(t *testing.T) {
 	}
 	defer os.Remove(tmpfile.Name())
 	os.Setenv("GHORG_IGNORE_PATH", tmpfile.Name())
+
+	// Ensure no ghorgonly file is used by pointing to non-existent file
+	os.Setenv("GHORG_ONLY_PATH", "/tmp/nonexistent-ghorgonly-file-for-test")
 
 	result := filter.ApplyAllFilters(repos)
 
