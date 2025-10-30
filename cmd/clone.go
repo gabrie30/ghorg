@@ -198,6 +198,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_IGNORE_PATH", path)
 	}
 
+	if cmd.Flags().Changed("ghorgonly-path") {
+		path := cmd.Flag("ghorgonly-path").Value.String()
+		os.Setenv("GHORG_ONLY_PATH", path)
+	}
+
 	if cmd.Flags().Changed("target-repos-path") {
 		path := cmd.Flag("target-repos-path").Value.String()
 		os.Setenv("GHORG_TARGET_REPOS_PATH", path)
@@ -475,6 +480,23 @@ func readTargetReposFile() ([]string, error) {
 
 func readGhorgIgnore() ([]string, error) {
 	file, err := os.Open(configs.GhorgIgnoreLocation())
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if scanner.Text() != "" {
+			lines = append(lines, scanner.Text())
+		}
+	}
+	return lines, scanner.Err()
+}
+
+func readGhorgOnly() ([]string, error) {
+	file, err := os.Open(configs.GhorgOnlyLocation())
 	if err != nil {
 		return nil, err
 	}
@@ -805,7 +827,7 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 		fileExists = false
 	}
 
-	header := "datetime,clonePath,scm,cloneType,cloneTarget,totalCount,newClonesCount,existingResourcesPulledCount,dirSizeInMB,newCommits,cloneInfosCount,cloneErrorsCount,updateRemoteCount,pruneCount,hasCollisions,ghorgignore,totalDurationSeconds,ghorgVersion\n"
+	header := "datetime,clonePath,scm,cloneType,cloneTarget,totalCount,newClonesCount,existingResourcesPulledCount,dirSizeInMB,newCommits,cloneInfosCount,cloneErrorsCount,updateRemoteCount,pruneCount,hasCollisions,ghorgignore,ghorgonly,totalDurationSeconds,ghorgVersion\n"
 
 	var file *os.File
 	var err error
@@ -854,7 +876,7 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 	}
 	defer file.Close()
 
-	data := fmt.Sprintf("%v,%v,%v,%v,%v,%v,%v,%v,%.2f,%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
+	data := fmt.Sprintf("%v,%v,%v,%v,%v,%v,%v,%v,%.2f,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
 		date,
 		outputDirAbsolutePath,
 		os.Getenv("GHORG_SCM_TYPE"),
@@ -871,6 +893,7 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 		pruneCount,
 		hasCollisions,
 		configs.GhorgIgnoreDetected(),
+		configs.GhorgOnlyDetected(),
 		totalDurationSeconds,
 		GetVersion())
 	if _, err := file.WriteString(data); err != nil {
@@ -1179,6 +1202,9 @@ func PrintConfigs() {
 	}
 	if configs.GhorgIgnoreDetected() {
 		colorlog.PrintInfo("* Ghorgignore   : " + configs.GhorgIgnoreLocation())
+	}
+	if configs.GhorgOnlyDetected() {
+		colorlog.PrintInfo("* Ghorgonly     : " + configs.GhorgOnlyLocation())
 	}
 	if os.Getenv("GHORG_TARGET_REPOS_PATH") != "" {
 		colorlog.PrintInfo("* Target Repos  : " + os.Getenv("GHORG_TARGET_REPOS_PATH"))

@@ -145,6 +145,10 @@ GHORG_FETCH_ALL: false
 # flag (--ghorgignore-path)
 GHORG_IGNORE_PATH:
 
+# If you want to set a path other than $HOME/.config/ghorg/ghorgonly for your ghorgonly
+# flag (--ghorgonly-path)
+GHORG_ONLY_PATH:
+
 # Only emit critical output.
 # flag (--quiet)
 GHORG_QUIET: false

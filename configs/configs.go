@@ -104,6 +104,16 @@ func GhorgIgnoreLocation() string {
 	return filepath.Join(GhorgConfDir(), "ghorgignore")
 }
 
+// GhorgOnlyLocation returns the path of users ghorgonly
+func GhorgOnlyLocation() string {
+	onlyLocation := os.Getenv("GHORG_ONLY_PATH")
+	if onlyLocation != "" {
+		return onlyLocation
+	}
+
+	return filepath.Join(GhorgConfDir(), "ghorgonly")
+}
+
 // GhorgReCloneLocation returns the path of users ghorgignore
 func GhorgReCloneLocation() string {
 	recloneConfLocation := os.Getenv("GHORG_RECLONE_PATH")
@@ -117,6 +127,12 @@ func GhorgReCloneLocation() string {
 // GhorgIgnoreDetected returns true if a ghorgignore file exists.
 func GhorgIgnoreDetected() bool {
 	_, err := os.Stat(GhorgIgnoreLocation())
+	return !os.IsNotExist(err)
+}
+
+// GhorgOnlyDetected returns true if a ghorgonly file exists.
+func GhorgOnlyDetected() bool {
+	_, err := os.Stat(GhorgOnlyLocation())
 	return !os.IsNotExist(err)
 }
 
