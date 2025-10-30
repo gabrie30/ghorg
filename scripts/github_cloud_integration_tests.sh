@@ -149,18 +149,22 @@ fi
 
 # GHORGONLY TESTS
 
-# Test ghorgonly - clone only repos matching pattern
-mkdir -p $HOME/.config/ghorg
-echo "ghorg-ci" > $HOME/.config/ghorg/ghorgonly
+# Create unique temporary files to avoid conflicts with parallel test runs
+GHORGONLY_TEST_FILE_1=$(mktemp)
+GHORGONLY_TEST_FILE_2=$(mktemp)
+GHORGONLY_IGNORE_FILE=$(mktemp)
 
-ghorg clone $GITHUB_ORG --token=$GITHUB_TOKEN --path=/tmp --output-dir=testing_ghorgonly
+# Test 1: ghorgonly with custom path - basic pattern matching
+echo "ghorg-ci" > "$GHORGONLY_TEST_FILE_1"
+
+ghorg clone $GITHUB_ORG --token=$GITHUB_TOKEN --path=/tmp --output-dir=testing_ghorgonly --ghorgonly-path="$GHORGONLY_TEST_FILE_1"
 
 if [ -e /tmp/testing_ghorgonly/$GHORG_TEST_REPO ]
 then
     echo "Pass: github org clone with ghorgonly - matching repo found"
 else
     echo "Fail: github org clone with ghorgonly - matching repo not found"
-    rm -f $HOME/.config/ghorg/ghorgonly
+    rm -f "$GHORGONLY_TEST_FILE_1" "$GHORGONLY_TEST_FILE_2" "$GHORGONLY_IGNORE_FILE"
     exit 1
 fi
 
@@ -172,33 +176,36 @@ then
     echo "Pass: github org clone with ghorgonly - correct count of matching repos"
 else
     echo "Fail: github org clone with ghorgonly - wrong count (expected 1, got ${COUNT})"
-    rm -f $HOME/.config/ghorg/ghorgonly
+    rm -f "$GHORGONLY_TEST_FILE_1" "$GHORGONLY_TEST_FILE_2" "$GHORGONLY_IGNORE_FILE"
     exit 1
 fi
 
-# Test ghorgonly with custom path
-echo "topic" > /tmp/custom_ghorgonly
+# Test 2: ghorgonly with different pattern
+echo "topic" > "$GHORGONLY_TEST_FILE_2"
 
-ghorg clone $GITHUB_ORG --token=$GITHUB_TOKEN --path=/tmp --output-dir=testing_ghorgonly_custom_path --ghorgonly-path=/tmp/custom_ghorgonly
+ghorg clone $GITHUB_ORG --token=$GITHUB_TOKEN --path=/tmp --output-dir=testing_ghorgonly_topic --ghorgonly-path="$GHORGONLY_TEST_FILE_2"
 
-if [ -e /tmp/testing_ghorgonly_custom_path/$REPO_WITH_TESTING_TOPIC ]
+if [ -e /tmp/testing_ghorgonly_topic/$REPO_WITH_TESTING_TOPIC ]
 then
-    echo "Pass: github org clone with custom ghorgonly path - matching repo found"
+    echo "Pass: github org clone with ghorgonly topic pattern - matching repo found"
 else
-    echo "Fail: github org clone with custom ghorgonly path - matching repo not found"
-    rm -f $HOME/.config/ghorg/ghorgonly
-    rm -f /tmp/custom_ghorgonly
+    echo "Fail: github org clone with ghorgonly topic pattern - matching repo not found"
+    rm -f "$GHORGONLY_TEST_FILE_1" "$GHORGONLY_TEST_FILE_2" "$GHORGONLY_IGNORE_FILE"
     exit 1
 fi
 
-COUNT=$(ls /tmp/testing_ghorgonly_custom_path | wc -l)
+COUNT=$(ls /tmp/testing_ghorgonly_topic | wc -l)
 
 if [ "${COUNT}" -eq 1 ]
 then
-    echo "Pass: github org clone with custom ghorgonly path - correct count"
+    echo "Pass: github org clone with ghorgonly topic pattern - correct count"
 else
-    echo "Fail: github org clone with custom ghorgonly path - wrong count (expected 1, got ${COUNT})"
-    rm -f $HOME/.config/ghorg/ghorgonly
-    rm -f /tmp/custom_ghorgonly
+    echo "Fail: github org clone with ghorgonly topic pattern - wrong count (expected 1, got ${COUNT})"
+    rm -f "$GHORGONLY_TEST_FILE_1" "$GHORGONLY_TEST_FILE_2" "$GHORGONLY_IGNORE_FILE"
     exit 1
 fi
+
+# Cleanup temporary files
+rm -f "$GHORGONLY_TEST_FILE_1" "$GHORGONLY_TEST_FILE_2" "$GHORGONLY_IGNORE_FILE"
+
+echo "All ghorgonly tests passed"
