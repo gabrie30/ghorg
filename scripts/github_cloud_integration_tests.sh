@@ -147,3 +147,65 @@ else
     exit 1
 fi
 
+# GHORGONLY TESTS
+
+# Create unique temporary files to avoid conflicts with parallel test runs
+GHORGONLY_TEST_FILE_1=$(mktemp)
+GHORGONLY_TEST_FILE_2=$(mktemp)
+GHORGONLY_IGNORE_FILE=$(mktemp)
+
+# Test 1: ghorgonly with custom path - basic pattern matching
+echo "ghorg-ci" > "$GHORGONLY_TEST_FILE_1"
+
+ghorg clone $GITHUB_ORG --token=$GITHUB_TOKEN --path=/tmp --output-dir=testing_ghorgonly --ghorgonly-path="$GHORGONLY_TEST_FILE_1"
+
+if [ -e /tmp/testing_ghorgonly/$GHORG_TEST_REPO ]
+then
+    echo "Pass: github org clone with ghorgonly - matching repo found"
+else
+    echo "Fail: github org clone with ghorgonly - matching repo not found"
+    rm -f "$GHORGONLY_TEST_FILE_1" "$GHORGONLY_TEST_FILE_2" "$GHORGONLY_IGNORE_FILE"
+    exit 1
+fi
+
+# Verify that only matching repos were cloned (should be 1 repo: ghorg-ci-test)
+COUNT=$(ls /tmp/testing_ghorgonly | wc -l)
+
+if [ "${COUNT}" -eq 1 ]
+then
+    echo "Pass: github org clone with ghorgonly - correct count of matching repos"
+else
+    echo "Fail: github org clone with ghorgonly - wrong count (expected 1, got ${COUNT})"
+    rm -f "$GHORGONLY_TEST_FILE_1" "$GHORGONLY_TEST_FILE_2" "$GHORGONLY_IGNORE_FILE"
+    exit 1
+fi
+
+# Test 2: ghorgonly with different pattern
+echo "topic" > "$GHORGONLY_TEST_FILE_2"
+
+ghorg clone $GITHUB_ORG --token=$GITHUB_TOKEN --path=/tmp --output-dir=testing_ghorgonly_topic --ghorgonly-path="$GHORGONLY_TEST_FILE_2"
+
+if [ -e /tmp/testing_ghorgonly_topic/$REPO_WITH_TESTING_TOPIC ]
+then
+    echo "Pass: github org clone with ghorgonly topic pattern - matching repo found"
+else
+    echo "Fail: github org clone with ghorgonly topic pattern - matching repo not found"
+    rm -f "$GHORGONLY_TEST_FILE_1" "$GHORGONLY_TEST_FILE_2" "$GHORGONLY_IGNORE_FILE"
+    exit 1
+fi
+
+COUNT=$(ls /tmp/testing_ghorgonly_topic | wc -l)
+
+if [ "${COUNT}" -eq 1 ]
+then
+    echo "Pass: github org clone with ghorgonly topic pattern - correct count"
+else
+    echo "Fail: github org clone with ghorgonly topic pattern - wrong count (expected 1, got ${COUNT})"
+    rm -f "$GHORGONLY_TEST_FILE_1" "$GHORGONLY_TEST_FILE_2" "$GHORGONLY_IGNORE_FILE"
+    exit 1
+fi
+
+# Cleanup temporary files
+rm -f "$GHORGONLY_TEST_FILE_1" "$GHORGONLY_TEST_FILE_2" "$GHORGONLY_IGNORE_FILE"
+
+echo "All ghorgonly tests passed"

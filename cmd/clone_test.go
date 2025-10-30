@@ -905,8 +905,8 @@ func TestWriteGhorgStats_WithTiming(t *testing.T) {
 		t.Errorf("Header and data should have same number of commas. Header: %d, Data: %d", headerCommas, dataCommas)
 	}
 
-	// Should have 17 commas (18 fields total including the new timing field)
-	expectedCommas := 17
+	// Should have 18 commas (19 fields total including the new timing field)
+	expectedCommas := 18
 	if headerCommas != expectedCommas {
 		t.Errorf("Expected %d commas in header, got %d", expectedCommas, headerCommas)
 	}
