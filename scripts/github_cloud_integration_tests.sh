@@ -147,3 +147,58 @@ else
     exit 1
 fi
 
+# GHORGONLY TESTS
+
+# Test ghorgonly - clone only repos matching pattern
+mkdir -p $HOME/.config/ghorg
+echo "ghorg-ci" > $HOME/.config/ghorg/ghorgonly
+
+ghorg clone $GITHUB_ORG --token=$GITHUB_TOKEN --path=/tmp --output-dir=testing_ghorgonly
+
+if [ -e /tmp/testing_ghorgonly/$GHORG_TEST_REPO ]
+then
+    echo "Pass: github org clone with ghorgonly - matching repo found"
+else
+    echo "Fail: github org clone with ghorgonly - matching repo not found"
+    rm -f $HOME/.config/ghorg/ghorgonly
+    exit 1
+fi
+
+# Verify that only matching repos were cloned (should be 1 repo: ghorg-ci-test)
+COUNT=$(ls /tmp/testing_ghorgonly | wc -l)
+
+if [ "${COUNT}" -eq 1 ]
+then
+    echo "Pass: github org clone with ghorgonly - correct count of matching repos"
+else
+    echo "Fail: github org clone with ghorgonly - wrong count (expected 1, got ${COUNT})"
+    rm -f $HOME/.config/ghorg/ghorgonly
+    exit 1
+fi
+
+# Test ghorgonly with custom path
+echo "topic" > /tmp/custom_ghorgonly
+
+ghorg clone $GITHUB_ORG --token=$GITHUB_TOKEN --path=/tmp --output-dir=testing_ghorgonly_custom_path --ghorgonly-path=/tmp/custom_ghorgonly
+
+if [ -e /tmp/testing_ghorgonly_custom_path/$REPO_WITH_TESTING_TOPIC ]
+then
+    echo "Pass: github org clone with custom ghorgonly path - matching repo found"
+else
+    echo "Fail: github org clone with custom ghorgonly path - matching repo not found"
+    rm -f $HOME/.config/ghorg/ghorgonly
+    rm -f /tmp/custom_ghorgonly
+    exit 1
+fi
+
+COUNT=$(ls /tmp/testing_ghorgonly_custom_path | wc -l)
+
+if [ "${COUNT}" -eq 1 ]
+then
+    echo "Pass: github org clone with custom ghorgonly path - correct count"
+else
+    echo "Fail: github org clone with custom ghorgonly path - wrong count (expected 1, got ${COUNT})"
+    rm -f $HOME/.config/ghorg/ghorgonly
+    rm -f /tmp/custom_ghorgonly
+    exit 1
+fi
