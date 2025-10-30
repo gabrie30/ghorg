@@ -231,6 +231,15 @@ $ ghorg ls someorg | xargs -I %s mv %s bar/
   vi $HOME/.config/ghorg/ghorgignore
   ```
 
+- To clone only specific repositories matching certain patterns, you can create a `ghorgonly` file in the `$HOME/.config/ghorg` directory. Each line in this file should contain a substring pattern. Only repositories whose clone URLs contain these patterns will be cloned. This is useful when you want to clone a specific subset of repositories from a large organization. The `ghorgonly` filter is applied first, followed by `ghorgignore`, allowing you to combine both for fine-grained control (e.g., clone only `api-*` repos but exclude `api-legacy`). Like `ghorgignore`, you can specify an alternative path using the `--ghorgonly-path` flag.
+  ```bash
+  # Create ghorgonly
+  touch $HOME/.config/ghorg/ghorgonly
+
+  # Update file with patterns (one per line)
+  vi $HOME/.config/ghorg/ghorgonly
+  ```
+
 ## Creating Backups
 
 When taking backups the notable flags are `--backup`, `--clone-wiki`, and `--include-submodules`. The `--backup` flag will clone the repo with [git clone --mirror](https://www.git-scm.com/docs/git-clone#Documentation/git-clone.txt---mirror). The `--clone-wiki` flag will include any wiki pages the repo has. If you want to include any submodules you will need `--include-submodules`. Lastly, if you want to exclude any binary files use the the flag `--git-filter=blob:none` to prevent them from being cloned.
@@ -485,6 +494,8 @@ Below are the headers and their descriptions. Note that these headers may change
 - **pruneCount**: Number of repos pruned
 - **hasCollisions**: If there were any name collisions, only can happen with gitlab clones
 - **ghorgignore**: If a ghorgignore was used in the clone
+- **ghorgonly**: If a ghorgonly was used in the clone
+- **totalDurationSeconds**: Total time in seconds for the entire clone operation
 - **ghorgVersion**: Version of ghorg used in the clone
 
 #### Converting CSV to JSON
