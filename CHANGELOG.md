@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.5] - unreleased
+## [1.11.5] - 10/30/25
 ### Added
 - Self hosted Bitbucket support
 - `ghorgonly` file support to clone only repos matching substring patterns (include-only filter); thanks @fgouteroux
