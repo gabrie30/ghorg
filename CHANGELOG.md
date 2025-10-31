@@ -14,6 +14,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - File path in tokens; thanks @blackcodersec
 ### Security
+- Bump gitlab.com/gitlab-org/api/client-go from 0.142.0 to 0.148.1 (#583)
+- Bump github.com/spf13/cobra from 1.9.1 to 1.10.1 (#582)
+- Bump code.gitea.io/sdk/gitea from 0.21.0 to 0.22.0 (#584)
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.86 to 0.9.87 (#585)
+- Bump github.com/bradleyfalzon/ghinstallation/v2 from 2.16.0 to 2.17.0 (#581)
+- Bump golang.org/x/oauth2 from 0.30.0 to 0.31.0 (#580)
+- Bump github.com/spf13/viper from 1.20.1 to 1.21.0 (#579)
+- Bump rexml from 3.3.9 to 3.4.2 in /site (#577)
+- Sanitize token read from file and add tests (#573)
+- Bump golang.org/x/net in /scripts/local-bitbucket/seeder (#571)
+- Bump golang.org/x/oauth2 in /scripts/local-bitbucket/seeder (#570)
 
 ## [1.11.4] - 8/29/25
 ### Added
