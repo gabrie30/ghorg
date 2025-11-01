@@ -35,20 +35,6 @@ func (_ Sourcehut) GetType() string {
 	return "sourcehut"
 }
 
-// // The ID of the repo that is assigned via the SCM provider. This is used for example with gitlab snippets on cloud gropus where we need to know the repo id to look up all he snippets it has.
-// ID string
-// // Name is the name of the repo https://www.github.com/gabrie30/ghorg.git the Name would be ghorg
-// Name string
-// // Path where the repo is located within the scm provider. Its mostly used with gitlab repos when the directory structure is preserved. In this case the path becomes where to locate the repo in relation to gitlab.com/group/group/group/repo.git => /group/group/group/repo
-// Path string
-// // URL is the web address of the repo
-// URL string
-// // CloneURL is the url for cloning the repo, will be different for ssh vs http clones and will have the .git extention
-// CloneURL string
-// // CloneBranch the branch to clone. This will be the default branch if not specified. It will always be main for snippets.
-// CloneBranch string
-// // IsWiki is set to true when the data is for a wiki page
-
 // GetOrgRepos fetches repo data from a specific group. We emulate this by checking if the repo's owner
 // matches the current user, which is identical to GetUserRepos. It's possible in the future that this
 // will change as the manual (https://docs.sourcehut.org/git.sr.ht/#field-repositories) states that
