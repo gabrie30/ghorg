@@ -296,7 +296,7 @@ GHORG_BITBUCKET_USERNAME:
 # |S|O|U|R|C|E|H|U|T| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 
-# Add your Sourcehut personal access token token (https://meta.sr.ht/oauth2)
+# Add your Sourcehut personal access token token (https://meta.sr.ht/oauth2). This token requires the REPOSITORIES and OBJECT permissions.
 # flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 or --token=~/path/to/file/containing/token
 GHORG_SOURCEHUT_TOKEN:
 
