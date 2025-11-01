@@ -277,6 +277,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_INSECURE_BITBUCKET_CLIENT", "true")
 	}
 
+	if cmd.Flags().Changed("insecure-sourcehut-client") {
+		os.Setenv("GHORG_INSECURE_SOURCEHUT_CLIENT", "true")
+	}
+
 	if cmd.Flags().Changed("skip-forks") {
 		os.Setenv("GHORG_SKIP_FORKS", "true")
 	}
@@ -334,6 +338,8 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 			}
 		} else if os.Getenv("GHORG_SCM_TYPE") == "gitea" {
 			os.Setenv("GHORG_GITEA_TOKEN", token)
+		} else if os.Getenv("GHORG_SCM_TYPE") == "sourcehut" {
+			os.Setenv("GHORG_SOURCEHUT_TOKEN", token)
 		}
 	}
 	err := configs.VerifyTokenSet()
@@ -684,12 +690,21 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		// We use this because we dont want spaces in the final directory, using the web address makes it more file friendly
 		// In the case of root level snippets we use the title which will have spaces in it, the url uses an ID so its not possible to use name from url
 		// With snippets that originate on repos, we use that repo name
-		repoSlug := getAppNameFromURL(repo.URL)
-
+		//
+		// XXX: The URL handling in getAppNameFromURL makes strong presumptions that the URL will end in an
+		// extension like '.git', but this is not the case for sourcehut (and possibly other forges). An scm
+		// can specify its own Slug, but should
+		repoSlug := repo.Slug
+		if repoSlug == "" {
+			repoSlug = getAppNameFromURL(repo.URL)
+		}
 		if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
 			repoSlug = getAppNameFromURL(repo.GitLabSnippetInfo.URLOfRepo)
 		} else if repo.IsGitLabRootLevelSnippet {
 			repoSlug = repo.Name
+		}
+		if !isPathSegmentSafe(repoSlug) {
+			log.Fatal("Unsafe path segment found in SCM output")
 		}
 
 		limit.Execute(func() {
@@ -1349,4 +1364,8 @@ func filterByGhorgignore(cloneTargets []scm.Repo) []scm.Repo {
 	}
 
 	return cloneTargets
+}
+
+func isPathSegmentSafe(seg string) bool {
+	return strings.IndexByte(seg, '/') < 0 && strings.IndexRune(seg, filepath.Separator) < 0
 }

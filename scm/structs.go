@@ -12,6 +12,8 @@ type Repo struct {
 	Path string
 	// URL is the web address of the repo
 	URL string
+	// Slug is the file path segment (no subdirectories) that will be used in the ghorg output path. If not set, this is taken from the URL.
+	Slug string
 	// CloneURL is the url for cloning the repo, will be different for ssh vs http clones and will have the .git extention
 	CloneURL string
 	// CloneBranch the branch to clone. This will be the default branch if not specified. It will always be main for snippets.

@@ -292,6 +292,19 @@ GHORG_BITBUCKET_APP_PASSWORD:
 # flag (--bitbucket-username) eg: --bitbucket-username=user123
 GHORG_BITBUCKET_USERNAME:
 
+# +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+# |S|O|U|R|C|E|H|U|T| |S|P|E|C|I|F|I|C|
+# +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+
+# Add your Sourcehut personal access token token (https://meta.sr.ht/oauth2)
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 or --token=~/path/to/file/containing/token
+GHORG_SOURCEHUT_TOKEN:
+
+# Must be present if your gitea instance uses http
+# flag (--insecure-sourcehut-client)
+GHORG_INSECURE_SOURCECHUT_CLIENT: false
+
+
 # +-+-+-+-+-+ +-+-+-+-+-+-+-+
 # |G|H|O|R|G| |R|E|C|L|O|N|E|
 # +-+-+-+-+-+ +-+-+-+-+-+-+-+
