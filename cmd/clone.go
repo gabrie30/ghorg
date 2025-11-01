@@ -690,19 +690,19 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		// We use this because we dont want spaces in the final directory, using the web address makes it more file friendly
 		// In the case of root level snippets we use the title which will have spaces in it, the url uses an ID so its not possible to use name from url
 		// With snippets that originate on repos, we use that repo name
-		//
-		// XXX: The URL handling in getAppNameFromURL makes strong presumptions that the URL will end in an
-		// extension like '.git', but this is not the case for sourcehut (and possibly other forges). An scm
-		// can specify its own Slug, but should
-		repoSlug := repo.Slug
-		if repoSlug == "" {
-			repoSlug = getAppNameFromURL(repo.URL)
-		}
-		if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
+		var repoSlug string
+		if os.Getenv("GHORG_SCM_TYPE") == "sourcehut" {
+			// The URL handling in getAppNameFromURL makes strong presumptions that the URL will end in an
+			// extension like '.git', but this is not the case for sourcehut (and possibly other forges).
+			repoSlug = repo.Name
+		} else if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
 			repoSlug = getAppNameFromURL(repo.GitLabSnippetInfo.URLOfRepo)
 		} else if repo.IsGitLabRootLevelSnippet {
 			repoSlug = repo.Name
+		} else {
+			repoSlug = getAppNameFromURL(repo.URL)
 		}
+
 		if !isPathSegmentSafe(repoSlug) {
 			log.Fatal("Unsafe path segment found in SCM output")
 		}

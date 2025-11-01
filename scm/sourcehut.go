@@ -208,7 +208,6 @@ func (c Sourcehut) queryRepositoriesPage(cursor sourcehutCursor, targetUser stri
 		r := Repo{}
 		r.Path = path.Join(rp.Owner.CanonicalName, rp.Name)
 		r.Name = rp.Name
-		r.Slug = rp.Name
 
 		if os.Getenv("GHORG_BRANCH") == "" {
 			var defaultBranch = ""
