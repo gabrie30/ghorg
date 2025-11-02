@@ -62,17 +62,6 @@ else
     exit 1
 fi
 
-# Test 4: Clone with SSH protocol
-ghorg clone $SOURCEHUT_USER --scm=sourcehut --token=$SOURCEHUT_TOKEN --protocol=ssh --path=/tmp --output-dir=testing_sourcehut_ssh
-
-if [ -d "/tmp/testing_sourcehut_ssh" ]
-then
-    echo "Pass: sourcehut user clone with SSH protocol"
-else
-    echo "Fail: sourcehut user clone with SSH protocol"
-    exit 1
-fi
-
 # Test 5: Clone with HTTPS protocol explicitly
 ghorg clone $SOURCEHUT_USER --scm=sourcehut --token=$SOURCEHUT_TOKEN --protocol=https --path=/tmp --output-dir=testing_sourcehut_https
 

@@ -384,6 +384,8 @@ func GetCloudScmTypeHostnames() string {
 		return "gitea.com"
 	case "bitbucket":
 		return "bitbucket.com"
+	case "sourcehut":
+		return "git.sr.ht"
 	default:
 		colorlog.PrintErrorAndExit("Unsupported GHORG_SCM_TYPE")
 		return ""
