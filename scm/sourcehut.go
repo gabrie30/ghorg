@@ -35,6 +35,21 @@ func (_ Sourcehut) GetType() string {
 	return "sourcehut"
 }
 
+// normalizeUsername ensures the username has the ~ prefix for API calls
+// Sourcehut usernames require ~ for API queries
+func normalizeUsername(username string) string {
+	if !strings.HasPrefix(username, "~") {
+		return "~" + username
+	}
+	return username
+}
+
+// stripUsernamePrefix removes the ~ prefix from sourcehut usernames for local paths
+// This makes paths cleaner and avoids shell expansion issues
+func stripUsernamePrefix(username string) string {
+	return strings.TrimPrefix(username, "~")
+}
+
 // GetOrgRepos fetches repo data from a specific group. We emulate this by checking if the repo's owner
 // matches the current user, which is identical to GetUserRepos. It's possible in the future that this
 // will change as the manual (https://docs.sourcehut.org/git.sr.ht/#field-repositories) states that
@@ -50,9 +65,14 @@ func (c Sourcehut) GetUserRepos(targetUsername string) ([]Repo, error) {
 
 	repos := []Repo{}
 
+	// Normalize username for API (ensure ~ prefix)
+	apiUsername := normalizeUsername(targetUsername)
+	// Strip prefix for local paths
+	localUsername := stripUsernamePrefix(targetUsername)
+
 	var cursor sourcehutCursor
 	for {
-		reposPage, nextCursor, err := c.queryRepositoriesPage(cursor, targetUsername)
+		reposPage, nextCursor, err := c.queryRepositoriesPage(cursor, apiUsername, localUsername)
 		if err != nil {
 			return nil, err
 		}
@@ -115,7 +135,7 @@ query repositories($cursor: Cursor, $filter: Filter) {
     results {
       id
       name
-	  visibility
+      visibility
       owner { canonicalName }
       HEAD { name }
     }
@@ -124,7 +144,7 @@ query repositories($cursor: Cursor, $filter: Filter) {
 }
 `
 
-func (c Sourcehut) queryRepositoriesPage(cursor sourcehutCursor, targetUser string) ([]Repo, sourcehutCursor, error) {
+func (c Sourcehut) queryRepositoriesPage(cursor sourcehutCursor, apiUsername string, localUsername string) ([]Repo, sourcehutCursor, error) {
 	u, err := url.Parse(c.BaseURL)
 	if err != nil {
 		return nil, "", err
@@ -163,21 +183,6 @@ func (c Sourcehut) queryRepositoriesPage(cursor sourcehutCursor, targetUser stri
 		return nil, "", fmt.Errorf("unexpected response code %d from sourcehut: %q", rs.StatusCode, string(body))
 	}
 
-	type repository struct {
-		ID    int64 `json:"id"`
-		Owner struct {
-			ID            string `json:"id"`
-			CanonicalName string `json:"canonicalName"`
-		} `json:"owner"`
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		Visibility  string `json:"visibility"`
-		HEAD        struct {
-			Name   string `json:"name"`
-			Target string `json:"target"`
-		} `json:"HEAD"`
-	}
-
 	var response struct {
 		Errors json.RawMessage `json:"errors"`
 		Data   struct {
@@ -199,15 +204,34 @@ func (c Sourcehut) queryRepositoriesPage(cursor sourcehutCursor, targetUser stri
 		return nil, "", fmt.Errorf("sourcehut api returned errors while listing repos: %s", string(response.Errors))
 	}
 
+	repos, err := c.filter(response.Data.Repositories.Results, apiUsername, localUsername)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return repos, sourcehutCursor(response.Data.Repositories.Cursor), nil
+}
+
+func (c Sourcehut) filter(rps []repository, apiUsername string, localUsername string) ([]Repo, error) {
 	var repos []Repo
-	for _, rp := range response.Data.Repositories.Results {
-		if rp.Owner.CanonicalName != targetUser {
+
+	for _, rp := range rps {
+		// Filter by owner (Sourcehut API doesn't support server-side owner filtering)
+		// API returns usernames with ~ prefix
+		if rp.Owner.CanonicalName != apiUsername {
 			continue
 		}
 
+		// Note: Sourcehut doesn't expose archived/fork status via GraphQL API
+		// If these fields become available, add filtering here like other SCM providers
+
 		r := Repo{}
-		r.Path = path.Join(rp.Owner.CanonicalName, rp.Name)
+		// Use localUsername (without ~) for local paths to avoid shell expansion issues
+		r.Path = path.Join(localUsername, rp.Name)
 		r.Name = rp.Name
+
+		// Build the repo path WITH ~ for clone URLs (git needs this)
+		repoPathWithTilde := path.Join(rp.Owner.CanonicalName, rp.Name)
 
 		if os.Getenv("GHORG_BRANCH") == "" {
 			var defaultBranch = ""
@@ -222,10 +246,17 @@ func (c Sourcehut) queryRepositoriesPage(cursor sourcehutCursor, targetUser stri
 			r.CloneBranch = os.Getenv("GHORG_BRANCH")
 		}
 
-		if rp.Visibility == "PUBLIC" || rp.Visibility == "UNLISTED" {
-			r.CloneURL = fmt.Sprintf("%s/%s", c.BaseURL, r.Path)
+		// Determine clone URL based on protocol and visibility
+		protocol := os.Getenv("GHORG_CLONE_PROTOCOL")
+		if protocol == "" {
+			protocol = "https" // default to https
+		}
 
+		if protocol == "https" {
+			// Use repoPathWithTilde for clone URL (git needs the ~ prefix)
+			r.CloneURL = fmt.Sprintf("%s/%s", c.BaseURL, repoPathWithTilde)
 		} else {
+			// SSH protocol
 			var gitBase string
 			isHTTP := strings.HasPrefix(c.BaseURL, "http://")
 			if isHTTP {
@@ -233,12 +264,28 @@ func (c Sourcehut) queryRepositoriesPage(cursor sourcehutCursor, targetUser stri
 			} else {
 				gitBase = strings.Replace(c.BaseURL, "https://", "git@", 1)
 			}
-			r.CloneURL = fmt.Sprintf("%s:%s", gitBase, r.Path)
+			// Use repoPathWithTilde for clone URL (git needs the ~ prefix)
+			r.CloneURL = fmt.Sprintf("%s:%s", gitBase, repoPathWithTilde)
 		}
 
 		r.URL = r.CloneURL
 		repos = append(repos, r)
 	}
 
-	return repos, sourcehutCursor(response.Data.Repositories.Cursor), nil
+	return repos, nil
+}
+
+type repository struct {
+	ID    int64 `json:"id"`
+	Owner struct {
+		ID            string `json:"id"`
+		CanonicalName string `json:"canonicalName"`
+	} `json:"owner"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Visibility  string `json:"visibility"`
+	HEAD        struct {
+		Name   string `json:"name"`
+		Target string `json:"target"`
+	} `json:"HEAD"`
 }

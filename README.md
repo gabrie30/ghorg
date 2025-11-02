@@ -31,6 +31,8 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
   - [Install](https://github.com/gabrie30/ghorg#installation) | [Setup](https://github.com/gabrie30/ghorg#bitbucket-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/bitbucket.md)
 - Gitea (Self Hosted Only)
   - [Install](https://github.com/gabrie30/ghorg#installation) | [Setup](https://github.com/gabrie30/ghorg#gitea-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/gitea.md)
+- Sourcehut (Limited Features)
+  - [Install](https://github.com/gabrie30/ghorg#installation) | [Setup](https://github.com/gabrie30/ghorg#sourcehut-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/sourcehut.md)
 
 > The terminology used in ghorg is that of GitHub, mainly orgs/repos. GitLab and BitBucket use different terminology. There is a handy chart thanks to GitLab that translates terminology [here](https://about.gitlab.com/images/blogimages/gitlab-terminology.png). Note, some features may be different for certain providers.
 
@@ -143,6 +145,10 @@ Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wi
 1. Ensure you have added an SSH key if you want to clone private repos (sourcehut does not accept PATs in https URLs)
 1. Update `GHORG_SOURCEHUT_TOKEN` in your `ghorg/conf.yaml` or use the (--token, -t) flag or place it in a file and add the path to `GHORG_SOURCEHUT_TOKEN`.
 1. Update `GHORG_SCM_TYPE` to `sourcehut` in your `ghorg/conf.yaml` or via cli flags
+
+> **Note on usernames**: You can specify sourcehut usernames with or without the `~` prefix (e.g., both `ghorg clone username` and `ghorg clone ~username` work). Local folder paths will never include the `~` prefix to avoid shell expansion issues.
+
+> **For detailed examples, API limitations, and sourcehut-specific features, see [examples/sourcehut.md](https://github.com/gabrie30/ghorg/blob/master/examples/sourcehut.md)**
 
 ### Bitbucket Setup
 
