@@ -86,6 +86,7 @@ type (
 		TransferProject(pid any, opt *TransferProjectOptions, options ...RequestOptionFunc) (*Project, *Response, error)
 		StartHousekeepingProject(pid any, options ...RequestOptionFunc) (*Response, error)
 		GetRepositoryStorage(pid any, options ...RequestOptionFunc) (*ProjectReposityStorage, *Response, error)
+		ListProjectStarrers(pid any, opts *ListProjectStarrersOptions, options ...RequestOptionFunc) ([]*ProjectStarrer, *Response, error)
 	}
 
 	// ProjectsService handles communication with the repositories related methods
@@ -2460,4 +2461,48 @@ func (s *ProjectsService) GetRepositoryStorage(pid any, options ...RequestOption
 	}
 
 	return prs, resp, nil
+}
+
+// ProjectStarrer represents a user who starred a project.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/api/project_starring/#list-users-who-starred-a-project
+type ProjectStarrer struct {
+	StarredSince time.Time   `json:"starred_since"`
+	User         ProjectUser `json:"user"`
+}
+
+// ListProjectStarrersOptions represents the available ListProjectStarrers() options.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/api/project_starring/#list-users-who-starred-a-project
+type ListProjectStarrersOptions struct {
+	ListOptions
+	Search *string `url:"search,omitempty" json:"search,omitempty"`
+}
+
+// ListProjectStarrers gets users who starred a project.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/api/project_starring/#list-users-who-starred-a-project
+func (s *ProjectsService) ListProjectStarrers(pid any, opts *ListProjectStarrersOptions, options ...RequestOptionFunc) ([]*ProjectStarrer, *Response, error) {
+	project, err := parseID(pid)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	u := fmt.Sprintf("projects/%s/starrers", PathEscape(project))
+
+	req, err := s.client.NewRequest(http.MethodGet, u, opts, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var starrers []*ProjectStarrer
+	resp, err := s.client.Do(req, &starrers)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return starrers, resp, nil
 }

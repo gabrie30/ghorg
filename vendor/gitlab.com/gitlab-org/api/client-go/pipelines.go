@@ -53,6 +53,7 @@ type (
 		GetPipeline(pid any, pipeline int, options ...RequestOptionFunc) (*Pipeline, *Response, error)
 		GetPipelineVariables(pid any, pipeline int, options ...RequestOptionFunc) ([]*PipelineVariable, *Response, error)
 		GetPipelineTestReport(pid any, pipeline int, options ...RequestOptionFunc) (*PipelineTestReport, *Response, error)
+		GetPipelineTestReportSummary(pid any, pipeline int, options ...RequestOptionFunc) (*PipelineTestReportSummary, *Response, error)
 		GetLatestPipeline(pid any, opt *GetLatestPipelineOptions, options ...RequestOptionFunc) (*Pipeline, *Response, error)
 		CreatePipeline(pid any, opt *CreatePipelineOptions, options ...RequestOptionFunc) (*Pipeline, *Response, error)
 		RetryPipelineBuild(pid any, pipeline int, options ...RequestOptionFunc) (*Pipeline, *Response, error)
@@ -170,6 +171,37 @@ type PipelineTestCases struct {
 	StackTrace     string          `json:"stack_trace"`
 	AttachmentURL  string          `json:"attachment_url"`
 	RecentFailures *RecentFailures `json:"recent_failures"`
+}
+
+// PipelineTestReportSummary contains a summary report of a test run
+type PipelineTestReportSummary struct {
+	Total      PipelineTotalSummary       `json:"total"`
+	TestSuites []PipelineTestSuiteSummary `json:"test_suites"`
+}
+
+// PipelineTotalSummary contains a total summary of a test run
+type PipelineTotalSummary struct {
+	// Documentation examples only show whole numbers, but the test specs for GitLab show decimals, so `float64` is the better attribute here.
+	Time       float64 `json:"time"`
+	Count      int     `json:"count"`
+	Success    int     `json:"success"`
+	Failed     int     `json:"failed"`
+	Skipped    int     `json:"skipped"`
+	Error      int     `json:"error"`
+	SuiteError *string `json:"suite_error"`
+}
+
+// PipelineTestSuiteSummary contains a test suite summary of a test run
+type PipelineTestSuiteSummary struct {
+	Name         string  `json:"name"`
+	TotalTime    float64 `json:"total_time"`
+	TotalCount   int     `json:"total_count"`
+	SuccessCount int     `json:"success_count"`
+	FailedCount  int     `json:"failed_count"`
+	SkippedCount int     `json:"skipped_count"`
+	ErrorCount   int     `json:"error_count"`
+	BuildIDs     []int   `json:"build_ids"`
+	SuiteError   *string `json:"suite_error"`
 }
 
 // RecentFailures contains failures count for the project's default branch.
@@ -317,6 +349,31 @@ func (s *PipelinesService) GetPipelineTestReport(pid any, pipeline int, options 
 	}
 
 	p := new(PipelineTestReport)
+	resp, err := s.client.Do(req, p)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return p, resp, nil
+}
+
+// GetPipelineTestReportSummary gets the test report summary of a single project pipeline.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/api/pipelines/#get-a-test-report-summary-for-a-pipeline
+func (s *PipelinesService) GetPipelineTestReportSummary(pid any, pipeline int, options ...RequestOptionFunc) (*PipelineTestReportSummary, *Response, error) {
+	project, err := parseID(pid)
+	if err != nil {
+		return nil, nil, err
+	}
+	u := fmt.Sprintf("projects/%s/pipelines/%d/test_report_summary", PathEscape(project), pipeline)
+
+	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	p := new(PipelineTestReportSummary)
 	resp, err := s.client.Do(req, p)
 	if err != nil {
 		return nil, resp, err

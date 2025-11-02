@@ -176,6 +176,7 @@ type Client struct {
 	GroupMembers                     GroupMembersServiceInterface
 	GroupMilestones                  GroupMilestonesServiceInterface
 	GroupProtectedEnvironments       GroupProtectedEnvironmentsServiceInterface
+	GroupRelationsExport             GroupRelationsExportServiceInterface
 	GroupReleases                    GroupReleasesServiceInterface
 	GroupRepositoryStorageMove       GroupRepositoryStorageMoveServiceInterface
 	GroupSCIM                        GroupSCIMServiceInterface
@@ -201,10 +202,12 @@ type Client struct {
 	MemberRolesService               MemberRolesServiceInterface
 	MergeRequestApprovals            MergeRequestApprovalsServiceInterface
 	MergeRequestApprovalSettings     MergeRequestApprovalSettingsServiceInterface
+	MergeRequestContextCommits       MergeRequestContextCommitsServiceInterface
 	MergeRequests                    MergeRequestsServiceInterface
 	MergeTrains                      MergeTrainsServiceInterface
 	Metadata                         MetadataServiceInterface
 	Milestones                       MilestonesServiceInterface
+	ModelRegistry                    ModelRegistryServiceInterface
 	Namespaces                       NamespacesServiceInterface
 	Notes                            NotesServiceInterface
 	NotificationSettings             NotificationSettingsServiceInterface
@@ -229,12 +232,14 @@ type Client struct {
 	ProjectRepositoryStorageMove     ProjectRepositoryStorageMoveServiceInterface
 	ProjectSecuritySettings          ProjectSecuritySettingsServiceInterface
 	ProjectSnippets                  ProjectSnippetsServiceInterface
+	ProjectStatistics                ProjectStatisticsServiceInterface
 	ProjectTemplates                 ProjectTemplatesServiceInterface
 	ProjectVariables                 ProjectVariablesServiceInterface
 	ProjectVulnerabilities           ProjectVulnerabilitiesServiceInterface
 	Projects                         ProjectsServiceInterface
 	ProtectedBranches                ProtectedBranchesServiceInterface
 	ProtectedEnvironments            ProtectedEnvironmentsServiceInterface
+	ProtectedPackages                ProtectedPackagesServiceInterface
 	ProtectedTags                    ProtectedTagsServiceInterface
 	ReleaseLinks                     ReleaseLinksServiceInterface
 	Releases                         ReleasesServiceInterface
@@ -484,6 +489,7 @@ func NewAuthSourceClient(as AuthSource, options ...ClientOptionFunc) (*Client, e
 	c.GroupMembers = &GroupMembersService{client: c}
 	c.GroupMilestones = &GroupMilestonesService{client: c}
 	c.GroupProtectedEnvironments = &GroupProtectedEnvironmentsService{client: c}
+	c.GroupRelationsExport = &GroupRelationsExportService{client: c}
 	c.GroupReleases = &GroupReleasesService{client: c}
 	c.GroupRepositoryStorageMove = &GroupRepositoryStorageMoveService{client: c}
 	c.GroupSCIM = &GroupSCIMService{client: c}
@@ -509,10 +515,12 @@ func NewAuthSourceClient(as AuthSource, options ...ClientOptionFunc) (*Client, e
 	c.MemberRolesService = &MemberRolesService{client: c}
 	c.MergeRequestApprovals = &MergeRequestApprovalsService{client: c}
 	c.MergeRequestApprovalSettings = &MergeRequestApprovalSettingsService{client: c}
+	c.MergeRequestContextCommits = &MergeRequestContextCommitsService{client: c}
 	c.MergeRequests = &MergeRequestsService{client: c, timeStats: timeStats}
 	c.MergeTrains = &MergeTrainsService{client: c}
 	c.Metadata = &MetadataService{client: c}
 	c.Milestones = &MilestonesService{client: c}
+	c.ModelRegistry = &ModelRegistryService{client: c}
 	c.Namespaces = &NamespacesService{client: c}
 	c.Notes = &NotesService{client: c}
 	c.NotificationSettings = &NotificationSettingsService{client: c}
@@ -537,12 +545,14 @@ func NewAuthSourceClient(as AuthSource, options ...ClientOptionFunc) (*Client, e
 	c.ProjectRepositoryStorageMove = &ProjectRepositoryStorageMoveService{client: c}
 	c.ProjectSecuritySettings = &ProjectSecuritySettingsService{client: c}
 	c.ProjectSnippets = &ProjectSnippetsService{client: c}
+	c.ProjectStatistics = &ProjectStatisticsService{client: c}
 	c.ProjectTemplates = &ProjectTemplatesService{client: c}
 	c.ProjectVariables = &ProjectVariablesService{client: c}
 	c.ProjectVulnerabilities = &ProjectVulnerabilitiesService{client: c}
 	c.Projects = &ProjectsService{client: c}
 	c.ProtectedBranches = &ProtectedBranchesService{client: c}
 	c.ProtectedEnvironments = &ProtectedEnvironmentsService{client: c}
+	c.ProtectedPackages = &ProtectedPackagesService{client: c}
 	c.ProtectedTags = &ProtectedTagsService{client: c}
 	c.ReleaseLinks = &ReleaseLinksService{client: c}
 	c.Releases = &ReleasesService{client: c}
