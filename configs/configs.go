@@ -29,6 +29,9 @@ var (
 	// ErrNoGiteaToken error message when token is not found
 	ErrNoGiteaToken = errors.New("Could not find a valid gitea token. GHORG_GITEA_TOKEN or (--token, -t) flag must be set. Create a token from gitea then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'Gitea Setup' in README.md")
 
+	// ErrNoSourcehutToken error message when token is not found
+	ErrNoSourcehutToken = errors.New("Could not find a valid sourcehut token. GHORG_SOURCEHUT_TOKEN or (--token, -t) flag must be set. Create a token from sourcehut then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'Sourcehut Setup' in README.md")
+
 	// ErrNoBitbucketUsername error message when no username found
 	ErrNoBitbucketUsername = errors.New("Could not find bitbucket username. GHORG_BITBUCKET_USERNAME or (--bitbucket-username) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
 
@@ -234,6 +237,8 @@ func GetOrSetToken() {
 		getOrSetBitBucketToken()
 	case "gitea":
 		getOrSetGiteaToken()
+	case "sourcehut":
+		getOrSetSourcehutToken()
 	}
 }
 
@@ -310,6 +315,21 @@ func getOrSetGiteaToken() {
 	}
 }
 
+func getOrSetSourcehutToken() {
+	token := os.Getenv("GHORG_SOURCEHUT_TOKEN")
+
+	if IsFilePath(token) {
+		os.Setenv("GHORG_SOURCEHUT_TOKEN", GetTokenFromFile(token))
+	}
+
+	if isZero(token) {
+		if runtime.GOOS == "windows" {
+			return
+		}
+		os.Setenv("GHORG_SOURCEHUT_TOKEN", token)
+	}
+}
+
 // VerifyTokenSet checks to make sure env is set for the correct scm provider
 func VerifyTokenSet() error {
 
@@ -332,6 +352,10 @@ func VerifyTokenSet() error {
 
 	if scmProvider == "gitea" && os.Getenv("GHORG_GITEA_TOKEN") == "" {
 		return ErrNoGiteaToken
+	}
+
+	if scmProvider == "sourcehut" && os.Getenv("GHORG_SOURCEHUT_TOKEN") == "" {
+		return ErrNoSourcehutToken
 	}
 
 	if scmProvider == "bitbucket" {
@@ -360,6 +384,8 @@ func GetCloudScmTypeHostnames() string {
 		return "gitea.com"
 	case "bitbucket":
 		return "bitbucket.com"
+	case "sourcehut":
+		return "git.sr.ht"
 	default:
 		colorlog.PrintErrorAndExit("Unsupported GHORG_SCM_TYPE")
 		return ""

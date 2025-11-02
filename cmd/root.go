@@ -66,6 +66,7 @@ var (
 	insecureGitlabClient         bool
 	insecureGiteaClient          bool
 	insecureBitbucketClient      bool
+	insecureSourcehutClient      bool
 	fetchAll                     bool
 	ghorgReCloneQuiet            bool
 	ghorgReCloneList             bool
@@ -194,6 +195,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_BITBUCKET_CLIENT":
 			os.Setenv(envVar, "false")
+		case "GHORG_INSECURE_SOURCEHUT_CLIENT":
+			os.Setenv(envVar, "false")
 		case "GHORG_GITHUB_USER_OPTION":
 			os.Setenv(envVar, "owner")
 		case "GHORG_BACKUP":
@@ -305,6 +308,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_INSECURE_GITLAB_CLIENT")
 	getOrSetDefaults("GHORG_INSECURE_GITEA_CLIENT")
 	getOrSetDefaults("GHORG_INSECURE_BITBUCKET_CLIENT")
+	getOrSetDefaults("GHORG_INSECURE_SOURCEHUT_CLIENT")
 	getOrSetDefaults("GHORG_BACKUP")
 	getOrSetDefaults("GHORG_RECLONE_ENV_CONFIG_ONLY")
 	getOrSetDefaults("GHORG_RECLONE_QUIET")
@@ -341,6 +345,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_QUIET")
 	getOrSetDefaults("GHORG_GIT_FILTER")
 	getOrSetDefaults("GHORG_GITEA_TOKEN")
+	getOrSetDefaults("GHORG_SOURCEHUT_TOKEN")
 	getOrSetDefaults("GHORG_INSECURE_GITEA_CLIENT")
 	getOrSetDefaults("GHORG_GITHUB_APP_PEM_PATH")
 	getOrSetDefaults("GHORG_GITHUB_APP_INSTALLATION_ID")
@@ -369,9 +374,9 @@ func init() {
 	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "GHORG_CLONE_PROTOCOL - Protocol to clone with, ssh or https, (default https)")
 	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "GHORG_ABSOLUTE_PATH_TO_CLONE_TO - Absolute path to the home for ghorg clones. Must start with / (default $HOME/ghorg)")
 	cloneCmd.Flags().StringVarP(&branch, "branch", "b", "", "GHORG_BRANCH - Branch left checked out for each repo cloned (default master)")
-	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "GHORG_GITHUB_TOKEN/GHORG_GITLAB_TOKEN/GHORG_GITEA_TOKEN/GHORG_BITBUCKET_APP_PASSWORD/GHORG_BITBUCKET_OAUTH_TOKEN - scm token to clone with")
+	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "GHORG_GITHUB_TOKEN/GHORG_GITLAB_TOKEN/GHORG_GITEA_TOKEN/GHORG_BITBUCKET_APP_PASSWORD/GHORG_BITBUCKET_OAUTH_TOKEN/GHORG_SOURCEHUT_TOKEN - scm token to clone with")
 	cloneCmd.Flags().StringVarP(&bitbucketUsername, "bitbucket-username", "", "", "GHORG_BITBUCKET_USERNAME - Bitbucket only: username associated with the app password")
-	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "", "GHORG_SCM_TYPE - Type of scm used, github, gitlab, gitea or bitbucket (default github)")
+	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "", "GHORG_SCM_TYPE - Type of scm used, github, gitlab, gitea, bitbucket or sourcehut (default github)")
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - Clone target type, user or org (default org)")
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED - Skips archived repos, github/gitlab/gitea only")
 	cloneCmd.Flags().BoolVar(&noClean, "no-clean", false, "GHORG_NO_CLEAN - Only clones new repos and does not perform a git clean on existing repos")
@@ -382,6 +387,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&insecureGitlabClient, "insecure-gitlab-client", false, "GHORG_INSECURE_GITLAB_CLIENT - Skip TLS certificate verification for hosted gitlab instances")
 	cloneCmd.Flags().BoolVar(&insecureGiteaClient, "insecure-gitea-client", false, "GHORG_INSECURE_GITEA_CLIENT - Must be set to clone from a Gitea instance using http")
 	cloneCmd.Flags().BoolVar(&insecureBitbucketClient, "insecure-bitbucket-client", false, "GHORG_INSECURE_BITBUCKET_CLIENT - Must be set to clone from a Bitbucket Server instance using http")
+	cloneCmd.Flags().BoolVar(&insecureSourcehutClient, "insecure-sourcehut-client", false, "GHORG_INSECURE_SOURCEHUT_CLIENT - Must be set to clone from a Sourcehut instance using http")
 	cloneCmd.Flags().BoolVar(&cloneWiki, "clone-wiki", false, "GHORG_CLONE_WIKI - Additionally clone the wiki page for repo")
 	cloneCmd.Flags().BoolVar(&cloneSnippets, "clone-snippets", false, "GHORG_CLONE_SNIPPETS - Additionally clone all snippets, gitlab only")
 	cloneCmd.Flags().BoolVar(&skipForks, "skip-forks", false, "GHORG_SKIP_FORKS - Skips repo if its a fork, github/gitlab/gitea only")
