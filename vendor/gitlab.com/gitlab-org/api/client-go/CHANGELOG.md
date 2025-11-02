@@ -1,3 +1,170 @@
+## 0.157.1
+
+### 🐛 Bug Fixes
+
+- fix(protected_packages): fix invalid types ([!2554](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2554)) by [Ruwen Schwedewsky](https://gitlab.com/RuwenSchwedewskySinch)
+
+### 🔄 Other Changes
+
+- chore: Update review instructions for mentioning GitLab ([!2552](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2552)) by [Zubeen](https://gitlab.com/syedzubeen)
+- Implement do function to reduce boilerplate ([!2550](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2550)) by [Timo Furrer](https://gitlab.com/timofurrer)
+- refactor(test): migrate to testify assertions 4 ([!2548](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2548)) by [Zubeen](https://gitlab.com/syedzubeen)
+- refactor(test): migrate to testify assertions 2 ([!2546](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2546)) by [Zubeen](https://gitlab.com/syedzubeen)
+- refactor(test): migrate to testify assertions ([!2545](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2545)) by [Zubeen](https://gitlab.com/syedzubeen)
+- refactor(test): migrate to testify assertions 5 ([!2549](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2549)) by [Zubeen](https://gitlab.com/syedzubeen)
+- test: add unit tests for cluster agents and deployments ([!2499](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2499)) by [Zubeen](https://gitlab.com/syedzubeen)
+- refactor(test): migrate to testify assertions 3 ([!2547](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2547)) by [Zubeen](https://gitlab.com/syedzubeen)
+- Fix: Helper Functions for Code Refactoring ([!2544](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2544)) by [Yashesvinee V](https://gitlab.com/yashes7516)
+- test: adds UT for formatPackageURL ([!2527](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2527)) by [Zubeen](https://gitlab.com/syedzubeen)
+- test: adds UT for getEpicLinks ([!2526](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2526)) by [Zubeen](https://gitlab.com/syedzubeen)
+- test: add test for ApproveOrRejectProjectDeployment ([!2498](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2498)) by [Zubeen](https://gitlab.com/syedzubeen)
+- test: adds UTs for packages ([!2529](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2529)) by [Zubeen](https://gitlab.com/syedzubeen)
+
+
+
+## [0.157.1](https://gitlab.com/gitlab-org/api/client-go/compare/v0.157.0...v0.157.1) (2025-10-28)
+
+
+### Bug Fixes
+
+* **no-release:** Helper Functions for Code Refactoring ([6feffea](https://gitlab.com/gitlab-org/api/client-go/commit/6feffea6696a8e333fd0811eee8501e58ba743e3))
+* **protected_packages:** fix invalid types ([c09943b](https://gitlab.com/gitlab-org/api/client-go/commit/c09943b0dde510dca32a2544a9c0f75f85943d96))
+
+## 0.157.0
+
+### 🚀 Features
+
+- Add merge requests commit api ([!2539](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2539)) by [Ilya Savitsky](https://gitlab.com/ipsavitsky234)
+
+### 🔄 Other Changes
+
+- test: adds missing UTs for notifications ([!2528](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2528)) by [Zubeen](https://gitlab.com/syedzubeen)
+- chore: Update review instructions ([!2537](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2537)) by [Patrick Rice](https://gitlab.com/PatrickRice)
+- chore(no-release): Fix godoc comments; enable godoclint ([!2535](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2535)) by [Oleksandr Redko](https://gitlab.com/alexandear)
+
+
+
+# [0.157.0](https://gitlab.com/gitlab-org/api/client-go/compare/v0.156.0...v0.157.0) (2025-10-13)
+
+## 0.156.0
+
+### 🚀 Features
+
+- feat(api): add support for test report summary api ([!2487](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2487)) by [Daniela Filipe Bento](https://gitlab.com/danifbento)
+
+
+
+# [0.156.0](https://gitlab.com/gitlab-org/api/client-go/compare/v0.155.0...v0.156.0) (2025-10-10)
+
+
+### Features
+
+* **api:** add support for test report summary api ([8a0c6dd](https://gitlab.com/gitlab-org/api/client-go/commit/8a0c6dde10a4c9c034274a439eaa060dc6e40995))
+
+## 0.155.0
+
+### 🚀 Features
+
+- feat(group_relations_export): Added Group Relations API integration ([!2508](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2508)) by [Jose Gabriel Companioni Benitez](https://gitlab.com/elC0mpa)
+
+### 🔄 Other Changes
+
+- chore: use local protoc plugin with buf ([!2536](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2536)) by [Timo Furrer](https://gitlab.com/timofurrer)
+- chore(no-release): Change generated file comment ([!2532](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2532)) by [Oleksandr Redko](https://gitlab.com/alexandear)
+- docs(no-release): Fix the comment for EnvVarGitLabContext ([!2533](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2533)) by [Oleksandr Redko](https://gitlab.com/alexandear)
+- feat(client_options): Added unit tests ([!2510](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2510)) by [Jose Gabriel Companioni Benitez](https://gitlab.com/elC0mpa)
+
+
+
+# [0.155.0](https://gitlab.com/gitlab-org/api/client-go/compare/v0.154.0...v0.155.0) (2025-10-09)
+
+
+### Features
+
+* **client_options:** Added unit tests ([c148031](https://gitlab.com/gitlab-org/api/client-go/commit/c14803189aa47a0cc9e64e9b455b93e6d4c4e4b9))
+* **group_relations_export:** Added Group Relations API integration ([956e039](https://gitlab.com/gitlab-org/api/client-go/commit/956e03950d6bc03c56fa1ea4c5d6e06bfd0b264f))
+
+## 0.154.0
+
+### 🚀 Features
+
+- feat(protected_packages): Add api integration ([!2520](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2520)) by [Jose Gabriel Companioni Benitez](https://gitlab.com/elC0mpa)
+
+
+
+# [0.154.0](https://gitlab.com/gitlab-org/api/client-go/compare/v0.153.0...v0.154.0) (2025-10-08)
+
+
+### Features
+
+* **protected_packages:** Add api integration ([2de15c7](https://gitlab.com/gitlab-org/api/client-go/commit/2de15c7875e232b0b0b1e5e5bb8e184cd11d0774))
+
+## 0.153.0
+
+### 🚀 Features
+
+- feat(project_Statistics): Added api integration ([!2512](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2512)) by [Jose Gabriel Companioni Benitez](https://gitlab.com/elC0mpa)
+
+### 🔄 Other Changes
+
+- refactor: moved comments to interface ([!2509](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2509)) by [ajey muthiah](https://gitlab.com/ajeymuthiah)
+- chore(no-release): Helper Functions for Code Refactoring ([!2503](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2503)) by [Yashesvinee V](https://gitlab.com/yashes7516)
+- Add t.Parallel() to all tests and enable linters ([!2513](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2513)) by [Timo Furrer](https://gitlab.com/timofurrer)
+- ci: Remove the `commitlint` job. ([!2511](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2511)) by [Florian Forster](https://gitlab.com/fforster)
+- refactor: moved comments to interface ([!2507](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2507)) by [ajey muthiah](https://gitlab.com/ajeymuthiah)
+
+
+
+# [0.153.0](https://gitlab.com/gitlab-org/api/client-go/compare/v0.152.0...v0.153.0) (2025-10-08)
+
+
+### Features
+
+* **project_Statistics:** Added api integration ([75b5a03](https://gitlab.com/gitlab-org/api/client-go/commit/75b5a03010a39d5353c975a558fda0b6f00cb697))
+
+## 0.152.0
+
+### 🚀 Features
+
+- feat(api): add api support for listing users who starred a project ([!2486](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2486)) by [ajey muthiah](https://gitlab.com/ajeymuthiah)
+
+### 🔄 Other Changes
+
+- chore(no-release): Update Duo Review Instructions ([!2502](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2502)) by [Patrick Rice](https://gitlab.com/PatrickRice)
+- feat(model_registry_api): Added api integration ([!2501](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2501)) by [Jose Gabriel Companioni Benitez](https://gitlab.com/elC0mpa)
+- feat(no-release): Add AGENTS.md file ([!2479](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2479)) by [Patrick Rice](https://gitlab.com/PatrickRice)
+- chore(no-release): Disable dependency scanning on personal forks ([!2500](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2500)) by [Patrick Rice](https://gitlab.com/PatrickRice)
+
+
+
+# [0.152.0](https://gitlab.com/gitlab-org/api/client-go/compare/v0.151.0...v0.152.0) (2025-10-06)
+
+
+### Features
+
+* **api:** add api support for listing users who starred a project ([0cdb4ce](https://gitlab.com/gitlab-org/api/client-go/commit/0cdb4ce5399b43e47bf120a90b16d00c022e194c))
+* **model_registry_api:** Added api integration ([065dd63](https://gitlab.com/gitlab-org/api/client-go/commit/065dd639bc8bd0f44cab4d92dbe3ea7f134b913f))
+* **no-release:** Add AGENTS.md file ([b9febab](https://gitlab.com/gitlab-org/api/client-go/commit/b9febab3181c3f87edd1fd99b5e596f76bc8b7cc))
+
+## 0.151.0
+
+### 🚀 Features
+
+- feat(api): add api support for delete enterprise user ([!2492](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2492)) by [ajey muthiah](https://gitlab.com/ajeymuthiah)
+
+### 🔄 Other Changes
+
+- docs(no-release): Make it easier to find the docs on issues ([!2497](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2497)) by [Heidi Berry](https://gitlab.com/heidi.berry)
+
+
+
+# [0.151.0](https://gitlab.com/gitlab-org/api/client-go/compare/v0.150.0...v0.151.0) (2025-10-04)
+
+
+### Features
+
+* **api:** add api support for delete enterprise user ([36ca8ab](https://gitlab.com/gitlab-org/api/client-go/commit/36ca8ab7672c352a073d59dacae3d763d4089abb))
+
 ## 0.150.0
 
 ### 🚀 Features
