@@ -300,9 +300,9 @@ GHORG_BITBUCKET_USERNAME:
 # flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2 or --token=~/path/to/file/containing/token
 GHORG_SOURCEHUT_TOKEN:
 
-# Must be present if your gitea instance uses http
+# Must be present if your sourcehut instance uses http
 # flag (--insecure-sourcehut-client)
-GHORG_INSECURE_SOURCECHUT_CLIENT: false
+GHORG_INSECURE_SOURCEHUT_CLIENT: false
 
 
 # +-+-+-+-+-+ +-+-+-+-+-+-+-+
