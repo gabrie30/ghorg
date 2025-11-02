@@ -37,6 +37,8 @@ else
     exit 1
 fi
 
+rm -rf $HOME/ghorg/github.com/$GITHUB_ORG
+
 # clone an org preserving scm hostname
 ghorg clone $GITHUB_ORG --token=$GITHUB_TOKEN --preserve-scm-hostname --prune-untouched --prune-untouched-no-confirm
 
@@ -118,6 +120,8 @@ else
     echo "Fail: github reclone testing-topic-in-tmp-dir file does not exist"
     exit 1
 fi
+
+rm -f $PWD/scripts/testing_confs/updated_reclone.yaml
 
 COUNT=$(ls /tmp/testing_reclone_with_tag | wc -l)
 
