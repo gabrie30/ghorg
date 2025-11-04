@@ -183,7 +183,9 @@ func (rp *RepositoryProcessor) shouldPruneUntouched(repo *scm.Repo) bool {
 
 	// Delete if it has no branches
 	if branches == "" {
+		rp.mutex.Lock()
 		rp.untouchedRepos = append(rp.untouchedRepos, repo.HostPath)
+		rp.mutex.Unlock()
 		return true
 	}
 
@@ -214,7 +216,9 @@ func (rp *RepositoryProcessor) shouldPruneUntouched(repo *scm.Repo) bool {
 		return false
 	}
 
+	rp.mutex.Lock()
 	rp.untouchedRepos = append(rp.untouchedRepos, repo.HostPath)
+	rp.mutex.Unlock()
 	return true
 }
 
@@ -507,7 +511,10 @@ func (rp *RepositoryProcessor) GetStats() CloneStats {
 
 // GetUntouchedRepos returns the list of untouched repositories
 func (rp *RepositoryProcessor) GetUntouchedRepos() []string {
-	return rp.untouchedRepos
+	rp.mutex.RLock()
+	defer rp.mutex.RUnlock()
+	// Return a copy to prevent external modifications
+	return append([]string(nil), rp.untouchedRepos...)
 }
 
 // SetTotalDuration sets the total duration in seconds for the clone operation

@@ -285,6 +285,17 @@ func (c Github) SetTokensUsername() {
 		tokenUsername = "x-access-token"
 		return
 	}
-	userToken, _, _ := c.Users.Get(context.Background(), "")
-	tokenUsername = userToken.GetLogin()
+	userToken, _, err := c.Users.Get(context.Background(), "")
+	if err != nil || userToken == nil {
+		// Fallback to x-access-token if we can't get the username
+		// This prevents panics and allows cloning to continue
+		tokenUsername = "x-access-token"
+		return
+	}
+	login := userToken.GetLogin()
+	if login == "" {
+		tokenUsername = "x-access-token"
+		return
+	}
+	tokenUsername = login
 }

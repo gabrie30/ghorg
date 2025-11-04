@@ -372,6 +372,13 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 }
 
 func setupRepoClone() {
+	// Clear global slices and cached values at the start of each clone operation
+	// to prevent memory leaks in long-running processes like reclone-server
+	cloneErrors = nil
+	cloneInfos = nil
+	cachedDirSizeMB = 0
+	isDirSizeCached = false
+
 	var cloneTargets []scm.Repo
 	var err error
 
