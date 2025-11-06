@@ -58,6 +58,64 @@ func TestShouldNotChangeNonLettersString(t *testing.T) {
 	}
 }
 
+func TestSourcehutStripsTildePrefix(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+
+	usernameWithTilde := "~gabrie30"
+	os.Setenv("GHORG_SCM_TYPE", "sourcehut")
+	defer setOutputDirName([]string{""})
+	setOutputDirName([]string{usernameWithTilde})
+
+	expected := "gabrie30"
+	if outputDirName != expected {
+		t.Errorf("Wrong folder name for sourcehut with tilde, expected: %s, got: %s", expected, outputDirName)
+	}
+}
+
+func TestSourcehutWithoutTildePrefix(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+
+	usernameWithoutTilde := "gabrie30"
+	os.Setenv("GHORG_SCM_TYPE", "sourcehut")
+	defer setOutputDirName([]string{""})
+	setOutputDirName([]string{usernameWithoutTilde})
+
+	expected := "gabrie30"
+	if outputDirName != expected {
+		t.Errorf("Wrong folder name for sourcehut without tilde, expected: %s, got: %s", expected, outputDirName)
+	}
+}
+
+func TestSourcehutStripsTildePrefixUppercase(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+
+	usernameWithTilde := "~Gabrie30"
+	os.Setenv("GHORG_SCM_TYPE", "sourcehut")
+	defer setOutputDirName([]string{""})
+	setOutputDirName([]string{usernameWithTilde})
+
+	// Should be lowercased AND have tilde stripped
+	expected := "gabrie30"
+	if outputDirName != expected {
+		t.Errorf("Wrong folder name for sourcehut with uppercase and tilde, expected: %s, got: %s", expected, outputDirName)
+	}
+}
+
+func TestNonSourcehutPreservesTilde(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+
+	usernameWithTilde := "~user123"
+	os.Setenv("GHORG_SCM_TYPE", "github")
+	defer setOutputDirName([]string{""})
+	setOutputDirName([]string{usernameWithTilde})
+
+	// For non-sourcehut SCMs, tilde should be preserved (even though it's unusual)
+	expected := "~user123"
+	if outputDirName != expected {
+		t.Errorf("Wrong folder name for github with tilde, expected: %s, got: %s", expected, outputDirName)
+	}
+}
+
 type MockGitClient struct{}
 
 func NewMockGit() MockGitClient {

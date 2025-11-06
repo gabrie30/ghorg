@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.6] - unreleased
+## [1.11.6] - 11/6/25
 ### Added
 - Sourcehut as a new SCM provider; thanks @shabbyrobe
 ### Changed
@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 ### Fixed
 ### Security
+- Bump gitlab.com/gitlab-org/api/client-go from 0.150.0 to 0.157.1 (#592)
+- Bump code.gitea.io/sdk/gitea from 0.22.0 to 0.22.1 (#591)
+- Bump golang.org/x/oauth2 from 0.31.0 to 0.32.0 (#590)
 
 ## [1.11.5] - 10/30/25
 ### Added

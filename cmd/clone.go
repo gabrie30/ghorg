@@ -1314,6 +1314,11 @@ func setOutputDirName(argz []string) {
 
 	outputDirName = strings.ToLower(argz[0])
 
+	// Strip ~ prefix for sourcehut usernames to avoid shell expansion issues
+	if os.Getenv("GHORG_SCM_TYPE") == "sourcehut" {
+		outputDirName = strings.TrimPrefix(outputDirName, "~")
+	}
+
 	if os.Getenv("GHORG_PRESERVE_SCM_HOSTNAME") != "true" {
 		// If all-group is used set the parent folder to the name of the baseurl
 		if argz[0] == "all-groups" && os.Getenv("GHORG_SCM_BASE_URL") != "" {
