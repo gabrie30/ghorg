@@ -325,6 +325,96 @@ func TestRepositoryProcessor_ProcessRepository_NoCleanMode(t *testing.T) {
 	}
 }
 
+func TestRepositoryProcessor_ProcessRepository_NoCleanModeWithFetchAllDisabled(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_NO_CLEAN", "true")
+	os.Setenv("GHORG_FETCH_ALL", "false")
+
+	// Set up temporary directory with existing repo
+	dir, err := os.MkdirTemp("", "ghorg_test_no_clean_fetch_all_disabled")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	outputDirAbsolutePath = dir
+
+	// Create existing repo directory
+	repoDir := filepath.Join(dir, "test-repo")
+	err = os.MkdirAll(repoDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockGit := NewExtendedMockGit()
+	processor := NewRepositoryProcessor(mockGit)
+
+	repo := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+		HostPath:    repoDir,
+	}
+
+	repoNameWithCollisions := make(map[string]bool)
+	processor.ProcessRepository(&repo, repoNameWithCollisions, false, "test-repo", 0)
+
+	stats := processor.GetStats()
+	// In no-clean mode with fetch-all disabled, we should still process successfully
+	if stats.PulledCount != 1 {
+		t.Errorf("Expected pulled count to be 1, got %d", stats.PulledCount)
+	}
+	// Should not have any errors since fetch-all is skipped when disabled
+	if len(stats.CloneErrors) != 0 {
+		t.Errorf("Expected no errors when FETCH_ALL is disabled, got %d errors: %v", len(stats.CloneErrors), stats.CloneErrors)
+	}
+}
+
+func TestRepositoryProcessor_ProcessRepository_NoCleanModeWithFetchAllEnabled(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_NO_CLEAN", "true")
+	os.Setenv("GHORG_FETCH_ALL", "true")
+
+	// Set up temporary directory with existing repo
+	dir, err := os.MkdirTemp("", "ghorg_test_no_clean_fetch_all_enabled")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	outputDirAbsolutePath = dir
+
+	// Create existing repo directory
+	repoDir := filepath.Join(dir, "test-repo")
+	err = os.MkdirAll(repoDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockGit := NewExtendedMockGit()
+	processor := NewRepositoryProcessor(mockGit)
+
+	repo := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+		HostPath:    repoDir,
+	}
+
+	repoNameWithCollisions := make(map[string]bool)
+	processor.ProcessRepository(&repo, repoNameWithCollisions, false, "test-repo", 0)
+
+	stats := processor.GetStats()
+	// In no-clean mode with fetch-all enabled, we should still process successfully
+	if stats.PulledCount != 1 {
+		t.Errorf("Expected pulled count to be 1, got %d", stats.PulledCount)
+	}
+	// Should not have any errors since fetch-all is enabled and mocked
+	if len(stats.CloneErrors) != 0 {
+		t.Errorf("Expected no errors when FETCH_ALL is enabled, got %d errors: %v", len(stats.CloneErrors), stats.CloneErrors)
+	}
+}
+
 func TestRepositoryProcessor_ProcessRepository_NameCollisions(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 
