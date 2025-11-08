@@ -353,31 +353,34 @@ func (rp *RepositoryProcessor) handleBackupMode(repo *scm.Repo) bool {
 
 // handleNoCleanMode processes repositories in no-clean mode
 func (rp *RepositoryProcessor) handleNoCleanMode(repo *scm.Repo) bool {
-	// Temporarily restore credentials for fetch-all to work with private repos
-	err := rp.git.SetOriginWithCredentials(*repo)
-	if err != nil {
-		rp.addError(fmt.Sprintf("Problem trying to set remote with credentials: %s Error: %v", repo.URL, err))
-		return false
-	}
+	// Fetch all if enabled
+	if os.Getenv("GHORG_FETCH_ALL") == "true" {
+		// Temporarily restore credentials for fetch-all to work with private repos
+		err := rp.git.SetOriginWithCredentials(*repo)
+		if err != nil {
+			rp.addError(fmt.Sprintf("Problem trying to set remote with credentials: %s Error: %v", repo.URL, err))
+			return false
+		}
 
-	err = rp.git.FetchAll(*repo)
-	fetchErr := err // Store fetch error for later reporting
+		err = rp.git.FetchAll(*repo)
+		fetchErr := err // Store fetch error for later reporting
 
-	// Always strip credentials again for security, even if fetch failed
-	err = rp.git.SetOrigin(*repo)
-	if err != nil {
-		rp.addError(fmt.Sprintf("Problem trying to reset remote after fetch: %s Error: %v", repo.URL, err))
-		return false
-	}
+		// Always strip credentials again for security, even if fetch failed
+		err = rp.git.SetOrigin(*repo)
+		if err != nil {
+			rp.addError(fmt.Sprintf("Problem trying to reset remote after fetch: %s Error: %v", repo.URL, err))
+			return false
+		}
 
-	if fetchErr != nil && repo.IsWiki {
-		rp.addInfo(fmt.Sprintf("Wiki may be enabled but there was no content to clone on: %s Error: %v", repo.URL, fetchErr))
-		return false
-	}
+		if fetchErr != nil && repo.IsWiki {
+			rp.addInfo(fmt.Sprintf("Wiki may be enabled but there was no content to clone on: %s Error: %v", repo.URL, fetchErr))
+			return false
+		}
 
-	if fetchErr != nil {
-		rp.addError(fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, fetchErr))
-		return false
+		if fetchErr != nil {
+			rp.addError(fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, fetchErr))
+			return false
+		}
 	}
 
 	return true
