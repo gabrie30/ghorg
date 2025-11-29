@@ -30,74 +30,58 @@ func (_ Gitea) GetType() string {
 	return "gitea"
 }
 
-// GetOrgRepos fetches repo data from a specific group
+// GetOrgRepos fetches repo data from a specific group with parallel pagination
 func (c Gitea) GetOrgRepos(targetOrg string) ([]Repo, error) {
-	repoData := []Repo{}
-
 	spinningSpinner.Start()
 	defer spinningSpinner.Stop()
 
-	for i := 1; ; i++ {
-		rps, resp, err := c.ListOrgRepos(targetOrg, gitea.ListOrgReposOptions{ListOptions: gitea.ListOptions{
-			Page:     i,
-			PageSize: c.perPage,
-		}})
+	// Fetch first page
+	rps, resp, err := c.ListOrgRepos(targetOrg, gitea.ListOrgReposOptions{ListOptions: gitea.ListOptions{
+		Page:     1,
+		PageSize: c.perPage,
+	}})
 
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				err = fmt.Errorf("org \"%s\" not found", targetOrg)
-			}
-			return nil, err
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			err = fmt.Errorf("org \"%s\" not found", targetOrg)
 		}
-
-		repoDataFiltered, err := c.filter(rps)
-		if err != nil {
-			return nil, err
-		}
-		repoData = append(repoData, repoDataFiltered...)
-
-		// Exit the loop when we've seen all pages.
-		if len(rps) < c.perPage {
-			break
-		}
+		return nil, err
 	}
 
-	return repoData, nil
+	// If first page not full, this is the only page
+	if len(rps) < c.perPage {
+		return c.filter(rps)
+	}
+
+	// Multiple pages - fetch remaining pages in parallel
+	return c.fetchOrgReposParallel(targetOrg, rps)
 }
 
-// GetUserRepos gets all of a users gitlab repos
+// GetUserRepos gets all of a users gitea repos with parallel pagination
 func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
-	repoData := []Repo{}
-
 	spinningSpinner.Start()
 	defer spinningSpinner.Stop()
 
-	for i := 1; ; i++ {
-		rps, resp, err := c.ListUserRepos(targetUsername, gitea.ListReposOptions{ListOptions: gitea.ListOptions{
-			Page:     i,
-			PageSize: c.perPage,
-		}})
+	// Fetch first page
+	rps, resp, err := c.ListUserRepos(targetUsername, gitea.ListReposOptions{ListOptions: gitea.ListOptions{
+		Page:     1,
+		PageSize: c.perPage,
+	}})
 
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				err = fmt.Errorf("org \"%s\" not found", targetUsername)
-			}
-			return nil, err
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			err = fmt.Errorf("user \"%s\" not found", targetUsername)
 		}
-
-		repoDataFiltered, err := c.filter(rps)
-		if err != nil {
-			return nil, err
-		}
-		repoData = append(repoData, repoDataFiltered...)
-
-		// Exit the loop when we've seen all pages.
-		if len(rps) < c.perPage {
-			break
-		}
+		return nil, err
 	}
 
-	return repoData, nil
+	// If first page not full, this is the only page
+	if len(rps) < c.perPage {
+		return c.filter(rps)
+	}
+
+	// Multiple pages - fetch remaining pages in parallel
+	return c.fetchUserReposParallel(targetUsername, rps)
 }
 
 // NewClient create new gitea scm client

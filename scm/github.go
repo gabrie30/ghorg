@@ -35,7 +35,7 @@ func (_ Github) GetType() string {
 	return "github"
 }
 
-// GetOrgRepos gets org repos
+// GetOrgRepos gets org repos with parallel pagination for performance
 func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 	opt := &github.RepositoryListByOrgOptions{
@@ -48,26 +48,22 @@ func (c Github) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	spinningSpinner.Start()
 	defer spinningSpinner.Stop()
 
-	// get all pages of results
-	var allRepos []*github.Repository
-	for {
-		repos, resp, err := c.Repositories.ListByOrg(context.Background(), targetOrg, opt)
-
-		if err != nil {
-			return nil, err
-		}
-		allRepos = append(allRepos, repos...)
-		if resp.NextPage == 0 {
-			break
-		}
-
-		opt.Page = resp.NextPage
+	// Fetch first page to discover total number of pages
+	repos, resp, err := c.Repositories.ListByOrg(context.Background(), targetOrg, opt)
+	if err != nil {
+		return nil, err
 	}
 
-	return c.filter(allRepos), nil
+	// If only one page, return immediately
+	if resp.LastPage == 0 || resp.LastPage == 1 {
+		return c.filter(repos), nil
+	}
+
+	// Multiple pages - fetch remaining pages in parallel
+	return c.fetchOrgReposParallel(targetOrg, repos, resp.LastPage)
 }
 
-// GetUserRepos gets user repos
+// GetUserRepos gets user repos with parallel pagination for performance
 func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 	if os.Getenv("GHORG_SCM_BASE_URL") != "" {
 		c.BaseURL, _ = url.Parse(os.Getenv("GHORG_SCM_BASE_URL"))
@@ -78,56 +74,49 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 	spinningSpinner.Start()
 	defer spinningSpinner.Stop()
 
-	// get all pages of results
-	var allRepos []*github.Repository
 	opt := &github.ListOptions{PerPage: c.perPage, Page: 1}
 
-	for {
-		var repos []*github.Repository
-		var resp *github.Response
-		var err error
+	// Fetch first page to discover total number of pages
+	var repos []*github.Repository
+	var resp *github.Response
+	var err error
 
-		if targetUser == tokenUsername {
-
-			authOpt := &github.RepositoryListByAuthenticatedUserOptions{
-				Type:        os.Getenv("GHORG_GITHUB_USER_OPTION"),
-				ListOptions: *opt,
-			}
-			// List repositories for the authenticated user
-			repos, resp, err = c.Repositories.ListByAuthenticatedUser(context.Background(), authOpt)
-		} else {
-			userOpt := &github.RepositoryListByUserOptions{
-				Type:        os.Getenv("GHORG_GITHUB_USER_OPTION"),
-				ListOptions: *opt,
-			}
-			// List repositories for the specified user
-			repos, resp, err = c.Repositories.ListByUser(context.Background(), targetUser, userOpt)
+	if targetUser == tokenUsername {
+		authOpt := &github.RepositoryListByAuthenticatedUserOptions{
+			Type:        os.Getenv("GHORG_GITHUB_USER_OPTION"),
+			ListOptions: *opt,
 		}
-
-		if err != nil {
-			return nil, err
+		repos, resp, err = c.Repositories.ListByAuthenticatedUser(context.Background(), authOpt)
+	} else {
+		userOpt := &github.RepositoryListByUserOptions{
+			Type:        os.Getenv("GHORG_GITHUB_USER_OPTION"),
+			ListOptions: *opt,
 		}
-
-		if targetUser != tokenUsername {
-			userRepos := []*github.Repository{}
-
-			for _, repo := range repos {
-				if repo.Owner != nil && repo.Owner.Type != nil && *repo.Owner.Type == "User" {
-					userRepos = append(userRepos, repo)
-				}
-			}
-
-			repos = userRepos
-		}
-
-		allRepos = append(allRepos, repos...)
-		if resp.NextPage == 0 {
-			break
-		}
-		opt.Page = resp.NextPage
+		repos, resp, err = c.Repositories.ListByUser(context.Background(), targetUser, userOpt)
 	}
 
-	return c.filter(allRepos), nil
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter user repos if needed
+	if targetUser != tokenUsername {
+		userRepos := []*github.Repository{}
+		for _, repo := range repos {
+			if repo.Owner != nil && repo.Owner.Type != nil && *repo.Owner.Type == "User" {
+				userRepos = append(userRepos, repo)
+			}
+		}
+		repos = userRepos
+	}
+
+	// If only one page, return immediately
+	if resp.LastPage == 0 || resp.LastPage == 1 {
+		return c.filter(repos), nil
+	}
+
+	// Multiple pages - fetch remaining pages in parallel
+	return c.fetchUserReposParallel(targetUser, repos, resp.LastPage)
 }
 
 // NewClient create new github scm client
