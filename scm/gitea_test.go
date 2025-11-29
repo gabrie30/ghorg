@@ -131,9 +131,15 @@ func TestGitea_GetOrgRepos_MultiplePage_PaginationBugRegression(t *testing.T) {
 			endIdx = totalRepos
 		}
 
-		repos := make([]*gitea.Repository, 0, endIdx-startIdx)
-		for i := startIdx; i < endIdx; i++ {
-			repos = append(repos, mockGiteaRepository(int64(i+1), fmt.Sprintf("repo-%03d", i+1)))
+		// Handle pages beyond available data
+		var repos []*gitea.Repository
+		if startIdx < totalRepos {
+			repos = make([]*gitea.Repository, 0, endIdx-startIdx)
+			for i := startIdx; i < endIdx; i++ {
+				repos = append(repos, mockGiteaRepository(int64(i+1), fmt.Sprintf("repo-%03d", i+1)))
+			}
+		} else {
+			repos = []*gitea.Repository{}
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -154,10 +160,15 @@ func TestGitea_GetOrgRepos_MultiplePage_PaginationBugRegression(t *testing.T) {
 		t.Errorf("Expected %d repositories, got %d", totalRepos, len(result))
 	}
 
-	// Verify pagination occurred (should need 3 requests: 10+10+5)
-	expectedPages := 3
-	if pageRequests != expectedPages {
-		t.Errorf("Expected %d page requests, got %d", expectedPages, pageRequests)
+	// Verify pagination occurred with parallel fetching
+	// With parallel pagination, we fetch in batches of 10 pages at a time
+	// So for 25 repos (3 pages), we'll request: page 1 + pages 2-11 (batch) = 11 requests total
+	// This is expected - we make more requests but get better performance through concurrency
+	expectedMinPages := 3  // At minimum we need 3 pages for 25 repos (10+10+5)
+	expectedMaxPages := 11 // With batch size of 10, we'll request up to page 11
+	if pageRequests < expectedMinPages || pageRequests > expectedMaxPages {
+		t.Errorf("Expected between %d and %d page requests (parallel pagination), got %d",
+			expectedMinPages, expectedMaxPages, pageRequests)
 	}
 
 	// Verify repository data continuity across pages
@@ -189,9 +200,15 @@ func TestGitea_GetOrgRepos_ExactPageBoundary(t *testing.T) {
 			endIdx = totalRepos
 		}
 
-		repos := make([]*gitea.Repository, 0, endIdx-startIdx)
-		for i := startIdx; i < endIdx; i++ {
-			repos = append(repos, mockGiteaRepository(int64(i+1), fmt.Sprintf("repo-%03d", i+1)))
+		// Handle pages beyond available data
+		var repos []*gitea.Repository
+		if startIdx < totalRepos {
+			repos = make([]*gitea.Repository, 0, endIdx-startIdx)
+			for i := startIdx; i < endIdx; i++ {
+				repos = append(repos, mockGiteaRepository(int64(i+1), fmt.Sprintf("repo-%03d", i+1)))
+			}
+		} else {
+			repos = []*gitea.Repository{}
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -232,9 +249,15 @@ func TestGitea_GetUserRepos_PaginationBugRegression(t *testing.T) {
 			endIdx = totalRepos
 		}
 
-		repos := make([]*gitea.Repository, 0, endIdx-startIdx)
-		for i := startIdx; i < endIdx; i++ {
-			repos = append(repos, mockGiteaRepository(int64(i+1), fmt.Sprintf("user-repo-%03d", i+1)))
+		// Handle pages beyond available data
+		var repos []*gitea.Repository
+		if startIdx < totalRepos {
+			repos = make([]*gitea.Repository, 0, endIdx-startIdx)
+			for i := startIdx; i < endIdx; i++ {
+				repos = append(repos, mockGiteaRepository(int64(i+1), fmt.Sprintf("user-repo-%03d", i+1)))
+			}
+		} else {
+			repos = []*gitea.Repository{}
 		}
 
 		w.Header().Set("Content-Type", "application/json")
