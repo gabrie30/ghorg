@@ -139,107 +139,86 @@ type ServerProjectResponse struct {
 	Start      int                `json:"start"`
 }
 
-// getServerProjectRepos gets repositories from a Bitbucket Server project
+// getServerProjectRepos gets repositories from a Bitbucket Server project with parallel pagination
 func (c Bitbucket) getServerProjectRepos(projectKey string) ([]Repo, error) {
 	apiURL := strings.TrimSuffix(c.serverURL, "/") + fmt.Sprintf("/rest/api/1.0/projects/%s/repos", projectKey)
-	// Fetching repositories from Bitbucket Server project
-
-	repos := []ServerRepository{}
-	start := 0
 	limit := 25
 
-	for {
-		url := fmt.Sprintf("%s?start=%d&limit=%d", apiURL, start, limit)
-		// Making API request
-
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create request: %v", err)
-		}
-
-		req.SetBasicAuth(c.username, c.password)
-		req.Header.Set("Accept", "application/json")
-
-		resp, err := c.httpClient.Do(req)
-		if err != nil {
-			return nil, fmt.Errorf("failed to make API request: %v", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			body, _ := io.ReadAll(resp.Body)
-			colorlog.PrintError(fmt.Sprintf("API request failed with status %d: %s", resp.StatusCode, string(body)))
-			return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
-		}
-
-		var response ServerProjectResponse
-		if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-			return nil, fmt.Errorf("failed to decode API response: %v", err)
-		}
-
-		// Found repositories in page
-		repos = append(repos, response.Values...)
-
-		if response.IsLastPage {
-			break
-		}
-
-		start += limit
+	// Fetch first page to discover total size
+	url := fmt.Sprintf("%s?start=0&limit=%d", apiURL, limit)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %v", err)
 	}
 
-	// Total repositories found
+	req.SetBasicAuth(c.username, c.password)
+	req.Header.Set("Accept", "application/json")
 
-	filteredRepos := c.filterServerRepos(repos)
-	// Repositories available for cloning after filtering
-	return filteredRepos, nil
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make API request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		colorlog.PrintError(fmt.Sprintf("API request failed with status %d: %s", resp.StatusCode, string(body)))
+		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var response ServerProjectResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("failed to decode API response: %v", err)
+	}
+
+	// If only one page, return immediately
+	if response.IsLastPage {
+		return c.filterServerRepos(response.Values), nil
+	}
+
+	// Multiple pages - fetch remaining pages in parallel
+	return c.fetchServerProjectReposParallel(projectKey, response.Values, response.Size, limit)
 }
 
-// getServerUserRepos gets repositories for a specific user (personal repositories)
+// getServerUserRepos gets repositories for a specific user (personal repositories) with parallel pagination
 func (c Bitbucket) getServerUserRepos(username string) ([]Repo, error) {
 	// For Bitbucket Server, user repos are typically in projects prefixed with ~username
 	apiURL := strings.TrimSuffix(c.serverURL, "/") + "/rest/api/1.0/repos"
-
-	repos := []ServerRepository{}
-	start := 0
 	limit := 25
 
-	for {
-		url := fmt.Sprintf("%s?start=%d&limit=%d", apiURL, start, limit)
-
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		req.SetBasicAuth(c.username, c.password)
-		req.Header.Set("Accept", "application/json")
-
-		resp, err := c.httpClient.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			body, _ := io.ReadAll(resp.Body)
-			return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
-		}
-
-		var response ServerProjectResponse
-		if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-			return nil, err
-		}
-
-		repos = append(repos, response.Values...)
-
-		if response.IsLastPage {
-			break
-		}
-
-		start += limit
+	// Fetch first page to discover total size
+	url := fmt.Sprintf("%s?start=0&limit=%d", apiURL, limit)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
 	}
 
-	return c.filterServerRepos(repos), nil
+	req.SetBasicAuth(c.username, c.password)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var response ServerProjectResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, err
+	}
+
+	// If only one page, return immediately
+	if response.IsLastPage {
+		return c.filterServerRepos(response.Values), nil
+	}
+
+	// Multiple pages - fetch remaining pages in parallel
+	return c.fetchServerUserReposParallel(username, response.Values, response.Size, limit)
 }
 
 // filterServerRepos converts Bitbucket Server repo format to ghorg Repo format

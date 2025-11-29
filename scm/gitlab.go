@@ -112,10 +112,8 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	return repoData, nil
 }
 
-// GetTopLevelGroups all top level org groups
+// GetTopLevelGroups all top level org groups with parallel pagination
 func (c Gitlab) GetTopLevelGroups() ([]string, error) {
-	allGroups := []string{}
-
 	opt := &gitlab.ListGroupsOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: perPage,
@@ -125,28 +123,23 @@ func (c Gitlab) GetTopLevelGroups() ([]string, error) {
 		AllAvailable: &[]bool{true}[0],
 	}
 
-	for {
+	// Fetch first page to discover total number of pages
+	groups, resp, err := c.Client.Groups.ListGroups(opt)
+	if err != nil {
+		return nil, err
+	}
 
-		groups, resp, err := c.Client.Groups.ListGroups(opt)
-
-		if err != nil {
-			return allGroups, err
-		}
-
+	// If only one page, return immediately
+	if resp.TotalPages <= 1 {
+		allGroups := make([]string, 0, len(groups))
 		for _, g := range groups {
 			allGroups = append(allGroups, strconv.FormatInt(int64(g.ID), 10))
 		}
-
-		// Exit the loop when we've seen all pages.
-		if resp.NextPage == 0 {
-			break
-		}
-
-		// Update the page number to get the next page.
-		opt.Page = resp.NextPage
+		return allGroups, nil
 	}
 
-	return allGroups, nil
+	// Multiple pages - fetch remaining pages in parallel
+	return c.fetchTopLevelGroupsParallel(groups, resp.TotalPages)
 }
 
 // In this case take the cloneURL from the cloneTartet repo and just inject /snippets/:id before the .git
@@ -347,11 +340,8 @@ func (c Gitlab) GetSnippets(cloneData []Repo, target string) ([]Repo, error) {
 	return snippetsToClone, nil
 }
 
-// GetGroupRepos fetches repo data from a specific group
+// GetGroupRepos fetches repo data from a specific group with parallel pagination
 func (c Gitlab) GetGroupRepos(targetGroup string) ([]Repo, error) {
-
-	repoData := []Repo{}
-
 	opt := &gitlab.ListGroupProjectsOptions{
 		ListOptions: gitlab.ListOptions{
 			PerPage: perPage,
@@ -360,30 +350,22 @@ func (c Gitlab) GetGroupRepos(targetGroup string) ([]Repo, error) {
 		IncludeSubGroups: gitlab.Ptr(true),
 	}
 
-	for {
-		// Get the first page with projects.
-		ps, resp, err := c.Groups.ListGroupProjects(targetGroup, opt)
-
-		if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
-				return nil, fmt.Errorf("group '%s' does not exist", targetGroup)
-			}
-			return []Repo{}, err
+	// Fetch first page to discover total number of pages
+	ps, resp, err := c.Groups.ListGroupProjects(targetGroup, opt)
+	if err != nil {
+		if resp != nil && resp.StatusCode == 404 {
+			return nil, fmt.Errorf("group '%s' does not exist", targetGroup)
 		}
-
-		// filter from all the projects we've found so far.
-		repoData = append(repoData, c.filter(targetGroup, ps)...)
-
-		// Exit the loop when we've seen all pages.
-		if resp.NextPage == 0 {
-			break
-		}
-
-		// Update the page number to get the next page.
-		opt.Page = resp.NextPage
+		return []Repo{}, err
 	}
 
-	return repoData, nil
+	// If only one page, return immediately
+	if resp.TotalPages <= 1 {
+		return c.filter(targetGroup, ps), nil
+	}
+
+	// Multiple pages - fetch remaining pages in parallel
+	return c.fetchGroupReposParallel(targetGroup, ps, resp.TotalPages)
 }
 
 // GetUserRepos gets all of a users gitlab repos
