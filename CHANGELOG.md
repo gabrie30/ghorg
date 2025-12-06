@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.11.8] - unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.11.7] - 12/6/25
 ### Added
 - Parallel pagination for SCM repo fetching. A major speed improvement for cloning large organizations (#597)
