@@ -3,14 +3,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.7] - unreleased
+## [1.11.7] - 12/6/25
 ### Added
-- Parallel pagination for SCM repo fetching (#597)
+- Parallel pagination for SCM repo fetching. A major speed improvement for cloning large organizations (#597)
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+- GHORG_FETCH_ALL check to no-clean mode processing; thanks @ypid-work (#594)
 ### Security
+- Bump golang.org/x/crypto in /scripts/local-gitea/seeder (#595)
+- Bump golang.org/x/crypto from 0.39.0 to 0.45.0 (#596)
 
 ## [1.11.6] - 11/6/25
 ### Added
