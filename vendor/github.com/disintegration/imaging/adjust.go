@@ -62,6 +62,10 @@ func Invert(img image.Image) *image.NRGBA {
 //  dstImage = imaging.AdjustSaturation(srcImage, -10) // Decrease image saturation by 10%.
 //
 func AdjustSaturation(img image.Image, percentage float64) *image.NRGBA {
+	if percentage == 0 {
+		return Clone(img)
+	}
+
 	percentage = math.Min(math.Max(percentage, -100), 100)
 	multiplier := 1 + percentage/100
 
@@ -70,6 +74,34 @@ func AdjustSaturation(img image.Image, percentage float64) *image.NRGBA {
 		s *= multiplier
 		if s > 1 {
 			s = 1
+		}
+		r, g, b := hslToRGB(h, s, l)
+		return color.NRGBA{r, g, b, c.A}
+	})
+}
+
+// AdjustHue changes the hue of the image using the shift parameter (measured in degrees) and returns the adjusted image.
+// The shift = 0 (or 360 / -360 / etc.) gives the original image.
+// The shift = 180 (or -180) corresponds to a 180° degree rotation of the color wheel and thus gives the image with its hue inverted for each pixel.
+//
+// Examples:
+//  dstImage = imaging.AdjustHue(srcImage, 90) // Shift Hue by 90°.
+//  dstImage = imaging.AdjustHue(srcImage, -30) // Shift Hue by -30°.
+//
+func AdjustHue(img image.Image, shift float64) *image.NRGBA {
+	if math.Mod(shift, 360) == 0 {
+		return Clone(img)
+	}
+
+	summand := shift / 360
+
+	return AdjustFunc(img, func(c color.NRGBA) color.NRGBA {
+		h, s, l := rgbToHSL(c.R, c.G, c.B)
+		h += summand
+		h = math.Mod(h, 1)
+		//Adding 1 because Golang's Modulo function behaves differently to similar operators in most other languages.
+		if h < 0 {
+			h++
 		}
 		r, g, b := hslToRGB(h, s, l)
 		return color.NRGBA{r, g, b, c.A}
@@ -86,6 +118,10 @@ func AdjustSaturation(img image.Image, percentage float64) *image.NRGBA {
 //	dstImage = imaging.AdjustContrast(srcImage, 20) // Increase image contrast by 20%.
 //
 func AdjustContrast(img image.Image, percentage float64) *image.NRGBA {
+	if percentage == 0 {
+		return Clone(img)
+	}
+
 	percentage = math.Min(math.Max(percentage, -100.0), 100.0)
 	lut := make([]uint8, 256)
 
@@ -114,6 +150,10 @@ func AdjustContrast(img image.Image, percentage float64) *image.NRGBA {
 //	dstImage = imaging.AdjustBrightness(srcImage, 10) // Increase image brightness by 10%.
 //
 func AdjustBrightness(img image.Image, percentage float64) *image.NRGBA {
+	if percentage == 0 {
+		return Clone(img)
+	}
+
 	percentage = math.Min(math.Max(percentage, -100.0), 100.0)
 	lut := make([]uint8, 256)
 
@@ -134,6 +174,10 @@ func AdjustBrightness(img image.Image, percentage float64) *image.NRGBA {
 //	dstImage = imaging.AdjustGamma(srcImage, 0.7)
 //
 func AdjustGamma(img image.Image, gamma float64) *image.NRGBA {
+	if gamma == 1 {
+		return Clone(img)
+	}
+
 	e := 1.0 / math.Max(gamma, 0.0001)
 	lut := make([]uint8, 256)
 

@@ -1,5 +1,14 @@
 package ast
 
+// An attribute can be attached to block elements. They are specified as
+// {#id .classs key="value"} where quotes for values are mandatory, multiple
+// key/value pairs are separated by whitespace.
+type Attribute struct {
+	ID      []byte
+	Classes [][]byte
+	Attrs   map[string][]byte
+}
+
 // ListType contains bitwise or'ed flags for list and list item objects.
 type ListType int
 
@@ -83,6 +92,12 @@ type Container struct {
 	*Attribute // Block level attribute
 }
 
+// return true if can contain children of a given node type
+// used by custom nodes to over-ride logic in canNodeContain
+type CanContain interface {
+	CanContain(Node) bool
+}
+
 // AsContainer returns itself as *Container
 func (c *Container) AsContainer() *Container {
 	return c
@@ -148,9 +163,13 @@ func (l *Leaf) GetChildren() []Node {
 	return nil
 }
 
-// SetChildren will panic becuase Leaf cannot have children
+// SetChildren will panic if trying to set non-empty children
+// because Leaf cannot have children
 func (l *Leaf) SetChildren(newChildren []Node) {
-	panic("leaf node cannot have children")
+	if len(newChildren) != 0 {
+		panic("leaf node cannot have children")
+	}
+
 }
 
 // Document represents markdown document node, a root of ast
@@ -250,11 +269,12 @@ type Del struct {
 type Link struct {
 	Container
 
-	Destination []byte // Destination is what goes into a href
-	Title       []byte // Title is the tooltip thing that goes in a title attribute
-	NoteID      int    // NoteID contains a serial number of a footnote, zero if it's not a footnote
-	Footnote    Node   // If it's a footnote, this is a direct link to the footnote Node. Otherwise nil.
-	DeferredID  []byte // If a deferred link this holds the original ID.
+	Destination          []byte   // Destination is what goes into a href
+	Title                []byte   // Title is the tooltip thing that goes in a title attribute
+	NoteID               int      // NoteID contains a serial number of a footnote, zero if it's not a footnote
+	Footnote             Node     // If it's a footnote, this is a direct link to the footnote Node. Otherwise nil.
+	DeferredID           []byte   // If a deferred link this holds the original ID.
+	AdditionalAttributes []string // Defines additional attributes to use during rendering.
 }
 
 // CrossReference is a reference node.
@@ -262,6 +282,7 @@ type CrossReference struct {
 	Container
 
 	Destination []byte // Destination is where the reference points to
+	Suffix      []byte // Potential citation suffix, i.e. (#myid, text)
 }
 
 // Citation is a citation node.
@@ -339,6 +360,7 @@ type TableCell struct {
 
 	IsHeader bool           // This tells if it's under the header row
 	Align    CellAlignFlags // This holds the value for align attribute
+	ColSpan  int            // How many columns to span
 }
 
 // TableHeader represents markdown table head node
