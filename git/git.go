@@ -28,6 +28,7 @@ type Gitter interface {
 	FetchCloneBranch(scm.Repo) error
 	RepoCommitCount(scm.Repo) (int, error)
 	HasRemoteHeads(scm.Repo) (bool, error)
+	SyncDefaultBranch(scm.Repo) error
 }
 
 type GitClient struct{}
@@ -304,4 +305,173 @@ func (g GitClient) RepoCommitCount(repo scm.Repo) (int, error) {
 	}
 
 	return count, nil
+}
+
+// GetRemoteURL returns the URL for the given remote name (e.g., "origin").
+func (g GitClient) GetRemoteURL(repo scm.Repo, remote string) (string, error) {
+	cmd := exec.Command("git", "remote", "get-url", remote)
+	cmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			return "", err
+		}
+	}
+
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+// HasLocalChanges returns true if there are uncommitted changes in the working tree.
+func (g GitClient) HasLocalChanges(repo scm.Repo) (bool, error) {
+	status, err := g.ShortStatus(repo)
+	if err != nil {
+		return false, err
+	}
+	return status != "", nil
+}
+
+// HasUnpushedCommits returns true if there are commits present locally that are not pushed to upstream.
+func (g GitClient) HasUnpushedCommits(repo scm.Repo) (bool, error) {
+	cmd := exec.Command("git", "rev-list", "--count", "@{u}..HEAD")
+	cmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			return false, err
+		}
+	}
+
+	out, err := cmd.Output()
+	if err != nil {
+		return false, err
+	}
+	countStr := strings.TrimSpace(string(out))
+	count, err := strconv.Atoi(countStr)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+// GetCurrentBranch returns the currently checked-out branch name.
+func (g GitClient) GetCurrentBranch(repo scm.Repo) (string, error) {
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	cmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			return "", err
+		}
+	}
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+// HasCommitsNotOnDefaultBranch returns true if currentBranch contains commits not present on the default branch.
+func (g GitClient) HasCommitsNotOnDefaultBranch(repo scm.Repo, currentBranch string) (bool, error) {
+	// Count commits reachable from currentBranch that are not on default branch
+	cmd := exec.Command("git", "rev-list", "--count", currentBranch, "^refs/heads/"+repo.CloneBranch)
+	cmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			return false, err
+		}
+	}
+	out, err := cmd.Output()
+	if err != nil {
+		return false, err
+	}
+	countStr := strings.TrimSpace(string(out))
+	count, err := strconv.Atoi(countStr)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+// IsDefaultBranchBehindHead returns true if the default branch is an ancestor of the current branch (i.e., can be fast-forwarded).
+func (g GitClient) IsDefaultBranchBehindHead(repo scm.Repo, currentBranch string) (bool, error) {
+	// git merge-base --is-ancestor <default> <current>
+	cmd := exec.Command("git", "merge-base", "--is-ancestor", "refs/heads/"+repo.CloneBranch, currentBranch)
+	cmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			// merge-base --is-ancestor exits with code 1 when not ancestor; treat as false
+			var exitError *exec.ExitError
+			if errors.As(err, &exitError) {
+				if exitError.ExitCode() == 1 {
+					return false, nil
+				}
+			}
+			return false, err
+		}
+	}
+
+	err := cmd.Run()
+	if err == nil {
+		return true, nil
+	}
+	var exitError *exec.ExitError
+	if errors.As(err, &exitError) {
+		if exitError.ExitCode() == 1 {
+			return false, nil
+		}
+	}
+	return false, err
+}
+
+// MergeIntoDefaultBranch attempts a fast-forward merge of currentBranch into the default branch locally.
+func (g GitClient) MergeIntoDefaultBranch(repo scm.Repo, currentBranch string) error {
+	// Checkout default branch
+	cmd := exec.Command("git", "checkout", repo.CloneBranch)
+	cmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			return err
+		}
+	}
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	// Merge with --ff-only
+	mergeCmd := exec.Command("git", "merge", "--ff-only", currentBranch)
+	mergeCmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(mergeCmd, repo); err != nil {
+			return err
+		}
+	}
+	return mergeCmd.Run()
+}
+
+// UpdateRef updates a local ref to point to the given remote ref (by resolving the remote ref SHA first).
+func (g GitClient) UpdateRef(repo scm.Repo, refName string, commitRef string) error {
+	// Resolve commitRef to SHA
+	revCmd := exec.Command("git", "rev-parse", commitRef)
+	revCmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(revCmd, repo); err != nil {
+			return err
+		}
+	}
+	out, err := revCmd.Output()
+	if err != nil {
+		return err
+	}
+	sha := strings.TrimSpace(string(out))
+
+	// Update the ref
+	updCmd := exec.Command("git", "update-ref", refName, sha)
+	updCmd.Dir = repo.HostPath
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(updCmd, repo); err != nil {
+			return err
+		}
+	}
+	return updCmd.Run()
 }

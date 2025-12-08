@@ -203,6 +203,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		case "GHORG_PRESERVE_SCM_HOSTNAME":
 			os.Setenv(envVar, "false")
+		case "GHORG_SYNC_DEFAULT_BRANCH":
+			os.Setenv(envVar, "false")
 		case "GHORG_NO_TOKEN":
 			os.Setenv(envVar, "false")
 		case "GHORG_NO_DIR_SIZE":
@@ -310,6 +312,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_INSECURE_BITBUCKET_CLIENT")
 	getOrSetDefaults("GHORG_INSECURE_SOURCEHUT_CLIENT")
 	getOrSetDefaults("GHORG_BACKUP")
+	getOrSetDefaults("GHORG_SYNC_DEFAULT_BRANCH")
 	getOrSetDefaults("GHORG_RECLONE_ENV_CONFIG_ONLY")
 	getOrSetDefaults("GHORG_RECLONE_QUIET")
 	getOrSetDefaults("GHORG_CONCURRENCY")

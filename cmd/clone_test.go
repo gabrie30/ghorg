@@ -192,6 +192,10 @@ func (g MockGitClient) ShortStatus(repo scm.Repo) (string, error) {
 	return "", nil
 }
 
+func (g MockGitClient) SyncDefaultBranch(repo scm.Repo) error {
+	return nil
+}
+
 func TestInitialClone(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 	dir, err := os.MkdirTemp("", "ghorg_test_initial")
@@ -852,6 +856,10 @@ func TestCloneAllRepos_Timing(t *testing.T) {
 // DelayedMockGit is a mock that adds delay to clone operations for timing tests
 type DelayedMockGit struct {
 	MockGitClient
+}
+
+func (g DelayedMockGit) SyncDefaultBranch(repo scm.Repo) error {
+	return g.MockGitClient.SyncDefaultBranch(repo)
 }
 
 func (g DelayedMockGit) Clone(repo scm.Repo) error {

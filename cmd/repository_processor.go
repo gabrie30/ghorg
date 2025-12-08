@@ -478,6 +478,13 @@ func (rp *RepositoryProcessor) handleStandardPull(repo *scm.Repo) bool {
 	rp.stats.NewCommits += repo.Commits.CountDiff
 	rp.mutex.Unlock()
 
+	// If enabled, attempt to synchronize default branch to HEAD
+	if os.Getenv("GHORG_SYNC_DEFAULT_BRANCH") == "true" {
+		if err := rp.git.SyncDefaultBranch(*repo); err != nil {
+			rp.addError(fmt.Sprintf("Could not sync default branch for %s: %v", repo.URL, err))
+		}
+	}
+
 	return true
 }
 

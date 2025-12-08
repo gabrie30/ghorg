@@ -133,6 +133,17 @@ GHORG_EXCLUDE_MATCH_REGEX:
 # flag (--no-clean)
 GHORG_NO_CLEAN: false
 
+# Sync the default branch with upstream changes on existing repos.
+# When enabled, ghorg will intelligently merge upstream changes into your local default branch,
+# even when you're working on a different branch. This feature includes safety checks:
+# - Skips sync if there are uncommitted local changes
+# - Skips sync if there are unpushed commits
+# - Skips sync if commits exist that are not on the default branch
+# - Skips sync if the default branch has diverged from HEAD
+# This is particularly useful for keeping multiple repos synchronized while working on feature branches.
+# flag (--sync-default-branch)
+GHORG_SYNC_DEFAULT_BRANCH: false
+
 # Additionally clone the wiki page for repo
 # flag (--clone-wiki)
 GHORG_CLONE_WIKI: false
@@ -303,7 +314,6 @@ GHORG_SOURCEHUT_TOKEN:
 # Must be present if your sourcehut instance uses http
 # flag (--insecure-sourcehut-client)
 GHORG_INSECURE_SOURCEHUT_CLIENT: false
-
 
 # +-+-+-+-+-+ +-+-+-+-+-+-+-+
 # |G|H|O|R|G| |R|E|C|L|O|N|E|

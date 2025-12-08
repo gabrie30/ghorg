@@ -8,10 +8,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [ macos-latest, ubuntu-latest ]
     steps:
       - name: Set up Go 1.24.6
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v5
         with:
           go-version: 1.24.6
         id: go
@@ -46,7 +46,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Set up Go 1.24.6
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v5
         with:
           go-version: 1.24.6
         id: go

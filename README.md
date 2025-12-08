@@ -18,6 +18,8 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
 
 > So when running ghorg a second time on the same org/user, all local changes in the cloned directory by default will be overwritten by what's on GitHub. If you want to work out of this directory, make sure you either rename the directory or set the `--no-clean` flag on all future clones to prevent losing your changes locally.
 
+> **New Sync Feature**: You can optionally enable the `--sync-default-branch` flag (or set `GHORG_SYNC_DEFAULT_BRANCH=true`) to keep your default branch synchronized with upstream changes. This feature intelligently merges upstream changes into your local default branch, even when you're working on a different branch. See [Syncing Default Branch](#syncing-default-branch) for more details.
+
 <p align="center">
   <img width="648" alt="ghorg cli example" src="https://user-images.githubusercontent.com/1512282/63229247-5459f880-c1b3-11e9-9e5d-d20723046946.png">
 </p>
@@ -252,6 +254,102 @@ $ ghorg ls someorg | xargs -I %s mv %s bar/
   # Update file with patterns (one per line)
   vi $HOME/.config/ghorg/ghorgonly
   ```
+
+## Syncing Default Branch
+
+The sync feature allows you to keep your local default branch up-to-date with upstream changes, even when you're working on a different branch. This is particularly useful when:
+- You're working on feature branches but want to keep the default branch current
+- You want to avoid merge conflicts by staying synchronized with upstream
+- You're maintaining multiple repos and want them all to track their default branches
+
+### How It Works
+
+When enabled, the sync feature performs the following operations on each existing repository:
+
+1. **Checks for local changes**: Skips sync if there are uncommitted changes in the working directory
+2. **Checks for unpushed commits**: Skips sync if there are commits not yet pushed to the remote
+3. **Fetches latest changes**: Retrieves the latest commits from the remote default branch
+4. **Intelligently merges**: 
+   - If you're on the default branch: performs a fast-forward merge
+   - If you're on a different branch: updates the default branch reference without checking it out
+5. **Preserves your work**: Never overwrites your current branch or uncommitted changes
+
+### Usage
+
+Enable syncing with the `--sync-default-branch` flag or set it in your configuration:
+
+```bash
+# Via command line flag
+ghorg clone kubernetes --sync-default-branch
+
+# Via environment variable
+export GHORG_SYNC_DEFAULT_BRANCH=true
+ghorg clone kubernetes
+
+# In your conf.yaml
+GHORG_SYNC_DEFAULT_BRANCH: true
+```
+
+### Safety Features
+
+The sync feature includes several safety checks:
+- **Skips if local changes exist**: Won't sync if you have uncommitted changes
+- **Skips if unpushed commits exist**: Won't sync if you have commits not yet pushed
+- **Skips if commits not on default branch**: Won't sync if your branch has commits not on the default branch
+- **Skips if default branch is behind**: Won't sync if the default branch has diverged
+- **Non-destructive**: Never performs force operations or overwrites your work
+
+### Example Scenarios
+
+**Scenario 1: Working on a feature branch**
+```bash
+# You're on feature-branch, default is main
+ghorg clone myorg --sync-default-branch
+# Result: main branch is updated in the background, you stay on feature-branch
+```
+
+**Scenario 2: Default branch with local changes**
+```bash
+# You're on main with uncommitted changes
+ghorg clone myorg --sync-default-branch
+# Result: Sync is skipped to preserve your changes
+```
+
+**Scenario 3: Clean default branch**
+```bash
+# You're on main with no local changes
+ghorg clone myorg --sync-default-branch
+# Result: main is fast-forward merged with upstream
+```
+
+### Combining with Other Features
+
+The sync feature works well with other ghorg flags:
+
+```bash
+# Sync while using no-clean to preserve local changes in working directory
+ghorg clone kubernetes --sync-default-branch --no-clean
+
+# Sync only matching repos
+ghorg clone kubernetes --sync-default-branch --match-regex=^sig-
+
+# Sync with quiet mode
+ghorg clone kubernetes --sync-default-branch --quiet
+```
+
+### Debug Mode
+
+To see detailed information about the sync process:
+
+```bash
+GHORG_DEBUG=true ghorg clone kubernetes --sync-default-branch
+```
+
+This will show:
+- Remote URL detection
+- Working directory status checks
+- Current branch detection
+- Sync decisions and actions taken
 
 ## Creating Backups
 
