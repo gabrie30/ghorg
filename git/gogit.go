@@ -66,7 +66,18 @@ func printDebugGoGit(operation string, repo scm.Repo, details string) {
 		fmt.Printf("Repository Name: %s\n", repo.Name)
 		fmt.Printf("Clone Branch: %s\n", repo.CloneBranch)
 		if details != "" {
-			fmt.Printf("Details: %s\n", details)
+			// Sanitize any URLs in details to prevent logging credentials
+			sanitizedDetails := details
+			if strings.Contains(details, "URL:") {
+				// Extract and sanitize any URLs in the details
+				parts := strings.SplitN(details, "URL:", 2)
+				if len(parts) == 2 {
+					urlPart := strings.TrimSpace(parts[1])
+					sanitizedURL := sanitizeURL(urlPart)
+					sanitizedDetails = parts[0] + "URL: " + sanitizedURL
+				}
+			}
+			fmt.Printf("Details: %s\n", sanitizedDetails)
 		}
 		fmt.Println("-------------------------------------")
 	}

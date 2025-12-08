@@ -239,6 +239,13 @@ func TestCloneEmptyRepo(t *testing.T) {
 		log.Fatal(repoErr)
 	}
 	defer os.RemoveAll(outputDirAbsolutePath + "/" + "testRepoEmpty")
+	
+	// Create .git directory to simulate existing repository
+	gitDir := outputDirAbsolutePath + "/" + "testRepoEmpty" + "/.git"
+	gitErr := os.Mkdir(gitDir, 0o700)
+	if gitErr != nil {
+		log.Fatal(gitErr)
+	}
 
 	os.Setenv("GHORG_CONCURRENCY", "1")
 	var testRepos = []scm.Repo{

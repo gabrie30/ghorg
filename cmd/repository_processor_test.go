@@ -138,6 +138,13 @@ func TestRepositoryProcessor_ProcessRepository_ExistingRepository(t *testing.T) 
 		t.Fatal(err)
 	}
 
+	// Create .git directory to simulate existing repository
+	gitDir := filepath.Join(repoDir, ".git")
+	err = os.MkdirAll(gitDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	mockGit := NewExtendedMockGit()
 	processor := NewRepositoryProcessor(mockGit)
 
@@ -266,6 +273,13 @@ func TestRepositoryProcessor_ProcessRepository_BackupMode(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// Create .git directory to simulate existing repository
+	gitDir := filepath.Join(repoDir, ".git")
+	err = os.MkdirAll(gitDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	mockGit := NewExtendedMockGit()
 	processor := NewRepositoryProcessor(mockGit)
 
@@ -301,6 +315,13 @@ func TestRepositoryProcessor_ProcessRepository_NoCleanMode(t *testing.T) {
 	// Create existing repo directory
 	repoDir := filepath.Join(dir, "test-repo")
 	err = os.MkdirAll(repoDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create .git directory to simulate existing repository
+	gitDir := filepath.Join(repoDir, ".git")
+	err = os.MkdirAll(gitDir, 0755)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -346,6 +367,13 @@ func TestRepositoryProcessor_ProcessRepository_NoCleanModeWithFetchAllDisabled(t
 		t.Fatal(err)
 	}
 
+	// Create .git directory to simulate existing repository
+	gitDir := filepath.Join(repoDir, ".git")
+	err = os.MkdirAll(gitDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	mockGit := NewExtendedMockGit()
 	processor := NewRepositoryProcessor(mockGit)
 
@@ -387,6 +415,13 @@ func TestRepositoryProcessor_ProcessRepository_NoCleanModeWithFetchAllEnabled(t 
 	// Create existing repo directory
 	repoDir := filepath.Join(dir, "test-repo")
 	err = os.MkdirAll(repoDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create .git directory to simulate existing repository
+	gitDir := filepath.Join(repoDir, ".git")
+	err = os.MkdirAll(gitDir, 0755)
 	if err != nil {
 		t.Fatal(err)
 	}
