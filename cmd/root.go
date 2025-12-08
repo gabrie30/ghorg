@@ -56,6 +56,7 @@ var (
 	skipArchived                 bool
 	skipForks                    bool
 	backup                       bool
+	useGitCLI                    bool
 	noClean                      bool
 	dryRun                       bool
 	prune                        bool
@@ -229,15 +230,18 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "1")
 		case "GHORG_GITHUB_TOKEN_FROM_GITHUB_APP":
 			os.Setenv(envVar, "false")
+		case "GHORG_USE_GIT_CLI":
+			os.Setenv(envVar, "false")
 		}
 	} else {
 		s := viper.GetString(envVar)
 		// envs that need a trailing slash
-		if envVar == "GHORG_SCM_BASE_URL" {
+		switch envVar {
+		case "GHORG_SCM_BASE_URL":
 			os.Setenv(envVar, configs.EnsureTrailingSlashOnURL(s))
-		} else if envVar == "GHORG_ABSOLUTE_PATH_TO_CLONE_TO" {
+		case "GHORG_ABSOLUTE_PATH_TO_CLONE_TO":
 			os.Setenv(envVar, configs.EnsureTrailingSlashOnFilePath(s))
-		} else {
+		default:
 			os.Setenv(envVar, s)
 		}
 	}
@@ -292,6 +296,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_SCM_TYPE")
 	getOrSetDefaults("GHORG_PRESERVE_SCM_HOSTNAME")
 	getOrSetDefaults("GHORG_SKIP_ARCHIVED")
+	getOrSetDefaults("GHORG_USE_GIT_CLI")
 	getOrSetDefaults("GHORG_SKIP_FORKS")
 	getOrSetDefaults("GHORG_NO_CLEAN")
 	getOrSetDefaults("GHORG_NO_TOKEN")
@@ -397,6 +402,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP - Backup mode, clone as mirror, no working copy (ignores branch parameter)")
 	cloneCmd.Flags().BoolVar(&quietMode, "quiet", false, "GHORG_QUIET - Emit critical output only")
 	cloneCmd.Flags().BoolVar(&includeSubmodules, "include-submodules", false, "GHORG_INCLUDE_SUBMODULES - Include submodules in all clone and pull operations.")
+	cloneCmd.Flags().BoolVar(&useGitCLI, "use-git-cli", false, "GHORG_USE_GIT_CLI - Use git CLI instead of go-git library for git operations (default false, uses go-git)")
 	cloneCmd.Flags().BoolVar(&ghorgStatsEnabled, "stats-enabled", false, "GHORG_STATS_ENABLED - Creates a CSV in the GHORG_ABSOLUTE_PATH_TO_CLONE_TO called _ghorg_stats.csv with info about each clone. This allows you to track clone data over time such as number of commits and size in megabytes of the clone directory.")
 	cloneCmd.Flags().BoolVar(&ghorgPreserveScmHostname, "preserve-scm-hostname", false, "GHORG_PRESERVE_SCM_HOSTNAME - Appends the scm hostname to the GHORG_ABSOLUTE_PATH_TO_CLONE_TO which will organize your clones into specific folders by the scm provider. e.g. /github.com/kuberentes")
 	cloneCmd.Flags().BoolVar(&ghorgPruneUntouched, "prune-untouched", false, "GHORG_PRUNE_UNTOUCHED - Prune repositories that don't have any local changes, see sample-conf.yaml for more details")

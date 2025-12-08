@@ -272,8 +272,15 @@ func (rp *RepositoryProcessor) handleNewRepository(repo *scm.Repo, action *strin
 
 	// Handle wiki clone attempts that might fail
 	if err != nil && repo.IsWiki {
+		// Create an empty directory for wikis with no content to maintain directory structure consistency
+		if mkdirErr := os.MkdirAll(repo.HostPath, os.ModePerm); mkdirErr != nil {
+			rp.addError(fmt.Sprintf("Failed to create directory for empty wiki: %s Error: %v", repo.HostPath, mkdirErr))
+			return false
+		}
 		rp.addInfo(fmt.Sprintf("Wiki may be enabled but there was no content to clone: %s Error: %v", repo.URL, err))
-		return false
+		// Return true to indicate we've handled this successfully (directory created)
+		// Skip the rest of the processing since there's no actual repository
+		return true
 	}
 
 	if err != nil {
