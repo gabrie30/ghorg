@@ -167,6 +167,9 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		topics := cmd.Flag("topics").Value.String()
 		os.Setenv("GHORG_TOPICS", topics)
 	}
+	if cmd.Flags().Changed("use-git-cli") {
+		os.Setenv("GHORG_USE_GIT_CLI", cmd.Flag("use-git-cli").Value.String())
+	}
 
 	if cmd.Flags().Changed("match-prefix") {
 		prefix := cmd.Flag("match-prefix").Value.String()
@@ -251,6 +254,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 
 	if cmd.Flags().Changed("include-submodules") {
 		os.Setenv("GHORG_INCLUDE_SUBMODULES", "true")
+	}
+
+	if cmd.Flags().Changed("use-git-cli") {
+		os.Setenv("GHORG_USE_GIT_CLI", "true")
 	}
 
 	if cmd.Flags().Changed("dry-run") {
@@ -401,7 +408,8 @@ func setupRepoClone() {
 		colorlog.PrintInfo("No repos found for " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + targetCloneSource + ", please verify you have sufficient permissions to clone target repos, double check spelling and try again.")
 		os.Exit(0)
 	}
-	git := git.NewGit()
+	useGitCLI := os.Getenv("GHORG_USE_GIT_CLI") == "true"
+	git := git.NewGit(useGitCLI)
 	CloneAllRepos(git, cloneTargets)
 }
 
@@ -445,6 +453,12 @@ func createDirIfNotExist() {
 
 func repoExistsLocally(repo scm.Repo) bool {
 	if _, err := os.Stat(repo.HostPath); os.IsNotExist(err) {
+		return false
+	}
+
+	// Check if it's actually a git repository by checking for .git directory
+	gitPath := filepath.Join(repo.HostPath, ".git")
+	if _, err := os.Stat(gitPath); os.IsNotExist(err) {
 		return false
 	}
 
@@ -1379,5 +1393,5 @@ func filterByGhorgignore(cloneTargets []scm.Repo) []scm.Repo {
 }
 
 func isPathSegmentSafe(seg string) bool {
-	return strings.IndexByte(seg, '/') < 0 && strings.IndexRune(seg, filepath.Separator) < 0
+	return strings.IndexByte(seg, '/') < 0 && !strings.ContainsRune(seg, filepath.Separator)
 }
