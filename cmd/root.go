@@ -56,6 +56,7 @@ var (
 	skipArchived                 bool
 	skipForks                    bool
 	backup                       bool
+	syncDefaultBranch            bool
 	noClean                      bool
 	dryRun                       bool
 	prune                        bool
@@ -398,6 +399,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&noDirSize, "no-dir-size", false, "GHORG_NO_DIR_SIZE - Skips the calculation of the output directory size at the end of a clone operation. This can save time, especially when cloning a large number of repositories.")
 	cloneCmd.Flags().BoolVar(&preserveDir, "preserve-dir", false, "GHORG_PRESERVE_DIRECTORY_STRUCTURE - Clones repos in a directory structure that matches gitlab namespaces eg company/unit/subunit/app would clone into ghorg/unit/subunit/app, gitlab only")
 	cloneCmd.Flags().BoolVar(&backup, "backup", false, "GHORG_BACKUP - Backup mode, clone as mirror, no working copy (ignores branch parameter)")
+	cloneCmd.Flags().BoolVar(&syncDefaultBranch, "sync-default-branch", false, "GHORG_SYNC_DEFAULT_BRANCH - Automatically keep the default branch in sync with the remote by performing a fetch and fast-forward merge before cloning")
 	cloneCmd.Flags().BoolVar(&quietMode, "quiet", false, "GHORG_QUIET - Emit critical output only")
 	cloneCmd.Flags().BoolVar(&includeSubmodules, "include-submodules", false, "GHORG_INCLUDE_SUBMODULES - Include submodules in all clone and pull operations.")
 	cloneCmd.Flags().BoolVar(&ghorgStatsEnabled, "stats-enabled", false, "GHORG_STATS_ENABLED - Creates a CSV in the GHORG_ABSOLUTE_PATH_TO_CLONE_TO called _ghorg_stats.csv with info about each clone. This allows you to track clone data over time such as number of commits and size in megabytes of the clone directory.")

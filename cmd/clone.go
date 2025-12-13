@@ -305,6 +305,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_BACKUP", "true")
 	}
 
+	if cmd.Flags().Changed("sync-default-branch") {
+		os.Setenv("GHORG_SYNC_DEFAULT_BRANCH", "true")
+	}
+
 	if cmd.Flags().Changed("output-dir") {
 		d := cmd.Flag("output-dir").Value.String()
 		os.Setenv("GHORG_OUTPUT_DIR", d)
