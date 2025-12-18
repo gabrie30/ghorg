@@ -7,37 +7,88 @@ echo "Running BitBucket Integration Tests"
 cp ./ghorg /usr/local/bin
 
 BITBUCKET_WORKSPACE=ghorg
-GHORG_EXIT_CODE_ON_CLONE_ISSUES=0
+export GHORG_EXIT_CODE_ON_CLONE_ISSUES=0
 
-# clone an org with no config file
-ghorg clone $BITBUCKET_WORKSPACE --token="${BITBUCKET_TOKEN}" --bitbucket-username="${BITBUCKET_USERNAME}" --scm=bitbucket --output-dir=bb-test-1
+# ==========================================
+# API Token Authentication Tests (Recommended)
+# ==========================================
+echo ""
+echo "=== Testing API Token Authentication (New Method) ==="
 
-if [ -e "${HOME}"/ghorg/bb-test-1 ]
-then
-    echo "Pass: bitbucket org clone using no configuration file"
+# Test 1: Clone using API token with email
+if [ -n "${BITBUCKET_API_TOKEN:-}" ] && [ -n "${BITBUCKET_API_EMAIL:-}" ]; then
+    ghorg clone $BITBUCKET_WORKSPACE --token="${BITBUCKET_API_TOKEN}" --bitbucket-api-email="${BITBUCKET_API_EMAIL}" --scm=bitbucket --output-dir=bb-api-token-test-1
+
+    if [ -e "${HOME}"/ghorg/bb-api-token-test-1 ]
+    then
+        echo "Pass: bitbucket org clone using API token authentication"
+    else
+        echo "Fail: bitbucket org clone using API token authentication"
+        exit 1
+    fi
+
+    # Test 2: Clone using API token with environment variables
+    export GHORG_BITBUCKET_API_TOKEN="${BITBUCKET_API_TOKEN}"
+    export GHORG_BITBUCKET_API_EMAIL="${BITBUCKET_API_EMAIL}"
+    ghorg clone $BITBUCKET_WORKSPACE --scm=bitbucket --output-dir=bb-api-token-test-2
+
+    if [ -e "${HOME}"/ghorg/bb-api-token-test-2 ]
+    then
+        echo "Pass: bitbucket org clone using API token via environment variables"
+    else
+        echo "Fail: bitbucket org clone using API token via environment variables"
+        exit 1
+    fi
+
+    # Clean up env vars for subsequent tests
+    unset GHORG_BITBUCKET_API_TOKEN
+    unset GHORG_BITBUCKET_API_EMAIL
 else
-    echo "Fail: bitbucket org clone using no configuration file"
-    exit 1
+    echo "Skipping API token tests: BITBUCKET_API_TOKEN or BITBUCKET_API_EMAIL not set"
 fi
 
-# clone an org with no config file to a specific path
-ghorg clone $BITBUCKET_WORKSPACE --token="${BITBUCKET_TOKEN}" --bitbucket-username="${BITBUCKET_USERNAME}" --path=/tmp --output-dir=testing_output_dir --scm=bitbucket
+# ==========================================
+# Legacy App Password Authentication Tests
+# ==========================================
+echo ""
+echo "=== Testing App Password Authentication (Legacy Method) ==="
 
-if [ -e /tmp/testing_output_dir ]
-then
-    echo "Pass: bitbucket org clone, commandline flags take overwrite conf.yaml"
+if [ -n "${BITBUCKET_TOKEN:-}" ] && [ -n "${BITBUCKET_USERNAME:-}" ]; then
+    # Test 3: Clone using app password (legacy method)
+    ghorg clone $BITBUCKET_WORKSPACE --token="${BITBUCKET_TOKEN}" --bitbucket-username="${BITBUCKET_USERNAME}" --scm=bitbucket --output-dir=bb-app-password-test-1
+
+    if [ -e "${HOME}"/ghorg/bb-app-password-test-1 ]
+    then
+        echo "Pass: bitbucket org clone using app password authentication"
+    else
+        echo "Fail: bitbucket org clone using app password authentication"
+        exit 1
+    fi
+
+    # Test 4: Clone to a specific path with app password
+    ghorg clone $BITBUCKET_WORKSPACE --token="${BITBUCKET_TOKEN}" --bitbucket-username="${BITBUCKET_USERNAME}" --path=/tmp --output-dir=bb-app-password-test-2 --scm=bitbucket
+
+    if [ -e /tmp/bb-app-password-test-2 ]
+    then
+        echo "Pass: bitbucket org clone with custom path using app password"
+    else
+        echo "Fail: bitbucket org clone with custom path using app password"
+        exit 1
+    fi
+
+    # Test 5: Preserve SCM hostname with app password
+    ghorg clone $BITBUCKET_WORKSPACE --token="${BITBUCKET_TOKEN}" --bitbucket-username="${BITBUCKET_USERNAME}" --path=/tmp --output-dir=bb-app-password-test-3 --scm=bitbucket --preserve-scm-hostname
+
+    if [ -e /tmp/bitbucket.com/bb-app-password-test-3 ]
+    then
+        echo "Pass: bitbucket org clone with preserve scm hostname"
+    else
+        echo "Fail: bitbucket org clone with preserve scm hostname"
+        exit 1
+    fi
 else
-    echo "Fail: bitbucket org clone, commandline flags take overwrite conf.yaml"
-    exit 1
+    echo "Skipping app password tests: BITBUCKET_TOKEN or BITBUCKET_USERNAME not set"
 fi
 
-# preserve scm hostname
-ghorg clone $BITBUCKET_WORKSPACE --token="${BITBUCKET_TOKEN}" --bitbucket-username="${BITBUCKET_USERNAME}" --path=/tmp --output-dir=testing_output_dir --scm=bitbucket --preserve-scm-hostname
-
-if [ -e /tmp/testing_output_dir ]
-then
-    echo "Pass: bitbucket org clone, preserve scm hostname"
-else
-    echo "Fail: bitbucket org clone, preserve scm hostname"
-    exit 1
-fi
+echo ""
+echo "All BitBucket integration tests completed successfully!"
