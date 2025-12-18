@@ -118,6 +118,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_BITBUCKET_USERNAME", cmd.Flag("bitbucket-username").Value.String())
 	}
 
+	if cmd.Flags().Changed("bitbucket-api-email") {
+		os.Setenv("GHORG_BITBUCKET_API_EMAIL", cmd.Flag("bitbucket-api-email").Value.String())
+	}
+
 	if cmd.Flags().Changed("clone-type") {
 		cloneType := strings.ToLower(cmd.Flag("clone-type").Value.String())
 		os.Setenv("GHORG_CLONE_TYPE", cloneType)
@@ -331,10 +335,23 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		} else if os.Getenv("GHORG_SCM_TYPE") == "gitlab" {
 			os.Setenv("GHORG_GITLAB_TOKEN", token)
 		} else if os.Getenv("GHORG_SCM_TYPE") == "bitbucket" {
-			if cmd.Flags().Changed("bitbucket-username") {
+			// Auto-detect token type based on configuration:
+			// 1. If GHORG_BITBUCKET_API_EMAIL is set, treat as API token
+			// 2. If --bitbucket-username is provided, treat as app password (legacy)
+			// 3. If GHORG_BITBUCKET_USERNAME is set but no API email, treat as app password (legacy)
+			// 4. Otherwise, treat as API token (new default for Bitbucket Cloud)
+			if os.Getenv("GHORG_BITBUCKET_API_EMAIL") != "" {
+				// API email explicitly set - use API token auth
+				os.Setenv("GHORG_BITBUCKET_API_TOKEN", cmd.Flag("token").Value.String())
+			} else if cmd.Flags().Changed("bitbucket-username") {
+				// Username provided via flag - use app password (legacy)
+				os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
+			} else if os.Getenv("GHORG_BITBUCKET_USERNAME") != "" && os.Getenv("GHORG_BITBUCKET_API_TOKEN") == "" {
+				// Username set in config but no API token - assume app password for backward compat
 				os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
 			} else {
-				os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", cmd.Flag("token").Value.String())
+				// Default to API token for new Bitbucket Cloud authentication
+				os.Setenv("GHORG_BITBUCKET_API_TOKEN", cmd.Flag("token").Value.String())
 			}
 		} else if os.Getenv("GHORG_SCM_TYPE") == "gitea" {
 			os.Setenv("GHORG_GITEA_TOKEN", token)

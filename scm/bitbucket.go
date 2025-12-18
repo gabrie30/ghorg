@@ -30,6 +30,10 @@ type Bitbucket struct {
 	httpClient *http.Client
 	username   string
 	password   string
+	// Fields for Bitbucket Cloud API Token support
+	// When using API tokens, git operations use x-bitbucket-api-token-auth as the username
+	useAPIToken bool
+	apiToken    string
 }
 
 func (_ Bitbucket) GetType() string {
@@ -73,7 +77,9 @@ func (c Bitbucket) GetUserRepos(targetUser string) ([]Repo, error) {
 func (_ Bitbucket) NewClient() (Client, error) {
 	user := os.Getenv("GHORG_BITBUCKET_USERNAME")
 	password := os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
-	oAuth := os.Getenv("GHORG_BITBUCKET_OAUTH")
+	oAuth := os.Getenv("GHORG_BITBUCKET_OAUTH_TOKEN")
+	apiToken := os.Getenv("GHORG_BITBUCKET_API_TOKEN")
+	apiEmail := os.Getenv("GHORG_BITBUCKET_API_EMAIL")
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
 
 	// Check if this is a Bitbucket Server instance
@@ -110,15 +116,30 @@ func (_ Bitbucket) NewClient() (Client, error) {
 
 	// For Bitbucket Cloud, use the existing go-bitbucket library
 	var c *bitbucket.Client
+	var useAPIToken bool
+
 	if oAuth != "" {
+		// OAuth bearer token takes precedence
 		c = bitbucket.NewOAuthbearerToken(oAuth)
+	} else if apiToken != "" {
+		// New API Token authentication
+		// For API calls, use email (or username as fallback) with the API token
+		apiUser := apiEmail
+		if apiUser == "" {
+			apiUser = user // Fall back to username if email not provided
+		}
+		c = bitbucket.NewBasicAuth(apiUser, apiToken)
+		useAPIToken = true
 	} else {
+		// Legacy App Password authentication
 		c = bitbucket.NewBasicAuth(user, password)
 	}
 
 	return Bitbucket{
-		Client:   c,
-		isServer: false,
+		Client:      c,
+		isServer:    false,
+		useAPIToken: useAPIToken,
+		apiToken:    apiToken,
 	}, nil
 }
 
@@ -304,7 +325,7 @@ func (c Bitbucket) addCredentialsToURL(cloneURL string) string {
 	return cloneURL
 }
 
-func (_ Bitbucket) filter(resp []bitbucket.Repository) (repoData []Repo, err error) {
+func (c Bitbucket) filter(resp []bitbucket.Repository) (repoData []Repo, err error) {
 	cloneData := []Repo{}
 
 	for _, a := range resp {
@@ -333,9 +354,13 @@ func (_ Bitbucket) filter(resp []bitbucket.Repository) (repoData []Repo, err err
 			} else if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" && linkType == "https" {
 				r.URL = link.(string)
 				r.CloneURL = link.(string)
-				if os.Getenv("GHORG_BITBUCKET_OAUTH") != "" {
-					// TODO
+				if os.Getenv("GHORG_BITBUCKET_OAUTH_TOKEN") != "" {
+					// OAuth token - no credentials needed in URL, handled by git credential helper
+				} else if c.useAPIToken {
+					// API Token authentication - use special username x-bitbucket-api-token-auth
+					r.CloneURL = insertAPITokenCredentialsIntoURL(r.CloneURL, c.apiToken)
 				} else {
+					// Legacy App Password authentication
 					r.CloneURL = insertAppPasswordCredentialsIntoURL(r.CloneURL)
 				}
 				cloneData = append(cloneData, r)
@@ -346,9 +371,30 @@ func (_ Bitbucket) filter(resp []bitbucket.Repository) (repoData []Repo, err err
 	return cloneData, nil
 }
 
+// insertAppPasswordCredentialsIntoURL inserts app password credentials into the clone URL
+// Uses the format: https://username:app_password@bitbucket.org/...
 func insertAppPasswordCredentialsIntoURL(url string) string {
 	credentials := ":" + os.Getenv("GHORG_BITBUCKET_APP_PASSWORD") + "@"
 	urlWithCredentials := strings.Replace(url, "@", credentials, 1)
 
 	return urlWithCredentials
+}
+
+// insertAPITokenCredentialsIntoURL inserts API token credentials into the clone URL
+// Uses the special username x-bitbucket-api-token-auth as per Bitbucket's API token documentation
+// Format: https://x-bitbucket-api-token-auth:api_token@bitbucket.org/...
+func insertAPITokenCredentialsIntoURL(cloneURL string, apiToken string) string {
+	// Bitbucket Cloud clone URLs are in the format: https://username@bitbucket.org/workspace/repo.git
+	// We need to replace username@ with x-bitbucket-api-token-auth:token@
+	if strings.HasPrefix(cloneURL, "https://") {
+		// Find the @ symbol that separates username from host
+		atIndex := strings.Index(cloneURL[8:], "@") // Skip "https://"
+		if atIndex != -1 {
+			// Replace everything between https:// and @ with the API token credentials
+			return "https://x-bitbucket-api-token-auth:" + apiToken + cloneURL[8+atIndex:]
+		}
+		// If no @ found, insert credentials after https://
+		return strings.Replace(cloneURL, "https://", "https://x-bitbucket-api-token-auth:"+apiToken+"@", 1)
+	}
+	return cloneURL
 }

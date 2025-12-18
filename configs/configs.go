@@ -38,6 +38,12 @@ var (
 	// ErrNoBitbucketAppPassword error message when no app password found
 	ErrNoBitbucketAppPassword = errors.New("Could not find a valid bitbucket app password. GHORG_BITBUCKET_APP_PASSWORD or (--token, -t) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
 
+	// ErrNoBitbucketAPIToken error message when no API token found
+	ErrNoBitbucketAPIToken = errors.New("Could not find a valid bitbucket API token. GHORG_BITBUCKET_API_TOKEN or (--token, -t) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
+
+	// ErrNoBitbucketAPIEmail error message when no email found for API token auth
+	ErrNoBitbucketAPIEmail = errors.New("When using GHORG_BITBUCKET_API_TOKEN, you must also set GHORG_BITBUCKET_API_EMAIL or GHORG_BITBUCKET_USERNAME (your Atlassian account email), see 'BitBucket Setup' in README.md")
+
 	// ErrIncorrectScmType indicates an unsupported scm type being used
 	ErrIncorrectScmType = errors.New("GHORG_SCM_TYPE or --scm must be one of " + strings.Join(scm.SupportedClients(), ", "))
 
@@ -282,8 +288,20 @@ func getOrSetGitLabToken() {
 }
 
 func getOrSetBitBucketToken() {
+	// Check if API token is set from file path
+	apiToken := os.Getenv("GHORG_BITBUCKET_API_TOKEN")
+	if apiToken != "" && IsFilePath(apiToken) {
+		os.Setenv("GHORG_BITBUCKET_API_TOKEN", GetTokenFromFile(apiToken))
+	}
+
+	// Check if app password is set from file path
+	appPassword := os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
+	if appPassword != "" && IsFilePath(appPassword) {
+		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", GetTokenFromFile(appPassword))
+	}
+
 	var token string
-	if isZero(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) && isZero(os.Getenv("GHORG_BITBUCKET_OAUTH_TOKEN")) {
+	if isZero(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) && isZero(os.Getenv("GHORG_BITBUCKET_OAUTH_TOKEN")) && isZero(os.Getenv("GHORG_BITBUCKET_API_TOKEN")) {
 		if runtime.GOOS == "windows" {
 			return
 		}
@@ -294,6 +312,9 @@ func getOrSetBitBucketToken() {
 
 		if !isZero(os.Getenv("GHORG_BITBUCKET_USERNAME")) {
 			os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", token)
+		} else if !isZero(os.Getenv("GHORG_BITBUCKET_API_EMAIL")) {
+			// If API email is set, assume API token auth
+			os.Setenv("GHORG_BITBUCKET_API_TOKEN", token)
 		} else {
 			os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", token)
 		}
@@ -359,15 +380,27 @@ func VerifyTokenSet() error {
 	}
 
 	if scmProvider == "bitbucket" {
-		if os.Getenv("GHORG_BITBUCKET_OAUTH_TOKEN") == "" {
+		// Check for OAuth token first (takes precedence)
+		if os.Getenv("GHORG_BITBUCKET_OAUTH_TOKEN") != "" {
+			return nil
+		}
 
-			if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" {
-				return ErrNoBitbucketUsername
+		// Check for new API token authentication
+		if os.Getenv("GHORG_BITBUCKET_API_TOKEN") != "" {
+			// API token requires either API email or username for API calls
+			if os.Getenv("GHORG_BITBUCKET_API_EMAIL") == "" && os.Getenv("GHORG_BITBUCKET_USERNAME") == "" {
+				return ErrNoBitbucketAPIEmail
 			}
+			return nil
+		}
 
-			if os.Getenv("GHORG_BITBUCKET_APP_PASSWORD") == "" {
-				return ErrNoBitbucketAppPassword
-			}
+		// Fall back to legacy App Password authentication
+		if os.Getenv("GHORG_BITBUCKET_USERNAME") == "" {
+			return ErrNoBitbucketUsername
+		}
+
+		if os.Getenv("GHORG_BITBUCKET_APP_PASSWORD") == "" {
+			return ErrNoBitbucketAppPassword
 		}
 	}
 

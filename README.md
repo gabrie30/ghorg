@@ -154,11 +154,21 @@ Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wi
 
 > Note: ghorg supports both Bitbucket Cloud and Bitbucket Server (self-hosted instances)
 
-#### App Passwords
+#### API Tokens (Recommended for Bitbucket Cloud)
 
-1. To configure with bitbucket you will need to create a new [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html) and update your `$HOME/.config/ghorg/conf.yaml` or use the (--token, -t) and (--bitbucket-username) flags.
-1. Update [SCM type](https://github.com/gabrie30/ghorg/blob/master/sample-conf.yaml#L54-L57) to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
+Bitbucket has deprecated App Passwords in favor of API Tokens. This is the recommended authentication method for Bitbucket Cloud.
+
+1. Create an [API token](https://support.atlassian.com/bitbucket-cloud/docs/create-an-api-token/) from your Atlassian account settings
+1. Set `GHORG_BITBUCKET_API_TOKEN` in your `$HOME/.config/ghorg/conf.yaml` or use the `--token` flag
+1. Set `GHORG_BITBUCKET_API_EMAIL` to your Atlassian account email (or use `--bitbucket-api-email`)
+1. Update SCM type to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
 1. See [examples/bitbucket.md](https://github.com/gabrie30/ghorg/blob/master/examples/bitbucket.md) on how to run
+
+> Note: When using API tokens, ghorg automatically uses `x-bitbucket-api-token-auth` as the Git username for clone operations, as required by Bitbucket's API token authentication.
+
+#### App Passwords (Legacy)
+
+> Note: Bitbucket has deprecated App Passwords. Consider using API Tokens instead.
 
 #### PAT/OAuth token
 

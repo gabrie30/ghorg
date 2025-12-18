@@ -8,11 +8,37 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
 ## Bitbucket Cloud
 
+### API Token Authentication (Recommended)
+
+Bitbucket has deprecated App Passwords in favor of API Tokens. This is the recommended authentication method.
+
+1. Clone the microsoft workspace using an API token
+
+    ```
+    ghorg clone microsoft --scm=bitbucket --bitbucket-api-email=<your-atlassian-email> --token=<api-token>
+    ```
+
+1. Using environment variables (recommended for scripts)
+
+    ```
+    export GHORG_BITBUCKET_API_TOKEN=<api-token>
+    export GHORG_BITBUCKET_API_EMAIL=<your-atlassian-email>
+    ghorg clone microsoft --scm=bitbucket
+    ```
+
+> Note: When using API tokens, ghorg automatically uses `x-bitbucket-api-token-auth` as the Git username for clone operations. The email is only used for API calls to list repositories.
+
+### App Password Authentication (Legacy)
+
+> Note: Bitbucket has deprecated App Passwords. Consider using API Tokens instead.
+
 1. Clone the microsoft workspace using an app-password
 
     ```
     ghorg clone microsoft --scm=bitbucket --bitbucket-username=<your-username> --token=<app-password>
     ```
+
+### OAuth Token Authentication
 
 1. Clone the microsoft workspace using oauth token
 
