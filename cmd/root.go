@@ -24,6 +24,7 @@ var (
 	cloneType                    string
 	scmType                      string
 	bitbucketUsername            string
+	bitbucketAPIEmail            string
 	color                        string
 	baseURL                      string
 	concurrency                  string
@@ -332,6 +333,8 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_BITBUCKET_USERNAME")
 	getOrSetDefaults("GHORG_BITBUCKET_APP_PASSWORD")
 	getOrSetDefaults("GHORG_BITBUCKET_OAUTH_TOKEN")
+	getOrSetDefaults("GHORG_BITBUCKET_API_TOKEN")
+	getOrSetDefaults("GHORG_BITBUCKET_API_EMAIL")
 	getOrSetDefaults("GHORG_SCM_BASE_URL")
 	getOrSetDefaults("GHORG_PRESERVE_DIRECTORY_STRUCTURE")
 	getOrSetDefaults("GHORG_OUTPUT_DIR")
@@ -374,8 +377,9 @@ func init() {
 	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "GHORG_CLONE_PROTOCOL - Protocol to clone with, ssh or https, (default https)")
 	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "GHORG_ABSOLUTE_PATH_TO_CLONE_TO - Absolute path to the home for ghorg clones. Must start with / (default $HOME/ghorg)")
 	cloneCmd.Flags().StringVarP(&branch, "branch", "b", "", "GHORG_BRANCH - Branch left checked out for each repo cloned (default master)")
-	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "GHORG_GITHUB_TOKEN/GHORG_GITLAB_TOKEN/GHORG_GITEA_TOKEN/GHORG_BITBUCKET_APP_PASSWORD/GHORG_BITBUCKET_OAUTH_TOKEN/GHORG_SOURCEHUT_TOKEN - scm token to clone with")
-	cloneCmd.Flags().StringVarP(&bitbucketUsername, "bitbucket-username", "", "", "GHORG_BITBUCKET_USERNAME - Bitbucket only: username associated with the app password")
+	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "GHORG_GITHUB_TOKEN/GHORG_GITLAB_TOKEN/GHORG_GITEA_TOKEN/GHORG_BITBUCKET_APP_PASSWORD/GHORG_BITBUCKET_API_TOKEN/GHORG_BITBUCKET_OAUTH_TOKEN/GHORG_SOURCEHUT_TOKEN - scm token to clone with")
+	cloneCmd.Flags().StringVarP(&bitbucketUsername, "bitbucket-username", "", "", "GHORG_BITBUCKET_USERNAME - Bitbucket only: username associated with the app password (legacy auth)")
+	cloneCmd.Flags().StringVarP(&bitbucketAPIEmail, "bitbucket-api-email", "", "", "GHORG_BITBUCKET_API_EMAIL - Bitbucket only: Atlassian account email for API token authentication")
 	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "", "GHORG_SCM_TYPE - Type of scm used, github, gitlab, gitea, bitbucket or sourcehut (default github)")
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - Clone target type, user or org (default org)")
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED - Skips archived repos, github/gitlab/gitea only")

@@ -36,6 +36,9 @@ func TestVerifyTokenSet(t *testing.T) {
 		os.Setenv("GHORG_SCM_TYPE", "bitbucket")
 		os.Setenv("GHORG_BITBUCKET_USERNAME", "")
 		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", "12345678912345678901")
+		os.Setenv("GHORG_BITBUCKET_API_TOKEN", "")
+		os.Setenv("GHORG_BITBUCKET_API_EMAIL", "")
+		os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", "")
 		err := configs.VerifyTokenSet()
 		if err != configs.ErrNoBitbucketUsername {
 			tt.Errorf("Expected ErrNoBitbucketUsername, got: %v", err)
@@ -47,9 +50,68 @@ func TestVerifyTokenSet(t *testing.T) {
 		os.Setenv("GHORG_SCM_TYPE", "bitbucket")
 		os.Setenv("GHORG_BITBUCKET_USERNAME", "bitbucketuser")
 		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", "")
+		os.Setenv("GHORG_BITBUCKET_API_TOKEN", "")
+		os.Setenv("GHORG_BITBUCKET_API_EMAIL", "")
+		os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", "")
 		err := configs.VerifyTokenSet()
 		if err != configs.ErrNoBitbucketAppPassword {
 			tt.Errorf("Expected ErrNoBitbucketAppPassword, got: %v", err)
+		}
+
+	})
+
+	t.Run("When cloning bitbucket with API token but no email or username", func(tt *testing.T) {
+		os.Setenv("GHORG_SCM_TYPE", "bitbucket")
+		os.Setenv("GHORG_BITBUCKET_USERNAME", "")
+		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", "")
+		os.Setenv("GHORG_BITBUCKET_API_TOKEN", "test_api_token")
+		os.Setenv("GHORG_BITBUCKET_API_EMAIL", "")
+		os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", "")
+		err := configs.VerifyTokenSet()
+		if err != configs.ErrNoBitbucketAPIEmail {
+			tt.Errorf("Expected ErrNoBitbucketAPIEmail, got: %v", err)
+		}
+
+	})
+
+	t.Run("When cloning bitbucket with API token and email", func(tt *testing.T) {
+		os.Setenv("GHORG_SCM_TYPE", "bitbucket")
+		os.Setenv("GHORG_BITBUCKET_USERNAME", "")
+		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", "")
+		os.Setenv("GHORG_BITBUCKET_API_TOKEN", "test_api_token")
+		os.Setenv("GHORG_BITBUCKET_API_EMAIL", "test@example.com")
+		os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", "")
+		err := configs.VerifyTokenSet()
+		if err != nil {
+			tt.Errorf("Expected no error, got: %v", err)
+		}
+
+	})
+
+	t.Run("When cloning bitbucket with API token and username fallback", func(tt *testing.T) {
+		os.Setenv("GHORG_SCM_TYPE", "bitbucket")
+		os.Setenv("GHORG_BITBUCKET_USERNAME", "test@example.com")
+		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", "")
+		os.Setenv("GHORG_BITBUCKET_API_TOKEN", "test_api_token")
+		os.Setenv("GHORG_BITBUCKET_API_EMAIL", "")
+		os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", "")
+		err := configs.VerifyTokenSet()
+		if err != nil {
+			tt.Errorf("Expected no error, got: %v", err)
+		}
+
+	})
+
+	t.Run("When cloning bitbucket with OAuth token", func(tt *testing.T) {
+		os.Setenv("GHORG_SCM_TYPE", "bitbucket")
+		os.Setenv("GHORG_BITBUCKET_USERNAME", "")
+		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", "")
+		os.Setenv("GHORG_BITBUCKET_API_TOKEN", "")
+		os.Setenv("GHORG_BITBUCKET_API_EMAIL", "")
+		os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", "oauth_token")
+		err := configs.VerifyTokenSet()
+		if err != nil {
+			tt.Errorf("Expected no error, got: %v", err)
 		}
 
 	})

@@ -278,19 +278,48 @@ GHORG_INSECURE_GITEA_CLIENT: false
 # |B|I|T|B|U|C|K|E|T| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 
-# When using this OAuth/PAT token, do not set the bitbucket username flag. Do not set both this value and the GHORG_BITBUCKET_APP_PASSWORD
-# https://confluence.atlassian.com/bitbucketserver/personal-access-tokens-939515499.html
-# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
-GHORG_BITBUCKET_OAUTH_TOKEN:
+# ========== NEW API TOKEN AUTHENTICATION (Recommended for Bitbucket Cloud) ==========
+# Bitbucket has deprecated App Passwords in favor of API Tokens.
+# For Bitbucket Cloud, use API tokens with your Atlassian account email.
+# https://support.atlassian.com/bitbucket-cloud/docs/create-an-api-token/
+#
+# IMPORTANT: When creating the API token, grant ALL READ SCOPES:
+# - Account: Read
+# - Workspace membership: Read
+# - Projects: Read
+# - Repositories: Read
+# This ensures ghorg can list and clone all repositories in your workspace.
 
-# Add your Bitbucket app password. Do not set both this value and the GHORG_BITBUCKET_OAUTH_TOKEN
+# Your Bitbucket API token (new authentication method)
+# When using API tokens, ghorg uses x-bitbucket-api-token-auth as the git username
+# flag (--token, -t) eg: --token=your_api_token
+GHORG_BITBUCKET_API_TOKEN:
+
+# Your Atlassian account email (required when using GHORG_BITBUCKET_API_TOKEN)
+# This is the email you use to log in to Atlassian/Bitbucket
+# If not set, falls back to GHORG_BITBUCKET_USERNAME
+# flag (--bitbucket-api-email) eg: --bitbucket-api-email=you@example.com
+GHORG_BITBUCKET_API_EMAIL:
+
+# ========== LEGACY APP PASSWORD AUTHENTICATION ==========
+# For backward compatibility with existing setups
+
+# Add your Bitbucket app password (legacy authentication method)
 # https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html
 # flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
 GHORG_BITBUCKET_APP_PASSWORD:
 
-# Used with GHORG_BITBUCKET_APP_PASSWORD. Should not be set when using GHORG_BITBUCKET_OAUTH_TOKEN
+# Your Bitbucket username (used with GHORG_BITBUCKET_APP_PASSWORD)
 # flag (--bitbucket-username) eg: --bitbucket-username=user123
 GHORG_BITBUCKET_USERNAME:
+
+# ========== OAUTH TOKEN AUTHENTICATION ==========
+# For Bitbucket Server personal access tokens or OAuth
+
+# When using this OAuth/PAT token, do not set the bitbucket username flag.
+# https://confluence.atlassian.com/bitbucketserver/personal-access-tokens-939515499.html
+# flag (--token, -t) eg: --token=bGVhdmUgYSBjb21tZW50IG9uIGlzc3VlIDY2
+GHORG_BITBUCKET_OAUTH_TOKEN:
 
 # +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 # |S|O|U|R|C|E|H|U|T| |S|P|E|C|I|F|I|C|

@@ -11,7 +11,7 @@ jobs:
         os: [macos-latest, ubuntu-latest]
     steps:
       - name: Set up Go 1.24.6
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v6
         with:
           go-version: 1.24.6
         id: go
@@ -28,6 +28,10 @@ jobs:
       - name: Run Bitbucket Cloud Integration Tests
         run: scripts/bitbucket_cloud_integration_tests.sh
         env:
+          # New API Token authentication (recommended)
+          BITBUCKET_API_TOKEN: ${{ secrets.GHORG_BITBUCKET_API_TOKEN }}
+          BITBUCKET_API_EMAIL: ${{ secrets.GHORG_BITBUCKET_API_EMAIL }}
+          # Legacy App Password authentication (for backward compatibility testing)
           BITBUCKET_TOKEN: ${{ secrets.GHORG_BITBUCKET_APP_PASSWORD }}
           BITBUCKET_USERNAME: ${{ secrets.GHORG_BITBUCKET_USERNAME }}
       - name: Run GitLab Cloud Integration Tests
@@ -46,7 +50,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Set up Go 1.24.6
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v6
         with:
           go-version: 1.24.6
         id: go
@@ -67,6 +71,10 @@ jobs:
       - name: Run Bitbucket Integration Tests
         run: scripts/bitbucket_cloud_integration_tests.sh
         env:
+          # New API Token authentication (recommended)
+          BITBUCKET_API_TOKEN: ${{ secrets.GHORG_BITBUCKET_API_TOKEN }}
+          BITBUCKET_API_EMAIL: ${{ secrets.GHORG_BITBUCKET_API_EMAIL }}
+          # Legacy App Password authentication (for backward compatibility testing)
           BITBUCKET_TOKEN: ${{ secrets.GHORG_BITBUCKET_APP_PASSWORD }}
           BITBUCKET_USERNAME: ${{ secrets.GHORG_BITBUCKET_USERNAME }}
       - name: Run GitLab Cloud Integration Tests Linux
