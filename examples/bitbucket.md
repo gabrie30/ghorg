@@ -12,6 +12,13 @@ To view all additional flags see the [sample-conf.yaml](https://github.com/gabri
 
 Bitbucket has deprecated App Passwords in favor of API Tokens. This is the recommended authentication method.
 
+**Creating the API Token:**
+1. Go to your [Atlassian account settings](https://id.atlassian.com/manage/api-tokens)
+2. Create a new API token
+3. **Important**: Grant **all read scopes** (Account: Read, Workspace membership: Read, Projects: Read, Repositories: Read) to ensure ghorg can list and clone repositories
+
+**Using the API Token:**
+
 1. Clone the microsoft workspace using an API token
 
     ```

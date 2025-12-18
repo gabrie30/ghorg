@@ -11,6 +11,7 @@ export GHORG_EXIT_CODE_ON_CLONE_ISSUES=0
 
 # ==========================================
 # API Token Authentication Tests (Recommended)
+# Note: API token must have all read scopes (Account, Workspace, Projects, Repositories)
 # ==========================================
 echo ""
 echo "=== Testing API Token Authentication (New Method) ==="

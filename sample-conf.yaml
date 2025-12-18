@@ -282,6 +282,13 @@ GHORG_INSECURE_GITEA_CLIENT: false
 # Bitbucket has deprecated App Passwords in favor of API Tokens.
 # For Bitbucket Cloud, use API tokens with your Atlassian account email.
 # https://support.atlassian.com/bitbucket-cloud/docs/create-an-api-token/
+#
+# IMPORTANT: When creating the API token, grant ALL READ SCOPES:
+# - Account: Read
+# - Workspace membership: Read
+# - Projects: Read
+# - Repositories: Read
+# This ensures ghorg can list and clone all repositories in your workspace.
 
 # Your Bitbucket API token (new authentication method)
 # When using API tokens, ghorg uses x-bitbucket-api-token-auth as the git username

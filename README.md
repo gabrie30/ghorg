@@ -159,6 +159,7 @@ Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wi
 Bitbucket has deprecated App Passwords in favor of API Tokens. This is the recommended authentication method for Bitbucket Cloud.
 
 1. Create an [API token](https://support.atlassian.com/bitbucket-cloud/docs/create-an-api-token/) from your Atlassian account settings
+1. **Important**: When creating the token, grant **all read scopes** (Account: Read, Workspace membership: Read, Projects: Read, Repositories: Read, etc.) to ensure ghorg can list and clone repositories
 1. Set `GHORG_BITBUCKET_API_TOKEN` in your `$HOME/.config/ghorg/conf.yaml` or use the `--token` flag
 1. Set `GHORG_BITBUCKET_API_EMAIL` to your Atlassian account email (or use `--bitbucket-api-email`)
 1. Update SCM type to `bitbucket` in your `ghorg/conf.yaml` or via cli flags
