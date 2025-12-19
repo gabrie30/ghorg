@@ -50,6 +50,7 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
 There are a installation methods available, please choose the one that suits your fancy:
 - [Prebuilt Binaries](#prebuilt-binaries)
 - [Homebrew](#homebrew)
+- [Mise](#mise)
 - [Golang](#golang)
 - [Docker](#docker)
 - [Windows Support](#windows-support)
@@ -76,6 +77,14 @@ If you don't know which to choose its likely going to be the x86_64 version for 
 
 ```bash
 brew install gabrie30/utils/ghorg
+```
+
+### Mise
+
+If you are an enthusiast user of [Mise](https://github.com/jdx/mise), the polyglot tool versions manager, you can use such command to install the latest version of `ghorg` on Linux/MacOS/Windows:
+
+```bash
+mise use -g ghorg@latest
 ```
 
 ### Golang
