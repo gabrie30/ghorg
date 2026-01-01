@@ -49,29 +49,29 @@ var _ ProjectVulnerabilitiesServiceInterface = (*ProjectVulnerabilitiesService)(
 //
 // GitLab API docs: https://docs.gitlab.com/api/project_vulnerabilities/
 type ProjectVulnerability struct {
-	AuthorID                int        `json:"author_id"`
+	AuthorID                int64      `json:"author_id"`
 	Confidence              string     `json:"confidence"`
 	CreatedAt               *time.Time `json:"created_at"`
 	Description             string     `json:"description"`
 	DismissedAt             *time.Time `json:"dismissed_at"`
-	DismissedByID           int        `json:"dismissed_by_id"`
+	DismissedByID           int64      `json:"dismissed_by_id"`
 	DueDate                 *time.Time `json:"due_date"`
 	Finding                 *Finding   `json:"finding"`
-	ID                      int        `json:"id"`
+	ID                      int64      `json:"id"`
 	LastEditedAt            *time.Time `json:"last_edited_at"`
-	LastEditedByID          int        `json:"last_edited_by_id"`
+	LastEditedByID          int64      `json:"last_edited_by_id"`
 	Project                 *Project   `json:"project"`
 	ProjectDefaultBranch    string     `json:"project_default_branch"`
 	ReportType              string     `json:"report_type"`
 	ResolvedAt              *time.Time `json:"resolved_at"`
-	ResolvedByID            int        `json:"resolved_by_id"`
+	ResolvedByID            int64      `json:"resolved_by_id"`
 	ResolvedOnDefaultBranch bool       `json:"resolved_on_default_branch"`
 	Severity                string     `json:"severity"`
 	StartDate               *time.Time `json:"start_date"`
 	State                   string     `json:"state"`
 	Title                   string     `json:"title"`
 	UpdatedAt               *time.Time `json:"updated_at"`
-	UpdatedByID             int        `json:"updated_by_id"`
+	UpdatedByID             int64      `json:"updated_by_id"`
 }
 
 // Finding represents a GitLab project vulnerability finding.
@@ -81,20 +81,20 @@ type ProjectVulnerability struct {
 type Finding struct {
 	Confidence          string     `json:"confidence"`
 	CreatedAt           *time.Time `json:"created_at"`
-	ID                  int        `json:"id"`
+	ID                  int64      `json:"id"`
 	LocationFingerprint string     `json:"location_fingerprint"`
 	MetadataVersion     string     `json:"metadata_version"`
 	Name                string     `json:"name"`
-	PrimaryIdentifierID int        `json:"primary_identifier_id"`
+	PrimaryIdentifierID int64      `json:"primary_identifier_id"`
 	ProjectFingerprint  string     `json:"project_fingerprint"`
-	ProjectID           int        `json:"project_id"`
+	ProjectID           int64      `json:"project_id"`
 	RawMetadata         string     `json:"raw_metadata"`
 	ReportType          string     `json:"report_type"`
-	ScannerID           int        `json:"scanner_id"`
+	ScannerID           int64      `json:"scanner_id"`
 	Severity            string     `json:"severity"`
 	UpdatedAt           *time.Time `json:"updated_at"`
 	UUID                string     `json:"uuid"`
-	VulnerabilityID     int        `json:"vulnerability_id"`
+	VulnerabilityID     int64      `json:"vulnerability_id"`
 }
 
 // ListProjectVulnerabilitiesOptions represents the available
@@ -140,7 +140,7 @@ func (s *ProjectVulnerabilitiesService) ListProjectVulnerabilities(pid any, opt 
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_vulnerabilities/#new-vulnerability
 type CreateVulnerabilityOptions struct {
-	FindingID *int `url:"finding_id,omitempty" json:"finding_id,omitempty"`
+	FindingID *int64 `url:"finding_id,omitempty" json:"finding_id,omitempty"`
 }
 
 // CreateVulnerability creates a new vulnerability on the selected project.

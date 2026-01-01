@@ -275,9 +275,9 @@ func (s *RepositoriesService) Compare(pid any, opt *CompareOptions, options ...R
 type Contributor struct {
 	Name      string `json:"name"`
 	Email     string `json:"email"`
-	Commits   int    `json:"commits"`
-	Additions int    `json:"additions"`
-	Deletions int    `json:"deletions"`
+	Commits   int64  `json:"commits"`
+	Additions int64  `json:"additions"`
+	Deletions int64  `json:"deletions"`
 }
 
 func (c Contributor) String() string {
@@ -369,7 +369,7 @@ type AddChangelogOptions struct {
 
 // AddChangelog generates changelog data based on commits in a repository.
 //
-// Gitlab API docs:
+// GitLab API docs:
 // https://docs.gitlab.com/api/repositories/#add-changelog-data-to-a-changelog-file
 func (s *RepositoriesService) AddChangelog(pid any, opt *AddChangelogOptions, options ...RequestOptionFunc) (*Response, error) {
 	project, err := parseID(pid)
@@ -415,7 +415,7 @@ type GenerateChangelogDataOptions struct {
 // GenerateChangelogData generates changelog data based on commits in a
 // repository, without committing them to a changelog file.
 //
-// Gitlab API docs:
+// GitLab API docs:
 // https://docs.gitlab.com/api/repositories/#generate-changelog-data
 func (s *RepositoriesService) GenerateChangelogData(pid any, opt GenerateChangelogDataOptions, options ...RequestOptionFunc) (*ChangelogData, *Response, error) {
 	project, err := parseID(pid)

@@ -24,7 +24,7 @@ import (
 
 type (
 	KeysServiceInterface interface {
-		GetKeyWithUser(key int, options ...RequestOptionFunc) (*Key, *Response, error)
+		GetKeyWithUser(key int64, options ...RequestOptionFunc) (*Key, *Response, error)
 		GetKeyByFingerprint(opt *GetKeyByFingerprintOptions, options ...RequestOptionFunc) (*Key, *Response, error)
 	}
 
@@ -45,7 +45,7 @@ var _ KeysServiceInterface = (*KeysService)(nil)
 // GitLab API docs:
 // https://docs.gitlab.com/api/keys/
 type Key struct {
-	ID        int        `json:"id"`
+	ID        int64      `json:"id"`
 	Title     string     `json:"title"`
 	Key       string     `json:"key"`
 	CreatedAt *time.Time `json:"created_at"`
@@ -57,7 +57,7 @@ type Key struct {
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/keys/#get-ssh-key-with-user-by-id-of-an-ssh-key
-func (s *KeysService) GetKeyWithUser(key int, options ...RequestOptionFunc) (*Key, *Response, error) {
+func (s *KeysService) GetKeyWithUser(key int64, options ...RequestOptionFunc) (*Key, *Response, error) {
 	u := fmt.Sprintf("keys/%d", key)
 
 	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)

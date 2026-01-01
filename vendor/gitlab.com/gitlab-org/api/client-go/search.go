@@ -273,8 +273,8 @@ type Blob struct {
 	Filename  string `json:"filename"`
 	ID        string `json:"id"`
 	Ref       string `json:"ref"`
-	Startline int    `json:"startline"`
-	ProjectID int    `json:"project_id"`
+	Startline int64  `json:"startline"`
+	ProjectID int64  `json:"project_id"`
 }
 
 // Blobs searches the expression within all blobs

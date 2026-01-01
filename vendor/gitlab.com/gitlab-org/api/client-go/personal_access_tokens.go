@@ -25,13 +25,14 @@ import (
 type (
 	PersonalAccessTokensServiceInterface interface {
 		ListPersonalAccessTokens(opt *ListPersonalAccessTokensOptions, options ...RequestOptionFunc) ([]*PersonalAccessToken, *Response, error)
-		GetSinglePersonalAccessTokenByID(token int, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error)
+		GetSinglePersonalAccessTokenByID(token int64, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error)
 		GetSinglePersonalAccessToken(options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error)
-		RotatePersonalAccessToken(token int, opt *RotatePersonalAccessTokenOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error)
-		RotatePersonalAccessTokenByID(token int, opt *RotatePersonalAccessTokenOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error)
+		RotatePersonalAccessToken(token int64, opt *RotatePersonalAccessTokenOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error)
+		RotatePersonalAccessTokenByID(token int64, opt *RotatePersonalAccessTokenOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error)
 		RotatePersonalAccessTokenSelf(opt *RotatePersonalAccessTokenOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error)
-		RevokePersonalAccessToken(token int, options ...RequestOptionFunc) (*Response, error)
-		RevokePersonalAccessTokenByID(token int, options ...RequestOptionFunc) (*Response, error)
+		// Deprecated: to be removed in 2.0; use RevokePersonalAccessTokenByID instead
+		RevokePersonalAccessToken(token int64, options ...RequestOptionFunc) (*Response, error)
+		RevokePersonalAccessTokenByID(token int64, options ...RequestOptionFunc) (*Response, error)
 		RevokePersonalAccessTokenSelf(options ...RequestOptionFunc) (*Response, error)
 	}
 
@@ -50,13 +51,13 @@ var _ PersonalAccessTokensServiceInterface = (*PersonalAccessTokensService)(nil)
 //
 // GitLab API docs: https://docs.gitlab.com/api/personal_access_tokens/
 type PersonalAccessToken struct {
-	ID          int        `json:"id"`
+	ID          int64      `json:"id"`
 	Name        string     `json:"name"`
 	Revoked     bool       `json:"revoked"`
 	CreatedAt   *time.Time `json:"created_at"`
 	Description string     `json:"description"`
 	Scopes      []string   `json:"scopes"`
-	UserID      int        `json:"user_id"`
+	UserID      int64      `json:"user_id"`
 	LastUsedAt  *time.Time `json:"last_used_at,omitempty"`
 	Active      bool       `json:"active"`
 	ExpiresAt   *ISOTime   `json:"expires_at"`
@@ -92,7 +93,7 @@ type ListPersonalAccessTokensOptions struct {
 	Search         *string  `url:"search,omitempty" json:"search,omitempty"`
 	Sort           *string  `url:"sort,omitempty" json:"sort,omitempty"`
 	State          *string  `url:"state,omitempty" json:"state,omitempty"`
-	UserID         *int     `url:"user_id,omitempty" json:"user_id,omitempty"`
+	UserID         *int64   `url:"user_id,omitempty" json:"user_id,omitempty"`
 }
 
 // ListPersonalAccessTokens gets a list of all personal access tokens.
@@ -118,7 +119,7 @@ func (s *PersonalAccessTokensService) ListPersonalAccessTokens(opt *ListPersonal
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/personal_access_tokens/#get-details-on-a-personal-access-token
-func (s *PersonalAccessTokensService) GetSinglePersonalAccessTokenByID(token int, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error) {
+func (s *PersonalAccessTokensService) GetSinglePersonalAccessTokenByID(token int64, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error) {
 	u := fmt.Sprintf("personal_access_tokens/%d", token)
 	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
 	if err != nil {
@@ -165,7 +166,7 @@ type RotatePersonalAccessTokenOptions struct {
 }
 
 // RotatePersonalAccessToken is a backwards-compat shim for RotatePersonalAccessTokenByID.
-func (s *PersonalAccessTokensService) RotatePersonalAccessToken(token int, opt *RotatePersonalAccessTokenOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error) {
+func (s *PersonalAccessTokensService) RotatePersonalAccessToken(token int64, opt *RotatePersonalAccessTokenOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error) {
 	return s.RotatePersonalAccessTokenByID(token, opt, options...)
 }
 
@@ -174,7 +175,7 @@ func (s *PersonalAccessTokensService) RotatePersonalAccessToken(token int, opt *
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/personal_access_tokens/#rotate-a-personal-access-token
-func (s *PersonalAccessTokensService) RotatePersonalAccessTokenByID(token int, opt *RotatePersonalAccessTokenOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error) {
+func (s *PersonalAccessTokensService) RotatePersonalAccessTokenByID(token int64, opt *RotatePersonalAccessTokenOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error) {
 	u := fmt.Sprintf("personal_access_tokens/%d/rotate", token)
 
 	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
@@ -214,7 +215,8 @@ func (s *PersonalAccessTokensService) RotatePersonalAccessTokenSelf(opt *RotateP
 }
 
 // RevokePersonalAccessToken is a backwards-compat shim for RevokePersonalAccessTokenByID.
-func (s *PersonalAccessTokensService) RevokePersonalAccessToken(token int, options ...RequestOptionFunc) (*Response, error) {
+// Deprecated: to be removed in 2.0; use RevokePersonalAccessTokenByID instead
+func (s *PersonalAccessTokensService) RevokePersonalAccessToken(token int64, options ...RequestOptionFunc) (*Response, error) {
 	return s.RevokePersonalAccessTokenByID(token, options...)
 }
 
@@ -222,7 +224,7 @@ func (s *PersonalAccessTokensService) RevokePersonalAccessToken(token int, optio
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/personal_access_tokens/#revoke-a-personal-access-token
-func (s *PersonalAccessTokensService) RevokePersonalAccessTokenByID(token int, options ...RequestOptionFunc) (*Response, error) {
+func (s *PersonalAccessTokensService) RevokePersonalAccessTokenByID(token int64, options ...RequestOptionFunc) (*Response, error) {
 	u := fmt.Sprintf("personal_access_tokens/%d", token)
 
 	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)

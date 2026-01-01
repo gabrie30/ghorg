@@ -48,7 +48,7 @@ var _ ProtectedBranchesServiceInterface = (*ProtectedBranchesService)(nil)
 // GitLab API docs:
 // https://docs.gitlab.com/api/protected_branches/#list-protected-branches
 type ProtectedBranch struct {
-	ID                        int                        `json:"id"`
+	ID                        int64                      `json:"id"`
 	Name                      string                     `json:"name"`
 	PushAccessLevels          []*BranchAccessDescription `json:"push_access_levels"`
 	MergeAccessLevels         []*BranchAccessDescription `json:"merge_access_levels"`
@@ -63,12 +63,12 @@ type ProtectedBranch struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/protected_branches/#list-protected-branches
 type BranchAccessDescription struct {
-	ID                     int              `json:"id"`
+	ID                     int64            `json:"id"`
 	AccessLevel            AccessLevelValue `json:"access_level"`
 	AccessLevelDescription string           `json:"access_level_description"`
-	DeployKeyID            int              `json:"deploy_key_id"`
-	UserID                 int              `json:"user_id"`
-	GroupID                int              `json:"group_id"`
+	DeployKeyID            int64            `json:"deploy_key_id"`
+	UserID                 int64            `json:"user_id"`
+	GroupID                int64            `json:"group_id"`
 }
 
 // ListProtectedBranchesOptions represents the available ListProtectedBranches()
@@ -153,10 +153,10 @@ type ProtectRepositoryBranchesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/protected_branches/#protect-repository-branches
 type BranchPermissionOptions struct {
-	ID          *int              `url:"id,omitempty" json:"id,omitempty"`
-	UserID      *int              `url:"user_id,omitempty" json:"user_id,omitempty"`
-	GroupID     *int              `url:"group_id,omitempty" json:"group_id,omitempty"`
-	DeployKeyID *int              `url:"deploy_key_id,omitempty" json:"deploy_key_id,omitempty"`
+	ID          *int64            `url:"id,omitempty" json:"id,omitempty"`
+	UserID      *int64            `url:"user_id,omitempty" json:"user_id,omitempty"`
+	GroupID     *int64            `url:"group_id,omitempty" json:"group_id,omitempty"`
+	DeployKeyID *int64            `url:"deploy_key_id,omitempty" json:"deploy_key_id,omitempty"`
 	AccessLevel *AccessLevelValue `url:"access_level,omitempty" json:"access_level,omitempty"`
 	Destroy     *bool             `url:"_destroy,omitempty" json:"_destroy,omitempty"`
 }
@@ -223,7 +223,7 @@ type UpdateProtectedBranchOptions struct {
 
 // UpdateProtectedBranch updates a protected branch.
 //
-// Gitlab API docs:
+// GitLab API docs:
 // https://docs.gitlab.com/api/protected_branches/#update-a-protected-branch
 func (s *ProtectedBranchesService) UpdateProtectedBranch(pid any, branch string, opt *UpdateProtectedBranchOptions, options ...RequestOptionFunc) (*ProtectedBranch, *Response, error) {
 	project, err := parseID(pid)

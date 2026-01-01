@@ -65,7 +65,7 @@ func (s ProjectTemplate) String() string {
 // https://docs.gitlab.com/api/project_templates/#get-all-templates-of-a-particular-type
 type ListProjectTemplatesOptions struct {
 	ListOptions
-	ID   *int    `url:"id,omitempty" json:"id,omitempty"`
+	ID   *int64  `url:"id,omitempty" json:"id,omitempty"`
 	Type *string `url:"type,omitempty" json:"type,omitempty"`
 }
 
