@@ -37,14 +37,14 @@ func (c Gitlab) fetchTopLevelGroupsParallel(firstPageGroups []*gitlab.Group, tot
 		go func(pageNum int) {
 			defer wg.Done()
 
-			opt := &gitlab.ListGroupsOptions{
-				ListOptions: gitlab.ListOptions{
-					PerPage: perPage,
-					Page:    pageNum,
-				},
-				TopLevelOnly: &[]bool{true}[0],
-				AllAvailable: &[]bool{true}[0],
-			}
+		opt := &gitlab.ListGroupsOptions{
+			ListOptions: gitlab.ListOptions{
+				PerPage: int64(perPage),
+				Page:    int64(pageNum),
+			},
+			TopLevelOnly: &[]bool{true}[0],
+			AllAvailable: &[]bool{true}[0],
+		}
 
 			groups, _, err := c.Client.Groups.ListGroups(opt)
 			resultChan <- pageResult{groups: groups, err: err, page: pageNum}
@@ -101,13 +101,13 @@ func (c Gitlab) fetchGroupReposParallel(targetGroup string, firstPageProjects []
 		go func(pageNum int) {
 			defer wg.Done()
 
-			opt := &gitlab.ListGroupProjectsOptions{
-				ListOptions: gitlab.ListOptions{
-					PerPage: perPage,
-					Page:    pageNum,
-				},
-				IncludeSubGroups: gitlab.Ptr(true),
-			}
+		opt := &gitlab.ListGroupProjectsOptions{
+			ListOptions: gitlab.ListOptions{
+				PerPage: int64(perPage),
+				Page:    int64(pageNum),
+			},
+			IncludeSubGroups: gitlab.Ptr(true),
+		}
 
 			ps, _, err := c.Groups.ListGroupProjects(targetGroup, opt)
 			resultChan <- pageResult{projects: ps, err: err, page: pageNum}
@@ -164,12 +164,12 @@ func (c Gitlab) fetchUserProjectsParallel(targetUser string, firstPageProjects [
 		go func(pageNum int) {
 			defer wg.Done()
 
-			projectOpts := &gitlab.ListProjectsOptions{
-				ListOptions: gitlab.ListOptions{
-					PerPage: perPage,
-					Page:    pageNum,
-				},
-			}
+		projectOpts := &gitlab.ListProjectsOptions{
+			ListOptions: gitlab.ListOptions{
+				PerPage: int64(perPage),
+				Page:    int64(pageNum),
+			},
+		}
 
 			projects, _, err := c.Projects.ListProjects(projectOpts, gitlab.WithContext(context.Background()))
 			resultChan <- pageResult{projects: projects, err: err, page: pageNum}
@@ -224,10 +224,12 @@ func (c Gitlab) fetchRepoSnippetsParallel(repoID string, firstPageSnippets []*gi
 		go func(pageNum int) {
 			defer wg.Done()
 
-			opt := &gitlab.ListProjectSnippetsOptions{
-				PerPage: perPage,
-				Page:    pageNum,
-			}
+		opt := &gitlab.ListProjectSnippetsOptions{
+			ListOptions: gitlab.ListOptions{
+				PerPage: int64(perPage),
+				Page:    int64(pageNum),
+			},
+		}
 
 			snippets, _, err := c.ProjectSnippets.ListSnippets(repoID, opt)
 			resultChan <- pageResult{snippets: snippets, err: err, page: pageNum}
@@ -284,12 +286,12 @@ func (c Gitlab) fetchAllSnippetsParallel(firstPageSnippets []*gitlab.Snippet, to
 		go func(pageNum int) {
 			defer wg.Done()
 
-			opt := &gitlab.ListAllSnippetsOptions{
-				ListOptions: gitlab.ListOptions{
-					PerPage: perPage,
-					Page:    pageNum,
-				},
-			}
+		opt := &gitlab.ListAllSnippetsOptions{
+			ListOptions: gitlab.ListOptions{
+				PerPage: int64(perPage),
+				Page:    int64(pageNum),
+			},
+		}
 
 			snippets, _, err := c.Snippets.ListAllSnippets(opt)
 			resultChan <- pageResult{snippets: snippets, err: err, page: pageNum}

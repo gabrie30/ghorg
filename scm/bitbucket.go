@@ -120,7 +120,11 @@ func (_ Bitbucket) NewClient() (Client, error) {
 
 	if oAuth != "" {
 		// OAuth bearer token takes precedence
-		c = bitbucket.NewOAuthbearerToken(oAuth)
+		var err error
+		c, err = bitbucket.NewOAuthbearerToken(oAuth)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create OAuth bearer token client: %v", err)
+		}
 	} else if apiToken != "" {
 		// New API Token authentication
 		// For API calls, use email (or username as fallback) with the API token
@@ -128,11 +132,19 @@ func (_ Bitbucket) NewClient() (Client, error) {
 		if apiUser == "" {
 			apiUser = user // Fall back to username if email not provided
 		}
-		c = bitbucket.NewBasicAuth(apiUser, apiToken)
+		var err error
+		c, err = bitbucket.NewBasicAuth(apiUser, apiToken)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create API token client: %v", err)
+		}
 		useAPIToken = true
 	} else {
 		// Legacy App Password authentication
-		c = bitbucket.NewBasicAuth(user, password)
+		var err error
+		c, err = bitbucket.NewBasicAuth(user, password)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create basic auth client: %v", err)
+		}
 	}
 
 	return Bitbucket{

@@ -5,11 +5,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.11.8] - unreleased
 ### Added
+- Bitbucket Cloud API token authentication support; thanks @dean-tate
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 ### Security
+- Bump golang.org/x/oauth2 from 0.32.0 to 0.34.0 (#607)
+- Bump github.com/ktrysmt/go-bitbucket from 0.9.87 to 0.9.88 (#606)
+- Bump github.com/spf13/cobra from 1.10.1 to 1.10.2 (#608)
+- Bump gitlab.com/gitlab-org/api/client-go from 0.157.1 to 1.10.0 (#609)
+
 
 ## [1.11.7] - 12/6/25
 ### Added
