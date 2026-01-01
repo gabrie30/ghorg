@@ -24,11 +24,11 @@ import (
 type (
 	ProjectAccessTokensServiceInterface interface {
 		ListProjectAccessTokens(pid any, opt *ListProjectAccessTokensOptions, options ...RequestOptionFunc) ([]*ProjectAccessToken, *Response, error)
-		GetProjectAccessToken(pid any, id int, options ...RequestOptionFunc) (*ProjectAccessToken, *Response, error)
+		GetProjectAccessToken(pid any, id int64, options ...RequestOptionFunc) (*ProjectAccessToken, *Response, error)
 		CreateProjectAccessToken(pid any, opt *CreateProjectAccessTokenOptions, options ...RequestOptionFunc) (*ProjectAccessToken, *Response, error)
-		RotateProjectAccessToken(pid any, id int, opt *RotateProjectAccessTokenOptions, options ...RequestOptionFunc) (*ProjectAccessToken, *Response, error)
+		RotateProjectAccessToken(pid any, id int64, opt *RotateProjectAccessTokenOptions, options ...RequestOptionFunc) (*ProjectAccessToken, *Response, error)
 		RotateProjectAccessTokenSelf(pid any, opt *RotateProjectAccessTokenOptions, options ...RequestOptionFunc) (*ProjectAccessToken, *Response, error)
-		RevokeProjectAccessToken(pid any, id int, options ...RequestOptionFunc) (*Response, error)
+		RevokeProjectAccessToken(pid any, id int64, options ...RequestOptionFunc) (*Response, error)
 	}
 
 	// ProjectAccessTokensService handles communication with the
@@ -93,7 +93,7 @@ func (s *ProjectAccessTokensService) ListProjectAccessTokens(pid any, opt *ListP
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_access_tokens/#get-details-on-a-project-access-token
-func (s *ProjectAccessTokensService) GetProjectAccessToken(pid any, id int, options ...RequestOptionFunc) (*ProjectAccessToken, *Response, error) {
+func (s *ProjectAccessTokensService) GetProjectAccessToken(pid any, id int64, options ...RequestOptionFunc) (*ProjectAccessToken, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
@@ -166,7 +166,7 @@ type RotateProjectAccessTokenOptions struct {
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_access_tokens/#rotate-a-project-access-token
-func (s *ProjectAccessTokensService) RotateProjectAccessToken(pid any, id int, opt *RotateProjectAccessTokenOptions, options ...RequestOptionFunc) (*ProjectAccessToken, *Response, error) {
+func (s *ProjectAccessTokensService) RotateProjectAccessToken(pid any, id int64, opt *RotateProjectAccessTokenOptions, options ...RequestOptionFunc) (*ProjectAccessToken, *Response, error) {
 	projects, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
@@ -215,7 +215,7 @@ func (s *ProjectAccessTokensService) RotateProjectAccessTokenSelf(pid any, opt *
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_access_tokens/#revoke-a-project-access-token
-func (s *ProjectAccessTokensService) RevokeProjectAccessToken(pid any, id int, options ...RequestOptionFunc) (*Response, error) {
+func (s *ProjectAccessTokensService) RevokeProjectAccessToken(pid any, id int64, options ...RequestOptionFunc) (*Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, err

@@ -50,18 +50,13 @@ var _ GroupImportExportServiceInterface = (*GroupImportExportService)(nil)
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_import_export/#schedule-new-export
 func (s *GroupImportExportService) ScheduleExport(gid any, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/export", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("groups/%s/export", GroupID{gid}),
+		withAPIOpts(nil),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // ExportDownload downloads the finished export.
@@ -73,9 +68,8 @@ func (s *GroupImportExportService) ExportDownload(gid any, options ...RequestOpt
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("groups/%s/export/download", PathEscape(group))
 
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
+	req, err := s.client.NewRequest(http.MethodGet, fmt.Sprintf("groups/%s/export/download", group), nil, options)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -97,7 +91,7 @@ type GroupImportFileOptions struct {
 	Name     *string `url:"name,omitempty" json:"name,omitempty"`
 	Path     *string `url:"path,omitempty" json:"path,omitempty"`
 	File     *string `url:"file,omitempty" json:"file,omitempty"`
-	ParentID *int    `url:"parent_id,omitempty" json:"parent_id,omitempty"`
+	ParentID *int64  `url:"parent_id,omitempty" json:"parent_id,omitempty"`
 }
 
 // ImportFile imports a file.
@@ -163,7 +157,7 @@ func (s *GroupImportExportService) ImportFile(opt *GroupImportFileOptions, optio
 			return nil, err
 		}
 
-		_, err = fw.Write([]byte(strconv.Itoa(*opt.ParentID)))
+		_, err = fw.Write([]byte(strconv.FormatInt(*opt.ParentID, 10)))
 		if err != nil {
 			return nil, err
 		}

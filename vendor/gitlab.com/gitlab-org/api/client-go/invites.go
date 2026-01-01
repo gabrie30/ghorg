@@ -45,7 +45,7 @@ var _ InvitesServiceInterface = (*InvitesService)(nil)
 //
 // GitLab API docs: https://docs.gitlab.com/api/invitations/
 type PendingInvite struct {
-	ID            int              `json:"id"`
+	ID            int64            `json:"id"`
 	InviteEmail   string           `json:"invite_email"`
 	CreatedAt     *time.Time       `json:"created_at"`
 	AccessLevel   AccessLevelValue `json:"access_level"`

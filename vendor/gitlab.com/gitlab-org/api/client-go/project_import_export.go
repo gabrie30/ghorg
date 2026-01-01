@@ -50,7 +50,7 @@ var _ ProjectImportExportServiceInterface = (*ProjectImportExportService)(nil)
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_import_export/#import-status
 type ImportStatus struct {
-	ID                int        `json:"id"`
+	ID                int64      `json:"id"`
 	Description       string     `json:"description"`
 	Name              string     `json:"name"`
 	NameWithNamespace string     `json:"name_with_namespace"`
@@ -72,23 +72,33 @@ func (s ImportStatus) String() string {
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_import_export/#export-status
 type ExportStatus struct {
-	ID                int        `json:"id"`
-	Description       string     `json:"description"`
-	Name              string     `json:"name"`
-	NameWithNamespace string     `json:"name_with_namespace"`
-	Path              string     `json:"path"`
-	PathWithNamespace string     `json:"path_with_namespace"`
-	CreatedAt         *time.Time `json:"created_at"`
-	ExportStatus      string     `json:"export_status"`
-	Message           string     `json:"message"`
-	Links             struct {
-		APIURL string `json:"api_url"`
-		WebURL string `json:"web_url"`
-	} `json:"_links"`
+	ID                int64             `json:"id"`
+	Description       string            `json:"description"`
+	Name              string            `json:"name"`
+	NameWithNamespace string            `json:"name_with_namespace"`
+	Path              string            `json:"path"`
+	PathWithNamespace string            `json:"path_with_namespace"`
+	CreatedAt         *time.Time        `json:"created_at"`
+	ExportStatus      string            `json:"export_status"`
+	Message           string            `json:"message"`
+	Links             ExportStatusLinks `json:"_links"`
 }
 
 func (s ExportStatus) String() string {
 	return Stringify(s)
+}
+
+// ExportStatusLinks represents the project export status links.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/api/project_import_export/#export-status
+type ExportStatusLinks struct {
+	APIURL string `json:"api_url"`
+	WebURL string `json:"web_url"`
+}
+
+func (l ExportStatusLinks) String() string {
+	return Stringify(l)
 }
 
 // ScheduleExportOptions represents the available ScheduleExport() options.
@@ -96,11 +106,13 @@ func (s ExportStatus) String() string {
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_import_export/#schedule-an-export
 type ScheduleExportOptions struct {
-	Description *string `url:"description,omitempty" json:"description,omitempty"`
-	Upload      struct {
-		URL        *string `url:"url,omitempty" json:"url,omitempty"`
-		HTTPMethod *string `url:"http_method,omitempty" json:"http_method,omitempty"`
-	} `url:"upload,omitempty" json:"upload,omitempty"`
+	Description *string                     `url:"description,omitempty" json:"description,omitempty"`
+	Upload      ScheduleExportUploadOptions `url:"upload,omitempty" json:"upload,omitempty"`
+}
+
+type ScheduleExportUploadOptions struct {
+	URL        *string `url:"url,omitempty" json:"url,omitempty"`
+	HTTPMethod *string `url:"http_method,omitempty" json:"http_method,omitempty"`
 }
 
 // ScheduleExport schedules a project export.

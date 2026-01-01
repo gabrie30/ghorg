@@ -29,10 +29,10 @@ is allowed and preferred, since understanding contributing guidelines is not req
 
 ```bash
 # Run all tests with race detection
-make test
+mise exec -- make test
 
 # Run the complete reviewable process (includes tests)
-make reviewable
+mise exec -- make reviewable
 ```
 
 ### Test Patterns
@@ -73,7 +73,7 @@ The project uses `gofumpt` for code formatting:
 
 ```bash
 # Format all Go files
-make fmt
+mise exec -- make fmt
 ```
 
 **Formatting Rules:**
@@ -86,7 +86,7 @@ make fmt
 
 ```bash
 # Run all linters
-make lint
+mise exec -- make lint
 ```
 
 **Linting Configuration:**
@@ -104,10 +104,10 @@ This repository uses gomock to generate testing structs, which are in the `testi
 
 ```bash
 # Generate all code (protobuf, mocks, testing client)
-make generate
+mise exec -- make generate
 
 # Clean generated files
-make clean
+mise exec -- make clean
 ```
 
 ### Generation Scripts
@@ -260,13 +260,13 @@ func (s *ServiceName) MethodName(opt *MethodOptions, options ...RequestOptionFun
 **CRITICAL: Linting MUST pass for every build or code modification.**
 **CRITICAL: Mock generation should be run any time function signatures change**
 
-You can accomplish all three of these by running `make reviewable`, which will do:
+You can accomplish all three of these by running `mise exec -- make reviewable`, which will do:
 
-1. `make setup` - Install dependencies
-2. `make generate` - Generate required code
-3. `make fmt` - Format code
-4. `make lint` - Run linters
-5. `make test` - Run tests
+1. `mise exec -- make setup` - Install dependencies
+2. `mise exec -- make generate` - Generate required code
+3. `mise exec -- make fmt` - Format code
+4. `mise exec -- make lint` - Run linters
+5. `mise exec -- make test` - Run tests
 
 ## Code Generation Guidelines
 
@@ -276,8 +276,8 @@ You can accomplish all three of these by running `make reviewable`, which will d
 2. Define the interface and struct following the established pattern
 3. Implement all methods with proper error handling
 4. Add comprehensive tests in `new_service_test.go`
-5. Run `make generate` to update mocks and testing client
-6. Ensure all tests pass with `make test`
+5. Run `mise exec -- make generate` to update mocks and testing client
+6. Ensure all tests pass with `mise exec -- make test`
 
 ### Mock Generation
 
@@ -285,7 +285,7 @@ The repository uses `gomock` for generating mocks:
 
 ```bash
 # Generate mocks for all interfaces
-make generate
+mise exec -- make generate
 ```
 
 Mocks are automatically generated in the `testing/` package and should not be manually edited.
@@ -351,12 +351,12 @@ fmt.Printf("Total pages: %d\n", resp.TotalPages)
 ### Common Issues
 
 1. **Tests failing after changes:**
-   - Run `make generate` to update mocks
-   - Check for linting errors with `make lint`
+   - Run `mise exec -- make generate` to update mocks
+   - Check for linting errors with `mise exec -- make lint`
    - Ensure all imports are correct
 
 2. **Linting errors:**
-   - Run `make fmt` to fix formatting issues
+   - Run `mise exec -- make fmt` to fix formatting issues
    - Check `.golangci.yml` for specific rule configurations
    - Address any static analysis warnings
 
@@ -376,9 +376,9 @@ fmt.Printf("Total pages: %d\n", resp.TotalPages)
 
 When working with this repository:
 
-1. **Always run tests** - `make test` is mandatory
+1. **Always run tests** - `mise exec -- make test` is mandatory
 2. **Follow formatting rules** - Use `gofumpt` and respect line limits
 3. **Align with GitLab API docs** - Every function must reference official documentation
-4. **Generate code when needed** - Run `make generate` after interface changes
+4. **Generate code when needed** - Run `mise exec -- make generate` after interface changes
 5. **Use proper commenting** - Include GitLab API links and follow format guidelines
 6. **Maintain consistency** - Follow established patterns and conventions

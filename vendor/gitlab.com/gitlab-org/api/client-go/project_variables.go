@@ -65,7 +65,7 @@ func (v ProjectVariable) String() string {
 
 // VariableFilter filters available for project variable related functions
 type VariableFilter struct {
-	EnvironmentScope string `url:"environment_scope, omitempty" json:"environment_scope,omitempty"`
+	EnvironmentScope string `url:"environment_scope,omitempty" json:"environment_scope,omitempty"`
 }
 
 // ListProjectVariablesOptions represents the available options for listing variables
@@ -73,7 +73,9 @@ type VariableFilter struct {
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_level_variables/#list-project-variables
-type ListProjectVariablesOptions ListOptions
+type ListProjectVariablesOptions struct {
+	ListOptions
+}
 
 // ListVariables gets a list of all variables in a project.
 //

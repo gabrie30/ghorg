@@ -28,8 +28,8 @@ var _ ProjectAliasesServiceInterface = (*ProjectAliasesService)(nil)
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_aliases/
 type ProjectAlias struct {
-	ID        int    `json:"id"`
-	ProjectID int    `json:"project_id"`
+	ID        int64  `json:"id"`
+	ProjectID int64  `json:"project_id"`
 	Name      string `json:"name"`
 }
 
@@ -39,7 +39,7 @@ type ProjectAlias struct {
 // https://docs.gitlab.com/api/project_aliases/#create-a-project-alias
 type CreateProjectAliasOptions struct {
 	Name      *string `json:"name" url:"name,omitempty"`
-	ProjectID int     `json:"project_id" url:"project_id,omitempty"`
+	ProjectID int64   `json:"project_id" url:"project_id,omitempty"`
 }
 
 // ListProjectAliases gets a list of all project aliases.

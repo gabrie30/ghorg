@@ -22,7 +22,7 @@ import (
 	"net/http"
 )
 
-// EventType represents a Gitlab event type.
+// EventType represents a GitLab event type.
 type EventType string
 
 // List of available event types.
@@ -62,10 +62,12 @@ const (
 )
 
 type noteEvent struct {
-	ObjectKind       string `json:"object_kind"`
-	ObjectAttributes struct {
-		NoteableType string `json:"noteable_type"`
-	} `json:"object_attributes"`
+	ObjectKind       string                    `json:"object_kind"`
+	ObjectAttributes noteEventObjectAttributes `json:"object_attributes"`
+}
+
+type noteEventObjectAttributes struct {
+	NoteableType string `json:"noteable_type"`
 }
 
 type serviceEvent struct {

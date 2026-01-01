@@ -25,10 +25,10 @@ import (
 type (
 	ProjectRepositoryStorageMoveServiceInterface interface {
 		RetrieveAllStorageMoves(opts RetrieveAllProjectStorageMovesOptions, options ...RequestOptionFunc) ([]*ProjectRepositoryStorageMove, *Response, error)
-		RetrieveAllStorageMovesForProject(project int, opts RetrieveAllProjectStorageMovesOptions, options ...RequestOptionFunc) ([]*ProjectRepositoryStorageMove, *Response, error)
-		GetStorageMove(repositoryStorage int, options ...RequestOptionFunc) (*ProjectRepositoryStorageMove, *Response, error)
-		GetStorageMoveForProject(project int, repositoryStorage int, options ...RequestOptionFunc) (*ProjectRepositoryStorageMove, *Response, error)
-		ScheduleStorageMoveForProject(project int, opts ScheduleStorageMoveForProjectOptions, options ...RequestOptionFunc) (*ProjectRepositoryStorageMove, *Response, error)
+		RetrieveAllStorageMovesForProject(project int64, opts RetrieveAllProjectStorageMovesOptions, options ...RequestOptionFunc) ([]*ProjectRepositoryStorageMove, *Response, error)
+		GetStorageMove(repositoryStorage int64, options ...RequestOptionFunc) (*ProjectRepositoryStorageMove, *Response, error)
+		GetStorageMoveForProject(project int64, repositoryStorage int64, options ...RequestOptionFunc) (*ProjectRepositoryStorageMove, *Response, error)
+		ScheduleStorageMoveForProject(project int64, opts ScheduleStorageMoveForProjectOptions, options ...RequestOptionFunc) (*ProjectRepositoryStorageMove, *Response, error)
 		ScheduleAllStorageMoves(opts ScheduleAllProjectStorageMovesOptions, options ...RequestOptionFunc) (*Response, error)
 	}
 
@@ -49,7 +49,7 @@ var _ ProjectRepositoryStorageMoveServiceInterface = (*ProjectRepositoryStorageM
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_repository_storage_moves/
 type ProjectRepositoryStorageMove struct {
-	ID                     int                `json:"id"`
+	ID                     int64              `json:"id"`
 	CreatedAt              *time.Time         `json:"created_at"`
 	State                  string             `json:"state"`
 	SourceStorageName      string             `json:"source_storage_name"`
@@ -58,7 +58,7 @@ type ProjectRepositoryStorageMove struct {
 }
 
 type RepositoryProject struct {
-	ID                int        `json:"id"`
+	ID                int64      `json:"id"`
 	Description       string     `json:"description"`
 	Name              string     `json:"name"`
 	NameWithNamespace string     `json:"name_with_namespace"`
@@ -72,7 +72,9 @@ type RepositoryProject struct {
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_repository_storage_moves/#retrieve-all-project-repository-storage-moves
-type RetrieveAllProjectStorageMovesOptions ListOptions
+type RetrieveAllProjectStorageMovesOptions struct {
+	ListOptions
+}
 
 // RetrieveAllStorageMoves retrieves all project repository storage moves
 // accessible by the authenticated user.
@@ -99,7 +101,7 @@ func (p ProjectRepositoryStorageMoveService) RetrieveAllStorageMoves(opts Retrie
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_repository_storage_moves/#retrieve-all-repository-storage-moves-for-a-project
-func (p ProjectRepositoryStorageMoveService) RetrieveAllStorageMovesForProject(project int, opts RetrieveAllProjectStorageMovesOptions, options ...RequestOptionFunc) ([]*ProjectRepositoryStorageMove, *Response, error) {
+func (p ProjectRepositoryStorageMoveService) RetrieveAllStorageMovesForProject(project int64, opts RetrieveAllProjectStorageMovesOptions, options ...RequestOptionFunc) ([]*ProjectRepositoryStorageMove, *Response, error) {
 	u := fmt.Sprintf("projects/%d/repository_storage_moves", project)
 
 	req, err := p.client.NewRequest(http.MethodGet, u, opts, options)
@@ -120,7 +122,7 @@ func (p ProjectRepositoryStorageMoveService) RetrieveAllStorageMovesForProject(p
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_repository_storage_moves/#get-a-single-project-repository-storage-move
-func (p ProjectRepositoryStorageMoveService) GetStorageMove(repositoryStorage int, options ...RequestOptionFunc) (*ProjectRepositoryStorageMove, *Response, error) {
+func (p ProjectRepositoryStorageMoveService) GetStorageMove(repositoryStorage int64, options ...RequestOptionFunc) (*ProjectRepositoryStorageMove, *Response, error) {
 	u := fmt.Sprintf("project_repository_storage_moves/%d", repositoryStorage)
 
 	req, err := p.client.NewRequest(http.MethodGet, u, nil, options)
@@ -141,7 +143,7 @@ func (p ProjectRepositoryStorageMoveService) GetStorageMove(repositoryStorage in
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_repository_storage_moves/#get-a-single-repository-storage-move-for-a-project
-func (p ProjectRepositoryStorageMoveService) GetStorageMoveForProject(project int, repositoryStorage int, options ...RequestOptionFunc) (*ProjectRepositoryStorageMove, *Response, error) {
+func (p ProjectRepositoryStorageMoveService) GetStorageMoveForProject(project int64, repositoryStorage int64, options ...RequestOptionFunc) (*ProjectRepositoryStorageMove, *Response, error) {
 	u := fmt.Sprintf("projects/%d/repository_storage_moves/%d", project, repositoryStorage)
 
 	req, err := p.client.NewRequest(http.MethodGet, u, nil, options)
@@ -171,7 +173,7 @@ type ScheduleStorageMoveForProjectOptions struct {
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_repository_storage_moves/#schedule-a-repository-storage-move-for-a-project
-func (p ProjectRepositoryStorageMoveService) ScheduleStorageMoveForProject(project int, opts ScheduleStorageMoveForProjectOptions, options ...RequestOptionFunc) (*ProjectRepositoryStorageMove, *Response, error) {
+func (p ProjectRepositoryStorageMoveService) ScheduleStorageMoveForProject(project int64, opts ScheduleStorageMoveForProjectOptions, options ...RequestOptionFunc) (*ProjectRepositoryStorageMove, *Response, error) {
 	u := fmt.Sprintf("projects/%d/repository_storage_moves", project)
 
 	req, err := p.client.NewRequest(http.MethodPost, u, opts, options)

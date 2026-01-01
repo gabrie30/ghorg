@@ -42,13 +42,13 @@ var _ GroupIterationsServiceInterface = (*GroupIterationsService)(nil)
 //
 // GitLab API docs: https://docs.gitlab.com/api/group_iterations/
 type GroupIteration struct {
-	ID          int        `json:"id"`
-	IID         int        `json:"iid"`
-	Sequence    int        `json:"sequence"`
-	GroupID     int        `json:"group_id"`
+	ID          int64      `json:"id"`
+	IID         int64      `json:"iid"`
+	Sequence    int64      `json:"sequence"`
+	GroupID     int64      `json:"group_id"`
 	Title       string     `json:"title"`
 	Description string     `json:"description"`
-	State       int        `json:"state"`
+	State       int64      `json:"state"`
 	CreatedAt   *time.Time `json:"created_at"`
 	UpdatedAt   *time.Time `json:"updated_at"`
 	DueDate     *ISOTime   `json:"due_date"`
