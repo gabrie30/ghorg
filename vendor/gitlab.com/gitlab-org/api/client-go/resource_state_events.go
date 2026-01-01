@@ -24,10 +24,10 @@ import (
 
 type (
 	ResourceStateEventsServiceInterface interface {
-		ListIssueStateEvents(pid any, issue int, opt *ListStateEventsOptions, options ...RequestOptionFunc) ([]*StateEvent, *Response, error)
-		GetIssueStateEvent(pid any, issue int, event int, options ...RequestOptionFunc) (*StateEvent, *Response, error)
-		ListMergeStateEvents(pid any, request int, opt *ListStateEventsOptions, options ...RequestOptionFunc) ([]*StateEvent, *Response, error)
-		GetMergeRequestStateEvent(pid any, request int, event int, options ...RequestOptionFunc) (*StateEvent, *Response, error)
+		ListIssueStateEvents(pid any, issue int64, opt *ListStateEventsOptions, options ...RequestOptionFunc) ([]*StateEvent, *Response, error)
+		GetIssueStateEvent(pid any, issue int64, event int64, options ...RequestOptionFunc) (*StateEvent, *Response, error)
+		ListMergeStateEvents(pid any, request int64, opt *ListStateEventsOptions, options ...RequestOptionFunc) ([]*StateEvent, *Response, error)
+		GetMergeRequestStateEvent(pid any, request int64, event int64, options ...RequestOptionFunc) (*StateEvent, *Response, error)
 	}
 
 	// ResourceStateEventsService handles communication with the event related
@@ -45,11 +45,11 @@ var _ ResourceStateEventsServiceInterface = (*ResourceStateEventsService)(nil)
 //
 // GitLab API docs: https://docs.gitlab.com/api/resource_state_events/
 type StateEvent struct {
-	ID           int            `json:"id"`
+	ID           int64          `json:"id"`
 	User         *BasicUser     `json:"user"`
 	CreatedAt    *time.Time     `json:"created_at"`
 	ResourceType string         `json:"resource_type"`
-	ResourceID   int            `json:"resource_id"`
+	ResourceID   int64          `json:"resource_id"`
 	State        EventTypeValue `json:"state"`
 }
 
@@ -67,7 +67,7 @@ type ListStateEventsOptions struct {
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/resource_state_events/#list-project-issue-state-events
-func (s *ResourceStateEventsService) ListIssueStateEvents(pid any, issue int, opt *ListStateEventsOptions, options ...RequestOptionFunc) ([]*StateEvent, *Response, error) {
+func (s *ResourceStateEventsService) ListIssueStateEvents(pid any, issue int64, opt *ListStateEventsOptions, options ...RequestOptionFunc) ([]*StateEvent, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
@@ -92,7 +92,7 @@ func (s *ResourceStateEventsService) ListIssueStateEvents(pid any, issue int, op
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/resource_state_events/#get-single-issue-state-event
-func (s *ResourceStateEventsService) GetIssueStateEvent(pid any, issue int, event int, options ...RequestOptionFunc) (*StateEvent, *Response, error) {
+func (s *ResourceStateEventsService) GetIssueStateEvent(pid any, issue int64, event int64, options ...RequestOptionFunc) (*StateEvent, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
@@ -118,7 +118,7 @@ func (s *ResourceStateEventsService) GetIssueStateEvent(pid any, issue int, even
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/resource_state_events/#list-project-merge-request-state-events
-func (s *ResourceStateEventsService) ListMergeStateEvents(pid any, request int, opt *ListStateEventsOptions, options ...RequestOptionFunc) ([]*StateEvent, *Response, error) {
+func (s *ResourceStateEventsService) ListMergeStateEvents(pid any, request int64, opt *ListStateEventsOptions, options ...RequestOptionFunc) ([]*StateEvent, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
@@ -143,7 +143,7 @@ func (s *ResourceStateEventsService) ListMergeStateEvents(pid any, request int, 
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/resource_state_events/#get-single-merge-request-state-event
-func (s *ResourceStateEventsService) GetMergeRequestStateEvent(pid any, request int, event int, options ...RequestOptionFunc) (*StateEvent, *Response, error) {
+func (s *ResourceStateEventsService) GetMergeRequestStateEvent(pid any, request int64, event int64, options ...RequestOptionFunc) (*StateEvent, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err

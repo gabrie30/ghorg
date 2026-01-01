@@ -25,11 +25,11 @@ import (
 type (
 	ProjectMirrorServiceInterface interface {
 		ListProjectMirror(pid any, opt *ListProjectMirrorOptions, options ...RequestOptionFunc) ([]*ProjectMirror, *Response, error)
-		GetProjectMirror(pid any, mirror int, options ...RequestOptionFunc) (*ProjectMirror, *Response, error)
-		GetProjectMirrorPublicKey(pid any, mirror int, options ...RequestOptionFunc) (*ProjectMirrorPublicKey, *Response, error)
+		GetProjectMirror(pid any, mirror int64, options ...RequestOptionFunc) (*ProjectMirror, *Response, error)
+		GetProjectMirrorPublicKey(pid any, mirror int64, options ...RequestOptionFunc) (*ProjectMirrorPublicKey, *Response, error)
 		AddProjectMirror(pid any, opt *AddProjectMirrorOptions, options ...RequestOptionFunc) (*ProjectMirror, *Response, error)
-		EditProjectMirror(pid any, mirror int, opt *EditProjectMirrorOptions, options ...RequestOptionFunc) (*ProjectMirror, *Response, error)
-		DeleteProjectMirror(pid any, mirror int, options ...RequestOptionFunc) (*Response, error)
+		EditProjectMirror(pid any, mirror int64, opt *EditProjectMirrorOptions, options ...RequestOptionFunc) (*ProjectMirror, *Response, error)
+		DeleteProjectMirror(pid any, mirror int64, options ...RequestOptionFunc) (*Response, error)
 	}
 
 	// ProjectMirrorService handles communication with the project mirror
@@ -48,7 +48,7 @@ var _ ProjectMirrorServiceInterface = (*ProjectMirrorService)(nil)
 // GitLAb API docs: https://docs.gitlab.com/api/remote_mirrors/
 type ProjectMirror struct {
 	Enabled                bool       `json:"enabled"`
-	ID                     int        `json:"id"`
+	ID                     int64      `json:"id"`
 	LastError              string     `json:"last_error"`
 	LastSuccessfulUpdateAt *time.Time `json:"last_successful_update_at"`
 	LastUpdateAt           *time.Time `json:"last_update_at"`
@@ -66,7 +66,9 @@ type ProjectMirrorPublicKey struct {
 }
 
 // ListProjectMirrorOptions represents the available ListProjectMirror() options.
-type ListProjectMirrorOptions ListOptions
+type ListProjectMirrorOptions struct {
+	ListOptions
+}
 
 // ListProjectMirror gets a list of mirrors configured on the project.
 //
@@ -97,7 +99,7 @@ func (s *ProjectMirrorService) ListProjectMirror(pid any, opt *ListProjectMirror
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/remote_mirrors/#get-a-single-projects-remote-mirror
-func (s *ProjectMirrorService) GetProjectMirror(pid any, mirror int, options ...RequestOptionFunc) (*ProjectMirror, *Response, error) {
+func (s *ProjectMirrorService) GetProjectMirror(pid any, mirror int64, options ...RequestOptionFunc) (*ProjectMirror, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
@@ -122,7 +124,7 @@ func (s *ProjectMirrorService) GetProjectMirror(pid any, mirror int, options ...
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/remote_mirrors/#get-a-single-projects-remote-mirror-public-key
-func (s *ProjectMirrorService) GetProjectMirrorPublicKey(pid any, mirror int, options ...RequestOptionFunc) (*ProjectMirrorPublicKey, *Response, error) {
+func (s *ProjectMirrorService) GetProjectMirrorPublicKey(pid any, mirror int64, options ...RequestOptionFunc) (*ProjectMirrorPublicKey, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
@@ -199,7 +201,7 @@ type EditProjectMirrorOptions struct {
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/remote_mirrors/#update-a-remote-mirrors-attributes
-func (s *ProjectMirrorService) EditProjectMirror(pid any, mirror int, opt *EditProjectMirrorOptions, options ...RequestOptionFunc) (*ProjectMirror, *Response, error) {
+func (s *ProjectMirrorService) EditProjectMirror(pid any, mirror int64, opt *EditProjectMirrorOptions, options ...RequestOptionFunc) (*ProjectMirror, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
@@ -224,7 +226,7 @@ func (s *ProjectMirrorService) EditProjectMirror(pid any, mirror int, opt *EditP
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/remote_mirrors/#delete-a-remote-mirror
-func (s *ProjectMirrorService) DeleteProjectMirror(pid any, mirror int, options ...RequestOptionFunc) (*Response, error) {
+func (s *ProjectMirrorService) DeleteProjectMirror(pid any, mirror int64, options ...RequestOptionFunc) (*Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, err

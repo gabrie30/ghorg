@@ -26,9 +26,9 @@ type (
 	PackagesServiceInterface interface {
 		ListProjectPackages(pid any, opt *ListProjectPackagesOptions, options ...RequestOptionFunc) ([]*Package, *Response, error)
 		ListGroupPackages(gid any, opt *ListGroupPackagesOptions, options ...RequestOptionFunc) ([]*GroupPackage, *Response, error)
-		ListPackageFiles(pid any, pkg int, opt *ListPackageFilesOptions, options ...RequestOptionFunc) ([]*PackageFile, *Response, error)
-		DeleteProjectPackage(pid any, pkg int, options ...RequestOptionFunc) (*Response, error)
-		DeletePackageFile(pid any, pkg, file int, options ...RequestOptionFunc) (*Response, error)
+		ListPackageFiles(pid any, pkg int64, opt *ListPackageFilesOptions, options ...RequestOptionFunc) ([]*PackageFile, *Response, error)
+		DeleteProjectPackage(pid any, pkg int64, options ...RequestOptionFunc) (*Response, error)
+		DeletePackageFile(pid any, pkg, file int64, options ...RequestOptionFunc) (*Response, error)
 	}
 
 	// PackagesService handles communication with the packages related methods
@@ -46,7 +46,7 @@ var _ PackagesServiceInterface = (*PackagesService)(nil)
 //
 // GitLab API docs: https://docs.gitlab.com/api/packages/
 type Package struct {
-	ID               int           `json:"id"`
+	ID               int64         `json:"id"`
 	Name             string        `json:"name"`
 	Version          string        `json:"version"`
 	PackageType      string        `json:"package_type"`
@@ -66,7 +66,7 @@ func (s Package) String() string {
 // GitLab API docs: https://docs.gitlab.com/api/packages/
 type GroupPackage struct {
 	Package
-	ProjectID   int    `json:"project_id"`
+	ProjectID   int64  `json:"project_id"`
 	ProjectPath string `json:"project_path"`
 }
 
@@ -86,8 +86,8 @@ func (s PackageLinks) String() string {
 
 // PackageTag holds label information about the package
 type PackageTag struct {
-	ID        int        `json:"id"`
-	PackageID int        `json:"package_id"`
+	ID        int64      `json:"id"`
+	PackageID int64      `json:"package_id"`
 	Name      string     `json:"name"`
 	CreatedAt *time.Time `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`
@@ -101,11 +101,11 @@ func (s PackageTag) String() string {
 //
 // GitLab API docs: https://docs.gitlab.com/api/packages/
 type PackageFile struct {
-	ID         int         `json:"id"`
-	PackageID  int         `json:"package_id"`
+	ID         int64       `json:"id"`
+	PackageID  int64       `json:"package_id"`
 	CreatedAt  *time.Time  `json:"created_at"`
 	FileName   string      `json:"file_name"`
-	Size       int         `json:"size"`
+	Size       int64       `json:"size"`
 	FileMD5    string      `json:"file_md5"`
 	FileSHA1   string      `json:"file_sha1"`
 	FileSHA256 string      `json:"file_sha256"`
@@ -203,13 +203,15 @@ func (s *PackagesService) ListGroupPackages(gid any, opt *ListGroupPackagesOptio
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/packages/#list-package-files
-type ListPackageFilesOptions ListOptions
+type ListPackageFilesOptions struct {
+	ListOptions
+}
 
 // ListPackageFiles gets a list of files that are within a package
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/packages/#list-package-files
-func (s *PackagesService) ListPackageFiles(pid any, pkg int, opt *ListPackageFilesOptions, options ...RequestOptionFunc) ([]*PackageFile, *Response, error) {
+func (s *PackagesService) ListPackageFiles(pid any, pkg int64, opt *ListPackageFilesOptions, options ...RequestOptionFunc) ([]*PackageFile, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
@@ -238,7 +240,7 @@ func (s *PackagesService) ListPackageFiles(pid any, pkg int, opt *ListPackageFil
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/packages/#delete-a-project-package
-func (s *PackagesService) DeleteProjectPackage(pid any, pkg int, options ...RequestOptionFunc) (*Response, error) {
+func (s *PackagesService) DeleteProjectPackage(pid any, pkg int64, options ...RequestOptionFunc) (*Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, err
@@ -257,7 +259,7 @@ func (s *PackagesService) DeleteProjectPackage(pid any, pkg int, options ...Requ
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/packages/#delete-a-package-file
-func (s *PackagesService) DeletePackageFile(pid any, pkg, file int, options ...RequestOptionFunc) (*Response, error) {
+func (s *PackagesService) DeletePackageFile(pid any, pkg, file int64, options ...RequestOptionFunc) (*Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, err

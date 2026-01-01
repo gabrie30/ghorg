@@ -66,7 +66,9 @@ func (v InstanceVariable) String() string {
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/instance_level_ci_variables/#list-all-instance-variables
-type ListInstanceVariablesOptions ListOptions
+type ListInstanceVariablesOptions struct {
+	ListOptions
+}
 
 // ListVariables gets a list of all variables for an instance.
 //

@@ -25,10 +25,10 @@ import (
 type (
 	SystemHooksServiceInterface interface {
 		ListHooks(options ...RequestOptionFunc) ([]*Hook, *Response, error)
-		GetHook(hook int, options ...RequestOptionFunc) (*Hook, *Response, error)
+		GetHook(hook int64, options ...RequestOptionFunc) (*Hook, *Response, error)
 		AddHook(opt *AddHookOptions, options ...RequestOptionFunc) (*Hook, *Response, error)
-		TestHook(hook int, options ...RequestOptionFunc) (*HookEvent, *Response, error)
-		DeleteHook(hook int, options ...RequestOptionFunc) (*Response, error)
+		TestHook(hook int64, options ...RequestOptionFunc) (*HookEvent, *Response, error)
+		DeleteHook(hook int64, options ...RequestOptionFunc) (*Response, error)
 	}
 
 	// SystemHooksService handles communication with the system hooks related
@@ -46,7 +46,7 @@ var _ SystemHooksServiceInterface = (*SystemHooksService)(nil)
 //
 // GitLab API docs: https://docs.gitlab.com/api/system_hooks/
 type Hook struct {
-	ID                     int        `json:"id"`
+	ID                     int64      `json:"id"`
 	URL                    string     `json:"url"`
 	CreatedAt              *time.Time `json:"created_at"`
 	PushEvents             bool       `json:"push_events"`
@@ -83,7 +83,7 @@ func (s *SystemHooksService) ListHooks(options ...RequestOptionFunc) ([]*Hook, *
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/system_hooks/#get-system-hook
-func (s *SystemHooksService) GetHook(hook int, options ...RequestOptionFunc) (*Hook, *Response, error) {
+func (s *SystemHooksService) GetHook(hook int64, options ...RequestOptionFunc) (*Hook, *Response, error) {
 	u := fmt.Sprintf("hooks/%d", hook)
 
 	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
@@ -140,7 +140,7 @@ type HookEvent struct {
 	EventName  string `json:"event_name"`
 	Name       string `json:"name"`
 	Path       string `json:"path"`
-	ProjectID  int    `json:"project_id"`
+	ProjectID  int64  `json:"project_id"`
 	OwnerName  string `json:"owner_name"`
 	OwnerEmail string `json:"owner_email"`
 }
@@ -153,7 +153,7 @@ func (h HookEvent) String() string {
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/system_hooks/#test-system-hook
-func (s *SystemHooksService) TestHook(hook int, options ...RequestOptionFunc) (*HookEvent, *Response, error) {
+func (s *SystemHooksService) TestHook(hook int64, options ...RequestOptionFunc) (*HookEvent, *Response, error) {
 	u := fmt.Sprintf("hooks/%d", hook)
 
 	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
@@ -176,7 +176,7 @@ func (s *SystemHooksService) TestHook(hook int, options ...RequestOptionFunc) (*
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/system_hooks/#delete-system-hook
-func (s *SystemHooksService) DeleteHook(hook int, options ...RequestOptionFunc) (*Response, error) {
+func (s *SystemHooksService) DeleteHook(hook int64, options ...RequestOptionFunc) (*Response, error) {
 	u := fmt.Sprintf("hooks/%d", hook)
 
 	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)

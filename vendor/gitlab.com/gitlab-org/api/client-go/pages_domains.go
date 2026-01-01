@@ -47,27 +47,34 @@ var _ PagesDomainsServiceInterface = (*PagesDomainsService)(nil)
 //
 // GitLab API docs: https://docs.gitlab.com/api/pages_domains/
 type PagesDomain struct {
-	Domain           string     `json:"domain"`
-	AutoSslEnabled   bool       `json:"auto_ssl_enabled"`
-	URL              string     `json:"url"`
-	ProjectID        int        `json:"project_id"`
-	Verified         bool       `json:"verified"`
-	VerificationCode string     `json:"verification_code"`
-	EnabledUntil     *time.Time `json:"enabled_until"`
-	Certificate      struct {
-		Subject         string     `json:"subject"`
-		Expired         bool       `json:"expired"`
-		Expiration      *time.Time `json:"expiration"`
-		Certificate     string     `json:"certificate"`
-		CertificateText string     `json:"certificate_text"`
-	} `json:"certificate"`
+	Domain           string                 `json:"domain"`
+	AutoSslEnabled   bool                   `json:"auto_ssl_enabled"`
+	URL              string                 `json:"url"`
+	ProjectID        int64                  `json:"project_id"`
+	Verified         bool                   `json:"verified"`
+	VerificationCode string                 `json:"verification_code"`
+	EnabledUntil     *time.Time             `json:"enabled_until"`
+	Certificate      PagesDomainCertificate `json:"certificate"`
+}
+
+// PagesDomainCertificate represents a pages domain certificate.
+//
+// GitLab API docs: https://docs.gitlab.com/api/pages_domains/
+type PagesDomainCertificate struct {
+	Subject         string     `json:"subject"`
+	Expired         bool       `json:"expired"`
+	Expiration      *time.Time `json:"expiration"`
+	Certificate     string     `json:"certificate"`
+	CertificateText string     `json:"certificate_text"`
 }
 
 // ListPagesDomainsOptions represents the available ListPagesDomains() options.
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/pages_domains/#list-pages-domains
-type ListPagesDomainsOptions ListOptions
+type ListPagesDomainsOptions struct {
+	ListOptions
+}
 
 // ListPagesDomains gets a list of project pages domains.
 //

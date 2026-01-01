@@ -25,10 +25,10 @@ import (
 type (
 	PipelineTriggersServiceInterface interface {
 		ListPipelineTriggers(pid any, opt *ListPipelineTriggersOptions, options ...RequestOptionFunc) ([]*PipelineTrigger, *Response, error)
-		GetPipelineTrigger(pid any, trigger int, options ...RequestOptionFunc) (*PipelineTrigger, *Response, error)
+		GetPipelineTrigger(pid any, trigger int64, options ...RequestOptionFunc) (*PipelineTrigger, *Response, error)
 		AddPipelineTrigger(pid any, opt *AddPipelineTriggerOptions, options ...RequestOptionFunc) (*PipelineTrigger, *Response, error)
-		EditPipelineTrigger(pid any, trigger int, opt *EditPipelineTriggerOptions, options ...RequestOptionFunc) (*PipelineTrigger, *Response, error)
-		DeletePipelineTrigger(pid any, trigger int, options ...RequestOptionFunc) (*Response, error)
+		EditPipelineTrigger(pid any, trigger int64, opt *EditPipelineTriggerOptions, options ...RequestOptionFunc) (*PipelineTrigger, *Response, error)
+		DeletePipelineTrigger(pid any, trigger int64, options ...RequestOptionFunc) (*Response, error)
 		RunPipelineTrigger(pid any, opt *RunPipelineTriggerOptions, options ...RequestOptionFunc) (*Pipeline, *Response, error)
 	}
 
@@ -48,7 +48,7 @@ var _ PipelineTriggersServiceInterface = (*PipelineTriggersService)(nil)
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipeline_triggers/
 type PipelineTrigger struct {
-	ID          int        `json:"id"`
+	ID          int64      `json:"id"`
 	Description string     `json:"description"`
 	CreatedAt   *time.Time `json:"created_at"`
 	DeletedAt   *time.Time `json:"deleted_at"`
@@ -62,7 +62,9 @@ type PipelineTrigger struct {
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipeline_triggers/#list-project-trigger-tokens
-type ListPipelineTriggersOptions ListOptions
+type ListPipelineTriggersOptions struct {
+	ListOptions
+}
 
 // ListPipelineTriggers gets a list of project triggers.
 //
@@ -93,7 +95,7 @@ func (s *PipelineTriggersService) ListPipelineTriggers(pid any, opt *ListPipelin
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipeline_triggers/#get-trigger-token-details
-func (s *PipelineTriggersService) GetPipelineTrigger(pid any, trigger int, options ...RequestOptionFunc) (*PipelineTrigger, *Response, error) {
+func (s *PipelineTriggersService) GetPipelineTrigger(pid any, trigger int64, options ...RequestOptionFunc) (*PipelineTrigger, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
@@ -159,7 +161,7 @@ type EditPipelineTriggerOptions struct {
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipeline_triggers/#update-a-pipeline-trigger-token
-func (s *PipelineTriggersService) EditPipelineTrigger(pid any, trigger int, opt *EditPipelineTriggerOptions, options ...RequestOptionFunc) (*PipelineTrigger, *Response, error) {
+func (s *PipelineTriggersService) EditPipelineTrigger(pid any, trigger int64, opt *EditPipelineTriggerOptions, options ...RequestOptionFunc) (*PipelineTrigger, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
@@ -184,7 +186,7 @@ func (s *PipelineTriggersService) EditPipelineTrigger(pid any, trigger int, opt 
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipeline_triggers/#remove-a-pipeline-trigger-token
-func (s *PipelineTriggersService) DeletePipelineTrigger(pid any, trigger int, options ...RequestOptionFunc) (*Response, error) {
+func (s *PipelineTriggersService) DeletePipelineTrigger(pid any, trigger int64, options ...RequestOptionFunc) (*Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, err

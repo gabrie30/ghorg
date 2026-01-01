@@ -23,7 +23,15 @@ import (
 
 type (
 	ValidateServiceInterface interface {
+		// ProjectNamespaceLint validates .gitlab-ci.yml content by project.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/lint/#validate-sample-cicd-configuration
 		ProjectNamespaceLint(pid any, opt *ProjectNamespaceLintOptions, options ...RequestOptionFunc) (*ProjectLintResult, *Response, error)
+		// ProjectLint validates .gitlab-ci.yml content by project.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/lint/#validate-a-projects-cicd-configuration
 		ProjectLint(pid any, opt *ProjectLintOptions, options ...RequestOptionFunc) (*ProjectLintResult, *Response, error)
 	}
 
@@ -86,10 +94,6 @@ type ProjectNamespaceLintOptions struct {
 	Ref         *string `url:"ref,omitempty" json:"ref,omitempty"`
 }
 
-// ProjectNamespaceLint validates .gitlab-ci.yml content by project.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/lint/#validate-sample-cicd-configuration
 func (s *ValidateService) ProjectNamespaceLint(pid any, opt *ProjectNamespaceLintOptions, options ...RequestOptionFunc) (*ProjectLintResult, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
@@ -123,10 +127,6 @@ type ProjectLintOptions struct {
 	Ref         *string `url:"ref,omitempty" json:"ref,omitempty"`
 }
 
-// ProjectLint validates .gitlab-ci.yml content by project.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/lint/#validate-a-projects-cicd-configuration
 func (s *ValidateService) ProjectLint(pid any, opt *ProjectLintOptions, options ...RequestOptionFunc) (*ProjectLintResult, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {

@@ -69,8 +69,8 @@ type ListPackageProtectionRulesOptions struct {
 type CreatePackageProtectionRulesOptions struct {
 	PackageNamePattern          *string `url:"package_name_pattern" json:"package_name_pattern"`
 	PackageType                 *string `url:"package_type" json:"package_type"`
-	MinimumAccessLevelForDelete *string `url:"minimum_access_level_for_delete" json:"minimum_access_level_for_delete"`
-	MinimumAccessLevelForPush   *string `url:"minimum_access_level_for_push" json:"minimum_access_level_for_push"`
+	MinimumAccessLevelForDelete *int64  `url:"minimum_access_level_for_delete" json:"minimum_access_level_for_delete"`
+	MinimumAccessLevelForPush   *int64  `url:"minimum_access_level_for_push" json:"minimum_access_level_for_push"`
 }
 
 // UpdatePackageProtectionRulesOptions represents the available
@@ -81,8 +81,8 @@ type CreatePackageProtectionRulesOptions struct {
 type UpdatePackageProtectionRulesOptions struct {
 	PackageNamePattern          *string `url:"package_name_pattern" json:"package_name_pattern"`
 	PackageType                 *string `url:"package_type" json:"package_type"`
-	MinimumAccessLevelForDelete *string `url:"minimum_access_level_for_delete" json:"minimum_access_level_for_delete"`
-	MinimumAccessLevelForPush   *string `url:"minimum_access_level_for_push" json:"minimum_access_level_for_push"`
+	MinimumAccessLevelForDelete *int64  `url:"minimum_access_level_for_delete" json:"minimum_access_level_for_delete"`
+	MinimumAccessLevelForPush   *int64  `url:"minimum_access_level_for_push" json:"minimum_access_level_for_push"`
 }
 
 func (s *ProtectedPackagesService) ListPackageProtectionRules(pid any, opts *ListPackageProtectionRulesOptions, options ...RequestOptionFunc) ([]*PackageProtectionRule, *Response, error) {

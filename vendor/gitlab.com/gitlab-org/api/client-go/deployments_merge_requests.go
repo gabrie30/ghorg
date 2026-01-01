@@ -26,7 +26,7 @@ type (
 		//
 		// GitLab API docs:
 		// https://docs.gitlab.com/api/deployments/#list-of-merge-requests-associated-with-a-deployment
-		ListDeploymentMergeRequests(pid any, deployment int, opts *ListMergeRequestsOptions, options ...RequestOptionFunc) ([]*MergeRequest, *Response, error)
+		ListDeploymentMergeRequests(pid any, deployment int64, opts *ListMergeRequestsOptions, options ...RequestOptionFunc) ([]*MergeRequest, *Response, error)
 	}
 
 	// DeploymentMergeRequestsService handles communication with the deployment's
@@ -41,7 +41,7 @@ type (
 
 var _ DeploymentMergeRequestsServiceInterface = (*DeploymentMergeRequestsService)(nil)
 
-func (s *DeploymentMergeRequestsService) ListDeploymentMergeRequests(pid any, deployment int, opts *ListMergeRequestsOptions, options ...RequestOptionFunc) ([]*MergeRequest, *Response, error) {
+func (s *DeploymentMergeRequestsService) ListDeploymentMergeRequests(pid any, deployment int64, opts *ListMergeRequestsOptions, options ...RequestOptionFunc) ([]*MergeRequest, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err

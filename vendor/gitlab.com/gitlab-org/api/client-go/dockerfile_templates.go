@@ -69,7 +69,9 @@ type DockerfileTemplateListItem struct {
 //
 // GitLab API docs:
 // https://docs.gitlab.com/api/templates/dockerfiles/#list-dockerfile-templates
-type ListDockerfileTemplatesOptions ListOptions
+type ListDockerfileTemplatesOptions struct {
+	ListOptions
+}
 
 func (s *DockerfileTemplatesService) ListTemplates(opt *ListDockerfileTemplatesOptions, options ...RequestOptionFunc) ([]*DockerfileTemplateListItem, *Response, error) {
 	req, err := s.client.NewRequest(http.MethodGet, "templates/dockerfiles", opt, options)
