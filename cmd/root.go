@@ -53,6 +53,7 @@ var (
 	cronTimerMinutes             string
 	recloneServerPort            string
 	cloneDelaySeconds            string
+	sshHostname                  string
 	includeSubmodules            bool
 	skipArchived                 bool
 	skipForks                    bool
@@ -230,6 +231,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "1")
 		case "GHORG_GITHUB_TOKEN_FROM_GITHUB_APP":
 			os.Setenv(envVar, "false")
+		case "GHORG_SSH_HOSTNAME":
+			os.Setenv(envVar, "")
 		}
 	} else {
 		s := viper.GetString(envVar)
@@ -350,6 +353,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_GITEA_TOKEN")
 	getOrSetDefaults("GHORG_SOURCEHUT_TOKEN")
 	getOrSetDefaults("GHORG_INSECURE_GITEA_CLIENT")
+	getOrSetDefaults("GHORG_SSH_HOSTNAME")
 	getOrSetDefaults("GHORG_GITHUB_APP_PEM_PATH")
 	getOrSetDefaults("GHORG_GITHUB_APP_INSTALLATION_ID")
 	getOrSetDefaults("GHORG_GITHUB_APP_ID")
@@ -427,8 +431,10 @@ func init() {
 	cloneCmd.Flags().StringVarP(&githubFilterLanguage, "github-filter-language", "", "", "GHORG_GITHUB_FILTER_LANGUAGE - Filter repos by a language. Can be a comma separated value with no spaces.")
 	cloneCmd.Flags().StringVarP(&githubUserOption, "github-user-option", "", "", "GHORG_GITHUB_USER_OPTION - Only available when also using GHORG_CLONE_TYPE: user e.g. --clone-type=user can be one of: all, owner, member (default: owner)")
 	cloneCmd.Flags().StringVarP(&githubAppID, "github-app-id", "", "", "GHORG_GITHUB_APP_ID -  GitHub App ID, for authenticating with GitHub App")
+	cloneCmd.Flags().StringVar(&sshHostname, "ssh-hostname", "", "GHORG_SSH_HOSTNAME - Hostname to use for SSH clone URLs (e.g., my-github-alias for git@my-github-alias:org/repo.git)")
 
 	reCloneCmd.Flags().StringVarP(&ghorgReClonePath, "reclone-path", "", "", "GHORG_RECLONE_PATH - If you want to set a path other than $HOME/.config/ghorg/reclone.yaml for your reclone configuration")
+	reCloneCmd.Flags().StringVar(&sshHostname, "ssh-hostname", "", "GHORG_SSH_HOSTNAME - Hostname to use for SSH clone URLs (e.g., my-github-alias for git@my-github-alias:org/repo.git)")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneQuiet, "quiet", false, "GHORG_RECLONE_QUIET - Quiet logging output")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneList, "list", false, "Prints reclone commands and optional descriptions to stdout then will exit 0. Does not obsfucate tokens, and is only available as a commandline argument")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneEnvConfigOnly, "env-config-only", false, "GHORG_RECLONE_ENV_CONFIG_ONLY - Only use environment variables to set the configuration for all reclones.")

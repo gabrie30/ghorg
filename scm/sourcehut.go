@@ -266,6 +266,8 @@ func (c Sourcehut) filter(rps []repository, apiUsername string, localUsername st
 			}
 			// Use repoPathWithTilde for clone URL (git needs the ~ prefix)
 			r.CloneURL = fmt.Sprintf("%s:%s", gitBase, repoPathWithTilde)
+			// Apply custom SSH hostname if configured
+			r.CloneURL = ReplaceSSHHostname(r.CloneURL, os.Getenv("GHORG_SSH_HOSTNAME"))
 		}
 
 		r.URL = r.CloneURL
