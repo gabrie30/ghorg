@@ -170,7 +170,8 @@ func (c Gitlab) createRepoSnippetCloneURL(cloneTargetURL string, snippetID strin
 	// git@gitlab.example.com/snippets/1.git
 	cloneURL = strings.Replace(cloneURL, "/", ":", 1)
 	// git@gitlab.example.com:snippets/1.git
-	return cloneURL
+	// Apply custom SSH hostname if configured
+	return ReplaceSSHHostname(cloneURL, os.Getenv("GHORG_SSH_HOSTNAME"))
 }
 
 // hosted example
@@ -192,7 +193,8 @@ func (c Gitlab) createRootLevelSnippetCloneURL(snippetWebURL string) string {
 	// git@gitlab.example.com/snippets/1.git
 	cloneURL = strings.Replace(cloneURL, "/", ":", 1)
 	// git@gitlab.example.com:snippets/1.git
-	return cloneURL
+	// Apply custom SSH hostname if configured
+	return ReplaceSSHHostname(cloneURL, os.Getenv("GHORG_SSH_HOSTNAME"))
 }
 
 func (c Gitlab) getRepoSnippets(r Repo) []*gitlab.Snippet {
@@ -557,7 +559,7 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 			r.URL = p.HTTPURLToRepo
 			repoData = append(repoData, r)
 		} else {
-			r.CloneURL = p.SSHURLToRepo
+			r.CloneURL = ReplaceSSHHostname(p.SSHURLToRepo, os.Getenv("GHORG_SSH_HOSTNAME"))
 			r.URL = p.SSHURLToRepo
 			repoData = append(repoData, r)
 		}

@@ -314,6 +314,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_OUTPUT_DIR", d)
 	}
 
+	if cmd.Flags().Changed("ssh-hostname") {
+		os.Setenv("GHORG_SSH_HOSTNAME", cmd.Flag("ssh-hostname").Value.String())
+	}
+
 	if len(argz) < 1 {
 		if os.Getenv("GHORG_SCM_TYPE") == "github" && os.Getenv("GHORG_CLONE_TYPE") == "user" {
 			argz = append(argz, "")

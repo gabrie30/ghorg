@@ -247,7 +247,7 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 			r.URL = *ghRepo.CloneURL
 			repoData = append(repoData, r)
 		} else {
-			r.CloneURL = *ghRepo.SSHURL
+			r.CloneURL = ReplaceSSHHostname(*ghRepo.SSHURL, os.Getenv("GHORG_SSH_HOSTNAME"))
 			r.URL = *ghRepo.SSHURL
 			repoData = append(repoData, r)
 		}

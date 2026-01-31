@@ -13,6 +13,14 @@ GHORG_SCM_TYPE: github
 # flag (--protocol) eg: --protocol=https
 GHORG_CLONE_PROTOCOL: https
 
+# Override SSH hostname in clone URLs. Useful when you have multiple SSH host
+# aliases in your ~/.ssh/config for the same SCM provider.
+# For example, setting this to "my-github-alias" will change clone URLs from:
+#   git@github.com:org/repo.git  ->  git@my-github-alias:org/repo.git
+# Only applies when using SSH clone protocol (--protocol=ssh)
+# flag (--ssh-hostname) eg: --ssh-hostname=my-github-alias
+GHORG_SSH_HOSTNAME:
+
 # This is where your ghorg directory will be created, use absolute pathing, shell expansions will not work.
 # The ghorg directory is the home for all ghorg clones
 # See https://github.com/gabrie30/ghorg#changing-clone-directories for example

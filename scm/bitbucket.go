@@ -361,7 +361,7 @@ func (c Bitbucket) filter(resp []bitbucket.Repository) (repoData []Repo, err err
 
 			if os.Getenv("GHORG_CLONE_PROTOCOL") == "ssh" && linkType == "ssh" {
 				r.URL = link.(string)
-				r.CloneURL = link.(string)
+				r.CloneURL = ReplaceSSHHostname(link.(string), os.Getenv("GHORG_SSH_HOSTNAME"))
 				cloneData = append(cloneData, r)
 			} else if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" && linkType == "https" {
 				r.URL = link.(string)
