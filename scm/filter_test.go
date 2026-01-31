@@ -166,8 +166,8 @@ func TestReplaceSSHHostname(t *testing.T) {
 		}
 	})
 
-	t.Run("When hostname contains port number", func(tt *testing.T) {
-		originalURL := "git@gitlab.example.com:2222:org/repo.git"
+	t.Run("When hostname has subdomain", func(tt *testing.T) {
+		originalURL := "git@git.company.example.com:org/repo.git"
 		want := "git@my-gitlab:org/repo.git"
 		got := ReplaceSSHHostname(originalURL, "my-gitlab")
 		if want != got {
