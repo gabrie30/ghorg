@@ -121,7 +121,7 @@ golangci-lint:
   needs: []
   variables:
     REPORT_FILENAME: "gl-code-quality-report.json"
-  image: golangci/golangci-lint:v2.7.2
+  image: golangci/golangci-lint:v2.8.0
   script:
     - golangci-lint run
   artifacts:
@@ -199,7 +199,7 @@ tests:integration:
   image: golang:1.25-bookworm
   timeout: 2 hours
   services:
-    - docker:29.1.3-dind
+    - docker:29.2.0-dind
   variables:
     # Docker-in-docker configuration
     DOCKER_HOST: tcp://docker:2376

@@ -1,7 +1,6 @@
 package gitlab
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -152,13 +151,13 @@ func (s *TerraformStatesService) DownloadLatest(pid any, name string, options ..
 		return nil, nil, err
 	}
 
-	var b bytes.Buffer
-	resp, err := s.client.Do(req, &b)
+	preserver := &bodyPreserver{}
+	resp, err := s.client.Do(req, preserver)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return &b, resp, nil
+	return preserver.body, resp, nil
 }
 
 func (s *TerraformStatesService) Download(pid any, name string, serial uint64, options ...RequestOptionFunc) (io.Reader, *Response, error) {
@@ -173,13 +172,13 @@ func (s *TerraformStatesService) Download(pid any, name string, serial uint64, o
 		return nil, nil, err
 	}
 
-	var b bytes.Buffer
-	resp, err := s.client.Do(req, &b)
+	preserver := &bodyPreserver{}
+	resp, err := s.client.Do(req, preserver)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return &b, resp, nil
+	return preserver.body, resp, nil
 }
 
 // Delete deletes a single Terraform state

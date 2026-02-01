@@ -16,10 +16,7 @@
 
 package gitlab
 
-import (
-	"fmt"
-	"net/http"
-)
+import "net/http"
 
 type (
 	// ErrorTrackingServiceInterface defines all the API methods for the ErrorTrackingService
@@ -98,24 +95,10 @@ func (p ErrorTrackingSettings) String() string {
 }
 
 func (s *ErrorTrackingService) GetErrorTrackingSettings(pid any, options ...RequestOptionFunc) (*ErrorTrackingSettings, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/error_tracking/settings", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	ets := new(ErrorTrackingSettings)
-	resp, err := s.client.Do(req, ets)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ets, resp, nil
+	return do[*ErrorTrackingSettings](s.client,
+		withPath("projects/%s/error_tracking/settings", ProjectID{pid}),
+		withRequestOpts(options...),
+	)
 }
 
 // EnableDisableErrorTrackingOptions represents the available
@@ -129,24 +112,12 @@ type EnableDisableErrorTrackingOptions struct {
 }
 
 func (s *ErrorTrackingService) EnableDisableErrorTracking(pid any, opt *EnableDisableErrorTrackingOptions, options ...RequestOptionFunc) (*ErrorTrackingSettings, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/error_tracking/settings", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodPatch, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	ets := new(ErrorTrackingSettings)
-	resp, err := s.client.Do(req, &ets)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ets, resp, nil
+	return do[*ErrorTrackingSettings](s.client,
+		withMethod(http.MethodPatch),
+		withPath("projects/%s/error_tracking/settings", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // ListClientKeysOptions represents the available ListClientKeys() options.
@@ -158,45 +129,19 @@ type ListClientKeysOptions struct {
 }
 
 func (s *ErrorTrackingService) ListClientKeys(pid any, opt *ListClientKeysOptions, options ...RequestOptionFunc) ([]*ErrorTrackingClientKey, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/error_tracking/client_keys", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var cks []*ErrorTrackingClientKey
-	resp, err := s.client.Do(req, &cks)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return cks, resp, nil
+	return do[[]*ErrorTrackingClientKey](s.client,
+		withPath("projects/%s/error_tracking/client_keys", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *ErrorTrackingService) CreateClientKey(pid any, options ...RequestOptionFunc) (*ErrorTrackingClientKey, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/error_tracking/client_keys", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	ck := new(ErrorTrackingClientKey)
-	resp, err := s.client.Do(req, ck)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ck, resp, nil
+	return do[*ErrorTrackingClientKey](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/error_tracking/client_keys", ProjectID{pid}),
+		withRequestOpts(options...),
+	)
 }
 
 // DeleteClientKey removes a client key from the project.
@@ -204,16 +149,10 @@ func (s *ErrorTrackingService) CreateClientKey(pid any, options ...RequestOption
 // GitLab API docs:
 // https://docs.gitlab.com/api/error_tracking/#delete-a-client-key
 func (s *ErrorTrackingService) DeleteClientKey(pid any, keyID int64, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/error_tracking/client_keys/%d", PathEscape(project), keyID)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("projects/%s/error_tracking/client_keys/%d", ProjectID{pid}, keyID),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

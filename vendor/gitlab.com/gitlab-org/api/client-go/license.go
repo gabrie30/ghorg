@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -102,18 +101,10 @@ func (a LicenseAddOns) String() string {
 // GitLab API docs:
 // https://docs.gitlab.com/api/license/#retrieve-information-about-the-current-license
 func (s *LicenseService) GetLicense(options ...RequestOptionFunc) (*License, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "license", nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	l := new(License)
-	resp, err := s.client.Do(req, l)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return l, resp, nil
+	return do[*License](s.client,
+		withPath("license"),
+		withRequestOpts(options...),
+	)
 }
 
 // AddLicenseOptions represents the available AddLicense() options.
@@ -128,18 +119,12 @@ type AddLicenseOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/license/#add-a-new-license
 func (s *LicenseService) AddLicense(opt *AddLicenseOptions, options ...RequestOptionFunc) (*License, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodPost, "license", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	l := new(License)
-	resp, err := s.client.Do(req, l)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return l, resp, nil
+	return do[*License](s.client,
+		withMethod(http.MethodPost),
+		withPath("license"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // DeleteLicense deletes an existing license.
@@ -147,12 +132,10 @@ func (s *LicenseService) AddLicense(opt *AddLicenseOptions, options ...RequestOp
 // GitLab API docs:
 // https://docs.gitlab.com/api/license/#delete-a-license
 func (s *LicenseService) DeleteLicense(licenseID int64, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("license/%d", licenseID)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("license/%d", licenseID),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

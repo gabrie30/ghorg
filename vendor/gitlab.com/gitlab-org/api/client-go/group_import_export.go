@@ -18,6 +18,7 @@ package gitlab
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -101,13 +102,13 @@ type GroupImportFileOptions struct {
 func (s *GroupImportExportService) ImportFile(opt *GroupImportFileOptions, options ...RequestOptionFunc) (*Response, error) {
 	// First check if we got all required options.
 	if opt.Name == nil || *opt.Name == "" {
-		return nil, fmt.Errorf("missing required option: Name")
+		return nil, errors.New("missing required option: Name")
 	}
 	if opt.Path == nil || *opt.Path == "" {
-		return nil, fmt.Errorf("missing required option: Path")
+		return nil, errors.New("missing required option: Path")
 	}
 	if opt.File == nil || *opt.File == "" {
-		return nil, fmt.Errorf("missing required option: File")
+		return nil, errors.New("missing required option: File")
 	}
 
 	f, err := os.Open(*opt.File)

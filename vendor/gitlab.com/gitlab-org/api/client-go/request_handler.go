@@ -62,6 +62,19 @@ func (i UserID) forPath() (string, error) {
 	return PathEscape(id), nil
 }
 
+type LabelID struct {
+	Value any
+}
+
+func (i LabelID) forPath() (string, error) {
+	id, err := parseID(i.Value)
+	if err != nil {
+		return "", err
+	}
+
+	return PathEscape(id), nil
+}
+
 type NoEscape struct {
 	Value string
 }

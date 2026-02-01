@@ -340,6 +340,7 @@ type ListProjectMergeRequestsOptions struct {
 	Sort                   *string           `url:"sort,omitempty" json:"sort,omitempty"`
 	Milestone              *string           `url:"milestone,omitempty" json:"milestone,omitempty"`
 	View                   *string           `url:"view,omitempty" json:"view,omitempty"`
+	Environment            *string           `url:"environment,omitempty" json:"environment,omitempty"`
 	Labels                 *LabelOptions     `url:"labels,comma,omitempty" json:"labels,omitempty"`
 	NotLabels              *LabelOptions     `url:"not[labels],comma,omitempty" json:"not[labels],omitempty"`
 	WithLabelsDetails      *bool             `url:"with_labels_details,omitempty" json:"with_labels_details,omitempty"`
@@ -348,6 +349,8 @@ type ListProjectMergeRequestsOptions struct {
 	CreatedBefore          *time.Time        `url:"created_before,omitempty" json:"created_before,omitempty"`
 	UpdatedAfter           *time.Time        `url:"updated_after,omitempty" json:"updated_after,omitempty"`
 	UpdatedBefore          *time.Time        `url:"updated_before,omitempty" json:"updated_before,omitempty"`
+	DeployedBefore         *time.Time        `url:"deployed_before,omitempty" json:"deployed_before,omitempty"`
+	DeployedAfter          *time.Time        `url:"deployed_after,omitempty" json:"deployed_after,omitempty"`
 	Scope                  *string           `url:"scope,omitempty" json:"scope,omitempty"`
 	AuthorID               *int64            `url:"author_id,omitempty" json:"author_id,omitempty"`
 	AuthorUsername         *string           `url:"author_username,omitempty" json:"author_username,omitempty"`

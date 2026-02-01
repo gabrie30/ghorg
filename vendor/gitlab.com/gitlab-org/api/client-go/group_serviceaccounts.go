@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -48,24 +47,11 @@ type ListServiceAccountsOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/service_accounts/#list-all-group-service-accounts
 func (s *GroupsService) ListServiceAccounts(gid any, opt *ListServiceAccountsOptions, options ...RequestOptionFunc) ([]*GroupServiceAccount, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/service_accounts", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var sa []*GroupServiceAccount
-	resp, err := s.client.Do(req, &sa)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return sa, resp, nil
+	return do[[]*GroupServiceAccount](s.client,
+		withPath("groups/%s/service_accounts", GroupID{gid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // CreateServiceAccountOptions represents the available CreateServiceAccount() options.
@@ -85,24 +71,12 @@ type CreateServiceAccountOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/service_accounts/#create-a-group-service-account
 func (s *GroupsService) CreateServiceAccount(gid any, opt *CreateServiceAccountOptions, options ...RequestOptionFunc) (*GroupServiceAccount, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/service_accounts", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	sa := new(GroupServiceAccount)
-	resp, err := s.client.Do(req, sa)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return sa, resp, nil
+	return do[*GroupServiceAccount](s.client,
+		withMethod(http.MethodPost),
+		withPath("groups/%s/service_accounts", GroupID{gid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // UpdateServiceAccountOptions represents the available UpdateServiceAccount() options.
@@ -122,24 +96,12 @@ type UpdateServiceAccountOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/service_accounts/#update-a-group-service-account
 func (s *GroupsService) UpdateServiceAccount(gid any, serviceAccount int64, opt *UpdateServiceAccountOptions, options ...RequestOptionFunc) (*GroupServiceAccount, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/service_accounts/%d", PathEscape(group), serviceAccount)
-
-	req, err := s.client.NewRequest(http.MethodPatch, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	sa := new(GroupServiceAccount)
-	resp, err := s.client.Do(req, sa)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return sa, resp, nil
+	return do[*GroupServiceAccount](s.client,
+		withMethod(http.MethodPatch),
+		withPath("groups/%s/service_accounts/%d", GroupID{gid}, serviceAccount),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // DeleteServiceAccountOptions represents the available DeleteServiceAccount() options.
@@ -157,18 +119,13 @@ type DeleteServiceAccountOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/service_accounts/#delete-a-group-service-account
 func (s *GroupsService) DeleteServiceAccount(gid any, serviceAccount int64, opt *DeleteServiceAccountOptions, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/service_accounts/%d", PathEscape(group), serviceAccount)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, opt, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("groups/%s/service_accounts/%d", GroupID{gid}, serviceAccount),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // ListServiceAccountPersonalAccessTokensOptions represents the available
@@ -197,24 +154,11 @@ type ListServiceAccountPersonalAccessTokensOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/service_accounts/#list-all-personal-access-tokens-for-a-group-service-account
 func (s *GroupsService) ListServiceAccountPersonalAccessTokens(gid any, serviceAccount int64, opt *ListServiceAccountPersonalAccessTokensOptions, options ...RequestOptionFunc) ([]*PersonalAccessToken, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/service_accounts/%d/personal_access_tokens", PathEscape(group), serviceAccount)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var pats []*PersonalAccessToken
-	resp, err := s.client.Do(req, &pats)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pats, resp, nil
+	return do[[]*PersonalAccessToken](s.client,
+		withPath("groups/%s/service_accounts/%d/personal_access_tokens", GroupID{gid}, serviceAccount),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // CreateServiceAccountPersonalAccessTokenOptions represents the available
@@ -235,24 +179,12 @@ type CreateServiceAccountPersonalAccessTokenOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/service_accounts/#create-a-personal-access-token-for-a-group-service-account
 func (s *GroupsService) CreateServiceAccountPersonalAccessToken(gid any, serviceAccount int64, opt *CreateServiceAccountPersonalAccessTokenOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/service_accounts/%d/personal_access_tokens", PathEscape(group), serviceAccount)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pat := new(PersonalAccessToken)
-	resp, err := s.client.Do(req, pat)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pat, resp, nil
+	return do[*PersonalAccessToken](s.client,
+		withMethod(http.MethodPost),
+		withPath("groups/%s/service_accounts/%d/personal_access_tokens", GroupID{gid}, serviceAccount),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // RevokeServiceAccountPersonalAccessToken revokes a personal access token for an
@@ -261,18 +193,12 @@ func (s *GroupsService) CreateServiceAccountPersonalAccessToken(gid any, service
 // GitLab API docs:
 // https://docs.gitlab.com/api/service_accounts/#revoke-a-personal-access-token-for-a-group-service-account
 func (s *GroupsService) RevokeServiceAccountPersonalAccessToken(gid any, serviceAccount, token int64, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/service_accounts/%d/personal_access_tokens/%d", PathEscape(group), serviceAccount, token)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("groups/%s/service_accounts/%d/personal_access_tokens/%d", GroupID{gid}, serviceAccount, token),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // RotateServiceAccountPersonalAccessTokenOptions represents the available RotateServiceAccountPersonalAccessToken()
@@ -290,22 +216,10 @@ type RotateServiceAccountPersonalAccessTokenOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/service_accounts/#rotate-a-personal-access-token-for-a-group-service-account
 func (s *GroupsService) RotateServiceAccountPersonalAccessToken(gid any, serviceAccount, token int64, opt *RotateServiceAccountPersonalAccessTokenOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/service_accounts/%d/personal_access_tokens/%d/rotate", PathEscape(group), serviceAccount, token)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pat := new(PersonalAccessToken)
-	resp, err := s.client.Do(req, pat)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pat, resp, nil
+	return do[*PersonalAccessToken](s.client,
+		withMethod(http.MethodPost),
+		withPath("groups/%s/service_accounts/%d/personal_access_tokens/%d/rotate", GroupID{gid}, serviceAccount, token),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }

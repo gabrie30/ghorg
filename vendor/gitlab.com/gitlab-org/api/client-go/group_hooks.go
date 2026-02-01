@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -75,23 +74,11 @@ type ListGroupHooksOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_webhooks/#list-group-hooks
 func (s *GroupsService) ListGroupHooks(gid any, opt *ListGroupHooksOptions, options ...RequestOptionFunc) ([]*GroupHook, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/hooks", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-	var gh []*GroupHook
-	resp, err := s.client.Do(req, &gh)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return gh, resp, nil
+	return do[[]*GroupHook](s.client,
+		withPath("groups/%s/hooks", GroupID{gid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // GetGroupHook gets a specific hook for a group.
@@ -99,24 +86,10 @@ func (s *GroupsService) ListGroupHooks(gid any, opt *ListGroupHooksOptions, opti
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_webhooks/#get-a-group-hook
 func (s *GroupsService) GetGroupHook(gid any, hook int64, options ...RequestOptionFunc) (*GroupHook, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/hooks/%d", PathEscape(group), hook)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	gh := new(GroupHook)
-	resp, err := s.client.Do(req, gh)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return gh, resp, nil
+	return do[*GroupHook](s.client,
+		withPath("groups/%s/hooks/%d", GroupID{gid}, hook),
+		withRequestOpts(options...),
+	)
 }
 
 // ResendGroupHookEvent resends a specific hook event.
@@ -124,18 +97,12 @@ func (s *GroupsService) GetGroupHook(gid any, hook int64, options ...RequestOpti
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_webhooks/#resend-group-hook-event
 func (s *GroupsService) ResendGroupHookEvent(gid any, hook int64, hookEventID int64, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/hooks/%d/events/%d/resend", PathEscape(group), hook, hookEventID)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("groups/%s/hooks/%d/events/%d/resend", GroupID{gid}, hook, hookEventID),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // AddGroupHookOptions represents the available AddGroupHook() options.
@@ -179,24 +146,12 @@ type AddGroupHookOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_webhooks/#add-a-group-hook
 func (s *GroupsService) AddGroupHook(gid any, opt *AddGroupHookOptions, options ...RequestOptionFunc) (*GroupHook, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/hooks", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	gh := new(GroupHook)
-	resp, err := s.client.Do(req, gh)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return gh, resp, nil
+	return do[*GroupHook](s.client,
+		withMethod(http.MethodPost),
+		withPath("groups/%s/hooks", GroupID{gid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // EditGroupHookOptions represents the available EditGroupHook() options.
@@ -241,24 +196,12 @@ type EditGroupHookOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_webhooks/#edit-group-hook
 func (s *GroupsService) EditGroupHook(gid any, hook int64, opt *EditGroupHookOptions, options ...RequestOptionFunc) (*GroupHook, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/hooks/%d", PathEscape(group), hook)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	gh := new(GroupHook)
-	resp, err := s.client.Do(req, gh)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return gh, resp, nil
+	return do[*GroupHook](s.client,
+		withMethod(http.MethodPut),
+		withPath("groups/%s/hooks/%d", GroupID{gid}, hook),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // DeleteGroupHook removes a hook from a group. This is an idempotent
@@ -267,18 +210,12 @@ func (s *GroupsService) EditGroupHook(gid any, hook int64, opt *EditGroupHookOpt
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_webhooks/#delete-a-group-hook
 func (s *GroupsService) DeleteGroupHook(gid any, hook int64, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/hooks/%d", PathEscape(group), hook)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("groups/%s/hooks/%d", GroupID{gid}, hook),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // TriggerTestGroupHook triggers a test hook for a specified group.
@@ -286,18 +223,12 @@ func (s *GroupsService) DeleteGroupHook(gid any, hook int64, options ...RequestO
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_webhooks/#trigger-a-test-group-hook
 func (s *GroupsService) TriggerTestGroupHook(pid any, hook int64, trigger GroupHookTrigger, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/hooks/%d/test/%s", PathEscape(group), hook, trigger)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("groups/%s/hooks/%d/test/%s", GroupID{pid}, hook, NoEscape{string(trigger)}),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // SetGroupCustomHeader creates or updates a group custom webhook header.
@@ -305,18 +236,13 @@ func (s *GroupsService) TriggerTestGroupHook(pid any, hook int64, trigger GroupH
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_webhooks/#set-a-custom-header
 func (s *GroupsService) SetGroupCustomHeader(gid any, hook int64, key string, opt *SetHookCustomHeaderOptions, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/hooks/%d/custom_headers/%s", PathEscape(group), hook, key)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPut),
+		withPath("groups/%s/hooks/%d/custom_headers/%s", GroupID{gid}, hook, key),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // DeleteGroupCustomHeader deletes a group custom webhook header.
@@ -324,18 +250,12 @@ func (s *GroupsService) SetGroupCustomHeader(gid any, hook int64, key string, op
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_webhooks/#delete-a-custom-header
 func (s *GroupsService) DeleteGroupCustomHeader(gid any, hook int64, key string, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/hooks/%d/custom_headers/%s", PathEscape(group), hook, key)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("groups/%s/hooks/%d/custom_headers/%s", GroupID{gid}, hook, key),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // SetHookURLVariableOptions represents the available SetGroupHookURLVariable()
@@ -352,18 +272,13 @@ type SetHookURLVariableOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_webhooks/#set-a-url-variable
 func (s *GroupsService) SetGroupHookURLVariable(gid any, hook int64, key string, opt *SetHookURLVariableOptions, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/hooks/%d/url_variables/%s", PathEscape(group), hook, key)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPut),
+		withPath("groups/%s/hooks/%d/url_variables/%s", GroupID{gid}, hook, key),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // DeleteGroupHookURLVariable sets a group hook URL variable.
@@ -371,16 +286,10 @@ func (s *GroupsService) SetGroupHookURLVariable(gid any, hook int64, key string,
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_webhooks/#delete-a-url-variable
 func (s *GroupsService) DeleteGroupHookURLVariable(gid any, hook int64, key string, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/hooks/%d/url_variables/%s", PathEscape(group), hook, key)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("groups/%s/hooks/%d/url_variables/%s", GroupID{gid}, hook, key),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

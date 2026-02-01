@@ -16,11 +16,7 @@
 
 package gitlab
 
-import (
-	"fmt"
-	"net/http"
-	"net/url"
-)
+import "net/http"
 
 type (
 	ProtectedBranchesServiceInterface interface {
@@ -86,24 +82,11 @@ type ListProtectedBranchesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/protected_branches/#list-protected-branches
 func (s *ProtectedBranchesService) ListProtectedBranches(pid any, opt *ListProtectedBranchesOptions, options ...RequestOptionFunc) ([]*ProtectedBranch, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/protected_branches", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var p []*ProtectedBranch
-	resp, err := s.client.Do(req, &p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[[]*ProtectedBranch](s.client,
+		withPath("projects/%s/protected_branches", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // GetProtectedBranch gets a single protected branch or wildcard protected branch.
@@ -111,24 +94,10 @@ func (s *ProtectedBranchesService) ListProtectedBranches(pid any, opt *ListProte
 // GitLab API docs:
 // https://docs.gitlab.com/api/protected_branches/#get-a-single-protected-branch-or-wildcard-protected-branch
 func (s *ProtectedBranchesService) GetProtectedBranch(pid any, branch string, options ...RequestOptionFunc) (*ProtectedBranch, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/protected_branches/%s", PathEscape(project), url.PathEscape(branch))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	p := new(ProtectedBranch)
-	resp, err := s.client.Do(req, p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[*ProtectedBranch](s.client,
+		withPath("projects/%s/protected_branches/%s", ProjectID{pid}, branch),
+		withRequestOpts(options...),
+	)
 }
 
 // ProtectRepositoryBranchesOptions represents the available
@@ -167,24 +136,12 @@ type BranchPermissionOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/protected_branches/#protect-repository-branches
 func (s *ProtectedBranchesService) ProtectRepositoryBranches(pid any, opt *ProtectRepositoryBranchesOptions, options ...RequestOptionFunc) (*ProtectedBranch, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/protected_branches", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	p := new(ProtectedBranch)
-	resp, err := s.client.Do(req, p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[*ProtectedBranch](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/protected_branches", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // UnprotectRepositoryBranches unprotects the given protected branch or wildcard
@@ -193,18 +150,12 @@ func (s *ProtectedBranchesService) ProtectRepositoryBranches(pid any, opt *Prote
 // GitLab API docs:
 // https://docs.gitlab.com/api/protected_branches/#unprotect-repository-branches
 func (s *ProtectedBranchesService) UnprotectRepositoryBranches(pid any, branch string, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/protected_branches/%s", PathEscape(project), url.PathEscape(branch))
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("projects/%s/protected_branches/%s", ProjectID{pid}, branch),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // UpdateProtectedBranchOptions represents the available
@@ -226,22 +177,10 @@ type UpdateProtectedBranchOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/protected_branches/#update-a-protected-branch
 func (s *ProtectedBranchesService) UpdateProtectedBranch(pid any, branch string, opt *UpdateProtectedBranchOptions, options ...RequestOptionFunc) (*ProtectedBranch, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/protected_branches/%s", PathEscape(project), url.PathEscape(branch))
-
-	req, err := s.client.NewRequest(http.MethodPatch, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	p := new(ProtectedBranch)
-	resp, err := s.client.Do(req, p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[*ProtectedBranch](s.client,
+		withMethod(http.MethodPatch),
+		withPath("projects/%s/protected_branches/%s", ProjectID{pid}, branch),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }

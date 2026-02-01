@@ -16,10 +16,7 @@
 
 package gitlab
 
-import (
-	"fmt"
-	"net/http"
-)
+import "net/http"
 
 type (
 	SearchServiceInterface interface {
@@ -350,15 +347,14 @@ func (s *SearchService) search(scope, query string, result any, opt *SearchOptio
 }
 
 func (s *SearchService) searchByGroup(gid any, scope, query string, result any, opt *SearchOptions, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
+	path, err := GroupID{gid}.forPath()
 	if err != nil {
 		return nil, err
 	}
-	u := fmt.Sprintf("groups/%s/-/search", PathEscape(group))
 
 	opts := &searchOptions{SearchOptions: *opt, Scope: scope, Search: query}
 
-	req, err := s.client.NewRequest(http.MethodGet, u, opts, options)
+	req, err := s.client.NewRequest(http.MethodGet, "groups/"+path+"/-/search", opts, options)
 	if err != nil {
 		return nil, err
 	}
@@ -367,15 +363,14 @@ func (s *SearchService) searchByGroup(gid any, scope, query string, result any, 
 }
 
 func (s *SearchService) searchByProject(pid any, scope, query string, result any, opt *SearchOptions, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
+	path, err := ProjectID{pid}.forPath()
 	if err != nil {
 		return nil, err
 	}
-	u := fmt.Sprintf("projects/%s/-/search", PathEscape(project))
 
 	opts := &searchOptions{SearchOptions: *opt, Scope: scope, Search: query}
 
-	req, err := s.client.NewRequest(http.MethodGet, u, opts, options)
+	req, err := s.client.NewRequest(http.MethodGet, "projects/"+path+"/-/search", opts, options)
 	if err != nil {
 		return nil, err
 	}
