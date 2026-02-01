@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.11.8] - unreleased
 ### Added
 - Bitbucket Cloud API token authentication support; thanks @dean-tate
+- Allow host name to specified in SSH clone URLs; thanks @nickdademo
 ### Changed
 ### Deprecated
 ### Removed
@@ -15,6 +16,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Bump github.com/ktrysmt/go-bitbucket from 0.9.87 to 0.9.88 (#606)
 - Bump github.com/spf13/cobra from 1.10.1 to 1.10.2 (#608)
 - Bump gitlab.com/gitlab-org/api/client-go from 0.157.1 to 1.10.0 (#609)
+- Bump gitlab.com/gitlab-org/api/client-go from 1.10.0 to 1.24.0 (#613)
 
 
 ## [1.11.7] - 12/6/25
