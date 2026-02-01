@@ -63,18 +63,11 @@ type GetCurrentPlanLimitsOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/plan_limits/#get-current-plan-limits
 func (s *PlanLimitsService) GetCurrentPlanLimits(opt *GetCurrentPlanLimitsOptions, options ...RequestOptionFunc) (*PlanLimit, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "application/plan_limits", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pl := new(PlanLimit)
-	resp, err := s.client.Do(req, pl)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pl, resp, nil
+	return do[*PlanLimit](s.client,
+		withPath("application/plan_limits"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // ChangePlanLimitOptions represents the available ChangePlanLimits() options.
@@ -98,16 +91,10 @@ type ChangePlanLimitOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/plan_limits/#change-plan-limits
 func (s *PlanLimitsService) ChangePlanLimits(opt *ChangePlanLimitOptions, options ...RequestOptionFunc) (*PlanLimit, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodPut, "application/plan_limits", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pl := new(PlanLimit)
-	resp, err := s.client.Do(req, pl)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pl, resp, nil
+	return do[*PlanLimit](s.client,
+		withMethod(http.MethodPut),
+		withPath("application/plan_limits"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }

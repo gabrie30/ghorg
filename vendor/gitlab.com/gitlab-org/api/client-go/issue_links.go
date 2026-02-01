@@ -44,6 +44,7 @@ var _ IssueLinksServiceInterface = (*IssueLinksService)(nil)
 //
 // GitLab API docs: https://docs.gitlab.com/api/issue_links/
 type IssueLink struct {
+	ID          int64  `json:"id"`
 	SourceIssue *Issue `json:"source_issue"`
 	TargetIssue *Issue `json:"target_issue"`
 	LinkType    string `json:"link_type"`

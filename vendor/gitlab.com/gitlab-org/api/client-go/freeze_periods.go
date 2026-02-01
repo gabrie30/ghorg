@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -74,24 +73,11 @@ type ListFreezePeriodsOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/freeze_periods/#list-freeze-periods
 func (s *FreezePeriodsService) ListFreezePeriods(pid any, opt *ListFreezePeriodsOptions, options ...RequestOptionFunc) ([]*FreezePeriod, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/freeze_periods", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var fp []*FreezePeriod
-	resp, err := s.client.Do(req, &fp)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return fp, resp, nil
+	return do[[]*FreezePeriod](s.client,
+		withPath("projects/%s/freeze_periods", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // GetFreezePeriod gets a specific freeze period for a project.
@@ -99,24 +85,10 @@ func (s *FreezePeriodsService) ListFreezePeriods(pid any, opt *ListFreezePeriods
 // GitLab API docs:
 // https://docs.gitlab.com/api/freeze_periods/#get-a-freeze-period-by-a-freeze_period_id
 func (s *FreezePeriodsService) GetFreezePeriod(pid any, freezePeriod int64, options ...RequestOptionFunc) (*FreezePeriod, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/freeze_periods/%d", PathEscape(project), freezePeriod)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	fp := new(FreezePeriod)
-	resp, err := s.client.Do(req, fp)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return fp, resp, nil
+	return do[*FreezePeriod](s.client,
+		withPath("projects/%s/freeze_periods/%d", ProjectID{pid}, freezePeriod),
+		withRequestOpts(options...),
+	)
 }
 
 // CreateFreezePeriodOptions represents the available CreateFreezePeriodOptions()
@@ -135,24 +107,12 @@ type CreateFreezePeriodOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/freeze_periods/#create-a-freeze-period
 func (s *FreezePeriodsService) CreateFreezePeriodOptions(pid any, opt *CreateFreezePeriodOptions, options ...RequestOptionFunc) (*FreezePeriod, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/freeze_periods", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	fp := new(FreezePeriod)
-	resp, err := s.client.Do(req, fp)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return fp, resp, nil
+	return do[*FreezePeriod](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/freeze_periods", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // UpdateFreezePeriodOptions represents the available UpdateFreezePeriodOptions()
@@ -171,24 +131,12 @@ type UpdateFreezePeriodOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/freeze_periods/#update-a-freeze-period
 func (s *FreezePeriodsService) UpdateFreezePeriodOptions(pid any, freezePeriod int64, opt *UpdateFreezePeriodOptions, options ...RequestOptionFunc) (*FreezePeriod, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/freeze_periods/%d", PathEscape(project), freezePeriod)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	fp := new(FreezePeriod)
-	resp, err := s.client.Do(req, fp)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return fp, resp, nil
+	return do[*FreezePeriod](s.client,
+		withMethod(http.MethodPut),
+		withPath("projects/%s/freeze_periods/%d", ProjectID{pid}, freezePeriod),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // DeleteFreezePeriod removes a freeze period from a project. This is an
@@ -198,16 +146,10 @@ func (s *FreezePeriodsService) UpdateFreezePeriodOptions(pid any, freezePeriod i
 // GitLab API docs:
 // https://docs.gitlab.com/api/freeze_periods/#delete-a-freeze-period
 func (s *FreezePeriodsService) DeleteFreezePeriod(pid any, freezePeriod int64, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/freeze_periods/%d", PathEscape(project), freezePeriod)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("projects/%s/freeze_periods/%d", ProjectID{pid}, freezePeriod),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

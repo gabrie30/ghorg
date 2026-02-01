@@ -14,7 +14,6 @@
 package gitlab
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -206,13 +205,13 @@ func (s SecureFilesService) DownloadSecureFile(pid any, id int64, options ...Req
 		return nil, nil, err
 	}
 
-	var file bytes.Buffer
-	resp, err := s.client.Do(req, &file)
+	preserver := &bodyPreserver{}
+	resp, err := s.client.Do(req, preserver)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return &file, resp, err
+	return preserver.body, resp, err
 }
 
 // RemoveSecureFile removes a project's secure file.

@@ -1,7 +1,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -146,24 +145,11 @@ type StatusCheckProtectedBranch struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/status_checks/#list-status-checks-for-a-merge-request
 func (s *ExternalStatusChecksService) ListMergeStatusChecks(pid any, mr int64, opt *ListOptions, options ...RequestOptionFunc) ([]*MergeStatusCheck, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/merge_requests/%d/status_checks", PathEscape(project), mr)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var mscs []*MergeStatusCheck
-	resp, err := s.client.Do(req, &mscs)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return mscs, resp, nil
+	return do[[]*MergeStatusCheck](s.client,
+		withPath("projects/%s/merge_requests/%d/status_checks", ProjectID{pid}, mr),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // SetExternalStatusCheckStatusOptions represents the available
@@ -184,39 +170,21 @@ type SetExternalStatusCheckStatusOptions struct {
 // Gitlab API docs:
 // https://docs.gitlab.com/api/status_checks/#set-status-of-an-external-status-check
 func (s *ExternalStatusChecksService) SetExternalStatusCheckStatus(pid any, mergeRequest int64, opt *SetExternalStatusCheckStatusOptions, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/merge_requests/%d/status_check_responses", PathEscape(project), mergeRequest)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/merge_requests/%d/status_check_responses", ProjectID{pid}, mergeRequest),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 func (s *ExternalStatusChecksService) ListProjectStatusChecks(pid any, opt *ListOptions, options ...RequestOptionFunc) ([]*ProjectStatusCheck, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/external_status_checks", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var pscs []*ProjectStatusCheck
-	resp, err := s.client.Do(req, &pscs)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pscs, resp, nil
+	return do[[]*ProjectStatusCheck](s.client,
+		withPath("projects/%s/external_status_checks", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // CreateExternalStatusCheckOptions represents the available
@@ -232,18 +200,13 @@ type CreateExternalStatusCheckOptions struct {
 }
 
 func (s *ExternalStatusChecksService) CreateExternalStatusCheck(pid any, opt *CreateExternalStatusCheckOptions, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/external_status_checks", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/external_status_checks", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // DeleteExternalStatusCheck deletes an external status check.
@@ -252,18 +215,12 @@ func (s *ExternalStatusChecksService) CreateExternalStatusCheck(pid any, opt *Cr
 // Gitlab API docs:
 // https://docs.gitlab.com/api/status_checks/#delete-external-status-check-service
 func (s *ExternalStatusChecksService) DeleteExternalStatusCheck(pid any, check int64, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/external_status_checks/%d", PathEscape(project), check)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("projects/%s/external_status_checks/%d", ProjectID{pid}, check),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // UpdateExternalStatusCheckOptions represents the available
@@ -284,18 +241,13 @@ type UpdateExternalStatusCheckOptions struct {
 // Gitlab API docs:
 // https://docs.gitlab.com/api/status_checks/#update-external-status-check-service
 func (s *ExternalStatusChecksService) UpdateExternalStatusCheck(pid any, check int64, opt *UpdateExternalStatusCheckOptions, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/external_status_checks/%d", PathEscape(project), check)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPut),
+		withPath("projects/%s/external_status_checks/%d", ProjectID{pid}, check),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // RetryFailedStatusCheckForAMergeRequest retries the specified failed external status check.
@@ -304,18 +256,12 @@ func (s *ExternalStatusChecksService) UpdateExternalStatusCheck(pid any, check i
 // Gitlab API docs:
 // https://docs.gitlab.com/api/status_checks/#retry-failed-status-check-for-a-merge-request
 func (s *ExternalStatusChecksService) RetryFailedStatusCheckForAMergeRequest(pid any, mergeRequest int64, externalStatusCheck int64, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/merge_requests/%d/status_checks/%d/retry", PathEscape(project), mergeRequest, externalStatusCheck)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/merge_requests/%d/status_checks/%d/retry", ProjectID{pid}, mergeRequest, externalStatusCheck),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // ListProjectMergeRequestExternalStatusChecksOptions represents the available
@@ -333,24 +279,11 @@ type ListProjectMergeRequestExternalStatusChecksOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/status_checks/#list-status-checks-for-a-merge-request
 func (s *ExternalStatusChecksService) ListProjectMergeRequestExternalStatusChecks(pid any, mr int64, opt *ListProjectMergeRequestExternalStatusChecksOptions, options ...RequestOptionFunc) ([]*MergeStatusCheck, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/merge_requests/%d/status_checks", PathEscape(project), mr)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var mscs []*MergeStatusCheck
-	resp, err := s.client.Do(req, &mscs)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return mscs, resp, nil
+	return do[[]*MergeStatusCheck](s.client,
+		withPath("projects/%s/merge_requests/%d/status_checks", ProjectID{pid}, mr),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // ListProjectExternalStatusChecksOptions represents the available
@@ -363,24 +296,11 @@ type ListProjectExternalStatusChecksOptions struct {
 }
 
 func (s *ExternalStatusChecksService) ListProjectExternalStatusChecks(pid any, opt *ListProjectExternalStatusChecksOptions, options ...RequestOptionFunc) ([]*ProjectStatusCheck, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/external_status_checks", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var pscs []*ProjectStatusCheck
-	resp, err := s.client.Do(req, &pscs)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pscs, resp, nil
+	return do[[]*ProjectStatusCheck](s.client,
+		withPath("projects/%s/external_status_checks", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // CreateProjectExternalStatusCheckOptions represents the available
@@ -396,24 +316,12 @@ type CreateProjectExternalStatusCheckOptions struct {
 }
 
 func (s *ExternalStatusChecksService) CreateProjectExternalStatusCheck(pid any, opt *CreateProjectExternalStatusCheckOptions, options ...RequestOptionFunc) (*ProjectStatusCheck, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/external_status_checks", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	statusCheck := new(ProjectStatusCheck)
-	resp, err := s.client.Do(req, statusCheck)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return statusCheck, resp, nil
+	return do[*ProjectStatusCheck](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/external_status_checks", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // DeleteProjectExternalStatusCheckOptions represents the available
@@ -428,18 +336,13 @@ type DeleteProjectExternalStatusCheckOptions struct{}
 // Gitlab API docs:
 // https://docs.gitlab.com/api/status_checks/#delete-external-status-check-service
 func (s *ExternalStatusChecksService) DeleteProjectExternalStatusCheck(pid any, check int64, opt *DeleteProjectExternalStatusCheckOptions, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/external_status_checks/%d", PathEscape(project), check)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, opt, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("projects/%s/external_status_checks/%d", ProjectID{pid}, check),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // UpdateProjectExternalStatusCheckOptions represents the available
@@ -459,24 +362,12 @@ type UpdateProjectExternalStatusCheckOptions struct {
 // Gitlab API docs:
 // https://docs.gitlab.com/api/status_checks/#update-external-status-check-service
 func (s *ExternalStatusChecksService) UpdateProjectExternalStatusCheck(pid any, check int64, opt *UpdateProjectExternalStatusCheckOptions, options ...RequestOptionFunc) (*ProjectStatusCheck, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/external_status_checks/%d", PathEscape(project), check)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	statusCheck := new(ProjectStatusCheck)
-	resp, err := s.client.Do(req, statusCheck)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return statusCheck, resp, nil
+	return do[*ProjectStatusCheck](s.client,
+		withMethod(http.MethodPut),
+		withPath("projects/%s/external_status_checks/%d", ProjectID{pid}, check),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // RetryFailedExternalStatusCheckForProjectMergeRequestOptions represents the available
@@ -491,18 +382,13 @@ type RetryFailedExternalStatusCheckForProjectMergeRequestOptions struct{}
 // Gitlab API docs:
 // https://docs.gitlab.com/api/status_checks/#retry-failed-status-check-for-a-merge-request
 func (s *ExternalStatusChecksService) RetryFailedExternalStatusCheckForProjectMergeRequest(pid any, mergeRequest int64, externalStatusCheck int64, opt *RetryFailedExternalStatusCheckForProjectMergeRequestOptions, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/merge_requests/%d/status_checks/%d/retry", PathEscape(project), mergeRequest, externalStatusCheck)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/merge_requests/%d/status_checks/%d/retry", ProjectID{pid}, mergeRequest, externalStatusCheck),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // SetProjectMergeRequestExternalStatusCheckStatusOptions represents the available
@@ -521,16 +407,11 @@ type SetProjectMergeRequestExternalStatusCheckStatusOptions struct {
 // Gitlab API docs:
 // https://docs.gitlab.com/api/status_checks/#set-status-of-an-external-status-check
 func (s *ExternalStatusChecksService) SetProjectMergeRequestExternalStatusCheckStatus(pid any, mergeRequest int64, opt *SetProjectMergeRequestExternalStatusCheckStatusOptions, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/merge_requests/%d/status_check_responses", PathEscape(project), mergeRequest)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/merge_requests/%d/status_check_responses", ProjectID{pid}, mergeRequest),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

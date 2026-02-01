@@ -16,10 +16,7 @@
 
 package gitlab
 
-import (
-	"fmt"
-	"net/http"
-)
+import "net/http"
 
 type (
 	// Deprecated: will be removed in v5 of the API, use Geo Sites API instead
@@ -120,18 +117,12 @@ type CreateGeoNodesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/geo_nodes/#create-a-new-geo-node
 func (s *GeoNodesService) CreateGeoNode(opt *CreateGeoNodesOptions, options ...RequestOptionFunc) (*GeoNode, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodPost, "geo_nodes", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	g := new(GeoNode)
-	resp, err := s.client.Do(req, g)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return g, resp, nil
+	return do[*GeoNode](s.client,
+		withMethod(http.MethodPost),
+		withPath("geo_nodes"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // ListGeoNodesOptions represents the available ListGeoNodes() options.
@@ -149,18 +140,11 @@ type ListGeoNodesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/geo_nodes/#retrieve-configuration-about-all-geo-nodes
 func (s *GeoNodesService) ListGeoNodes(opt *ListGeoNodesOptions, options ...RequestOptionFunc) ([]*GeoNode, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "geo_nodes", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var gs []*GeoNode
-	resp, err := s.client.Do(req, &gs)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return gs, resp, nil
+	return do[[]*GeoNode](s.client,
+		withPath("geo_nodes"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // GetGeoNode gets a specific geo node.
@@ -169,20 +153,10 @@ func (s *GeoNodesService) ListGeoNodes(opt *ListGeoNodesOptions, options ...Requ
 // GitLab API docs:
 // https://docs.gitlab.com/api/geo_nodes/#retrieve-configuration-about-a-specific-geo-node
 func (s *GeoNodesService) GetGeoNode(id int64, options ...RequestOptionFunc) (*GeoNode, *Response, error) {
-	u := fmt.Sprintf("geo_nodes/%d", id)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	g := new(GeoNode)
-	resp, err := s.client.Do(req, g)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return g, resp, nil
+	return do[*GeoNode](s.client,
+		withPath("geo_nodes/%d", id),
+		withRequestOpts(options...),
+	)
 }
 
 // UpdateGeoNodesOptions represents the available EditGeoNode() options.
@@ -213,20 +187,12 @@ type UpdateGeoNodesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/geo_nodes/#edit-a-geo-node
 func (s *GeoNodesService) EditGeoNode(id int64, opt *UpdateGeoNodesOptions, options ...RequestOptionFunc) (*GeoNode, *Response, error) {
-	u := fmt.Sprintf("geo_nodes/%d", id)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	g := new(GeoNode)
-	resp, err := s.client.Do(req, g)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return g, resp, nil
+	return do[*GeoNode](s.client,
+		withMethod(http.MethodPut),
+		withPath("geo_nodes/%d", id),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // DeleteGeoNode removes the Geo node.
@@ -235,14 +201,12 @@ func (s *GeoNodesService) EditGeoNode(id int64, opt *UpdateGeoNodesOptions, opti
 // GitLab API docs:
 // https://docs.gitlab.com/api/geo_nodes/#delete-a-geo-node
 func (s *GeoNodesService) DeleteGeoNode(id int64, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("geo_nodes/%d", id)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("geo_nodes/%d", id),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // RepairGeoNode to repair the OAuth authentication of a Geo node.
@@ -251,20 +215,11 @@ func (s *GeoNodesService) DeleteGeoNode(id int64, options ...RequestOptionFunc) 
 // GitLab API docs:
 // https://docs.gitlab.com/api/geo_nodes/#repair-a-geo-node
 func (s *GeoNodesService) RepairGeoNode(id int64, options ...RequestOptionFunc) (*GeoNode, *Response, error) {
-	u := fmt.Sprintf("geo_nodes/%d/repair", id)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	g := new(GeoNode)
-	resp, err := s.client.Do(req, g)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return g, resp, nil
+	return do[*GeoNode](s.client,
+		withMethod(http.MethodPost),
+		withPath("geo_nodes/%d/repair", id),
+		withRequestOpts(options...),
+	)
 }
 
 // GeoNodeStatus represents the status of Geo Node.
@@ -438,18 +393,10 @@ type GeoNodeStatus struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/geo_nodes/#retrieve-status-about-all-geo-nodes
 func (s *GeoNodesService) RetrieveStatusOfAllGeoNodes(options ...RequestOptionFunc) ([]*GeoNodeStatus, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "geo_nodes/status", nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var gnss []*GeoNodeStatus
-	resp, err := s.client.Do(req, &gnss)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return gnss, resp, nil
+	return do[[]*GeoNodeStatus](s.client,
+		withPath("geo_nodes/status"),
+		withRequestOpts(options...),
+	)
 }
 
 // RetrieveStatusOfGeoNode get the of status of a specific Geo Nodes.
@@ -458,18 +405,8 @@ func (s *GeoNodesService) RetrieveStatusOfAllGeoNodes(options ...RequestOptionFu
 // GitLab API docs:
 // https://docs.gitlab.com/api/geo_nodes/#retrieve-status-about-a-specific-geo-node
 func (s *GeoNodesService) RetrieveStatusOfGeoNode(id int64, options ...RequestOptionFunc) (*GeoNodeStatus, *Response, error) {
-	u := fmt.Sprintf("geo_nodes/%d/status", id)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	gns := new(GeoNodeStatus)
-	resp, err := s.client.Do(req, gns)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return gns, resp, nil
+	return do[*GeoNodeStatus](s.client,
+		withPath("geo_nodes/%d/status", id),
+		withRequestOpts(options...),
+	)
 }

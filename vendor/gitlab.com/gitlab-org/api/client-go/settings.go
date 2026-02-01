@@ -67,6 +67,7 @@ type Settings struct {
 	AllowLocalRequestsFromWebHooksAndServices             bool                      `json:"allow_local_requests_from_web_hooks_and_services"`
 	AllowProjectCreationForGuestAndBelow                  bool                      `json:"allow_project_creation_for_guest_and_below"`
 	AllowRunnerRegistrationToken                          bool                      `json:"allow_runner_registration_token"`
+	AnonymousSearchesAllowed                              bool                      `json:"anonymous_searches_allowed"`
 	ArchiveBuildsInHumanReadable                          string                    `json:"archive_builds_in_human_readable"`
 	ASCIIDocMaxIncludes                                   int64                     `json:"asciidoc_max_includes"`
 	AssetProxyAllowlist                                   []string                  `json:"asset_proxy_allowlist"`
@@ -243,6 +244,7 @@ type Settings struct {
 	InactiveProjectsDeleteAfterMonths                     int64                     `json:"inactive_projects_delete_after_months"`
 	InactiveProjectsMinSizeMB                             int64                     `json:"inactive_projects_min_size_mb"`
 	InactiveProjectsSendWarningEmailAfterMonths           int64                     `json:"inactive_projects_send_warning_email_after_months"`
+	InactiveResourceAccessTokensDeleteAfterDays           int64                     `json:"inactive_resource_access_tokens_delete_after_days"`
 	IncludeOptionalMetricsInServicePing                   bool                      `json:"include_optional_metrics_in_service_ping"`
 	InProductMarketingEmailsEnabled                       bool                      `json:"in_product_marketing_emails_enabled"`
 	InvisibleCaptchaEnabled                               bool                      `json:"invisible_captcha_enabled"`
@@ -521,18 +523,10 @@ func (s Settings) String() string {
 // GitLab API docs:
 // https://docs.gitlab.com/api/settings/#get-details-on-current-application-settings
 func (s *SettingsService) GetSettings(options ...RequestOptionFunc) (*Settings, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "application/settings", nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	as := new(Settings)
-	resp, err := s.client.Do(req, as)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return as, resp, nil
+	return do[*Settings](s.client,
+		withPath("application/settings"),
+		withRequestOpts(options...),
+	)
 }
 
 // UpdateSettingsOptions represents the available UpdateSettings() options.
@@ -554,6 +548,7 @@ type UpdateSettingsOptions struct {
 	AllowLocalRequestsFromWebHooksAndServices             *bool                                   `url:"allow_local_requests_from_web_hooks_and_services,omitempty" json:"allow_local_requests_from_web_hooks_and_services,omitempty"`
 	AllowProjectCreationForGuestAndBelow                  *bool                                   `url:"allow_project_creation_for_guest_and_below,omitempty" json:"allow_project_creation_for_guest_and_below,omitempty"`
 	AllowRunnerRegistrationToken                          *bool                                   `url:"allow_runner_registration_token,omitempty" json:"allow_runner_registration_token,omitempty"`
+	AnonymousSearchesAllowed                              *bool                                   `url:"anonymous_searches_allowed,omitempty" json:"anonymous_searches_allowed,omitempty"`
 	ArchiveBuildsInHumanReadable                          *string                                 `url:"archive_builds_in_human_readable,omitempty" json:"archive_builds_in_human_readable,omitempty"`
 	ASCIIDocMaxIncludes                                   *int64                                  `url:"asciidoc_max_includes,omitempty" json:"asciidoc_max_includes,omitempty"`
 	AssetProxyAllowlist                                   *[]string                               `url:"asset_proxy_allowlist,omitempty" json:"asset_proxy_allowlist,omitempty"`
@@ -730,6 +725,7 @@ type UpdateSettingsOptions struct {
 	InactiveProjectsDeleteAfterMonths                     *int64                                  `url:"inactive_projects_delete_after_months,omitempty" json:"inactive_projects_delete_after_months,omitempty"`
 	InactiveProjectsMinSizeMB                             *int64                                  `url:"inactive_projects_min_size_mb,omitempty" json:"inactive_projects_min_size_mb,omitempty"`
 	InactiveProjectsSendWarningEmailAfterMonths           *int64                                  `url:"inactive_projects_send_warning_email_after_months,omitempty" json:"inactive_projects_send_warning_email_after_months,omitempty"`
+	InactiveResourceAccessTokensDeleteAfterDays           *int64                                  `url:"inactive_resource_access_tokens_delete_after_days,omitempty" json:"inactive_resource_access_tokens_delete_after_days,omitempty"`
 	IncludeOptionalMetricsInServicePing                   *bool                                   `url:"include_optional_metrics_in_service_ping,omitempty" json:"include_optional_metrics_in_service_ping,omitempty"`
 	InProductMarketingEmailsEnabled                       *bool                                   `url:"in_product_marketing_emails_enabled,omitempty" json:"in_product_marketing_emails_enabled,omitempty"`
 	InvisibleCaptchaEnabled                               *bool                                   `url:"invisible_captcha_enabled,omitempty" json:"invisible_captcha_enabled,omitempty"`
@@ -839,7 +835,7 @@ type UpdateSettingsOptions struct {
 	SendUserConfirmationEmail                             *bool                                   `url:"send_user_confirmation_email,omitempty" json:"send_user_confirmation_email,omitempty"`
 	SentryClientsideDSN                                   *string                                 `url:"sentry_clientside_dsn,omitempty" json:"sentry_clientside_dsn,omitempty"`
 	SentryDSN                                             *string                                 `url:"sentry_dsn,omitempty" json:"sentry_dsn,omitempty"`
-	SentryEnabled                                         *string                                 `url:"sentry_enabled,omitempty" json:"sentry_enabled,omitempty"`
+	SentryEnabled                                         *bool                                   `url:"sentry_enabled,omitempty" json:"sentry_enabled,omitempty"`
 	SentryEnvironment                                     *string                                 `url:"sentry_environment,omitempty" json:"sentry_environment,omitempty"`
 	ServiceAccessTokensExpirationEnforced                 *bool                                   `url:"service_access_tokens_expiration_enforced,omitempty" json:"service_access_tokens_expiration_enforced,omitempty"`
 	SessionExpireDelay                                    *int64                                  `url:"session_expire_delay,omitempty" json:"session_expire_delay,omitempty"`
@@ -896,9 +892,9 @@ type UpdateSettingsOptions struct {
 	ThrottleIncidentManagementNotificationEnabled         *bool                                   `url:"throttle_incident_management_notification_enabled,omitempty" json:"throttle_incident_management_notification_enabled,omitempty"`
 	ThrottleIncidentManagementNotificationPerPeriod       *int64                                  `url:"throttle_incident_management_notification_per_period,omitempty" json:"throttle_incident_management_notification_per_period,omitempty"`
 	ThrottleIncidentManagementNotificationPeriodInSeconds *int64                                  `url:"throttle_incident_management_notification_period_in_seconds,omitempty" json:"throttle_incident_management_notification_period_in_seconds,omitempty"`
-	ThrottleProtectedPathsEnabled                         *bool                                   `url:"throttle_protected_paths_enabled_enabled,omitempty" json:"throttle_protected_paths_enabled,omitempty"`
-	ThrottleProtectedPathsPeriodInSeconds                 *int64                                  `url:"throttle_protected_paths_enabled_period_in_seconds,omitempty" json:"throttle_protected_paths_period_in_seconds,omitempty"`
-	ThrottleProtectedPathsRequestsPerPeriod               *int64                                  `url:"throttle_protected_paths_enabled_requests_per_period,omitempty" json:"throttle_protected_paths_per_period,omitempty"`
+	ThrottleProtectedPathsEnabled                         *bool                                   `url:"throttle_protected_paths_enabled,omitempty" json:"throttle_protected_paths_enabled,omitempty"`
+	ThrottleProtectedPathsPeriodInSeconds                 *int64                                  `url:"throttle_protected_paths_period_in_seconds,omitempty" json:"throttle_protected_paths_period_in_seconds,omitempty"`
+	ThrottleProtectedPathsRequestsPerPeriod               *int64                                  `url:"throttle_protected_paths_requests_per_period,omitempty" json:"throttle_protected_paths_requests_per_period,omitempty"`
 	ThrottleUnauthenticatedAPIEnabled                     *bool                                   `url:"throttle_unauthenticated_api_enabled,omitempty" json:"throttle_unauthenticated_api_enabled,omitempty"`
 	ThrottleUnauthenticatedAPIPeriodInSeconds             *int64                                  `url:"throttle_unauthenticated_api_period_in_seconds,omitempty" json:"throttle_unauthenticated_api_period_in_seconds,omitempty"`
 	ThrottleUnauthenticatedAPIRequestsPerPeriod           *int64                                  `url:"throttle_unauthenticated_api_requests_per_period,omitempty" json:"throttle_unauthenticated_api_requests_per_period,omitempty"`
@@ -987,16 +983,10 @@ type BranchProtectionDefaultsOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/settings/#update-application-settings
 func (s *SettingsService) UpdateSettings(opt *UpdateSettingsOptions, options ...RequestOptionFunc) (*Settings, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodPut, "application/settings", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	as := new(Settings)
-	resp, err := s.client.Do(req, as)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return as, resp, nil
+	return do[*Settings](s.client,
+		withMethod(http.MethodPut),
+		withPath("application/settings"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }

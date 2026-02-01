@@ -80,24 +80,11 @@ type ListTreeOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/repositories/#list-repository-tree
 func (s *RepositoriesService) ListTree(pid any, opt *ListTreeOptions, options ...RequestOptionFunc) ([]*TreeNode, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/repository/tree", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var t []*TreeNode
-	resp, err := s.client.Do(req, &t)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return t, resp, nil
+	return do[[]*TreeNode](s.client,
+		withPath("projects/%s/repository/tree", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // Blob gets information about blob in repository like size and content. Note
@@ -249,24 +236,11 @@ type CompareOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/repositories/#compare-branches-tags-or-commits
 func (s *RepositoriesService) Compare(pid any, opt *CompareOptions, options ...RequestOptionFunc) (*Compare, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/repository/compare", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	c := new(Compare)
-	resp, err := s.client.Do(req, c)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return c, resp, nil
+	return do[*Compare](s.client,
+		withPath("projects/%s/repository/compare", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // Contributor represents a GitLab contributor.
@@ -297,24 +271,11 @@ type ListContributorsOptions struct {
 //
 // GitLab API docs: https://docs.gitlab.com/api/repositories/#contributors
 func (s *RepositoriesService) Contributors(pid any, opt *ListContributorsOptions, options ...RequestOptionFunc) ([]*Contributor, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/repository/contributors", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var c []*Contributor
-	resp, err := s.client.Do(req, &c)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return c, resp, nil
+	return do[[]*Contributor](s.client,
+		withPath("projects/%s/repository/contributors", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // MergeBaseOptions represents the available MergeBase() options.
@@ -331,24 +292,11 @@ type MergeBaseOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/repositories/#merge-base
 func (s *RepositoriesService) MergeBase(pid any, opt *MergeBaseOptions, options ...RequestOptionFunc) (*Commit, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/repository/merge_base", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	c := new(Commit)
-	resp, err := s.client.Do(req, c)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return c, resp, nil
+	return do[*Commit](s.client,
+		withPath("projects/%s/repository/merge_base", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // AddChangelogOptions represents the available AddChangelog() options.
@@ -372,18 +320,13 @@ type AddChangelogOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/repositories/#add-changelog-data-to-a-changelog-file
 func (s *RepositoriesService) AddChangelog(pid any, opt *AddChangelogOptions, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/repository/changelog", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/repository/changelog", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // ChangelogData represents the generated changelog data.
@@ -418,22 +361,9 @@ type GenerateChangelogDataOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/repositories/#generate-changelog-data
 func (s *RepositoriesService) GenerateChangelogData(pid any, opt GenerateChangelogDataOptions, options ...RequestOptionFunc) (*ChangelogData, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/repository/changelog", project)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	cd := new(ChangelogData)
-	resp, err := s.client.Do(req, cd)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return cd, resp, nil
+	return do[*ChangelogData](s.client,
+		withPath("projects/%s/repository/changelog", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }

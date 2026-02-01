@@ -17,7 +17,7 @@
 package gitlab
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"time"
 )
@@ -221,7 +221,7 @@ type GetCommitOptions struct {
 
 func (s *CommitsService) GetCommit(pid any, sha string, opt *GetCommitOptions, options ...RequestOptionFunc) (*Commit, *Response, error) {
 	if sha == "" {
-		return nil, nil, fmt.Errorf("SHA must be a non-empty string")
+		return nil, nil, errors.New("SHA must be a non-empty string")
 	}
 
 	return do[*Commit](s.client,

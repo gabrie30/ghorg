@@ -37,14 +37,31 @@ mise exec -- make reviewable
 
 ### Test Patterns
 
-- All tests use the `testing` package with `testify/assert`
 - Tests are parallelized using `t.Parallel()`
 - Mock HTTP handlers are used for API testing
 - Test data is stored in `testdata/` directory
 - Each service method should have corresponding test coverage
   - **CRITICAL** - When fixing bugs or creating new features, ensure new test scenarios are added to cover the new logic.
 - When writing a test, write Gherkin comments in-line with the test to make the tests easier to read. This means adding GIVEN/WHEN/THEN comments in tests.
+- All tests use the `testing` package with `testify/assert`
 
+Do not use `reflect.DeepEqual` in tests, use testify instead. 
+
+```go
+// This is an example of the incorrect test setup
+want := &MyStruct{
+		MyField: "Meow Kitty"
+}
+if !reflect.DeepEqual(want, otherStruct) {
+    t.Errorf("MyStruct returned %+v, want %+v", otherStruct, want)
+}
+
+// Instead, use this
+want := &MyStruct{
+		MyField: "Meow Kitty"
+}
+assert.Equal(t, want, otherStruct)
+```
 
 ### Test Structure Example
 

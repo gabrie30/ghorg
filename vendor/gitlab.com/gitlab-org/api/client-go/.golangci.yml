@@ -29,10 +29,12 @@ linters:
     - nakedret
     - nolintlint
     - revive
+    - sloglint
     - staticcheck
     - testifylint
     - unconvert
     - usestdlibvars
+    - usetesting
     - whitespace
     - tparallel
     - paralleltest
@@ -55,6 +57,7 @@ linters:
         - name: struct-tag
         - name: time-date
         - name: unused-parameter
+        - name: use-errors-new
         - name: var-naming
     staticcheck:
       checks:
@@ -85,6 +88,10 @@ linters:
       http-method: false
       http-status-code: false
       time-date-month: true
+    usetesting:
+      context-background: true
+      context-todo: true
+      os-temp-dir: true
 
   # List of regexps of issue texts to exclude.
   exclusions:

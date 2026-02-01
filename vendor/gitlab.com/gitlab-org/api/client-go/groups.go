@@ -19,6 +19,7 @@ package gitlab
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -116,6 +117,7 @@ type Group struct {
 	MembershipLock                  bool                       `json:"membership_lock"`
 	Visibility                      VisibilityValue            `json:"visibility"`
 	LFSEnabled                      bool                       `json:"lfs_enabled"`
+	MaxArtifactsSize                int64                      `json:"max_artifacts_size"`
 	DefaultBranch                   string                     `json:"default_branch"`
 	DefaultBranchProtectionDefaults *BranchProtectionDefaults  `json:"default_branch_protection_defaults"`
 	AvatarURL                       string                     `json:"avatar_url"`
@@ -151,6 +153,10 @@ type Group struct {
 	IPRestrictionRanges             string                     `json:"ip_restriction_ranges"`
 	AllowedEmailDomainsList         string                     `json:"allowed_email_domains_list"`
 	WikiAccessLevel                 AccessControlValue         `json:"wiki_access_level"`
+
+	OnlyAllowMergeIfPipelineSucceeds          bool `json:"only_allow_merge_if_pipeline_succeeds"`
+	AllowMergeOnSkippedPipeline               bool `json:"allow_merge_on_skipped_pipeline"`
+	OnlyAllowMergeIfAllDiscussionsAreResolved bool `json:"only_allow_merge_if_all_discussions_are_resolved"`
 
 	// Deprecated: will be removed in v5 of the API, use ListGroupProjects instead
 	Projects []*Project `json:"projects"`
@@ -340,6 +346,7 @@ func (s *GroupsService) ListDescendantGroups(gid any, opt *ListDescendantGroupsO
 // https://docs.gitlab.com/api/groups/#list-projects
 type ListGroupProjectsOptions struct {
 	ListOptions
+	Active                   *bool             `url:"active,omitempty" json:"active,omitempty"`
 	Archived                 *bool             `url:"archived,omitempty" json:"archived,omitempty"`
 	IncludeSubGroups         *bool             `url:"include_subgroups,omitempty" json:"include_subgroups,omitempty"`
 	MinAccessLevel           *AccessLevelValue `url:"min_access_level,omitempty" json:"min_access_level,omitempty"`
@@ -540,7 +547,7 @@ func (s *GroupsService) CreateGroup(opt *CreateGroupOptions, options ...RequestO
 		// since the Avatar is provided, check allowed_to_push and
 		// allowed_to_merge access levels and error if multiples are provided
 		if opt.DefaultBranchProtectionDefaults != nil && (len(*opt.DefaultBranchProtectionDefaults.AllowedToMerge) > 1 || len(*opt.DefaultBranchProtectionDefaults.AllowedToPush) > 1) {
-			return nil, nil, fmt.Errorf("multiple access levels for allowed_to_merge or allowed_to_push are not permitted when an Avatar is also specified as it will result in unexpected behavior")
+			return nil, nil, errors.New("multiple access levels for allowed_to_merge or allowed_to_push are not permitted when an Avatar is also specified as it will result in unexpected behavior")
 		}
 		req, err = s.client.UploadRequest(
 			http.MethodPost,
@@ -649,6 +656,7 @@ type UpdateGroupOptions struct {
 	EmailsEnabled                        *bool                                   `url:"emails_enabled,omitempty" json:"emails_enabled,omitempty"`
 	MentionsDisabled                     *bool                                   `url:"mentions_disabled,omitempty" json:"mentions_disabled,omitempty"`
 	LFSEnabled                           *bool                                   `url:"lfs_enabled,omitempty" json:"lfs_enabled,omitempty"`
+	MaxArtifactsSize                     *int64                                  `url:"max_artifacts_size,omitempty" json:"max_artifacts_size,omitempty"`
 	RequestAccessEnabled                 *bool                                   `url:"request_access_enabled,omitempty" json:"request_access_enabled,omitempty"`
 	DefaultBranchProtectionDefaults      *DefaultBranchProtectionDefaultsOptions `url:"default_branch_protection_defaults,omitempty" json:"default_branch_protection_defaults,omitempty"`
 	FileTemplateProjectID                *int64                                  `url:"file_template_project_id,omitempty" json:"file_template_project_id,omitempty"`
@@ -660,6 +668,10 @@ type UpdateGroupOptions struct {
 	IPRestrictionRanges                  *string                                 `url:"ip_restriction_ranges,omitempty" json:"ip_restriction_ranges,omitempty"`
 	AllowedEmailDomainsList              *string                                 `url:"allowed_email_domains_list,omitempty" json:"allowed_email_domains_list,omitempty"`
 	WikiAccessLevel                      *AccessControlValue                     `url:"wiki_access_level,omitempty" json:"wiki_access_level,omitempty"`
+
+	OnlyAllowMergeIfPipelineSucceeds          *bool `url:"only_allow_merge_if_pipeline_succeeds,omitempty" json:"only_allow_merge_if_pipeline_succeeds,omitempty"`
+	AllowMergeOnSkippedPipeline               *bool `url:"allow_merge_on_skipped_pipeline,omitempty" json:"allow_merge_on_skipped_pipeline,omitempty"`
+	OnlyAllowMergeIfAllDiscussionsAreResolved *bool `url:"only_allow_merge_if_all_discussions_are_resolved,omitempty" json:"only_allow_merge_if_all_discussions_are_resolved,omitempty"`
 
 	// Deprecated: Use EmailsEnabled instead
 	EmailsDisabled *bool `url:"emails_disabled,omitempty" json:"emails_disabled,omitempty"`
@@ -693,7 +705,7 @@ func (s *GroupsService) UpdateGroup(gid any, opt *UpdateGroupOptions, options ..
 		// since the Avatar is provided, check allowed_to_push and
 		// allowed_to_merge access levels and error if multiples are provided
 		if opt.DefaultBranchProtectionDefaults != nil && (len(*opt.DefaultBranchProtectionDefaults.AllowedToMerge) > 1 || len(*opt.DefaultBranchProtectionDefaults.AllowedToPush) > 1) {
-			return nil, nil, fmt.Errorf("multiple access levels for allowed_to_merge or allowed_to_push are not permitted when an Avatar is also specified as it will result in unexpected behavior")
+			return nil, nil, errors.New("multiple access levels for allowed_to_merge or allowed_to_push are not permitted when an Avatar is also specified as it will result in unexpected behavior")
 		}
 		req, err = s.client.UploadRequest(
 			http.MethodPut,

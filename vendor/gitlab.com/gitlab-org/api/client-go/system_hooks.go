@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -65,18 +64,10 @@ func (h Hook) String() string {
 // GitLab API docs:
 // https://docs.gitlab.com/api/system_hooks/#list-system-hooks
 func (s *SystemHooksService) ListHooks(options ...RequestOptionFunc) ([]*Hook, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "hooks", nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var h []*Hook
-	resp, err := s.client.Do(req, &h)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return h, resp, nil
+	return do[[]*Hook](s.client,
+		withPath("hooks"),
+		withRequestOpts(options...),
+	)
 }
 
 // GetHook get a single system hook.
@@ -84,20 +75,10 @@ func (s *SystemHooksService) ListHooks(options ...RequestOptionFunc) ([]*Hook, *
 // GitLab API docs:
 // https://docs.gitlab.com/api/system_hooks/#get-system-hook
 func (s *SystemHooksService) GetHook(hook int64, options ...RequestOptionFunc) (*Hook, *Response, error) {
-	u := fmt.Sprintf("hooks/%d", hook)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var h *Hook
-	resp, err := s.client.Do(req, &h)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return h, resp, nil
+	return do[*Hook](s.client,
+		withPath("hooks/%d", hook),
+		withRequestOpts(options...),
+	)
 }
 
 // AddHookOptions represents the available AddHook() options.
@@ -119,18 +100,12 @@ type AddHookOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/system_hooks/#add-new-system-hook
 func (s *SystemHooksService) AddHook(opt *AddHookOptions, options ...RequestOptionFunc) (*Hook, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodPost, "hooks", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	h := new(Hook)
-	resp, err := s.client.Do(req, h)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return h, resp, nil
+	return do[*Hook](s.client,
+		withMethod(http.MethodPost),
+		withPath("hooks"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // HookEvent represents an event trigger by a GitLab system hook.
@@ -154,20 +129,10 @@ func (h HookEvent) String() string {
 // GitLab API docs:
 // https://docs.gitlab.com/api/system_hooks/#test-system-hook
 func (s *SystemHooksService) TestHook(hook int64, options ...RequestOptionFunc) (*HookEvent, *Response, error) {
-	u := fmt.Sprintf("hooks/%d", hook)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	h := new(HookEvent)
-	resp, err := s.client.Do(req, h)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return h, resp, nil
+	return do[*HookEvent](s.client,
+		withPath("hooks/%d", hook),
+		withRequestOpts(options...),
+	)
 }
 
 // DeleteHook deletes a system hook. This is an idempotent API function and
@@ -177,12 +142,10 @@ func (s *SystemHooksService) TestHook(hook int64, options ...RequestOptionFunc) 
 // GitLab API docs:
 // https://docs.gitlab.com/api/system_hooks/#delete-system-hook
 func (s *SystemHooksService) DeleteHook(hook int64, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("hooks/%d", hook)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("hooks/%d", hook),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

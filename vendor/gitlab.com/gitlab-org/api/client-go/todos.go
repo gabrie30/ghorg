@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -139,36 +138,27 @@ type ListTodosOptions struct {
 }
 
 func (s *TodosService) ListTodos(opt *ListTodosOptions, options ...RequestOptionFunc) ([]*Todo, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "todos", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var t []*Todo
-	resp, err := s.client.Do(req, &t)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return t, resp, nil
+	return do[[]*Todo](s.client,
+		withPath("todos"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *TodosService) MarkTodoAsDone(id int64, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("todos/%d/mark_as_done", id)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("todos/%d/mark_as_done", id),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 func (s *TodosService) MarkAllTodosAsDone(options ...RequestOptionFunc) (*Response, error) {
-	req, err := s.client.NewRequest(http.MethodPost, "todos/mark_as_done", nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("todos/mark_as_done"),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

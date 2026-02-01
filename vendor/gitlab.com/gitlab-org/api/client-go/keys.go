@@ -16,11 +16,7 @@
 
 package gitlab
 
-import (
-	"fmt"
-	"net/http"
-	"time"
-)
+import "time"
 
 type (
 	KeysServiceInterface interface {
@@ -58,20 +54,10 @@ type Key struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/keys/#get-ssh-key-with-user-by-id-of-an-ssh-key
 func (s *KeysService) GetKeyWithUser(key int64, options ...RequestOptionFunc) (*Key, *Response, error) {
-	u := fmt.Sprintf("keys/%d", key)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	k := new(Key)
-	resp, err := s.client.Do(req, k)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return k, resp, nil
+	return do[*Key](s.client,
+		withPath("keys/%d", key),
+		withRequestOpts(options...),
+	)
 }
 
 // GetKeyByFingerprintOptions represents the available GetKeyByFingerprint()
@@ -91,16 +77,9 @@ type GetKeyByFingerprintOptions struct {
 // https://docs.gitlab.com/api/keys/#get-user-by-fingerprint-of-ssh-key
 // https://docs.gitlab.com/api/keys/#get-user-by-deploy-key-fingerprint
 func (s *KeysService) GetKeyByFingerprint(opt *GetKeyByFingerprintOptions, options ...RequestOptionFunc) (*Key, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "keys", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	k := new(Key)
-	resp, err := s.client.Do(req, k)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return k, resp, nil
+	return do[*Key](s.client,
+		withPath("keys"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }

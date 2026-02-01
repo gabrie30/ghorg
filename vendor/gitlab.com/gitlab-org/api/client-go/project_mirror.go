@@ -30,6 +30,7 @@ type (
 		AddProjectMirror(pid any, opt *AddProjectMirrorOptions, options ...RequestOptionFunc) (*ProjectMirror, *Response, error)
 		EditProjectMirror(pid any, mirror int64, opt *EditProjectMirrorOptions, options ...RequestOptionFunc) (*ProjectMirror, *Response, error)
 		DeleteProjectMirror(pid any, mirror int64, options ...RequestOptionFunc) (*Response, error)
+		ForcePushMirrorUpdate(pid any, mirror int64, options ...RequestOptionFunc) (*Response, error)
 	}
 
 	// ProjectMirrorService handles communication with the project mirror
@@ -239,4 +240,17 @@ func (s *ProjectMirrorService) DeleteProjectMirror(pid any, mirror int64, option
 	}
 
 	return s.client.Do(req, nil)
+}
+
+// ForcePushMirrorUpdate triggers a manual update for a project mirror.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/api/remote_mirrors/#force-push-mirror-update
+func (s *ProjectMirrorService) ForcePushMirrorUpdate(pid any, mirror int64, options ...RequestOptionFunc) (*Response, error) {
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/remote_mirrors/%d/sync", ProjectID{pid}, mirror),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

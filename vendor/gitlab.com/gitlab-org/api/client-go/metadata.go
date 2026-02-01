@@ -16,8 +16,6 @@
 
 package gitlab
 
-import "net/http"
-
 type (
 	MetadataServiceInterface interface {
 		GetMetadata(options ...RequestOptionFunc) (*Metadata, *Response, error)
@@ -66,16 +64,8 @@ func (k MetadataKAS) String() string {
 //
 // GitLab API docs: https://docs.gitlab.com/api/metadata/
 func (s *MetadataService) GetMetadata(options ...RequestOptionFunc) (*Metadata, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "metadata", nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	v := new(Metadata)
-	resp, err := s.client.Do(req, v)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return v, resp, nil
+	return do[*Metadata](s.client,
+		withPath("metadata"),
+		withRequestOpts(options...),
+	)
 }

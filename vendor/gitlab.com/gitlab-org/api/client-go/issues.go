@@ -389,10 +389,13 @@ func (s *IssuesService) GetIssue(pid any, issue int64, options ...RequestOptionF
 //
 // GitLab API docs: https://docs.gitlab.com/api/issues/#new-issue
 type CreateIssueOptions struct {
-	IID                                *int64        `url:"iid,omitempty" json:"iid,omitempty"`
-	Title                              *string       `url:"title,omitempty" json:"title,omitempty"`
-	Description                        *string       `url:"description,omitempty" json:"description,omitempty"`
-	Confidential                       *bool         `url:"confidential,omitempty" json:"confidential,omitempty"`
+	IID          *int64  `url:"iid,omitempty" json:"iid,omitempty"`
+	Title        *string `url:"title,omitempty" json:"title,omitempty"`
+	Description  *string `url:"description,omitempty" json:"description,omitempty"`
+	Confidential *bool   `url:"confidential,omitempty" json:"confidential,omitempty"`
+	// AssigneeID is a CE-only attribute. For EE, use AssigneeIDs instead.
+	AssigneeID *int64 `url:"assignee_id,omitempty" json:"assignee_id,omitempty"`
+	// AssigneeIDs is a EE-only attribute. For CE, use AssigneeID instead.
 	AssigneeIDs                        *[]int64      `url:"assignee_ids,omitempty" json:"assignee_ids,omitempty"`
 	MilestoneID                        *int64        `url:"milestone_id,omitempty" json:"milestone_id,omitempty"`
 	Labels                             *LabelOptions `url:"labels,comma,omitempty" json:"labels,omitempty"`
@@ -424,9 +427,12 @@ func (s *IssuesService) CreateIssue(pid any, opt *CreateIssueOptions, options ..
 //
 // GitLab API docs: https://docs.gitlab.com/api/issues/#edit-an-issue
 type UpdateIssueOptions struct {
-	Title            *string       `url:"title,omitempty" json:"title,omitempty"`
-	Description      *string       `url:"description,omitempty" json:"description,omitempty"`
-	Confidential     *bool         `url:"confidential,omitempty" json:"confidential,omitempty"`
+	Title        *string `url:"title,omitempty" json:"title,omitempty"`
+	Description  *string `url:"description,omitempty" json:"description,omitempty"`
+	Confidential *bool   `url:"confidential,omitempty" json:"confidential,omitempty"`
+	// AssigneeID is a CE-only attribute. For EE, use AssigneeIDs instead.
+	AssigneeID *int64 `url:"assignee_id,omitempty" json:"assignee_id,omitempty"`
+	// AssigneeIDs is a EE-only attribute. For CE, use AssigneeID instead.
 	AssigneeIDs      *[]int64      `url:"assignee_ids,omitempty" json:"assignee_ids,omitempty"`
 	MilestoneID      *int64        `url:"milestone_id,omitempty" json:"milestone_id,omitempty"`
 	Labels           *LabelOptions `url:"labels,comma,omitempty" json:"labels,omitempty"`

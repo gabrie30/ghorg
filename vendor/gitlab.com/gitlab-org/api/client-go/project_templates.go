@@ -16,11 +16,6 @@
 
 package gitlab
 
-import (
-	"fmt"
-	"net/http"
-)
-
 type (
 	ProjectTemplatesServiceInterface interface {
 		ListTemplates(pid any, templateType string, opt *ListProjectTemplatesOptions, options ...RequestOptionFunc) ([]*ProjectTemplate, *Response, error)
@@ -73,24 +68,11 @@ type ListProjectTemplatesOptions struct {
 //
 // GitLab API docs: https://docs.gitlab.com/api/project_templates/#get-all-templates-of-a-particular-type
 func (s *ProjectTemplatesService) ListTemplates(pid any, templateType string, opt *ListProjectTemplatesOptions, options ...RequestOptionFunc) ([]*ProjectTemplate, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/templates/%s", PathEscape(project), templateType)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var pt []*ProjectTemplate
-	resp, err := s.client.Do(req, &pt)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pt, resp, nil
+	return do[[]*ProjectTemplate](s.client,
+		withPath("projects/%s/templates/%s", ProjectID{pid}, templateType),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // GetProjectTemplate gets a single project template.
@@ -98,22 +80,8 @@ func (s *ProjectTemplatesService) ListTemplates(pid any, templateType string, op
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_templates/#get-one-template-of-a-particular-type
 func (s *ProjectTemplatesService) GetProjectTemplate(pid any, templateType string, templateName string, options ...RequestOptionFunc) (*ProjectTemplate, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/templates/%s/%s", PathEscape(project), templateType, templateName)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	ptd := new(ProjectTemplate)
-	resp, err := s.client.Do(req, ptd)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ptd, resp, nil
+	return do[*ProjectTemplate](s.client,
+		withPath("projects/%s/templates/%s/%s", ProjectID{pid}, templateType, templateName),
+		withRequestOpts(options...),
+	)
 }

@@ -99,8 +99,8 @@ github.com/google/go-github/v72/github
 # github.com/google/go-github/v75 v75.0.0
 ## explicit; go 1.24.0
 github.com/google/go-github/v75/github
-# github.com/google/go-querystring v1.1.0
-## explicit; go 1.10
+# github.com/google/go-querystring v1.2.0
+## explicit; go 1.13
 github.com/google/go-querystring/query
 # github.com/hashicorp/go-cleanhttp v0.5.2
 ## explicit; go 1.13
@@ -185,7 +185,7 @@ github.com/spf13/viper/internal/features
 # github.com/subosito/gotenv v1.6.0
 ## explicit; go 1.18
 github.com/subosito/gotenv
-# gitlab.com/gitlab-org/api/client-go v1.10.0
+# gitlab.com/gitlab-org/api/client-go v1.24.0
 ## explicit; go 1.24.0
 gitlab.com/gitlab-org/api/client-go
 # go.yaml.in/yaml/v3 v3.0.4
@@ -227,7 +227,7 @@ golang.org/x/oauth2
 golang.org/x/oauth2/bitbucket
 golang.org/x/oauth2/clientcredentials
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.38.0
+# golang.org/x/sys v0.39.0
 ## explicit; go 1.24.0
 golang.org/x/sys/cpu
 golang.org/x/sys/plan9
@@ -236,7 +236,7 @@ golang.org/x/sys/windows
 # golang.org/x/term v0.37.0
 ## explicit; go 1.24.0
 golang.org/x/term
-# golang.org/x/text v0.31.0
+# golang.org/x/text v0.32.0
 ## explicit; go 1.24.0
 golang.org/x/text/encoding
 golang.org/x/text/encoding/internal

@@ -18,7 +18,6 @@ package gitlab
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -271,24 +270,11 @@ type ListProjectPipelinesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipelines/#list-project-pipelines
 func (s *PipelinesService) ListProjectPipelines(pid any, opt *ListProjectPipelinesOptions, options ...RequestOptionFunc) ([]*PipelineInfo, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pipelines", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var p []*PipelineInfo
-	resp, err := s.client.Do(req, &p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[[]*PipelineInfo](s.client,
+		withPath("projects/%s/pipelines", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // GetPipeline gets a single project pipeline.
@@ -296,24 +282,10 @@ func (s *PipelinesService) ListProjectPipelines(pid any, opt *ListProjectPipelin
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipelines/#get-a-single-pipeline
 func (s *PipelinesService) GetPipeline(pid any, pipeline int64, options ...RequestOptionFunc) (*Pipeline, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pipelines/%d", PathEscape(project), pipeline)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	p := new(Pipeline)
-	resp, err := s.client.Do(req, p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[*Pipeline](s.client,
+		withPath("projects/%s/pipelines/%d", ProjectID{pid}, pipeline),
+		withRequestOpts(options...),
+	)
 }
 
 // GetPipelineVariables gets the variables of a single project pipeline.
@@ -321,24 +293,10 @@ func (s *PipelinesService) GetPipeline(pid any, pipeline int64, options ...Reque
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipelines/#get-variables-of-a-pipeline
 func (s *PipelinesService) GetPipelineVariables(pid any, pipeline int64, options ...RequestOptionFunc) ([]*PipelineVariable, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pipelines/%d/variables", PathEscape(project), pipeline)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var p []*PipelineVariable
-	resp, err := s.client.Do(req, &p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[[]*PipelineVariable](s.client,
+		withPath("projects/%s/pipelines/%d/variables", ProjectID{pid}, pipeline),
+		withRequestOpts(options...),
+	)
 }
 
 // GetPipelineTestReport gets the test report of a single project pipeline.
@@ -346,24 +304,10 @@ func (s *PipelinesService) GetPipelineVariables(pid any, pipeline int64, options
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipelines/#get-a-pipelines-test-report
 func (s *PipelinesService) GetPipelineTestReport(pid any, pipeline int64, options ...RequestOptionFunc) (*PipelineTestReport, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pipelines/%d/test_report", PathEscape(project), pipeline)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	p := new(PipelineTestReport)
-	resp, err := s.client.Do(req, p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[*PipelineTestReport](s.client,
+		withPath("projects/%s/pipelines/%d/test_report", ProjectID{pid}, pipeline),
+		withRequestOpts(options...),
+	)
 }
 
 // GetPipelineTestReportSummary gets the test report summary of a single project pipeline.
@@ -371,24 +315,10 @@ func (s *PipelinesService) GetPipelineTestReport(pid any, pipeline int64, option
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipelines/#get-a-test-report-summary-for-a-pipeline
 func (s *PipelinesService) GetPipelineTestReportSummary(pid any, pipeline int64, options ...RequestOptionFunc) (*PipelineTestReportSummary, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pipelines/%d/test_report_summary", PathEscape(project), pipeline)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	p := new(PipelineTestReportSummary)
-	resp, err := s.client.Do(req, p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[*PipelineTestReportSummary](s.client,
+		withPath("projects/%s/pipelines/%d/test_report_summary", ProjectID{pid}, pipeline),
+		withRequestOpts(options...),
+	)
 }
 
 // GetLatestPipelineOptions represents the available GetLatestPipeline() options.
@@ -404,24 +334,11 @@ type GetLatestPipelineOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipelines/#get-the-latest-pipeline
 func (s *PipelinesService) GetLatestPipeline(pid any, opt *GetLatestPipelineOptions, options ...RequestOptionFunc) (*Pipeline, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pipelines/latest", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	p := new(Pipeline)
-	resp, err := s.client.Do(req, p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[*Pipeline](s.client,
+		withPath("projects/%s/pipelines/latest", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // CreatePipelineOptions represents the available CreatePipeline() options.
@@ -528,24 +445,12 @@ func NewPipelineInputValue[T PipelineInputValueType](value T) PipelineInputValue
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipelines/#create-a-new-pipeline
 func (s *PipelinesService) CreatePipeline(pid any, opt *CreatePipelineOptions, options ...RequestOptionFunc) (*Pipeline, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pipeline", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	p := new(Pipeline)
-	resp, err := s.client.Do(req, p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[*Pipeline](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/pipeline", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // RetryPipelineBuild retries failed builds in a pipeline.
@@ -553,24 +458,11 @@ func (s *PipelinesService) CreatePipeline(pid any, opt *CreatePipelineOptions, o
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipelines/#retry-jobs-in-a-pipeline
 func (s *PipelinesService) RetryPipelineBuild(pid any, pipeline int64, options ...RequestOptionFunc) (*Pipeline, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pipelines/%d/retry", PathEscape(project), pipeline)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	p := new(Pipeline)
-	resp, err := s.client.Do(req, p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[*Pipeline](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/pipelines/%d/retry", ProjectID{pid}, pipeline),
+		withRequestOpts(options...),
+	)
 }
 
 // CancelPipelineBuild cancels a pipeline builds.
@@ -578,24 +470,11 @@ func (s *PipelinesService) RetryPipelineBuild(pid any, pipeline int64, options .
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipelines/#cancel-a-pipelines-jobs
 func (s *PipelinesService) CancelPipelineBuild(pid any, pipeline int64, options ...RequestOptionFunc) (*Pipeline, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pipelines/%d/cancel", PathEscape(project), pipeline)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	p := new(Pipeline)
-	resp, err := s.client.Do(req, p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[*Pipeline](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/pipelines/%d/cancel", ProjectID{pid}, pipeline),
+		withRequestOpts(options...),
+	)
 }
 
 // DeletePipeline deletes an existing pipeline.
@@ -603,18 +482,12 @@ func (s *PipelinesService) CancelPipelineBuild(pid any, pipeline int64, options 
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipelines/#delete-a-pipeline
 func (s *PipelinesService) DeletePipeline(pid any, pipeline int64, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pipelines/%d", PathEscape(project), pipeline)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("projects/%s/pipelines/%d", ProjectID{pid}, pipeline),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // UpdatePipelineMetadataOptions represents the available UpdatePipelineMetadata()
@@ -632,22 +505,10 @@ type UpdatePipelineMetadataOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/pipelines/#update-pipeline-metadata
 func (s *PipelinesService) UpdatePipelineMetadata(pid any, pipeline int64, opt *UpdatePipelineMetadataOptions, options ...RequestOptionFunc) (*Pipeline, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pipelines/%d/metadata", PathEscape(project), pipeline)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	p := new(Pipeline)
-	resp, err := s.client.Do(req, p)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return p, resp, nil
+	return do[*Pipeline](s.client,
+		withMethod(http.MethodPut),
+		withPath("projects/%s/pipelines/%d/metadata", ProjectID{pid}, pipeline),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
