@@ -80,12 +80,17 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		allGroups = append(allGroups, targetOrg)
 	}
 
-	if os.Getenv("GHORG_GITLAB_GROUP_MATCH_REGEX") != "" {
-		allGroups = filterGitlabGroupByMatchRegex(allGroups)
-	}
+	// Group-level filters only apply to all-groups mode where there are multiple
+	// top-level groups to select from. For single-group clones, the per-repo
+	// filter in filter() handles PathWithNamespace-based matching instead.
+	if gitLabAllGroups {
+		if os.Getenv("GHORG_GITLAB_GROUP_MATCH_REGEX") != "" {
+			allGroups = filterGitlabGroupByMatchRegex(allGroups)
+		}
 
-	if os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX") != "" {
-		allGroups = filterGitlabGroupByExcludeMatchRegex(allGroups)
+		if os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX") != "" {
+			allGroups = filterGitlabGroupByExcludeMatchRegex(allGroups)
+		}
 	}
 
 	for i, group := range allGroups {
