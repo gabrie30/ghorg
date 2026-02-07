@@ -192,6 +192,9 @@ func (tr *TestRunner) executeCommand(command string) error {
 	cmd.Dir = tr.context.GhorgDir
 
 	output, err := cmd.CombinedOutput()
+	if len(output) > 0 {
+		log.Printf("Command output:\n%s", string(output))
+	}
 	if err != nil {
 		return fmt.Errorf("command failed: %s\nOutput: %s", err, string(output))
 	}
@@ -207,7 +210,8 @@ func (tr *TestRunner) verifyExpectedStructure(expectedPaths []string) error {
 
 		if _, err := os.Stat(fullPath); err != nil {
 			if os.IsNotExist(err) {
-				// Use ghorg ls to check what actually exists
+				// Log what actually exists in the output directory to aid debugging
+				tr.logActualDirectoryContents(expectedPath)
 				return fmt.Errorf("expected path does not exist: %s", expectedPath)
 			}
 			return fmt.Errorf("failed to check path %s: %w", expectedPath, err)
@@ -217,6 +221,40 @@ func (tr *TestRunner) verifyExpectedStructure(expectedPaths []string) error {
 	}
 
 	return nil
+}
+
+// logActualDirectoryContents lists what directories actually exist in the output dir
+// to help diagnose why an expected path was not found.
+func (tr *TestRunner) logActualDirectoryContents(missingPath string) {
+	// Extract the top-level output directory from the missing path
+	parts := strings.SplitN(missingPath, "/", 2)
+	if len(parts) == 0 {
+		return
+	}
+	outputDir := filepath.Join(tr.context.GhorgDir, parts[0])
+
+	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
+		log.Printf("DEBUG: Output directory does not exist: %s (ghorg may not have cloned any repos)", parts[0])
+		return
+	}
+
+	log.Printf("DEBUG: Listing actual contents of %s:", parts[0])
+	err := filepath.Walk(outputDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		if info.IsDir() && info.Name() == ".git" {
+			return filepath.SkipDir
+		}
+		if info.IsDir() && path != outputDir {
+			rel, _ := filepath.Rel(tr.context.GhorgDir, path)
+			log.Printf("DEBUG:   %s/", rel)
+		}
+		return nil
+	})
+	if err != nil {
+		log.Printf("DEBUG: Error listing directory: %v", err)
+	}
 }
 
 func (tr *TestRunner) verifyNoTokensInRemotes(expectedPaths []string, token string) error {

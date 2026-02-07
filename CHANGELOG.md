@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.11.9] - unreleased
+### Added
+- GHORG_GITLAB_GROUP_MATCH_REGEX; thanks @batagy
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.11.8] - 2/1/26
 ### Added
 - Bitbucket Cloud API token authentication support; thanks @dean-tate
