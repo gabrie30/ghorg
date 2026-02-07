@@ -437,7 +437,7 @@ func init() {
 	cloneCmd.Flags().StringVar(&sshHostname, "ssh-hostname", "", "GHORG_SSH_HOSTNAME - Custom hostname to use in SSH clone URLs. Useful for SSH aliases in ~/.ssh/config (e.g., --ssh-hostname=my-github-alias creates git@my-github-alias:org/repo.git URLs)")
 
 	reCloneCmd.Flags().StringVarP(&ghorgReClonePath, "reclone-path", "", "", "GHORG_RECLONE_PATH - If you want to set a path other than $HOME/.config/ghorg/reclone.yaml for your reclone configuration")
-	reCloneCmd.Flags().StringVar(&sshHostname, "ssh-hostname", "", "GHORG_SSH_HOSTNAME - Hostname to use for SSH clone URLs (e.g., my-github-alias for git@my-github-alias:org/repo.git)")
+	reCloneCmd.Flags().StringVar(&sshHostname, "ssh-hostname", "", "GHORG_SSH_HOSTNAME - Custom hostname to use in SSH clone URLs. Useful for SSH aliases in ~/.ssh/config (e.g., --ssh-hostname=my-github-alias creates git@my-github-alias:org/repo.git URLs)")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneQuiet, "quiet", false, "GHORG_RECLONE_QUIET - Quiet logging output")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneList, "list", false, "Prints reclone commands and optional descriptions to stdout then will exit 0. Does not obsfucate tokens, and is only available as a commandline argument")
 	reCloneCmd.Flags().BoolVar(&ghorgReCloneEnvConfigOnly, "env-config-only", false, "GHORG_RECLONE_ENV_CONFIG_ONLY - Only use environment variables to set the configuration for all reclones.")
