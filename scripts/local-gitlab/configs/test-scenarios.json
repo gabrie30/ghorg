@@ -620,14 +620,14 @@
         {
             "name": "gitlab-group-exclude-regex-subgroup-a",
             "description": "Test GitLab group exclude regex excludes all repos from subgroup-a",
-            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-exclude-match-regex=\".*\\/subgroup-a($|\\/.*$)\" --output-dir=gitlab-exclude-subgroup-a-test",
+            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-exclude-match-regex=.*\\/subgroup-a($|\\/.*$) --output-dir=gitlab-exclude-subgroup-a-test",
             "run_twice": false,
             "expected_structure": []
         },
         {
             "name": "gitlab-group-exclude-regex-subgroup-b-only",
             "description": "Test GitLab group exclude regex excludes only repos from subgroup-b",
-            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-exclude-match-regex=\".*\\/subgroup-b\\/.*$\" --output-dir=gitlab-exclude-subgroup-b-only-test",
+            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-exclude-match-regex=.*\\/subgroup-b\\/.*$ --output-dir=gitlab-exclude-subgroup-b-only-test",
             "run_twice": false,
             "expected_structure": [
                 "gitlab-exclude-subgroup-b-only-test/subgroup_a_repo_0",
@@ -639,14 +639,14 @@
         {
             "name": "gitlab-group-exclude-regex-case-insensitive",
             "description": "Test GitLab group exclude regex works with case insensitive matching",
-            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-exclude-match-regex=\"(?i:.*\\/subgroup-a($|\\/.*$))\" --output-dir=gitlab-exclude-case-insensitive-test",
+            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-exclude-match-regex=(?i:.*\\/subgroup-a($|\\/.*$)) --output-dir=gitlab-exclude-case-insensitive-test",
             "run_twice": false,
             "expected_structure": []
         },
         {
             "name": "gitlab-group-exclude-regex-no-match",
             "description": "Test GitLab group exclude regex doesn't exclude when no match (baseline test)",
-            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-exclude-match-regex=\".*\\/nonexistent\\/.*$\" --output-dir=gitlab-exclude-no-match-test",
+            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-exclude-match-regex=.*\\/nonexistent\\/.*$ --output-dir=gitlab-exclude-no-match-test",
             "run_twice": false,
             "expected_structure": [
                 "gitlab-exclude-no-match-test/subgroup_a_repo_0",
@@ -662,7 +662,7 @@
         {
             "name": "gitlab-group-match-regex-subgroup-b-only",
             "description": "Test GitLab group match regex includes only repos from subgroup-b",
-            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-match-regex=\".*\\/subgroup-b\\/.*$\" --output-dir=gitlab-match-subgroup-b-only-test",
+            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-match-regex=.*\\/subgroup-b\\/.*$ --output-dir=gitlab-match-subgroup-b-only-test",
             "run_twice": false,
             "expected_structure": [
                 "gitlab-match-subgroup-b-only-test/subgroup_b_repo_0",
@@ -674,7 +674,7 @@
         {
             "name": "gitlab-group-match-regex-subgroup-a-direct",
             "description": "Test GitLab group match regex includes only direct repos from subgroup-a (not nested subgroup-b)",
-            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-match-regex=\".*\\/subgroup-a\\/subgroup_a_\" --output-dir=gitlab-match-subgroup-a-direct-test",
+            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-match-regex=.*\\/subgroup-a\\/subgroup_a_ --output-dir=gitlab-match-subgroup-a-direct-test",
             "run_twice": false,
             "expected_structure": [
                 "gitlab-match-subgroup-a-direct-test/subgroup_a_repo_0",
@@ -686,14 +686,14 @@
         {
             "name": "gitlab-group-match-regex-no-match",
             "description": "Test GitLab group match regex returns empty when nothing matches",
-            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-match-regex=\".*\\/nonexistent\\/.*$\" --output-dir=gitlab-match-no-match-test",
+            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-match-regex=.*\\/nonexistent\\/.*$ --output-dir=gitlab-match-no-match-test",
             "run_twice": false,
             "expected_structure": []
         },
         {
             "name": "gitlab-group-match-regex-all",
             "description": "Test GitLab group match regex returns all repos when regex matches everything (baseline test)",
-            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-match-regex=\".*\" --output-dir=gitlab-match-all-test",
+            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-match-regex=.* --output-dir=gitlab-match-all-test",
             "run_twice": false,
             "expected_structure": [
                 "gitlab-match-all-test/subgroup_a_repo_0",
@@ -709,7 +709,7 @@
         {
             "name": "gitlab-group-match-and-exclude-regex-combined",
             "description": "Test GitLab group match and exclude regex work together: match subgroup-a tree then exclude subgroup-b",
-            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-match-regex=\".*\\/subgroup-a($|\\/.*$)\" --gitlab-group-exclude-match-regex=\".*\\/subgroup-b\\/.*$\" --output-dir=gitlab-match-and-exclude-test",
+            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-group-match-regex=.*\\/subgroup-a($|\\/.*$) --gitlab-group-exclude-match-regex=.*\\/subgroup-b\\/.*$ --output-dir=gitlab-match-and-exclude-test",
             "run_twice": false,
             "expected_structure": [
                 "gitlab-match-and-exclude-test/subgroup_a_repo_0",
