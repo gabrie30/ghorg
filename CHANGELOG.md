@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- Quotes within reclone commands; thanks @batagy
 ### Security
 
 ## [1.11.8] - 2/1/26
