@@ -187,6 +187,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX", prefix)
 	}
 
+	if cmd.Flags().Changed("gitlab-group-match-regex") {
+		regex := cmd.Flag("gitlab-group-match-regex").Value.String()
+		os.Setenv("GHORG_GITLAB_GROUP_MATCH_REGEX", regex)
+	}
+
 	if cmd.Flags().Changed("match-regex") {
 		regex := cmd.Flag("match-regex").Value.String()
 		os.Setenv("GHORG_MATCH_REGEX", regex)
@@ -1263,6 +1268,12 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX") != "" {
 		colorlog.PrintInfo("* Exclude Prefix: " + os.Getenv("GHORG_EXCLUDE_MATCH_PREFIX"))
+	}
+	if os.Getenv("GHORG_GITLAB_GROUP_MATCH_REGEX") != "" {
+		colorlog.PrintInfo("* GL Grp Match  : " + os.Getenv("GHORG_GITLAB_GROUP_MATCH_REGEX"))
+	}
+	if os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX") != "" {
+		colorlog.PrintInfo("* GL Grp Exclude: " + os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX"))
 	}
 	if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
 		colorlog.PrintInfo("* Submodules    : " + os.Getenv("GHORG_INCLUDE_SUBMODULES"))

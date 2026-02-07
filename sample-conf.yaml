@@ -261,6 +261,10 @@ GHORG_PRESERVE_DIRECTORY_STRUCTURE: false
 # flag (--insecure-gitlab-client)
 GHORG_INSECURE_GITLAB_CLIENT: false
 
+# Only clone gitlab groups that match name to regex provided
+# flag (--gitlab-group-match-regex)
+GHORG_GITLAB_GROUP_MATCH_REGEX:
+
 # Exclude gitlab groups by regex
 # flag (--gitlab-group-exclude-match-regex)
 GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX:

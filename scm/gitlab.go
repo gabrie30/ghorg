@@ -80,6 +80,10 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 		allGroups = append(allGroups, targetOrg)
 	}
 
+	if os.Getenv("GHORG_GITLAB_GROUP_MATCH_REGEX") != "" {
+		allGroups = filterGitlabGroupByMatchRegex(allGroups)
+	}
+
 	if os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX") != "" {
 		allGroups = filterGitlabGroupByExcludeMatchRegex(allGroups)
 	}
@@ -512,6 +516,15 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 			continue
 		}
 
+		// Apply GitLab group match regex to repository path (include only matching)
+		if os.Getenv("GHORG_GITLAB_GROUP_MATCH_REGEX") != "" {
+			regex := os.Getenv("GHORG_GITLAB_GROUP_MATCH_REGEX")
+			re := regexp.MustCompile(regex)
+			if re.FindString(p.PathWithNamespace) == "" {
+				continue // Skip this repository as it does not match the include pattern
+			}
+		}
+
 		// Apply GitLab group exclude regex to repository path
 		if os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX") != "" {
 			regex := os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX")
@@ -592,6 +605,20 @@ func filterGitlabGroupByExcludeMatchRegex(groups []string) []string {
 		}
 
 		if !exclude {
+			filteredGroups = append(filteredGroups, groups[i])
+		}
+	}
+
+	return filteredGroups
+}
+
+func filterGitlabGroupByMatchRegex(groups []string) []string {
+	filteredGroups := []string{}
+	regex := fmt.Sprint(os.Getenv("GHORG_GITLAB_GROUP_MATCH_REGEX"))
+	re := regexp.MustCompile(regex)
+
+	for i, grp := range groups {
+		if re.FindString(grp) != "" {
 			filteredGroups = append(filteredGroups, groups[i])
 		}
 	}
