@@ -59,15 +59,44 @@ func shouldAutoAdjustConcurrency() (int, bool, bool) {
 var cloneCmd = &cobra.Command{
 	Use:   "clone [org/user]",
 	Short: "Clone user or org repos from GitHub, GitLab, Gitea or Bitbucket",
-	Long: `Clone user or org repos from GitHub, GitLab, Gitea or Bitbucket. See $HOME/.config/ghorg/conf.yaml for defaults, its likely you will need to update some of these values of use the flags to overwrite them. Values are set first by a default value, then based off what is set in $HOME/.config/ghorg/conf.yaml, finally the cli flags, which have the highest level of precedence.
+	Long: `Clone user or org repos from GitHub, GitLab, Gitea or Bitbucket. 
 
-For complete examples of how to clone repos from each SCM provider, run one of the following examples commands:
-$ ghorg examples github
-$ ghorg examples gitlab
-$ ghorg examples bitbucket
-$ ghorg examples gitea
+CONFIGURATION:
+  Configuration values are set with the following precedence (highest to lowest):
+  1. Command-line flags (highest priority)
+  2. Values in $HOME/.config/ghorg/conf.yaml
+  3. Default values (lowest priority)
 
-Or see examples directory at https://github.com/gabrie30/ghorg/tree/master/examples
+COMMON USAGE:
+  # Clone all repos from a GitHub org
+  $ ghorg clone my-org --token=YOUR_TOKEN
+
+  # Clone all repos from a GitLab group
+  $ ghorg clone my-group --scm=gitlab --token=YOUR_TOKEN
+
+  # Clone only repos matching a prefix
+  $ ghorg clone my-org --match-prefix=frontend --token=YOUR_TOKEN
+
+  # Clone repos with custom output directory
+  $ ghorg clone my-org --output-dir=my-custom-dir --token=YOUR_TOKEN
+
+  # Clone a user's repos instead of an org
+  $ ghorg clone username --clone-type=user --token=YOUR_TOKEN
+
+  # Clone with SSH protocol instead of HTTPS
+  $ ghorg clone my-org --protocol=ssh --token=YOUR_TOKEN
+
+  # Clone only specific repos from a file
+  $ ghorg clone my-org --target-repos-path=/path/to/repos.txt --token=YOUR_TOKEN
+
+MORE EXAMPLES:
+  For complete examples of how to clone repos from each SCM provider, run:
+  $ ghorg examples github
+  $ ghorg examples gitlab
+  $ ghorg examples bitbucket
+  $ ghorg examples gitea
+
+  Or see: https://github.com/gabrie30/ghorg/tree/master/examples
 `,
 	Run: cloneFunc,
 }
