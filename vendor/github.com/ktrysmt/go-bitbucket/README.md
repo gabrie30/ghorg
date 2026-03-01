@@ -108,6 +108,7 @@ export BITBUCKET_TEST_USERNAME=<your_username>
 export BITBUCKET_TEST_PASSWORD=<your_password>
 export BITBUCKET_TEST_OWNER=<your_repo_owner>
 export BITBUCKET_TEST_REPOSLUG=<your_repo_name>
+export BITBUCKET_TEST_ACCESS_TOKEN=<your_repo_access_token>
 ```
 
 And just run;
@@ -121,7 +122,29 @@ If you want to test individually;
 ```sh
 go test -v ./tests/diff_test.go
 ```
+E2E Integration tests;
+```sh
+make test/e2e
+```
 
+Unit tests;
+```sh
+make test/unit
+```
+
+Mock tests;
+
+```sh
+make test/mock
+```
+Individually;
+```sh
+go test ./mock_tests/repository_mock_test.go
+```
+
+For documented workflow of the go:qmock test structure in ```/mock_tests/repository_mock_test.go``` refer to;
+- TestMockRepositoryPipelineVariables_List_Success
+- TestMockRepositoryPipelineVariables_List_Error
 
 ## License
 
