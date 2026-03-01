@@ -42,6 +42,25 @@ func (c *Client) ListRepoActionSecret(user, repo string, opt ListRepoActionSecre
 	return secrets, resp, err
 }
 
+// ListRepoActionVariableOption lists RepoActionVariable options
+type ListRepoActionVariableOption struct {
+	ListOptions
+}
+
+// ListRepoActionVariable lists a repository's action variables
+func (c *Client) ListRepoActionVariable(user, repo string, opt ListRepoActionVariableOption) ([]*RepoActionVariable, *Response, error) {
+	if err := escapeValidatePathSegments(&user, &repo); err != nil {
+		return nil, nil, err
+	}
+	opt.setDefaults()
+	variables := make([]*RepoActionVariable, 0, opt.PageSize)
+
+	link, _ := url.Parse(fmt.Sprintf("/repos/%s/%s/actions/variables", user, repo))
+	link.RawQuery = opt.getURLQuery().Encode()
+	resp, err := c.getParsedResponse("GET", link.String(), jsonHeader, nil, &variables)
+	return variables, resp, err
+}
+
 // CreateRepoActionSecret creates a secret for the specified repository in the Gitea Actions.
 // It takes the organization name and the secret options as parameters.
 // The function returns the HTTP response and an error, if any.
