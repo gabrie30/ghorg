@@ -16,10 +16,7 @@
 
 package gitlab
 
-import (
-	"fmt"
-	"net/http"
-)
+import "net/http"
 
 type (
 	GroupLabelsServiceInterface interface {
@@ -125,26 +122,21 @@ type DeleteGroupLabelOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_labels/#delete-a-group-label
 func (s *GroupLabelsService) DeleteGroupLabel(gid any, lid any, opt *DeleteGroupLabelOptions, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/labels", PathEscape(group))
+	reqOpts := make([]doOption, 0, 4)
+	reqOpts = append(reqOpts,
+		withMethod(http.MethodDelete),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 
 	if lid != nil {
-		label, err := parseID(lid)
-		if err != nil {
-			return nil, err
-		}
-		u = fmt.Sprintf("groups/%s/labels/%s", PathEscape(group), PathEscape(label))
+		reqOpts = append(reqOpts, withPath("groups/%s/labels/%s", GroupID{gid}, LabelID{lid}))
+	} else {
+		reqOpts = append(reqOpts, withPath("groups/%s/labels", GroupID{gid}))
 	}
 
-	req, err := s.client.NewRequest(http.MethodDelete, u, opt, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client, reqOpts...)
+	return resp, err
 }
 
 // UpdateGroupLabelOptions represents the available UpdateGroupLabel() options.
@@ -165,32 +157,20 @@ type UpdateGroupLabelOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_labels/#update-a-group-label
 func (s *GroupLabelsService) UpdateGroupLabel(gid any, lid any, opt *UpdateGroupLabelOptions, options ...RequestOptionFunc) (*GroupLabel, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/labels", PathEscape(group))
+	reqOpts := make([]doOption, 0, 4)
+	reqOpts = append(reqOpts,
+		withMethod(http.MethodPut),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 
 	if lid != nil {
-		label, err := parseID(lid)
-		if err != nil {
-			return nil, nil, err
-		}
-		u = fmt.Sprintf("groups/%s/labels/%s", PathEscape(group), PathEscape(label))
+		reqOpts = append(reqOpts, withPath("groups/%s/labels/%s", GroupID{gid}, LabelID{lid}))
+	} else {
+		reqOpts = append(reqOpts, withPath("groups/%s/labels", GroupID{gid}))
 	}
 
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	l := new(GroupLabel)
-	resp, err := s.client.Do(req, l)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return l, resp, nil
+	return do[*GroupLabel](s.client, reqOpts...)
 }
 
 // SubscribeToGroupLabel subscribes the authenticated user to a label to receive

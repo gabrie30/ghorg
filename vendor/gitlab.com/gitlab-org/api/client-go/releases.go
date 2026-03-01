@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -154,24 +153,11 @@ type ListReleasesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/releases/#list-releases
 func (s *ReleasesService) ListReleases(pid any, opt *ListReleasesOptions, options ...RequestOptionFunc) ([]*Release, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/releases", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var rs []*Release
-	resp, err := s.client.Do(req, &rs)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return rs, resp, nil
+	return do[[]*Release](s.client,
+		withPath("projects/%s/releases", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // GetRelease returns a single release, identified by a tag name.
@@ -179,24 +165,10 @@ func (s *ReleasesService) ListReleases(pid any, opt *ListReleasesOptions, option
 // GitLab API docs:
 // https://docs.gitlab.com/api/releases/#get-a-release-by-a-tag-name
 func (s *ReleasesService) GetRelease(pid any, tagName string, options ...RequestOptionFunc) (*Release, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/releases/%s", PathEscape(project), PathEscape(tagName))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	r := new(Release)
-	resp, err := s.client.Do(req, r)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return r, resp, nil
+	return do[*Release](s.client,
+		withPath("projects/%s/releases/%s", ProjectID{pid}, tagName),
+		withRequestOpts(options...),
+	)
 }
 
 // GetLatestRelease returns the latest release for the project.
@@ -204,24 +176,10 @@ func (s *ReleasesService) GetRelease(pid any, tagName string, options ...Request
 // GitLab API docs:
 // https://docs.gitlab.com/api/releases/#get-the-latest-release
 func (s *ReleasesService) GetLatestRelease(pid any, options ...RequestOptionFunc) (*Release, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/releases/permalink/latest", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	r := new(Release)
-	resp, err := s.client.Do(req, r)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return r, resp, err
+	return do[*Release](s.client,
+		withPath("projects/%s/releases/permalink/latest", ProjectID{pid}),
+		withRequestOpts(options...),
+	)
 }
 
 // CreateReleaseOptions represents CreateRelease() options.
@@ -265,24 +223,12 @@ type ReleaseAssetLinkOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/releases/#create-a-release
 func (s *ReleasesService) CreateRelease(pid any, opts *CreateReleaseOptions, options ...RequestOptionFunc) (*Release, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/releases", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opts, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	r := new(Release)
-	resp, err := s.client.Do(req, r)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return r, resp, nil
+	return do[*Release](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/releases", ProjectID{pid}),
+		withAPIOpts(opts),
+		withRequestOpts(options...),
+	)
 }
 
 // UpdateReleaseOptions represents UpdateRelease() options.
@@ -301,24 +247,12 @@ type UpdateReleaseOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/releases/#update-a-release
 func (s *ReleasesService) UpdateRelease(pid any, tagName string, opts *UpdateReleaseOptions, options ...RequestOptionFunc) (*Release, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/releases/%s", PathEscape(project), PathEscape(tagName))
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opts, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	r := new(Release)
-	resp, err := s.client.Do(req, &r)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return r, resp, nil
+	return do[*Release](s.client,
+		withMethod(http.MethodPut),
+		withPath("projects/%s/releases/%s", ProjectID{pid}, tagName),
+		withAPIOpts(opts),
+		withRequestOpts(options...),
+	)
 }
 
 // DeleteRelease deletes a release.
@@ -326,22 +260,9 @@ func (s *ReleasesService) UpdateRelease(pid any, tagName string, opts *UpdateRel
 // GitLab API docs:
 // https://docs.gitlab.com/api/releases/#delete-a-release
 func (s *ReleasesService) DeleteRelease(pid any, tagName string, options ...RequestOptionFunc) (*Release, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/releases/%s", PathEscape(project), PathEscape(tagName))
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	r := new(Release)
-	resp, err := s.client.Do(req, r)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return r, resp, nil
+	return do[*Release](s.client,
+		withMethod(http.MethodDelete),
+		withPath("projects/%s/releases/%s", ProjectID{pid}, tagName),
+		withRequestOpts(options...),
+	)
 }

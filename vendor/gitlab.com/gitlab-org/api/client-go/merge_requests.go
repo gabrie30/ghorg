@@ -235,6 +235,8 @@ type MergeRequestDiff struct {
 	RenamedFile   bool   `json:"renamed_file"`
 	DeletedFile   bool   `json:"deleted_file"`
 	GeneratedFile bool   `json:"generated_file"`
+	Collapsed     bool   `json:"collapsed"`
+	TooLarge      bool   `json:"too_large"`
 }
 
 // MergeRequestDiffVersion represents GitLab merge request version.

@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -72,24 +71,11 @@ type ListProjectBadgesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_badges/#list-all-badges-of-a-project
 func (s *ProjectBadgesService) ListProjectBadges(pid any, opt *ListProjectBadgesOptions, options ...RequestOptionFunc) ([]*ProjectBadge, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/badges", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var pb []*ProjectBadge
-	resp, err := s.client.Do(req, &pb)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pb, resp, nil
+	return do[[]*ProjectBadge](s.client,
+		withPath("projects/%s/badges", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // GetProjectBadge gets a project badge.
@@ -97,24 +83,10 @@ func (s *ProjectBadgesService) ListProjectBadges(pid any, opt *ListProjectBadges
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_badges/#get-a-badge-of-a-project
 func (s *ProjectBadgesService) GetProjectBadge(pid any, badge int64, options ...RequestOptionFunc) (*ProjectBadge, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/badges/%d", PathEscape(project), badge)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pb := new(ProjectBadge)
-	resp, err := s.client.Do(req, pb)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pb, resp, nil
+	return do[*ProjectBadge](s.client,
+		withPath("projects/%s/badges/%d", ProjectID{pid}, badge),
+		withRequestOpts(options...),
+	)
 }
 
 // AddProjectBadgeOptions represents the available AddProjectBadge() options.
@@ -132,24 +104,12 @@ type AddProjectBadgeOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_badges/#add-a-badge-to-a-project
 func (s *ProjectBadgesService) AddProjectBadge(pid any, opt *AddProjectBadgeOptions, options ...RequestOptionFunc) (*ProjectBadge, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/badges", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pb := new(ProjectBadge)
-	resp, err := s.client.Do(req, pb)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pb, resp, nil
+	return do[*ProjectBadge](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/badges", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // EditProjectBadgeOptions represents the available EditProjectBadge() options.
@@ -167,24 +127,12 @@ type EditProjectBadgeOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_badges/#edit-a-badge-of-a-project
 func (s *ProjectBadgesService) EditProjectBadge(pid any, badge int64, opt *EditProjectBadgeOptions, options ...RequestOptionFunc) (*ProjectBadge, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/badges/%d", PathEscape(project), badge)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pb := new(ProjectBadge)
-	resp, err := s.client.Do(req, pb)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pb, resp, nil
+	return do[*ProjectBadge](s.client,
+		withMethod(http.MethodPut),
+		withPath("projects/%s/badges/%d", ProjectID{pid}, badge),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // DeleteProjectBadge removes a badge from a project. Only project's
@@ -193,18 +141,12 @@ func (s *ProjectBadgesService) EditProjectBadge(pid any, badge int64, opt *EditP
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_badges/#remove-a-badge-from-a-project
 func (s *ProjectBadgesService) DeleteProjectBadge(pid any, badge int64, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/badges/%d", PathEscape(project), badge)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("projects/%s/badges/%d", ProjectID{pid}, badge),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // ProjectBadgePreviewOptions represents the available PreviewProjectBadge() options.
@@ -222,22 +164,9 @@ type ProjectBadgePreviewOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/project_badges/#preview-a-badge-from-a-project
 func (s *ProjectBadgesService) PreviewProjectBadge(pid any, opt *ProjectBadgePreviewOptions, options ...RequestOptionFunc) (*ProjectBadge, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/badges/render", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pb := new(ProjectBadge)
-	resp, err := s.client.Do(req, &pb)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pb, resp, nil
+	return do[*ProjectBadge](s.client,
+		withPath("projects/%s/badges/render", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }

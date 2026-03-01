@@ -457,6 +457,7 @@ type Settings struct {
 	WebIDEClientsidePreviewEnabled                        bool                      `json:"web_ide_clientside_preview_enabled"`
 	WhatsNewVariant                                       string                    `json:"whats_new_variant"`
 	WikiPageMaxContentBytes                               int64                     `json:"wiki_page_max_content_bytes"`
+	LockMembershipsToSAML                                 bool                      `json:"lock_memberships_to_saml"`
 
 	// Deprecated: Use DefaultBranchProtectionDefaults instead.
 	DefaultBranchProtection int64 `json:"default_branch_protection"`
@@ -938,6 +939,7 @@ type UpdateSettingsOptions struct {
 	WebIDEClientsidePreviewEnabled                        *bool                                   `url:"web_ide_clientside_preview_enabled,omitempty" json:"web_ide_clientside_preview_enabled,omitempty"`
 	WhatsNewVariant                                       *string                                 `url:"whats_new_variant,omitempty" json:"whats_new_variant,omitempty"`
 	WikiPageMaxContentBytes                               *int64                                  `url:"wiki_page_max_content_bytes,omitempty" json:"wiki_page_max_content_bytes,omitempty"`
+	LockMembershipsToSAML                                 *bool                                   `url:"lock_memberships_to_saml,omitempty" json:"lock_memberships_to_saml,omitempty"`
 
 	// Deprecated: Use AbuseNotificationEmail instead.
 	AdminNotificationEmail *string `url:"admin_notification_email,omitempty" json:"admin_notification_email,omitempty"`

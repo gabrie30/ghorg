@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -87,18 +86,11 @@ type RetrieveAllSnippetStorageMovesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/snippet_repository_storage_moves/#retrieve-all-snippet-repository-storage-moves
 func (s SnippetRepositoryStorageMoveService) RetrieveAllStorageMoves(opts RetrieveAllSnippetStorageMovesOptions, options ...RequestOptionFunc) ([]*SnippetRepositoryStorageMove, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "snippet_repository_storage_moves", opts, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var ssms []*SnippetRepositoryStorageMove
-	resp, err := s.client.Do(req, &ssms)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ssms, resp, err
+	return do[[]*SnippetRepositoryStorageMove](s.client,
+		withPath("snippet_repository_storage_moves"),
+		withAPIOpts(opts),
+		withRequestOpts(options...),
+	)
 }
 
 // RetrieveAllStorageMovesForSnippet retrieves all repository storage moves for
@@ -107,20 +99,11 @@ func (s SnippetRepositoryStorageMoveService) RetrieveAllStorageMoves(opts Retrie
 // GitLab API docs:
 // https://docs.gitlab.com/api/snippet_repository_storage_moves/#retrieve-all-repository-storage-moves-for-a-snippet
 func (s SnippetRepositoryStorageMoveService) RetrieveAllStorageMovesForSnippet(snippet int64, opts RetrieveAllSnippetStorageMovesOptions, options ...RequestOptionFunc) ([]*SnippetRepositoryStorageMove, *Response, error) {
-	u := fmt.Sprintf("snippets/%d/repository_storage_moves", snippet)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opts, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var ssms []*SnippetRepositoryStorageMove
-	resp, err := s.client.Do(req, &ssms)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ssms, resp, err
+	return do[[]*SnippetRepositoryStorageMove](s.client,
+		withPath("snippets/%d/repository_storage_moves", snippet),
+		withAPIOpts(opts),
+		withRequestOpts(options...),
+	)
 }
 
 // GetStorageMove gets a single snippet repository storage move.
@@ -128,20 +111,10 @@ func (s SnippetRepositoryStorageMoveService) RetrieveAllStorageMovesForSnippet(s
 // GitLab API docs:
 // https://docs.gitlab.com/api/snippet_repository_storage_moves/#get-a-single-snippet-repository-storage-move
 func (s SnippetRepositoryStorageMoveService) GetStorageMove(repositoryStorage int64, options ...RequestOptionFunc) (*SnippetRepositoryStorageMove, *Response, error) {
-	u := fmt.Sprintf("snippet_repository_storage_moves/%d", repositoryStorage)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	ssm := new(SnippetRepositoryStorageMove)
-	resp, err := s.client.Do(req, ssm)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ssm, resp, err
+	return do[*SnippetRepositoryStorageMove](s.client,
+		withPath("snippet_repository_storage_moves/%d", repositoryStorage),
+		withRequestOpts(options...),
+	)
 }
 
 // GetStorageMoveForSnippet gets a single repository storage move for a snippet.
@@ -149,20 +122,10 @@ func (s SnippetRepositoryStorageMoveService) GetStorageMove(repositoryStorage in
 // GitLab API docs:
 // https://docs.gitlab.com/api/snippet_repository_storage_moves/#get-a-single-repository-storage-move-for-a-snippet
 func (s SnippetRepositoryStorageMoveService) GetStorageMoveForSnippet(snippet int64, repositoryStorage int64, options ...RequestOptionFunc) (*SnippetRepositoryStorageMove, *Response, error) {
-	u := fmt.Sprintf("snippets/%d/repository_storage_moves/%d", snippet, repositoryStorage)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	ssm := new(SnippetRepositoryStorageMove)
-	resp, err := s.client.Do(req, ssm)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ssm, resp, err
+	return do[*SnippetRepositoryStorageMove](s.client,
+		withPath("snippets/%d/repository_storage_moves/%d", snippet, repositoryStorage),
+		withRequestOpts(options...),
+	)
 }
 
 // ScheduleStorageMoveForSnippetOptions represents the available
@@ -179,20 +142,12 @@ type ScheduleStorageMoveForSnippetOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/snippet_repository_storage_moves/#schedule-a-repository-storage-move-for-a-snippet
 func (s SnippetRepositoryStorageMoveService) ScheduleStorageMoveForSnippet(snippet int64, opts ScheduleStorageMoveForSnippetOptions, options ...RequestOptionFunc) (*SnippetRepositoryStorageMove, *Response, error) {
-	u := fmt.Sprintf("snippets/%d/repository_storage_moves", snippet)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opts, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	ssm := new(SnippetRepositoryStorageMove)
-	resp, err := s.client.Do(req, ssm)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ssm, resp, err
+	return do[*SnippetRepositoryStorageMove](s.client,
+		withMethod(http.MethodPost),
+		withPath("snippets/%d/repository_storage_moves", snippet),
+		withAPIOpts(opts),
+		withRequestOpts(options...),
+	)
 }
 
 // ScheduleAllSnippetStorageMovesOptions represents the available
@@ -210,10 +165,11 @@ type ScheduleAllSnippetStorageMovesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/snippet_repository_storage_moves/#schedule-repository-storage-moves-for-all-snippets-on-a-storage-shard
 func (s SnippetRepositoryStorageMoveService) ScheduleAllStorageMoves(opts ScheduleAllSnippetStorageMovesOptions, options ...RequestOptionFunc) (*Response, error) {
-	req, err := s.client.NewRequest(http.MethodPost, "snippet_repository_storage_moves", opts, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("snippet_repository_storage_moves"),
+		withAPIOpts(opts),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

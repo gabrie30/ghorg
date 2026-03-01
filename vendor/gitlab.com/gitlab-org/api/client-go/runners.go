@@ -24,20 +24,83 @@ import (
 
 type (
 	RunnersServiceInterface interface {
+		// ListRunners gets a list of runners accessible by the authenticated user.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#list-owned-runners
 		ListRunners(opt *ListRunnersOptions, options ...RequestOptionFunc) ([]*Runner, *Response, error)
+		// ListAllRunners gets a list of all runners in the GitLab instance. Access is
+		// restricted to users with admin privileges.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#list-all-runners
 		ListAllRunners(opt *ListRunnersOptions, options ...RequestOptionFunc) ([]*Runner, *Response, error)
+		// GetRunnerDetails returns details for given runner.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#get-runners-details
 		GetRunnerDetails(rid any, options ...RequestOptionFunc) (*RunnerDetails, *Response, error)
+		// UpdateRunnerDetails updates details for a given runner.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#update-runners-details
 		UpdateRunnerDetails(rid any, opt *UpdateRunnerDetailsOptions, options ...RequestOptionFunc) (*RunnerDetails, *Response, error)
+		// RemoveRunner removes a runner.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#delete-a-runner
 		RemoveRunner(rid any, options ...RequestOptionFunc) (*Response, error)
+		// ListRunnerJobs gets a list of jobs that are being processed or were processed by specified Runner.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#list-jobs-processed-by-a-runner
 		ListRunnerJobs(rid any, opt *ListRunnerJobsOptions, options ...RequestOptionFunc) ([]*Job, *Response, error)
+		// ListProjectRunners gets a list of runners accessible by the authenticated user.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#list-projects-runners
 		ListProjectRunners(pid any, opt *ListProjectRunnersOptions, options ...RequestOptionFunc) ([]*Runner, *Response, error)
+		// EnableProjectRunner enables an available specific runner in the project.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#assign-a-runner-to-project
 		EnableProjectRunner(pid any, opt *EnableProjectRunnerOptions, options ...RequestOptionFunc) (*Runner, *Response, error)
+		// DisableProjectRunner disables a specific runner from project.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#unassign-a-runner-from-project
 		DisableProjectRunner(pid any, runner int64, options ...RequestOptionFunc) (*Response, error)
+		// ListGroupsRunners lists all runners (specific and shared) available in the
+		// group as well it's ancestor groups. Shared runners are listed if at least one
+		// shared runner is defined.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#list-groups-runners
 		ListGroupsRunners(gid any, opt *ListGroupsRunnersOptions, options ...RequestOptionFunc) ([]*Runner, *Response, error)
+		// RegisterNewRunner registers a new Runner for the instance.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#create-a-runner
 		RegisterNewRunner(opt *RegisterNewRunnerOptions, options ...RequestOptionFunc) (*Runner, *Response, error)
+		// DeleteRegisteredRunner deletes a Runner by Token.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#delete-a-runner-by-authentication-token
 		DeleteRegisteredRunner(opt *DeleteRegisteredRunnerOptions, options ...RequestOptionFunc) (*Response, error)
+		// DeleteRegisteredRunnerByID deletes a runner by ID.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#delete-a-runner-by-id
 		DeleteRegisteredRunnerByID(rid int64, options ...RequestOptionFunc) (*Response, error)
+		// VerifyRegisteredRunner registers a new runner for the instance.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#verify-authentication-for-a-registered-runner
 		VerifyRegisteredRunner(opt *VerifyRegisteredRunnerOptions, options ...RequestOptionFunc) (*Response, error)
+		// ResetRunnerAuthenticationToken resets a runner's authentication token.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/runners/#reset-runners-authentication-token-by-using-the-runner-id
 		ResetRunnerAuthenticationToken(rid int64, options ...RequestOptionFunc) (*RunnerAuthenticationToken, *Response, error)
 
 		// Deprecated: for removal in GitLab 20.0, see https://docs.gitlab.com/ci/runners/new_creation_workflow/ instead
@@ -160,10 +223,6 @@ type ListRunnersOptions struct {
 	Scope *string `url:"scope,omitempty" json:"scope,omitempty"`
 }
 
-// ListRunners gets a list of runners accessible by the authenticated user.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#list-owned-runners
 func (s *RunnersService) ListRunners(opt *ListRunnersOptions, options ...RequestOptionFunc) ([]*Runner, *Response, error) {
 	res, resp, err := do[[]*Runner](s.client,
 		withMethod(http.MethodGet),
@@ -177,11 +236,6 @@ func (s *RunnersService) ListRunners(opt *ListRunnersOptions, options ...Request
 	return res, resp, nil
 }
 
-// ListAllRunners gets a list of all runners in the GitLab instance. Access is
-// restricted to users with admin privileges.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#list-all-runners
 func (s *RunnersService) ListAllRunners(opt *ListRunnersOptions, options ...RequestOptionFunc) ([]*Runner, *Response, error) {
 	res, resp, err := do[[]*Runner](s.client,
 		withMethod(http.MethodGet),
@@ -195,10 +249,6 @@ func (s *RunnersService) ListAllRunners(opt *ListRunnersOptions, options ...Requ
 	return res, resp, nil
 }
 
-// GetRunnerDetails returns details for given runner.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#get-runners-details
 func (s *RunnersService) GetRunnerDetails(rid any, options ...RequestOptionFunc) (*RunnerDetails, *Response, error) {
 	res, resp, err := do[*RunnerDetails](s.client,
 		withMethod(http.MethodGet),
@@ -230,10 +280,6 @@ type UpdateRunnerDetailsOptions struct {
 	Active *bool `url:"active,omitempty" json:"active,omitempty"`
 }
 
-// UpdateRunnerDetails updates details for a given runner.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#update-runners-details
 func (s *RunnersService) UpdateRunnerDetails(rid any, opt *UpdateRunnerDetailsOptions, options ...RequestOptionFunc) (*RunnerDetails, *Response, error) {
 	res, resp, err := do[*RunnerDetails](s.client,
 		withMethod(http.MethodPut),
@@ -247,10 +293,6 @@ func (s *RunnersService) UpdateRunnerDetails(rid any, opt *UpdateRunnerDetailsOp
 	return res, resp, nil
 }
 
-// RemoveRunner removes a runner.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#delete-a-runner
 func (s *RunnersService) RemoveRunner(rid any, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodDelete),
@@ -273,10 +315,6 @@ type ListRunnerJobsOptions struct {
 	Sort    *string `url:"sort,omitempty" json:"sort,omitempty"`
 }
 
-// ListRunnerJobs gets a list of jobs that are being processed or were processed by specified Runner.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#list-jobs-processed-by-a-runner
 func (s *RunnersService) ListRunnerJobs(rid any, opt *ListRunnerJobsOptions, options ...RequestOptionFunc) ([]*Job, *Response, error) {
 	res, resp, err := do[[]*Job](s.client,
 		withMethod(http.MethodGet),
@@ -297,10 +335,6 @@ func (s *RunnersService) ListRunnerJobs(rid any, opt *ListRunnerJobsOptions, opt
 // https://docs.gitlab.com/api/runners/#list-projects-runners
 type ListProjectRunnersOptions ListRunnersOptions
 
-// ListProjectRunners gets a list of runners accessible by the authenticated user.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#list-projects-runners
 func (s *RunnersService) ListProjectRunners(pid any, opt *ListProjectRunnersOptions, options ...RequestOptionFunc) ([]*Runner, *Response, error) {
 	res, resp, err := do[[]*Runner](s.client,
 		withMethod(http.MethodGet),
@@ -323,10 +357,6 @@ type EnableProjectRunnerOptions struct {
 	RunnerID int64 `json:"runner_id"`
 }
 
-// EnableProjectRunner enables an available specific runner in the project.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#assign-a-runner-to-project
 func (s *RunnersService) EnableProjectRunner(pid any, opt *EnableProjectRunnerOptions, options ...RequestOptionFunc) (*Runner, *Response, error) {
 	res, resp, err := do[*Runner](s.client,
 		withMethod(http.MethodPost),
@@ -340,10 +370,6 @@ func (s *RunnersService) EnableProjectRunner(pid any, opt *EnableProjectRunnerOp
 	return res, resp, nil
 }
 
-// DisableProjectRunner disables a specific runner from project.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#unassign-a-runner-from-project
 func (s *RunnersService) DisableProjectRunner(pid any, runner int64, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodDelete),
@@ -365,12 +391,6 @@ type ListGroupsRunnersOptions struct {
 	TagList *[]string `url:"tag_list,comma,omitempty" json:"tag_list,omitempty"`
 }
 
-// ListGroupsRunners lists all runners (specific and shared) available in the
-// group as well it's ancestor groups. Shared runners are listed if at least one
-// shared runner is defined.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#list-groups-runners
 func (s *RunnersService) ListGroupsRunners(gid any, opt *ListGroupsRunnersOptions, options ...RequestOptionFunc) ([]*Runner, *Response, error) {
 	res, resp, err := do[[]*Runner](s.client,
 		withMethod(http.MethodGet),
@@ -418,10 +438,6 @@ type RegisterNewRunnerInfoOptions struct {
 	Architecture *string `url:"architecture,omitempty" json:"architecture,omitempty"`
 }
 
-// RegisterNewRunner registers a new Runner for the instance.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#create-a-runner
 func (s *RunnersService) RegisterNewRunner(opt *RegisterNewRunnerOptions, options ...RequestOptionFunc) (*Runner, *Response, error) {
 	res, resp, err := do[*Runner](s.client,
 		withMethod(http.MethodPost),
@@ -444,10 +460,6 @@ type DeleteRegisteredRunnerOptions struct {
 	Token *string `url:"token" json:"token"`
 }
 
-// DeleteRegisteredRunner deletes a Runner by Token.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#delete-a-runner-by-authentication-token
 func (s *RunnersService) DeleteRegisteredRunner(opt *DeleteRegisteredRunnerOptions, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodDelete),
@@ -458,10 +470,6 @@ func (s *RunnersService) DeleteRegisteredRunner(opt *DeleteRegisteredRunnerOptio
 	return resp, err
 }
 
-// DeleteRegisteredRunnerByID deletes a runner by ID.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#delete-a-runner-by-id
 func (s *RunnersService) DeleteRegisteredRunnerByID(rid int64, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodDelete),
@@ -481,10 +489,6 @@ type VerifyRegisteredRunnerOptions struct {
 	Token *string `url:"token" json:"token"`
 }
 
-// VerifyRegisteredRunner registers a new runner for the instance.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#verify-authentication-for-a-registered-runner
 func (s *RunnersService) VerifyRegisteredRunner(opt *VerifyRegisteredRunnerOptions, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodPost),
@@ -560,10 +564,6 @@ type RunnerAuthenticationToken struct {
 	TokenExpiresAt *time.Time `url:"token_expires_at" json:"token_expires_at"`
 }
 
-// ResetRunnerAuthenticationToken resets a runner's authentication token.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/runners/#reset-runners-authentication-token-by-using-the-runner-id
 func (s *RunnersService) ResetRunnerAuthenticationToken(rid int64, options ...RequestOptionFunc) (*RunnerAuthenticationToken, *Response, error) {
 	res, resp, err := do[*RunnerAuthenticationToken](s.client,
 		withMethod(http.MethodPost),

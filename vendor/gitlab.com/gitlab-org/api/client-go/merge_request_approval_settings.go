@@ -15,7 +15,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -70,24 +69,10 @@ type MergeRequestApprovalSetting struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/merge_request_approval_settings/#get-group-mr-approval-settings
 func (s *MergeRequestApprovalSettingsService) GetGroupMergeRequestApprovalSettings(gid any, options ...RequestOptionFunc) (*MergeRequestApprovalSettings, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/merge_request_approval_setting", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	settings := new(MergeRequestApprovalSettings)
-	resp, err := s.client.Do(req, settings)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return settings, resp, nil
+	return do[*MergeRequestApprovalSettings](s.client,
+		withPath("groups/%s/merge_request_approval_setting", GroupID{gid}),
+		withRequestOpts(options...),
+	)
 }
 
 // UpdateProjectMergeRequestApprovalSettingsOptions represents the available
@@ -125,24 +110,12 @@ type UpdateGroupMergeRequestApprovalSettingsOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/merge_request_approval_settings/#update-group-mr-approval-settings
 func (s *MergeRequestApprovalSettingsService) UpdateGroupMergeRequestApprovalSettings(gid any, opt *UpdateGroupMergeRequestApprovalSettingsOptions, options ...RequestOptionFunc) (*MergeRequestApprovalSettings, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/merge_request_approval_setting", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	settings := new(MergeRequestApprovalSettings)
-	resp, err := s.client.Do(req, settings)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return settings, resp, nil
+	return do[*MergeRequestApprovalSettings](s.client,
+		withMethod(http.MethodPut),
+		withPath("groups/%s/merge_request_approval_setting", GroupID{gid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // GetProjectMergeRequestApprovalSettings gets the merge request approval settings
@@ -151,24 +124,10 @@ func (s *MergeRequestApprovalSettingsService) UpdateGroupMergeRequestApprovalSet
 // GitLab API docs:
 // https://docs.gitlab.com/api/merge_request_approval_settings/#get-project-mr-approval-settings
 func (s *MergeRequestApprovalSettingsService) GetProjectMergeRequestApprovalSettings(pid any, options ...RequestOptionFunc) (*MergeRequestApprovalSettings, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/merge_request_approval_setting", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	settings := new(MergeRequestApprovalSettings)
-	resp, err := s.client.Do(req, settings)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return settings, resp, nil
+	return do[*MergeRequestApprovalSettings](s.client,
+		withPath("projects/%s/merge_request_approval_setting", ProjectID{pid}),
+		withRequestOpts(options...),
+	)
 }
 
 // UpdateProjectMergeRequestApprovalSettings updates the merge request approval
@@ -177,22 +136,10 @@ func (s *MergeRequestApprovalSettingsService) GetProjectMergeRequestApprovalSett
 // GitLab API docs:
 // https://docs.gitlab.com/api/merge_request_approval_settings/#update-project-mr-approval-settings
 func (s *MergeRequestApprovalSettingsService) UpdateProjectMergeRequestApprovalSettings(pid any, opt *UpdateProjectMergeRequestApprovalSettingsOptions, options ...RequestOptionFunc) (*MergeRequestApprovalSettings, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/merge_request_approval_setting", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	settings := new(MergeRequestApprovalSettings)
-	resp, err := s.client.Do(req, settings)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return settings, resp, nil
+	return do[*MergeRequestApprovalSettings](s.client,
+		withMethod(http.MethodPut),
+		withPath("projects/%s/merge_request_approval_setting", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }

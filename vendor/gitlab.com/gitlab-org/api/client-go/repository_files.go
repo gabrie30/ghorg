@@ -18,7 +18,6 @@ package gitlab
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -82,28 +81,11 @@ type GetFileOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/repository_files/#get-file-from-repository
 func (s *RepositoryFilesService) GetFile(pid any, fileName string, opt *GetFileOptions, options ...RequestOptionFunc) (*File, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf(
-		"projects/%s/repository/files/%s",
-		PathEscape(project),
-		PathEscape(fileName),
+	return do[*File](s.client,
+		withPath("projects/%s/repository/files/%s", ProjectID{pid}, fileName),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
 	)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	f := new(File)
-	resp, err := s.client.Do(req, f)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return f, resp, nil
 }
 
 // GetFileMetaDataOptions represents the available GetFileMetaData() options.
@@ -120,22 +102,12 @@ type GetFileMetaDataOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/repository_files/#get-file-from-repository
 func (s *RepositoryFilesService) GetFileMetaData(pid any, fileName string, opt *GetFileMetaDataOptions, options ...RequestOptionFunc) (*File, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf(
-		"projects/%s/repository/files/%s",
-		PathEscape(project),
-		PathEscape(fileName),
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodHead),
+		withPath("projects/%s/repository/files/%s", ProjectID{pid}, fileName),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
 	)
-
-	req, err := s.client.NewRequest(http.MethodHead, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	resp, err := s.client.Do(req, nil)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -223,28 +195,11 @@ type GetFileBlameOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/repository_files/#get-file-blame-from-repository
 func (s *RepositoryFilesService) GetFileBlame(pid any, file string, opt *GetFileBlameOptions, options ...RequestOptionFunc) ([]*FileBlameRange, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf(
-		"projects/%s/repository/files/%s/blame",
-		PathEscape(project),
-		PathEscape(file),
+	return do[[]*FileBlameRange](s.client,
+		withPath("projects/%s/repository/files/%s/blame", ProjectID{pid}, file),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
 	)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var br []*FileBlameRange
-	resp, err := s.client.Do(req, &br)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return br, resp, nil
 }
 
 // GetRawFileOptions represents the available GetRawFile() options.
@@ -261,28 +216,15 @@ type GetRawFileOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/repository_files/#get-raw-file-from-repository
 func (s *RepositoryFilesService) GetRawFile(pid any, fileName string, opt *GetRawFileOptions, options ...RequestOptionFunc) ([]byte, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf(
-		"projects/%s/repository/files/%s/raw",
-		PathEscape(project),
-		PathEscape(fileName),
+	buf, resp, err := do[bytes.Buffer](s.client,
+		withPath("projects/%s/repository/files/%s/raw", ProjectID{pid}, fileName),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
 	)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var f bytes.Buffer
-	resp, err := s.client.Do(req, &f)
 	if err != nil {
 		return nil, resp, err
 	}
-
-	return f.Bytes(), resp, err
+	return buf.Bytes(), resp, nil
 }
 
 // GetRawFileMetaData gets the metadata of a raw file from a repository.
@@ -290,22 +232,12 @@ func (s *RepositoryFilesService) GetRawFile(pid any, fileName string, opt *GetRa
 // GitLab API docs:
 // https://docs.gitlab.com/api/repository_files/#get-raw-file-from-repository
 func (s *RepositoryFilesService) GetRawFileMetaData(pid any, fileName string, opt *GetRawFileOptions, options ...RequestOptionFunc) (*File, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf(
-		"projects/%s/repository/files/%s/raw",
-		PathEscape(project),
-		PathEscape(fileName),
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodHead),
+		withPath("projects/%s/repository/files/%s/raw", ProjectID{pid}, fileName),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
 	)
-
-	req, err := s.client.NewRequest(http.MethodHead, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	resp, err := s.client.Do(req, nil)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -350,28 +282,12 @@ type CreateFileOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/repository_files/#create-new-file-in-repository
 func (s *RepositoryFilesService) CreateFile(pid any, fileName string, opt *CreateFileOptions, options ...RequestOptionFunc) (*FileInfo, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf(
-		"projects/%s/repository/files/%s",
-		PathEscape(project),
-		PathEscape(fileName),
+	return do[*FileInfo](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/repository/files/%s", ProjectID{pid}, fileName),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
 	)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	f := new(FileInfo)
-	resp, err := s.client.Do(req, f)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return f, resp, nil
 }
 
 // UpdateFileOptions represents the available UpdateFile() options.
@@ -395,28 +311,12 @@ type UpdateFileOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/repository_files/#update-existing-file-in-repository
 func (s *RepositoryFilesService) UpdateFile(pid any, fileName string, opt *UpdateFileOptions, options ...RequestOptionFunc) (*FileInfo, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf(
-		"projects/%s/repository/files/%s",
-		PathEscape(project),
-		PathEscape(fileName),
+	return do[*FileInfo](s.client,
+		withMethod(http.MethodPut),
+		withPath("projects/%s/repository/files/%s", ProjectID{pid}, fileName),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
 	)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	f := new(FileInfo)
-	resp, err := s.client.Do(req, f)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return f, resp, nil
 }
 
 // DeleteFileOptions represents the available DeleteFile() options.
@@ -437,20 +337,11 @@ type DeleteFileOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/repository_files/#delete-existing-file-in-repository
 func (s *RepositoryFilesService) DeleteFile(pid any, fileName string, opt *DeleteFileOptions, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf(
-		"projects/%s/repository/files/%s",
-		PathEscape(project),
-		PathEscape(fileName),
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("projects/%s/repository/files/%s", ProjectID{pid}, fileName),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
 	)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, opt, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	return resp, err
 }

@@ -18,7 +18,6 @@ package gitlab
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -145,20 +144,14 @@ func (s *SnippetsService) GetSnippet(snippet int64, options ...RequestOptionFunc
 // GitLab API docs:
 // https://docs.gitlab.com/api/snippets/#single-snippet-contents
 func (s *SnippetsService) SnippetContent(snippet int64, options ...RequestOptionFunc) ([]byte, *Response, error) {
-	u := fmt.Sprintf("snippets/%d/raw", snippet)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var b bytes.Buffer
-	resp, err := s.client.Do(req, &b)
+	buf, resp, err := do[bytes.Buffer](s.client,
+		withPath("snippets/%d/raw", snippet),
+		withRequestOpts(options...),
+	)
 	if err != nil {
 		return nil, resp, err
 	}
-
-	return b.Bytes(), resp, err
+	return buf.Bytes(), resp, nil
 }
 
 // SnippetFileContent returns the raw file content as plain text.
@@ -166,21 +159,14 @@ func (s *SnippetsService) SnippetContent(snippet int64, options ...RequestOption
 // GitLab API docs:
 // https://docs.gitlab.com/api/snippets/#snippet-repository-file-content
 func (s *SnippetsService) SnippetFileContent(snippet int64, ref, filename string, options ...RequestOptionFunc) ([]byte, *Response, error) {
-	filepath := PathEscape(filename)
-	u := fmt.Sprintf("snippets/%d/files/%s/%s/raw", snippet, ref, filepath)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var b bytes.Buffer
-	resp, err := s.client.Do(req, &b)
+	buf, resp, err := do[bytes.Buffer](s.client,
+		withPath("snippets/%d/files/%s/%s/raw", snippet, ref, filename),
+		withRequestOpts(options...),
+	)
 	if err != nil {
 		return nil, resp, err
 	}
-
-	return b.Bytes(), resp, err
+	return buf.Bytes(), resp, nil
 }
 
 // CreateSnippetFileOptions represents the create snippet file options.

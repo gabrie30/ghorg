@@ -23,11 +23,35 @@ import (
 
 type (
 	NotificationSettingsServiceInterface interface {
+		// GetGlobalSettings returns current notification settings and email address.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/notification_settings/#global-notification-settings
 		GetGlobalSettings(options ...RequestOptionFunc) (*NotificationSettings, *Response, error)
+		// UpdateGlobalSettings updates current notification settings and email address.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/notification_settings/#update-global-notification-settings
 		UpdateGlobalSettings(opt *NotificationSettingsOptions, options ...RequestOptionFunc) (*NotificationSettings, *Response, error)
+		// GetSettingsForGroup returns current group notification settings.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/notification_settings/#group--project-level-notification-settings
 		GetSettingsForGroup(gid any, options ...RequestOptionFunc) (*NotificationSettings, *Response, error)
+		// GetSettingsForProject returns current project notification settings.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/notification_settings/#group--project-level-notification-settings
 		GetSettingsForProject(pid any, options ...RequestOptionFunc) (*NotificationSettings, *Response, error)
+		// UpdateSettingsForGroup updates current group notification settings.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/notification_settings/#update-groupproject-level-notification-settings
 		UpdateSettingsForGroup(gid any, opt *NotificationSettingsOptions, options ...RequestOptionFunc) (*NotificationSettings, *Response, error)
+		// UpdateSettingsForProject updates current project notification settings.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/notification_settings/#update-groupproject-level-notification-settings
 		UpdateSettingsForProject(pid any, opt *NotificationSettingsOptions, options ...RequestOptionFunc) (*NotificationSettings, *Response, error)
 	}
 
@@ -81,10 +105,6 @@ func (ns NotificationSettings) String() string {
 	return Stringify(ns)
 }
 
-// GetGlobalSettings returns current notification settings and email address.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/notification_settings/#global-notification-settings
 func (s *NotificationSettingsService) GetGlobalSettings(options ...RequestOptionFunc) (*NotificationSettings, *Response, error) {
 	return do[*NotificationSettings](s.client,
 		withPath("notification_settings"),
@@ -117,10 +137,6 @@ type NotificationSettingsOptions struct {
 	SuccessPipeline           *bool                   `url:"success_pipeline,omitempty" json:"success_pipeline,omitempty"`
 }
 
-// UpdateGlobalSettings updates current notification settings and email address.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/notification_settings/#update-global-notification-settings
 func (s *NotificationSettingsService) UpdateGlobalSettings(opt *NotificationSettingsOptions, options ...RequestOptionFunc) (*NotificationSettings, *Response, error) {
 	if opt.Level != nil && *opt.Level == GlobalNotificationLevel {
 		return nil, nil, errors.New(
@@ -135,10 +151,6 @@ func (s *NotificationSettingsService) UpdateGlobalSettings(opt *NotificationSett
 	)
 }
 
-// GetSettingsForGroup returns current group notification settings.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/notification_settings/#group--project-level-notification-settings
 func (s *NotificationSettingsService) GetSettingsForGroup(gid any, options ...RequestOptionFunc) (*NotificationSettings, *Response, error) {
 	return do[*NotificationSettings](s.client,
 		withPath("groups/%s/notification_settings", GroupID{gid}),
@@ -146,10 +158,6 @@ func (s *NotificationSettingsService) GetSettingsForGroup(gid any, options ...Re
 	)
 }
 
-// GetSettingsForProject returns current project notification settings.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/notification_settings/#group--project-level-notification-settings
 func (s *NotificationSettingsService) GetSettingsForProject(pid any, options ...RequestOptionFunc) (*NotificationSettings, *Response, error) {
 	return do[*NotificationSettings](s.client,
 		withPath("projects/%s/notification_settings", ProjectID{pid}),
@@ -157,10 +165,6 @@ func (s *NotificationSettingsService) GetSettingsForProject(pid any, options ...
 	)
 }
 
-// UpdateSettingsForGroup updates current group notification settings.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/notification_settings/#update-groupproject-level-notification-settings
 func (s *NotificationSettingsService) UpdateSettingsForGroup(gid any, opt *NotificationSettingsOptions, options ...RequestOptionFunc) (*NotificationSettings, *Response, error) {
 	return do[*NotificationSettings](s.client,
 		withMethod(http.MethodPut),
@@ -170,10 +174,6 @@ func (s *NotificationSettingsService) UpdateSettingsForGroup(gid any, opt *Notif
 	)
 }
 
-// UpdateSettingsForProject updates current project notification settings.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/notification_settings/#update-groupproject-level-notification-settings
 func (s *NotificationSettingsService) UpdateSettingsForProject(pid any, opt *NotificationSettingsOptions, options ...RequestOptionFunc) (*NotificationSettings, *Response, error) {
 	return do[*NotificationSettings](s.client,
 		withMethod(http.MethodPut),

@@ -15,7 +15,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -60,24 +59,11 @@ type ListEnterpriseUsersOptions struct {
 }
 
 func (s *EnterpriseUsersService) ListEnterpriseUsers(gid any, opt *ListEnterpriseUsersOptions, options ...RequestOptionFunc) ([]*User, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/enterprise_users", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var users []*User
-	resp, err := s.client.Do(req, &users)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return users, resp, nil
+	return do[[]*User](s.client,
+		withPath("groups/%s/enterprise_users", GroupID{gid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // GetEnterpriseUser gets details on a specified enterprise user.
@@ -85,24 +71,10 @@ func (s *EnterpriseUsersService) ListEnterpriseUsers(gid any, opt *ListEnterpris
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_enterprise_users/#get-details-on-an-enterprise-user
 func (s *EnterpriseUsersService) GetEnterpriseUser(gid any, uid int64, options ...RequestOptionFunc) (*User, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/enterprise_users/%d", PathEscape(group), uid)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	user := new(User)
-	resp, err := s.client.Do(req, &user)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return user, resp, nil
+	return do[*User](s.client,
+		withPath("groups/%s/enterprise_users/%d", GroupID{gid}, uid),
+		withRequestOpts(options...),
+	)
 }
 
 // Disable2FAForEnterpriseUser disables two-factor authentication (2FA) for a
@@ -111,18 +83,12 @@ func (s *EnterpriseUsersService) GetEnterpriseUser(gid any, uid int64, options .
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_enterprise_users/#disable-two-factor-authentication-for-an-enterprise-user
 func (s *EnterpriseUsersService) Disable2FAForEnterpriseUser(gid any, uid int64, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/enterprise_users/%d/disable_two_factor", PathEscape(group), uid)
-
-	req, err := s.client.NewRequest(http.MethodPatch, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPatch),
+		withPath("groups/%s/enterprise_users/%d/disable_two_factor", GroupID{gid}, uid),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // DeleteEnterpriseUserOptions represents the available DeleteEnterpriseUser options.
@@ -138,16 +104,11 @@ type DeleteEnterpriseUserOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_enterprise_users/#delete-an-enterprise-user
 func (s *EnterpriseUsersService) DeleteEnterpriseUser(gid any, uid int64, opt *DeleteEnterpriseUserOptions, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/enterprise_users/%d", PathEscape(group), uid)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, opt, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("groups/%s/enterprise_users/%d", GroupID{gid}, uid),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

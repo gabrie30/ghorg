@@ -23,10 +23,8 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"strings"
+	"text/template"
 	"time"
-
-	"github.com/hashicorp/go-retryablehttp"
 )
 
 type (
@@ -88,6 +86,9 @@ type (
 		// GitLab API docs: https://docs.gitlab.com/api/user_keys/#list-all-ssh-keys
 		ListSSHKeys(opt *ListSSHKeysOptions, options ...RequestOptionFunc) ([]*SSHKey, *Response, error)
 		// ListSSHKeysForUser gets a list of a specified user's SSH keys.
+		//
+		// uid can be either a user ID (int) or a username (string). If a username
+		// is provided with a leading "@" (e.g., "@johndoe"), it will be trimmed.
 		//
 		// GitLab API docs:
 		// https://docs.gitlab.com/api/user_keys/#list-all-ssh-keys-for-a-user
@@ -334,11 +335,24 @@ var (
 
 // BasicUser included in other service responses (such as merge requests, pipelines, etc).
 type BasicUser struct {
-	ID        int64      `json:"id"`
-	Username  string     `json:"username"`
-	Name      string     `json:"name"`
-	State     string     `json:"state"`
-	Locked    bool       `json:"locked"`
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Name     string `json:"name"`
+
+	// State represents the administrative status of the user account.
+	// Common values: "active", "blocked", "deactivated", "banned",
+	// "ldap_blocked", "blocked_pending_approval".
+	//
+	// This is independent from the Locked field: State tracks permanent
+	// administrative actions, while Locked handles temporary login failures.
+	State string `json:"state"`
+
+	// Locked indicates whether the user account is temporarily locked due to
+	// excessive failed login attempts. This is separate from administrative
+	// blocking (the State field). Locks automatically expire after a configured
+	// time period (default: 10 minutes).
+	Locked bool `json:"locked"`
+
 	CreatedAt *time.Time `json:"created_at"`
 	AvatarURL string     `json:"avatar_url"`
 	WebURL    string     `json:"web_url"`
@@ -461,18 +475,11 @@ type ListUsersOptions struct {
 }
 
 func (s *UsersService) ListUsers(opt *ListUsersOptions, options ...RequestOptionFunc) ([]*User, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "users", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var usr []*User
-	resp, err := s.client.Do(req, &usr)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return usr, resp, nil
+	return do[[]*User](s.client,
+		withPath("users"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // GetUsersOptions represents the available GetUser() options.
@@ -483,20 +490,11 @@ type GetUsersOptions struct {
 }
 
 func (s *UsersService) GetUser(user int64, opt GetUsersOptions, options ...RequestOptionFunc) (*User, *Response, error) {
-	u := fmt.Sprintf("users/%d", user)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	usr := new(User)
-	resp, err := s.client.Do(req, usr)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return usr, resp, nil
+	return do[*User](s.client,
+		withPath("users/%d", user),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // CreateUserOptions represents the available CreateUser() options.
@@ -529,36 +527,20 @@ type CreateUserOptions struct {
 	Username            *string     `url:"username,omitempty" json:"username,omitempty"`
 	WebsiteURL          *string     `url:"website_url,omitempty" json:"website_url,omitempty"`
 	ViewDiffsFileByFile *bool       `url:"view_diffs_file_by_file,omitempty" json:"view_diffs_file_by_file,omitempty"`
+	PublicEmail         *string     `url:"public_email,omitempty" json:"public_email,omitempty"`
 }
 
 func (s *UsersService) CreateUser(opt *CreateUserOptions, options ...RequestOptionFunc) (*User, *Response, error) {
-	var err error
-	var req *retryablehttp.Request
-
-	if opt.Avatar == nil {
-		req, err = s.client.NewRequest(http.MethodPost, "users", opt, options)
-	} else {
-		req, err = s.client.UploadRequest(
-			http.MethodPost,
-			"users",
-			opt.Avatar.Image,
-			opt.Avatar.Filename,
-			UploadAvatar,
-			opt,
-			options,
-		)
+	reqOpts := []doOption{
+		withMethod(http.MethodPost),
+		withPath("users"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
 	}
-	if err != nil {
-		return nil, nil, err
+	if opt.Avatar != nil {
+		reqOpts = append(reqOpts, withUpload(opt.Avatar.Image, opt.Avatar.Filename, UploadAvatar))
 	}
-
-	usr := new(User)
-	resp, err := s.client.Do(req, usr)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return usr, resp, nil
+	return do[*User](s.client, reqOpts...)
 }
 
 // ModifyUserOptions represents the available ModifyUser() options.
@@ -594,60 +576,32 @@ type ModifyUserOptions struct {
 }
 
 func (s *UsersService) ModifyUser(user int64, opt *ModifyUserOptions, options ...RequestOptionFunc) (*User, *Response, error) {
-	var err error
-	var req *retryablehttp.Request
-	u := fmt.Sprintf("users/%d", user)
-
-	if opt.Avatar == nil || (opt.Avatar.Filename == "" && opt.Avatar.Image == nil) {
-		req, err = s.client.NewRequest(http.MethodPut, u, opt, options)
-	} else {
-		req, err = s.client.UploadRequest(
-			http.MethodPut,
-			u,
-			opt.Avatar.Image,
-			opt.Avatar.Filename,
-			UploadAvatar,
-			opt,
-			options,
-		)
+	reqOpts := []doOption{
+		withMethod(http.MethodPut),
+		withPath("users/%d", user),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
 	}
-	if err != nil {
-		return nil, nil, err
+	if opt.Avatar != nil && (opt.Avatar.Filename != "" || opt.Avatar.Image != nil) {
+		reqOpts = append(reqOpts, withUpload(opt.Avatar.Image, opt.Avatar.Filename, UploadAvatar))
 	}
-
-	usr := new(User)
-	resp, err := s.client.Do(req, usr)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return usr, resp, nil
+	return do[*User](s.client, reqOpts...)
 }
 
 func (s *UsersService) DeleteUser(user int64, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("users/%d", user)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("users/%d", user),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 func (s *UsersService) CurrentUser(options ...RequestOptionFunc) (*User, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "user", nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	usr := new(User)
-	resp, err := s.client.Do(req, usr)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return usr, resp, nil
+	return do[*User](s.client,
+		withPath("user"),
+		withRequestOpts(options...),
+	)
 }
 
 // UserStatus represents the current status of a user
@@ -663,40 +617,24 @@ type UserStatus struct {
 }
 
 func (s *UsersService) CurrentUserStatus(options ...RequestOptionFunc) (*UserStatus, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "user/status", nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	status := new(UserStatus)
-	resp, err := s.client.Do(req, status)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return status, resp, nil
+	return do[*UserStatus](s.client,
+		withPath("user/status"),
+		withRequestOpts(options...),
+	)
 }
 
+// GetUserStatus retrieves a user's status.
+//
+// uid can be either a user ID (int) or a username (string). If a username
+// is provided with a leading "@" (e.g., "@johndoe"), it will be trimmed.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/api/users/#get-the-status-of-a-user
 func (s *UsersService) GetUserStatus(uid any, options ...RequestOptionFunc) (*UserStatus, *Response, error) {
-	user, err := parseID(uid)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	u := fmt.Sprintf("users/%s/status", strings.TrimPrefix(user, "@"))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	status := new(UserStatus)
-	resp, err := s.client.Do(req, status)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return status, resp, nil
+	return do[*UserStatus](s.client,
+		withPath("users/%s/status", UserID{uid}),
+		withRequestOpts(options...),
+	)
 }
 
 // UserStatusOptions represents the options required to set the status
@@ -711,18 +649,12 @@ type UserStatusOptions struct {
 }
 
 func (s *UsersService) SetUserStatus(opt *UserStatusOptions, options ...RequestOptionFunc) (*UserStatus, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodPut, "user/status", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	status := new(UserStatus)
-	resp, err := s.client.Do(req, status)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return status, resp, nil
+	return do[*UserStatus](s.client,
+		withMethod(http.MethodPut),
+		withPath("user/status"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // UserAssociationsCount represents the user associations count.
@@ -741,20 +673,10 @@ type UserAssociationsCount struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/users/#get-a-count-of-a-users-projects-groups-issues-and-merge-requests
 func (s *UsersService) GetUserAssociationsCount(user int64, options ...RequestOptionFunc) (*UserAssociationsCount, *Response, error) {
-	u := fmt.Sprintf("users/%d/associations_count", user)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	uac := new(UserAssociationsCount)
-	resp, err := s.client.Do(req, uac)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return uac, resp, nil
+	return do[*UserAssociationsCount](s.client,
+		withPath("users/%d/associations_count", user),
+		withRequestOpts(options...),
+	)
 }
 
 // SSHKey represents a SSH key.
@@ -777,18 +699,11 @@ type ListSSHKeysOptions struct {
 }
 
 func (s *UsersService) ListSSHKeys(opt *ListSSHKeysOptions, options ...RequestOptionFunc) ([]*SSHKey, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "user/keys", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var k []*SSHKey
-	resp, err := s.client.Do(req, &k)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return k, resp, nil
+	return do[[]*SSHKey](s.client,
+		withPath("user/keys"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // ListSSHKeysForUserOptions represents the available ListSSHKeysForUser() options.
@@ -799,59 +714,33 @@ type ListSSHKeysForUserOptions struct {
 	ListOptions
 }
 
+// ListSSHKeysForUser gets a list of a specified user's SSH keys.
+//
+// uid can be either a user ID (int) or a username (string). If a username
+// is provided with a leading "@" (e.g., "@johndoe"), it will be trimmed.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/api/user_keys/#list-all-ssh-keys-for-a-user
 func (s *UsersService) ListSSHKeysForUser(uid any, opt *ListSSHKeysForUserOptions, options ...RequestOptionFunc) ([]*SSHKey, *Response, error) {
-	user, err := parseID(uid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("users/%s/keys", user)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var k []*SSHKey
-	resp, err := s.client.Do(req, &k)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return k, resp, nil
+	return do[[]*SSHKey](s.client,
+		withPath("users/%s/keys", UserID{uid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) GetSSHKey(key int64, options ...RequestOptionFunc) (*SSHKey, *Response, error) {
-	u := fmt.Sprintf("user/keys/%d", key)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	k := new(SSHKey)
-	resp, err := s.client.Do(req, k)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return k, resp, nil
+	return do[*SSHKey](s.client,
+		withPath("user/keys/%d", key),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) GetSSHKeyForUser(user int64, key int64, options ...RequestOptionFunc) (*SSHKey, *Response, error) {
-	u := fmt.Sprintf("users/%d/keys/%d", user, key)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	k := new(SSHKey)
-	resp, err := s.client.Do(req, k)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return k, resp, nil
+	return do[*SSHKey](s.client,
+		withPath("users/%d/keys/%d", user, key),
+		withRequestOpts(options...),
+	)
 }
 
 // AddSSHKeyOptions represents the available AddSSHKey() options.
@@ -865,57 +754,39 @@ type AddSSHKeyOptions struct {
 }
 
 func (s *UsersService) AddSSHKey(opt *AddSSHKeyOptions, options ...RequestOptionFunc) (*SSHKey, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodPost, "user/keys", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	k := new(SSHKey)
-	resp, err := s.client.Do(req, k)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return k, resp, nil
+	return do[*SSHKey](s.client,
+		withMethod(http.MethodPost),
+		withPath("user/keys"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) AddSSHKeyForUser(user int64, opt *AddSSHKeyOptions, options ...RequestOptionFunc) (*SSHKey, *Response, error) {
-	u := fmt.Sprintf("users/%d/keys", user)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	k := new(SSHKey)
-	resp, err := s.client.Do(req, k)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return k, resp, nil
+	return do[*SSHKey](s.client,
+		withMethod(http.MethodPost),
+		withPath("users/%d/keys", user),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) DeleteSSHKey(key int64, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("user/keys/%d", key)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("user/keys/%d", key),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 func (s *UsersService) DeleteSSHKeyForUser(user, key int64, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("users/%d/keys/%d", user, key)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("users/%d/keys/%d", user, key),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // GPGKey represents a GPG key.
@@ -928,35 +799,17 @@ type GPGKey struct {
 }
 
 func (s *UsersService) ListGPGKeys(options ...RequestOptionFunc) ([]*GPGKey, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "user/gpg_keys", nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var ks []*GPGKey
-	resp, err := s.client.Do(req, &ks)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ks, resp, nil
+	return do[[]*GPGKey](s.client,
+		withPath("user/gpg_keys"),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) GetGPGKey(key int64, options ...RequestOptionFunc) (*GPGKey, *Response, error) {
-	u := fmt.Sprintf("user/gpg_keys/%d", key)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	k := new(GPGKey)
-	resp, err := s.client.Do(req, k)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return k, resp, nil
+	return do[*GPGKey](s.client,
+		withPath("user/gpg_keys/%d", key),
+		withRequestOpts(options...),
+	)
 }
 
 // AddGPGKeyOptions represents the available AddGPGKey() options.
@@ -967,91 +820,53 @@ type AddGPGKeyOptions struct {
 }
 
 func (s *UsersService) AddGPGKey(opt *AddGPGKeyOptions, options ...RequestOptionFunc) (*GPGKey, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodPost, "user/gpg_keys", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	k := new(GPGKey)
-	resp, err := s.client.Do(req, k)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return k, resp, nil
+	return do[*GPGKey](s.client,
+		withMethod(http.MethodPost),
+		withPath("user/gpg_keys"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) DeleteGPGKey(key int64, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("user/gpg_keys/%d", key)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("user/gpg_keys/%d", key),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 func (s *UsersService) ListGPGKeysForUser(user int64, options ...RequestOptionFunc) ([]*GPGKey, *Response, error) {
-	u := fmt.Sprintf("users/%d/gpg_keys", user)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var ks []*GPGKey
-	resp, err := s.client.Do(req, &ks)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ks, resp, nil
+	return do[[]*GPGKey](s.client,
+		withPath("users/%d/gpg_keys", user),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) GetGPGKeyForUser(user, key int64, options ...RequestOptionFunc) (*GPGKey, *Response, error) {
-	u := fmt.Sprintf("users/%d/gpg_keys/%d", user, key)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	k := new(GPGKey)
-	resp, err := s.client.Do(req, k)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return k, resp, nil
+	return do[*GPGKey](s.client,
+		withPath("users/%d/gpg_keys/%d", user, key),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) AddGPGKeyForUser(user int64, opt *AddGPGKeyOptions, options ...RequestOptionFunc) (*GPGKey, *Response, error) {
-	u := fmt.Sprintf("users/%d/gpg_keys", user)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	k := new(GPGKey)
-	resp, err := s.client.Do(req, k)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return k, resp, nil
+	return do[*GPGKey](s.client,
+		withMethod(http.MethodPost),
+		withPath("users/%d/gpg_keys", user),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) DeleteGPGKeyForUser(user, key int64, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("users/%d/gpg_keys/%d", user, key)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("users/%d/gpg_keys/%d", user, key),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // Email represents an Email.
@@ -1065,18 +880,10 @@ type Email struct {
 }
 
 func (s *UsersService) ListEmails(options ...RequestOptionFunc) ([]*Email, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "user/emails", nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var e []*Email
-	resp, err := s.client.Do(req, &e)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return e, resp, nil
+	return do[[]*Email](s.client,
+		withPath("user/emails"),
+		withRequestOpts(options...),
+	)
 }
 
 // ListEmailsForUserOptions represents the available ListEmailsForUser() options.
@@ -1088,37 +895,18 @@ type ListEmailsForUserOptions struct {
 }
 
 func (s *UsersService) ListEmailsForUser(user int64, opt *ListEmailsForUserOptions, options ...RequestOptionFunc) ([]*Email, *Response, error) {
-	u := fmt.Sprintf("users/%d/emails", user)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var e []*Email
-	resp, err := s.client.Do(req, &e)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return e, resp, nil
+	return do[[]*Email](s.client,
+		withPath("users/%d/emails", user),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) GetEmail(email int64, options ...RequestOptionFunc) (*Email, *Response, error) {
-	u := fmt.Sprintf("user/emails/%d", email)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	e := new(Email)
-	resp, err := s.client.Do(req, e)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return e, resp, nil
+	return do[*Email](s.client,
+		withPath("user/emails/%d", email),
+		withRequestOpts(options...),
+	)
 }
 
 // AddEmailOptions represents the available AddEmail() options.
@@ -1131,94 +919,66 @@ type AddEmailOptions struct {
 }
 
 func (s *UsersService) AddEmail(opt *AddEmailOptions, options ...RequestOptionFunc) (*Email, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodPost, "user/emails", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	e := new(Email)
-	resp, err := s.client.Do(req, e)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return e, resp, nil
+	return do[*Email](s.client,
+		withMethod(http.MethodPost),
+		withPath("user/emails"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) AddEmailForUser(user int64, opt *AddEmailOptions, options ...RequestOptionFunc) (*Email, *Response, error) {
-	u := fmt.Sprintf("users/%d/emails", user)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	e := new(Email)
-	resp, err := s.client.Do(req, e)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return e, resp, nil
+	return do[*Email](s.client,
+		withMethod(http.MethodPost),
+		withPath("users/%d/emails", user),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) DeleteEmail(email int64, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("user/emails/%d", email)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("user/emails/%d", email),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 func (s *UsersService) DeleteEmailForUser(user, email int64, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("users/%d/emails/%d", user, email)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("users/%d/emails/%d", user, email),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 func (s *UsersService) BlockUser(user int64, options ...RequestOptionFunc) error {
-	u := fmt.Sprintf("users/%d/block", user)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return err
-	}
-
-	_, doErr := s.client.Do(req, nil)
-	if doErr != nil {
-		return doErr
-	}
-
-	return nil
+	_, _, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("users/%d/block", user),
+		withRequestOpts(options...),
+	)
+	return err
 }
 
 func (s *UsersService) UnblockUser(user int64, options ...RequestOptionFunc) error {
-	u := fmt.Sprintf("users/%d/unblock", user)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return err
-	}
-
-	resp, err := s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("users/%d/unblock", user),
+		withRequestOpts(options...),
+	)
 	if err != nil && resp == nil {
 		return err
 	}
 
 	switch resp.StatusCode {
-	case 201:
+	case http.StatusCreated:
 		return nil
-	case 403:
+	case http.StatusForbidden:
 		return ErrUserUnblockPrevented
-	case 404:
+	case http.StatusNotFound:
 		return ErrUserNotFound
 	default:
 		return fmt.Errorf("%w: %d", errUnexpectedResultCode, resp.StatusCode)
@@ -1226,22 +986,19 @@ func (s *UsersService) UnblockUser(user int64, options ...RequestOptionFunc) err
 }
 
 func (s *UsersService) BanUser(user int64, options ...RequestOptionFunc) error {
-	u := fmt.Sprintf("users/%d/ban", user)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return err
-	}
-
-	resp, err := s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("users/%d/ban", user),
+		withRequestOpts(options...),
+	)
 	if err != nil && resp == nil {
 		return err
 	}
 
 	switch resp.StatusCode {
-	case 201:
+	case http.StatusCreated:
 		return nil
-	case 404:
+	case http.StatusNotFound:
 		return ErrUserNotFound
 	default:
 		return fmt.Errorf("%w: %d", errUnexpectedResultCode, resp.StatusCode)
@@ -1249,22 +1006,19 @@ func (s *UsersService) BanUser(user int64, options ...RequestOptionFunc) error {
 }
 
 func (s *UsersService) UnbanUser(user int64, options ...RequestOptionFunc) error {
-	u := fmt.Sprintf("users/%d/unban", user)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return err
-	}
-
-	resp, err := s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("users/%d/unban", user),
+		withRequestOpts(options...),
+	)
 	if err != nil && resp == nil {
 		return err
 	}
 
 	switch resp.StatusCode {
-	case 201:
+	case http.StatusCreated:
 		return nil
-	case 404:
+	case http.StatusNotFound:
 		return ErrUserNotFound
 	default:
 		return fmt.Errorf("%w: %d", errUnexpectedResultCode, resp.StatusCode)
@@ -1272,24 +1026,21 @@ func (s *UsersService) UnbanUser(user int64, options ...RequestOptionFunc) error
 }
 
 func (s *UsersService) DeactivateUser(user int64, options ...RequestOptionFunc) error {
-	u := fmt.Sprintf("users/%d/deactivate", user)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return err
-	}
-
-	resp, err := s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("users/%d/deactivate", user),
+		withRequestOpts(options...),
+	)
 	if err != nil && resp == nil {
 		return err
 	}
 
 	switch resp.StatusCode {
-	case 201:
+	case http.StatusCreated:
 		return nil
-	case 403:
+	case http.StatusForbidden:
 		return ErrUserDeactivatePrevented
-	case 404:
+	case http.StatusNotFound:
 		return ErrUserNotFound
 	default:
 		return fmt.Errorf("%w: %d", errUnexpectedResultCode, resp.StatusCode)
@@ -1297,24 +1048,21 @@ func (s *UsersService) DeactivateUser(user int64, options ...RequestOptionFunc) 
 }
 
 func (s *UsersService) ActivateUser(user int64, options ...RequestOptionFunc) error {
-	u := fmt.Sprintf("users/%d/activate", user)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return err
-	}
-
-	resp, err := s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("users/%d/activate", user),
+		withRequestOpts(options...),
+	)
 	if err != nil && resp == nil {
 		return err
 	}
 
 	switch resp.StatusCode {
-	case 201:
+	case http.StatusCreated:
 		return nil
-	case 403:
+	case http.StatusForbidden:
 		return ErrUserActivatePrevented
-	case 404:
+	case http.StatusNotFound:
 		return ErrUserNotFound
 	default:
 		return fmt.Errorf("%w: %d", errUnexpectedResultCode, resp.StatusCode)
@@ -1322,24 +1070,21 @@ func (s *UsersService) ActivateUser(user int64, options ...RequestOptionFunc) er
 }
 
 func (s *UsersService) ApproveUser(user int64, options ...RequestOptionFunc) error {
-	u := fmt.Sprintf("users/%d/approve", user)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return err
-	}
-
-	resp, err := s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("users/%d/approve", user),
+		withRequestOpts(options...),
+	)
 	if err != nil && resp == nil {
 		return err
 	}
 
 	switch resp.StatusCode {
-	case 201:
+	case http.StatusCreated:
 		return nil
-	case 403:
+	case http.StatusForbidden:
 		return ErrUserApprovePrevented
-	case 404:
+	case http.StatusNotFound:
 		return ErrUserNotFound
 	default:
 		return fmt.Errorf("%w: %d", errUnexpectedResultCode, resp.StatusCode)
@@ -1347,26 +1092,23 @@ func (s *UsersService) ApproveUser(user int64, options ...RequestOptionFunc) err
 }
 
 func (s *UsersService) RejectUser(user int64, options ...RequestOptionFunc) error {
-	u := fmt.Sprintf("users/%d/reject", user)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return err
-	}
-
-	resp, err := s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPost),
+		withPath("users/%d/reject", user),
+		withRequestOpts(options...),
+	)
 	if err != nil && resp == nil {
 		return err
 	}
 
 	switch resp.StatusCode {
-	case 200:
+	case http.StatusOK:
 		return nil
-	case 403:
+	case http.StatusForbidden:
 		return ErrUserRejectPrevented
-	case 404:
+	case http.StatusNotFound:
 		return ErrUserNotFound
-	case 409:
+	case http.StatusConflict:
 		return ErrUserConflict
 	default:
 		return fmt.Errorf("%w: %d", errUnexpectedResultCode, resp.StatusCode)
@@ -1400,37 +1142,18 @@ type GetAllImpersonationTokensOptions struct {
 }
 
 func (s *UsersService) GetAllImpersonationTokens(user int64, opt *GetAllImpersonationTokensOptions, options ...RequestOptionFunc) ([]*ImpersonationToken, *Response, error) {
-	u := fmt.Sprintf("users/%d/impersonation_tokens", user)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var ts []*ImpersonationToken
-	resp, err := s.client.Do(req, &ts)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ts, resp, nil
+	return do[[]*ImpersonationToken](s.client,
+		withPath("users/%d/impersonation_tokens", user),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) GetImpersonationToken(user, token int64, options ...RequestOptionFunc) (*ImpersonationToken, *Response, error) {
-	u := fmt.Sprintf("users/%d/impersonation_tokens/%d", user, token)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	t := new(ImpersonationToken)
-	resp, err := s.client.Do(req, &t)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return t, resp, nil
+	return do[*ImpersonationToken](s.client,
+		withPath("users/%d/impersonation_tokens/%d", user, token),
+		withRequestOpts(options...),
+	)
 }
 
 // CreateImpersonationTokenOptions represents the available
@@ -1445,31 +1168,21 @@ type CreateImpersonationTokenOptions struct {
 }
 
 func (s *UsersService) CreateImpersonationToken(user int64, opt *CreateImpersonationTokenOptions, options ...RequestOptionFunc) (*ImpersonationToken, *Response, error) {
-	u := fmt.Sprintf("users/%d/impersonation_tokens", user)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	t := new(ImpersonationToken)
-	resp, err := s.client.Do(req, &t)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return t, resp, nil
+	return do[*ImpersonationToken](s.client,
+		withMethod(http.MethodPost),
+		withPath("users/%d/impersonation_tokens", user),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) RevokeImpersonationToken(user, token int64, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("users/%d/impersonation_tokens/%d", user, token)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("users/%d/impersonation_tokens/%d", user, token),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // CreatePersonalAccessTokenOptions represents the available
@@ -1485,20 +1198,12 @@ type CreatePersonalAccessTokenOptions struct {
 }
 
 func (s *UsersService) CreatePersonalAccessToken(user int64, opt *CreatePersonalAccessTokenOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error) {
-	u := fmt.Sprintf("users/%d/personal_access_tokens", user)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	t := new(PersonalAccessToken)
-	resp, err := s.client.Do(req, &t)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return t, resp, nil
+	return do[*PersonalAccessToken](s.client,
+		withMethod(http.MethodPost),
+		withPath("users/%d/personal_access_tokens", user),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // CreatePersonalAccessTokenForCurrentUserOptions represents the available
@@ -1514,20 +1219,12 @@ type CreatePersonalAccessTokenForCurrentUserOptions struct {
 }
 
 func (s *UsersService) CreatePersonalAccessTokenForCurrentUser(opt *CreatePersonalAccessTokenForCurrentUserOptions, options ...RequestOptionFunc) (*PersonalAccessToken, *Response, error) {
-	u := "user/personal_access_tokens"
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	t := new(PersonalAccessToken)
-	resp, err := s.client.Do(req, &t)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return t, resp, nil
+	return do[*PersonalAccessToken](s.client,
+		withMethod(http.MethodPost),
+		withPath("user/personal_access_tokens"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // UserActivity represents an entry in the user/activities response
@@ -1549,18 +1246,11 @@ type GetUserActivitiesOptions struct {
 }
 
 func (s *UsersService) GetUserActivities(opt *GetUserActivitiesOptions, options ...RequestOptionFunc) ([]*UserActivity, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "user/activities", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var t []*UserActivity
-	resp, err := s.client.Do(req, &t)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return t, resp, nil
+	return do[[]*UserActivity](s.client,
+		withPath("user/activities"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // UserMembership represents a membership of the user in a namespace or project.
@@ -1584,43 +1274,31 @@ type GetUserMembershipOptions struct {
 }
 
 func (s *UsersService) GetUserMemberships(user int64, opt *GetUserMembershipOptions, options ...RequestOptionFunc) ([]*UserMembership, *Response, error) {
-	u := fmt.Sprintf("users/%d/memberships", user)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var m []*UserMembership
-	resp, err := s.client.Do(req, &m)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return m, resp, nil
+	return do[[]*UserMembership](s.client,
+		withPath("users/%d/memberships", user),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) DisableTwoFactor(user int64, options ...RequestOptionFunc) error {
-	u := fmt.Sprintf("users/%d/disable_two_factor", user)
-
-	req, err := s.client.NewRequest(http.MethodPatch, u, nil, options)
-	if err != nil {
-		return err
-	}
-
-	resp, err := s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodPatch),
+		withPath("users/%d/disable_two_factor", user),
+		withRequestOpts(options...),
+	)
 	if err != nil && resp == nil {
 		return err
 	}
 
 	switch resp.StatusCode {
-	case 204:
+	case http.StatusNoContent:
 		return nil
-	case 400:
+	case http.StatusBadRequest:
 		return ErrUserTwoFactorNotEnabled
-	case 403:
+	case http.StatusForbidden:
 		return ErrUserDisableTwoFactorPrevented
-	case 404:
+	case http.StatusNotFound:
 		return ErrUserNotFound
 	default:
 		return fmt.Errorf("%w: %d", errUnexpectedResultCode, resp.StatusCode)
@@ -1656,18 +1334,12 @@ type CreateUserRunnerOptions struct {
 }
 
 func (s *UsersService) CreateUserRunner(opts *CreateUserRunnerOptions, options ...RequestOptionFunc) (*UserRunner, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodPost, "user/runners", opts, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	r := new(UserRunner)
-	resp, err := s.client.Do(req, r)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return r, resp, nil
+	return do[*UserRunner](s.client,
+		withMethod(http.MethodPost),
+		withPath("user/runners"),
+		withAPIOpts(opts),
+		withRequestOpts(options...),
+	)
 }
 
 // CreateServiceAccountUserOptions represents the available CreateServiceAccountUser() options.
@@ -1681,67 +1353,76 @@ type CreateServiceAccountUserOptions struct {
 }
 
 func (s *UsersService) CreateServiceAccountUser(opts *CreateServiceAccountUserOptions, options ...RequestOptionFunc) (*User, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodPost, "service_accounts", opts, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	usr := new(User)
-	resp, err := s.client.Do(req, usr)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return usr, resp, nil
+	return do[*User](s.client,
+		withMethod(http.MethodPost),
+		withPath("service_accounts"),
+		withAPIOpts(opts),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) ListServiceAccounts(opt *ListServiceAccountsOptions, options ...RequestOptionFunc) ([]*ServiceAccount, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "service_accounts", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var sas []*ServiceAccount
-	resp, err := s.client.Do(req, &sas)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return sas, resp, nil
+	return do[[]*ServiceAccount](s.client,
+		withPath("service_accounts"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 func (s *UsersService) UploadAvatar(avatar io.Reader, filename string, options ...RequestOptionFunc) (*User, *Response, error) {
-	u := "user/avatar"
-
-	req, err := s.client.UploadRequest(
-		http.MethodPut,
-		u,
-		avatar,
-		filename,
-		UploadAvatar,
-		nil,
-		options,
+	return do[*User](s.client,
+		withMethod(http.MethodPut),
+		withPath("user/avatar"),
+		withUpload(avatar, filename, UploadAvatar),
+		withRequestOpts(options...),
 	)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	usr := new(User)
-	resp, err := s.client.Do(req, usr)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return usr, resp, nil
 }
 
 func (s *UsersService) DeleteUserIdentity(user int64, provider string, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("users/%d/identities/%s", user, provider)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("users/%d/identities/%s", user, provider),
+		withRequestOpts(options...),
+	)
+	return resp, err
+}
 
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
+// userCoreBasicTemplate defines the common fields for a user in GraphQL queries.
+var userCoreBasicTemplate = template.Must(template.New("UserCoreBasic").Parse(`
+	id
+	username
+	name
+	state
+	createdAt
+	avatarUrl
+	webUrl
+`))
+
+// userCoreBasicGQL represents the UserCore GraphQL type. It unwraps to a *BasicUser type.
+type userCoreBasicGQL struct {
+	ID        gidGQL     `json:"id"`
+	Username  string     `json:"username"`
+	Name      string     `json:"name"`
+	State     string     `json:"state"`
+	CreatedAt *time.Time `json:"createdAt"`
+	AvatarURL string     `json:"avatarUrl"`
+	WebURL    string     `json:"webUrl"`
+}
+
+// unwrap converts the GraphQL data structure to a *BasicUser.
+func (u userCoreBasicGQL) unwrap() *BasicUser {
+	if u.Username == "" {
+		return nil
 	}
 
-	return s.client.Do(req, nil)
+	return &BasicUser{
+		ID:        u.ID.Int64,
+		Username:  u.Username,
+		Name:      u.Name,
+		State:     u.State,
+		Locked:    u.State != "active",
+		CreatedAt: u.CreatedAt,
+		AvatarURL: u.AvatarURL,
+		WebURL:    u.WebURL,
+	}
 }

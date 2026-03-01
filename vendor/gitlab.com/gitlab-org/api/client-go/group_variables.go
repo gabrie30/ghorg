@@ -24,10 +24,30 @@ import (
 type (
 	// GroupVariablesServiceInterface defines methods for the GroupVariablesService.
 	GroupVariablesServiceInterface interface {
+		// ListVariables gets a list of all variables for a group.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_level_variables/#list-group-variables
 		ListVariables(gid any, opt *ListGroupVariablesOptions, options ...RequestOptionFunc) ([]*GroupVariable, *Response, error)
+		// GetVariable gets a variable.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_level_variables/#show-variable-details
 		GetVariable(gid any, key string, opt *GetGroupVariableOptions, options ...RequestOptionFunc) (*GroupVariable, *Response, error)
+		// CreateVariable creates a new group variable.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_level_variables/#create-variable
 		CreateVariable(gid any, opt *CreateGroupVariableOptions, options ...RequestOptionFunc) (*GroupVariable, *Response, error)
+		// UpdateVariable updates an existing group variable.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_level_variables/#update-variable
 		UpdateVariable(gid any, key string, opt *UpdateGroupVariableOptions, options ...RequestOptionFunc) (*GroupVariable, *Response, error)
+		// RemoveVariable removes a group's variable.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_level_variables/#remove-variable
 		RemoveVariable(gid any, key string, opt *RemoveGroupVariableOptions, options ...RequestOptionFunc) (*Response, error)
 	}
 
@@ -72,10 +92,6 @@ type ListGroupVariablesOptions struct {
 	ListOptions
 }
 
-// ListVariables gets a list of all variables for a group.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_level_variables/#list-group-variables
 func (s *GroupVariablesService) ListVariables(gid any, opt *ListGroupVariablesOptions, options ...RequestOptionFunc) ([]*GroupVariable, *Response, error) {
 	return do[[]*GroupVariable](s.client,
 		withPath("groups/%s/variables", GroupID{gid}),
@@ -93,10 +109,6 @@ type GetGroupVariableOptions struct {
 	Filter *VariableFilter `url:"filter,omitempty" json:"filter,omitempty"`
 }
 
-// GetVariable gets a variable.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_level_variables/#show-variable-details
 func (s *GroupVariablesService) GetVariable(gid any, key string, opt *GetGroupVariableOptions, options ...RequestOptionFunc) (*GroupVariable, *Response, error) {
 	return do[*GroupVariable](s.client,
 		withPath("groups/%s/variables/%s", GroupID{gid}, url.PathEscape(key)),
@@ -122,10 +134,6 @@ type CreateGroupVariableOptions struct {
 	VariableType     *VariableTypeValue `url:"variable_type,omitempty" json:"variable_type,omitempty"`
 }
 
-// CreateVariable creates a new group variable.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_level_variables/#create-variable
 func (s *GroupVariablesService) CreateVariable(gid any, opt *CreateGroupVariableOptions, options ...RequestOptionFunc) (*GroupVariable, *Response, error) {
 	return do[*GroupVariable](s.client,
 		withMethod(http.MethodPost),
@@ -151,11 +159,6 @@ type UpdateGroupVariableOptions struct {
 	VariableType     *VariableTypeValue `url:"variable_type,omitempty" json:"variable_type,omitempty"`
 }
 
-// UpdateVariable updates the position of an existing
-// group issue board list.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_level_variables/#update-variable
 func (s *GroupVariablesService) UpdateVariable(gid any, key string, opt *UpdateGroupVariableOptions, options ...RequestOptionFunc) (*GroupVariable, *Response, error) {
 	return do[*GroupVariable](s.client,
 		withMethod(http.MethodPut),
@@ -174,10 +177,6 @@ type RemoveGroupVariableOptions struct {
 	Filter *VariableFilter `url:"filter,omitempty" json:"filter,omitempty"`
 }
 
-// RemoveVariable removes a group's variable.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_level_variables/#remove-variable
 func (s *GroupVariablesService) RemoveVariable(gid any, key string, opt *RemoveGroupVariableOptions, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodDelete),

@@ -83,8 +83,9 @@ type PipelineVariable struct {
 //
 // GitLab API docs: https://docs.gitlab.com/api/pipelines/
 type PipelineInput struct {
-	Name  string `json:"name"`
-	Value any    `json:"value"`
+	Name    string `json:"name"`
+	Value   any    `json:"value"`
+	Destroy *bool  `json:"destroy,omitempty"`
 }
 
 // Pipeline represents a GitLab pipeline.

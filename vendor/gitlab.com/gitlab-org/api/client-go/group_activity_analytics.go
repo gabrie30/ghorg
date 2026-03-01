@@ -18,8 +18,21 @@ import "net/http"
 
 type (
 	GroupActivityAnalyticsServiceInterface interface {
+		// GetRecentlyCreatedIssuesCount gets the count of recently created issues for a group.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_activity_analytics/#get-count-of-recently-created-issues-for-group
 		GetRecentlyCreatedIssuesCount(opt *GetRecentlyCreatedIssuesCountOptions, options ...RequestOptionFunc) (*IssuesCount, *Response, error)
+		// GetRecentlyCreatedMergeRequestsCount gets the count of recently created merge
+		// requests for a group.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_activity_analytics/#get-count-of-recently-created-merge-requests-for-group
 		GetRecentlyCreatedMergeRequestsCount(opt *GetRecentlyCreatedMergeRequestsCountOptions, options ...RequestOptionFunc) (*MergeRequestsCount, *Response, error)
+		// GetRecentlyAddedMembersCount gets the count of recently added members to a group.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_activity_analytics/#get-count-of-members-recently-added-to-group
 		GetRecentlyAddedMembersCount(opt *GetRecentlyAddedMembersCountOptions, options ...RequestOptionFunc) (*NewMembersCount, *Response, error)
 	}
 
@@ -51,10 +64,6 @@ type GetRecentlyCreatedIssuesCountOptions struct {
 	GroupPath string `url:"group_path" json:"group_path"`
 }
 
-// GetRecentlyCreatedIssuesCount gets the count of recently created issues for a group.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_activity_analytics/#get-count-of-recently-created-issues-for-group
 func (s *GroupActivityAnalyticsService) GetRecentlyCreatedIssuesCount(opt *GetRecentlyCreatedIssuesCountOptions, options ...RequestOptionFunc) (*IssuesCount, *Response, error) {
 	return do[*IssuesCount](s.client,
 		withMethod(http.MethodGet),
@@ -82,11 +91,6 @@ type GetRecentlyCreatedMergeRequestsCountOptions struct {
 	GroupPath string `url:"group_path" json:"group_path"`
 }
 
-// GetRecentlyCreatedMergeRequestsCount gets the count of recently created merge
-// requests for a group.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_activity_analytics/#get-count-of-recently-created-merge-requests-for-group
 func (s *GroupActivityAnalyticsService) GetRecentlyCreatedMergeRequestsCount(opt *GetRecentlyCreatedMergeRequestsCountOptions, options ...RequestOptionFunc) (*MergeRequestsCount, *Response, error) {
 	return do[*MergeRequestsCount](s.client,
 		withMethod(http.MethodGet),
@@ -113,10 +117,6 @@ type GetRecentlyAddedMembersCountOptions struct {
 	GroupPath string `url:"group_path" json:"group_path"`
 }
 
-// GetRecentlyAddedMembersCount gets the count of recently added members to a group.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_activity_analytics/#get-count-of-members-recently-added-to-group
 func (s *GroupActivityAnalyticsService) GetRecentlyAddedMembersCount(opt *GetRecentlyAddedMembersCountOptions, options ...RequestOptionFunc) (*NewMembersCount, *Response, error) {
 	return do[*NewMembersCount](s.client,
 		withMethod(http.MethodGet),

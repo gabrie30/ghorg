@@ -16,11 +16,7 @@
 
 package gitlab
 
-import (
-	"fmt"
-	"net/http"
-	"time"
-)
+import "time"
 
 type (
 	ProjectIterationsServiceInterface interface {
@@ -77,22 +73,9 @@ type ListProjectIterationsOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/iterations/#list-project-iterations
 func (i *ProjectIterationsService) ListProjectIterations(pid any, opt *ListProjectIterationsOptions, options ...RequestOptionFunc) ([]*ProjectIteration, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/iterations", PathEscape(project))
-
-	req, err := i.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var pis []*ProjectIteration
-	resp, err := i.client.Do(req, &pis)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pis, resp, nil
+	return do[[]*ProjectIteration](i.client,
+		withPath("projects/%s/iterations", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }

@@ -21,20 +21,62 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 )
 
 type (
 	RepositoriesServiceInterface interface {
+		// ListTree gets a list of repository files and directories in a project.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/repositories/#list-repository-tree
 		ListTree(pid any, opt *ListTreeOptions, options ...RequestOptionFunc) ([]*TreeNode, *Response, error)
+		// Blob gets information about blob in repository like size and content. Note
+		// that blob content is Base64 encoded.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/repositories/#get-a-blob-from-repository
 		Blob(pid any, sha string, options ...RequestOptionFunc) ([]byte, *Response, error)
+		// RawBlobContent gets the raw file contents for a blob by blob SHA.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/repositories/#raw-blob-content
 		RawBlobContent(pid any, sha string, options ...RequestOptionFunc) ([]byte, *Response, error)
+		// Archive gets an archive of the repository.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/repositories/#get-file-archive
 		Archive(pid any, opt *ArchiveOptions, options ...RequestOptionFunc) ([]byte, *Response, error)
+		// StreamArchive streams an archive of the repository to the provided
+		// io.Writer.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/repositories/#get-file-archive
 		StreamArchive(pid any, w io.Writer, opt *ArchiveOptions, options ...RequestOptionFunc) (*Response, error)
+		// Compare compares branches, tags or commits.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/repositories/#compare-branches-tags-or-commits
 		Compare(pid any, opt *CompareOptions, options ...RequestOptionFunc) (*Compare, *Response, error)
+		// Contributors gets the repository contributors list.
+		//
+		// GitLab API docs: https://docs.gitlab.com/api/repositories/#contributors
 		Contributors(pid any, opt *ListContributorsOptions, options ...RequestOptionFunc) ([]*Contributor, *Response, error)
+		// MergeBase gets the common ancestor for 2 refs (commit SHAs, branch
+		// names or tags).
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/repositories/#merge-base
 		MergeBase(pid any, opt *MergeBaseOptions, options ...RequestOptionFunc) (*Commit, *Response, error)
+		// AddChangelog generates changelog data based on commits in a repository.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/repositories/#add-changelog-data-to-a-changelog-file
 		AddChangelog(pid any, opt *AddChangelogOptions, options ...RequestOptionFunc) (*Response, error)
+		// GenerateChangelogData generates changelog data based on commits in a
+		// repository, without committing them to a changelog file.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/repositories/#generate-changelog-data
 		GenerateChangelogData(pid any, opt GenerateChangelogDataOptions, options ...RequestOptionFunc) (*ChangelogData, *Response, error)
 	}
 
@@ -75,10 +117,6 @@ type ListTreeOptions struct {
 	Recursive *bool   `url:"recursive,omitempty" json:"recursive,omitempty"`
 }
 
-// ListTree gets a list of repository files and directories in a project.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/repositories/#list-repository-tree
 func (s *RepositoriesService) ListTree(pid any, opt *ListTreeOptions, options ...RequestOptionFunc) ([]*TreeNode, *Response, error) {
 	return do[[]*TreeNode](s.client,
 		withPath("projects/%s/repository/tree", ProjectID{pid}),
@@ -87,55 +125,26 @@ func (s *RepositoriesService) ListTree(pid any, opt *ListTreeOptions, options ..
 	)
 }
 
-// Blob gets information about blob in repository like size and content. Note
-// that blob content is Base64 encoded.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/repositories/#get-a-blob-from-repository
 func (s *RepositoriesService) Blob(pid any, sha string, options ...RequestOptionFunc) ([]byte, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/repository/blobs/%s", PathEscape(project), url.PathEscape(sha))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var b bytes.Buffer
-	resp, err := s.client.Do(req, &b)
+	buf, resp, err := do[bytes.Buffer](s.client,
+		withPath("projects/%s/repository/blobs/%s", ProjectID{pid}, sha),
+		withRequestOpts(options...),
+	)
 	if err != nil {
 		return nil, resp, err
 	}
-
-	return b.Bytes(), resp, err
+	return buf.Bytes(), resp, nil
 }
 
-// RawBlobContent gets the raw file contents for a blob by blob SHA.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/repositories/#raw-blob-content
 func (s *RepositoriesService) RawBlobContent(pid any, sha string, options ...RequestOptionFunc) ([]byte, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/repository/blobs/%s/raw", PathEscape(project), url.PathEscape(sha))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var b bytes.Buffer
-	resp, err := s.client.Do(req, &b)
+	buf, resp, err := do[bytes.Buffer](s.client,
+		withPath("projects/%s/repository/blobs/%s/raw", ProjectID{pid}, sha),
+		withRequestOpts(options...),
+	)
 	if err != nil {
 		return nil, resp, err
 	}
-
-	return b.Bytes(), resp, err
+	return buf.Bytes(), resp, nil
 }
 
 // ArchiveOptions represents the available Archive() options.
@@ -148,41 +157,23 @@ type ArchiveOptions struct {
 	SHA    *string `url:"sha,omitempty" json:"sha,omitempty"`
 }
 
-// Archive gets an archive of the repository.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/repositories/#get-file-archive
 func (s *RepositoriesService) Archive(pid any, opt *ArchiveOptions, options ...RequestOptionFunc) ([]byte, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/repository/archive", PathEscape(project))
-
-	// Set an optional format for the archive.
+	suffix := ""
 	if opt != nil && opt.Format != nil {
-		u = fmt.Sprintf("%s.%s", u, *opt.Format)
+		suffix = "." + *opt.Format
 	}
 
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var b bytes.Buffer
-	resp, err := s.client.Do(req, &b)
+	buf, resp, err := do[bytes.Buffer](s.client,
+		withPath("projects/%s/repository/archive%s", ProjectID{pid}, NoEscape{suffix}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 	if err != nil {
 		return nil, resp, err
 	}
-
-	return b.Bytes(), resp, err
+	return buf.Bytes(), resp, nil
 }
 
-// StreamArchive streams an archive of the repository to the provided
-// io.Writer.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/repositories/#get-file-archive
 func (s *RepositoriesService) StreamArchive(pid any, w io.Writer, opt *ArchiveOptions, options ...RequestOptionFunc) (*Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
@@ -231,10 +222,6 @@ type CompareOptions struct {
 	Unidiff  *bool   `url:"unidiff,omitempty" json:"unidiff,omitempty"`
 }
 
-// Compare compares branches, tags or commits.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/repositories/#compare-branches-tags-or-commits
 func (s *RepositoriesService) Compare(pid any, opt *CompareOptions, options ...RequestOptionFunc) (*Compare, *Response, error) {
 	return do[*Compare](s.client,
 		withPath("projects/%s/repository/compare", ProjectID{pid}),
@@ -267,9 +254,6 @@ type ListContributorsOptions struct {
 	Sort    *string `url:"sort,omitempty" json:"sort,omitempty"`
 }
 
-// Contributors gets the repository contributors list.
-//
-// GitLab API docs: https://docs.gitlab.com/api/repositories/#contributors
 func (s *RepositoriesService) Contributors(pid any, opt *ListContributorsOptions, options ...RequestOptionFunc) ([]*Contributor, *Response, error) {
 	return do[[]*Contributor](s.client,
 		withPath("projects/%s/repository/contributors", ProjectID{pid}),
@@ -286,11 +270,6 @@ type MergeBaseOptions struct {
 	Ref *[]string `url:"refs[],omitempty" json:"refs,omitempty"`
 }
 
-// MergeBase gets the common ancestor for 2 refs (commit SHAs, branch
-// names or tags).
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/repositories/#merge-base
 func (s *RepositoriesService) MergeBase(pid any, opt *MergeBaseOptions, options ...RequestOptionFunc) (*Commit, *Response, error) {
 	return do[*Commit](s.client,
 		withPath("projects/%s/repository/merge_base", ProjectID{pid}),
@@ -315,10 +294,6 @@ type AddChangelogOptions struct {
 	Trailer    *string  `url:"trailer,omitempty" json:"trailer,omitempty"`
 }
 
-// AddChangelog generates changelog data based on commits in a repository.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/repositories/#add-changelog-data-to-a-changelog-file
 func (s *RepositoriesService) AddChangelog(pid any, opt *AddChangelogOptions, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodPost),
@@ -355,11 +330,6 @@ type GenerateChangelogDataOptions struct {
 	Trailer    *string  `url:"trailer,omitempty" json:"trailer,omitempty"`
 }
 
-// GenerateChangelogData generates changelog data based on commits in a
-// repository, without committing them to a changelog file.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/repositories/#generate-changelog-data
 func (s *RepositoriesService) GenerateChangelogData(pid any, opt GenerateChangelogDataOptions, options ...RequestOptionFunc) (*ChangelogData, *Response, error) {
 	return do[*ChangelogData](s.client,
 		withPath("projects/%s/repository/changelog", ProjectID{pid}),

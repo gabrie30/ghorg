@@ -16,7 +16,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -70,21 +69,10 @@ type UpdateGroupSecuritySettingsOptions struct {
 // GitLab API Docs:
 // https://docs.gitlab.com/api/group_security_settings/#update-secret_push_protection_enabled-setting
 func (s *GroupSecuritySettingsService) UpdateSecretPushProtectionEnabledSetting(gid any, opt UpdateGroupSecuritySettingsOptions, options ...RequestOptionFunc) (*GroupSecuritySettings, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/security_settings", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-	settings := new(GroupSecuritySettings)
-	resp, err := s.client.Do(req, &settings)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return settings, resp, err
+	return do[*GroupSecuritySettings](s.client,
+		withMethod(http.MethodPut),
+		withPath("groups/%s/security_settings", GroupID{gid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }

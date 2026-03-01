@@ -2,8 +2,12 @@ package gitlab
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"reflect"
+	"strings"
+
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 type Pather interface {
@@ -49,6 +53,9 @@ func (i RunnerID) forPath() (string, error) {
 	return PathEscape(id), nil
 }
 
+// UserID represents a user identifier for API paths. It accepts either a
+// numeric user ID or a username string. If a username is provided with a
+// leading "@" character (e.g., "@johndoe"), the "@" will be trimmed.
 type UserID struct {
 	Value any
 }
@@ -59,7 +66,7 @@ func (i UserID) forPath() (string, error) {
 		return "", err
 	}
 
-	return PathEscape(id), nil
+	return PathEscape(strings.TrimPrefix(id, "@")), nil
 }
 
 type LabelID struct {
@@ -88,6 +95,13 @@ type doConfig struct {
 	path        string
 	apiOpts     any
 	requestOpts []RequestOptionFunc
+	upload      *uploadConfig
+}
+
+type uploadConfig struct {
+	content    io.Reader
+	filename   string
+	uploadType UploadType
 }
 
 type doOption func(c *doConfig) error
@@ -132,6 +146,17 @@ func withAPIOpts(o any) doOption {
 func withRequestOpts(o ...RequestOptionFunc) doOption {
 	return func(c *doConfig) error {
 		c.requestOpts = o
+		return nil
+	}
+}
+
+func withUpload(content io.Reader, filename string, uploadType UploadType) doOption {
+	return func(c *doConfig) error {
+		c.upload = &uploadConfig{
+			content:    content,
+			filename:   filename,
+			uploadType: uploadType,
+		}
 		return nil
 	}
 }
@@ -181,6 +206,17 @@ type none struct{}
 //	withRequestOpts(options...),
 //
 // )
+//
+// // Upload file Request:
+// return do[*WikiAttachment](s.client,
+//
+//	withMethod(http.MethodPost),
+//	withPath("projects/%s/wikis/attachments", project),
+//	withUpload(content, filename, UploadFile),
+//	withAPIOpts(opt),
+//	withRequestOpts(options...),
+//
+// )
 func do[T any](client *Client, opts ...doOption) (T, *Response, error) {
 	// default config
 	config := &doConfig{
@@ -197,7 +233,25 @@ func do[T any](client *Client, opts ...doOption) (T, *Response, error) {
 		}
 	}
 
-	req, err := client.NewRequest(config.method, config.path, config.apiOpts, config.requestOpts)
+	var (
+		req *retryablehttp.Request
+		err error
+	)
+	switch {
+	case config.upload != nil:
+		req, err = client.UploadRequest(
+			config.method,
+			config.path,
+			config.upload.content,
+			config.upload.filename,
+			config.upload.uploadType,
+			config.apiOpts,
+			config.requestOpts,
+		)
+	default:
+		req, err = client.NewRequest(config.method, config.path, config.apiOpts, config.requestOpts)
+	}
+
 	if err != nil {
 		var z T
 		return z, nil, err

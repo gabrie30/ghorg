@@ -17,8 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
-	"net/http"
 	"time"
 )
 
@@ -67,22 +65,9 @@ type ListWeightEventsOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/resource_weight_events/#list-project-issue-weight-events
 func (s *ResourceWeightEventsService) ListIssueWeightEvents(pid any, issue int64, opt *ListWeightEventsOptions, options ...RequestOptionFunc) ([]*WeightEvent, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/issues/%d/resource_weight_events", PathEscape(project), issue)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var wes []*WeightEvent
-	resp, err := s.client.Do(req, &wes)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return wes, resp, nil
+	return do[[]*WeightEvent](s.client,
+		withPath("projects/%s/issues/%d/resource_weight_events", ProjectID{pid}, issue),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }

@@ -22,10 +22,32 @@ import (
 
 type (
 	GroupMarkdownUploadsServiceInterface interface {
+		// ListGroupMarkdownUploads gets all markdown uploads for a group.
+		//
+		// GitLab API Docs:
+		// https://docs.gitlab.com/api/group_markdown_uploads/#list-uploads
 		ListGroupMarkdownUploads(gid any, opt *ListMarkdownUploadsOptions, options ...RequestOptionFunc) ([]*GroupMarkdownUpload, *Response, error)
+		// DownloadGroupMarkdownUploadByID downloads a specific upload by ID.
+		//
+		// GitLab API Docs:
+		// https://docs.gitlab.com/api/group_markdown_uploads/#download-an-uploaded-file-by-id
 		DownloadGroupMarkdownUploadByID(gid any, uploadID int64, options ...RequestOptionFunc) (io.Reader, *Response, error)
+		// DownloadGroupMarkdownUploadBySecretAndFilename downloads a specific upload
+		// by secret and filename.
+		//
+		// GitLab API Docs:
+		// https://docs.gitlab.com/api/group_markdown_uploads/#download-an-uploaded-file-by-secret-and-filename
 		DownloadGroupMarkdownUploadBySecretAndFilename(gid any, secret string, filename string, options ...RequestOptionFunc) (io.Reader, *Response, error)
+		// DeleteGroupMarkdownUploadByID deletes an upload by ID.
+		//
+		// GitLab API Docs:
+		// https://docs.gitlab.com/api/group_markdown_uploads/#delete-an-uploaded-file-by-id
 		DeleteGroupMarkdownUploadByID(gid any, uploadID int64, options ...RequestOptionFunc) (*Response, error)
+		// DeleteGroupMarkdownUploadBySecretAndFilename deletes an upload
+		// by secret and filename.
+		//
+		// GitLab API Docs:
+		// https://docs.gitlab.com/api/group_markdown_uploads/#delete-an-uploaded-file-by-secret-and-filename
 		DeleteGroupMarkdownUploadBySecretAndFilename(gid any, secret string, filename string, options ...RequestOptionFunc) (*Response, error)
 	}
 
@@ -46,18 +68,10 @@ type (
 	GroupMarkdownUpload = MarkdownUpload
 )
 
-// ListGroupMarkdownUploads gets all markdown uploads for a group.
-//
-// GitLab API Docs:
-// https://docs.gitlab.com/api/group_markdown_uploads/#list-uploads
 func (s *GroupMarkdownUploadsService) ListGroupMarkdownUploads(gid any, opt *ListMarkdownUploadsOptions, options ...RequestOptionFunc) ([]*GroupMarkdownUpload, *Response, error) {
 	return listMarkdownUploads[GroupMarkdownUpload](s.client, GroupResource, GroupID{gid}, opt, options)
 }
 
-// DownloadGroupMarkdownUploadByID downloads a specific upload by ID.
-//
-// GitLab API Docs:
-// https://docs.gitlab.com/api/group_markdown_uploads/#download-an-uploaded-file-by-id
 func (s *GroupMarkdownUploadsService) DownloadGroupMarkdownUploadByID(gid any, uploadID int64, options ...RequestOptionFunc) (io.Reader, *Response, error) {
 	buffer, resp, err := downloadMarkdownUploadByID(s.client, GroupResource, GroupID{gid}, uploadID, options)
 	if err != nil {
@@ -66,11 +80,6 @@ func (s *GroupMarkdownUploadsService) DownloadGroupMarkdownUploadByID(gid any, u
 	return buffer, resp, nil
 }
 
-// DownloadGroupMarkdownUploadBySecretAndFilename downloads a specific upload
-// by secret and filename.
-//
-// GitLab API Docs:
-// https://docs.gitlab.com/api/group_markdown_uploads/#download-an-uploaded-file-by-secret-and-filename
 func (s *GroupMarkdownUploadsService) DownloadGroupMarkdownUploadBySecretAndFilename(gid any, secret string, filename string, options ...RequestOptionFunc) (io.Reader, *Response, error) {
 	buffer, resp, err := downloadMarkdownUploadBySecretAndFilename(s.client, GroupResource, GroupID{gid}, secret, filename, options)
 	if err != nil {
@@ -79,19 +88,10 @@ func (s *GroupMarkdownUploadsService) DownloadGroupMarkdownUploadBySecretAndFile
 	return buffer, resp, nil
 }
 
-// DeleteGroupMarkdownUploadByID deletes an upload by ID.
-//
-// GitLab API Docs:
-// https://docs.gitlab.com/api/group_markdown_uploads/#delete-an-uploaded-file-by-id
 func (s *GroupMarkdownUploadsService) DeleteGroupMarkdownUploadByID(gid any, uploadID int64, options ...RequestOptionFunc) (*Response, error) {
 	return deleteMarkdownUploadByID(s.client, GroupResource, GroupID{gid}, uploadID, options)
 }
 
-// DeleteGroupMarkdownUploadBySecretAndFilename deletes an upload
-// by secret and filename.
-//
-// GitLab API Docs:
-// https://docs.gitlab.com/api/group_markdown_uploads/#delete-an-uploaded-file-by-secret-and-filename
 func (s *GroupMarkdownUploadsService) DeleteGroupMarkdownUploadBySecretAndFilename(gid any, secret string, filename string, options ...RequestOptionFunc) (*Response, error) {
 	return deleteMarkdownUploadBySecretAndFilename(s.client, GroupResource, GroupID{gid}, secret, filename, options)
 }

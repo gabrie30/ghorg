@@ -22,8 +22,21 @@ import (
 
 type (
 	IssuesStatisticsServiceInterface interface {
+		// GetIssuesStatistics gets issues statistics on all issues the authenticated
+		// user has access to.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/issues_statistics/#get-issues-statistics
 		GetIssuesStatistics(opt *GetIssuesStatisticsOptions, options ...RequestOptionFunc) (*IssuesStatistics, *Response, error)
+		// GetGroupIssuesStatistics gets issues count statistics for given group.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/issues_statistics/#get-group-issues-statistics
 		GetGroupIssuesStatistics(gid any, opt *GetGroupIssuesStatisticsOptions, options ...RequestOptionFunc) (*IssuesStatistics, *Response, error)
+		// GetProjectIssuesStatistics gets issues count statistics for given project.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/issues_statistics/#get-project-issues-statistics
 		GetProjectIssuesStatistics(pid any, opt *GetProjectIssuesStatisticsOptions, options ...RequestOptionFunc) (*IssuesStatistics, *Response, error)
 	}
 
@@ -88,11 +101,6 @@ type GetIssuesStatisticsOptions struct {
 	Confidential     *bool         `url:"confidential,omitempty" json:"confidential,omitempty"`
 }
 
-// GetIssuesStatistics gets issues statistics on all issues the authenticated
-// user has access to.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/issues_statistics/#get-issues-statistics
 func (s *IssuesStatisticsService) GetIssuesStatistics(opt *GetIssuesStatisticsOptions, options ...RequestOptionFunc) (*IssuesStatistics, *Response, error) {
 	return do[*IssuesStatistics](s.client,
 		withPath("issues_statistics"),
@@ -124,10 +132,6 @@ type GetGroupIssuesStatisticsOptions struct {
 	Confidential     *bool         `url:"confidential,omitempty" json:"confidential,omitempty"`
 }
 
-// GetGroupIssuesStatistics gets issues count statistics for given group.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/issues_statistics/#get-group-issues-statistics
 func (s *IssuesStatisticsService) GetGroupIssuesStatistics(gid any, opt *GetGroupIssuesStatisticsOptions, options ...RequestOptionFunc) (*IssuesStatistics, *Response, error) {
 	return do[*IssuesStatistics](s.client,
 		withPath("groups/%s/issues_statistics", GroupID{gid}),
@@ -159,10 +163,6 @@ type GetProjectIssuesStatisticsOptions struct {
 	Confidential     *bool         `url:"confidential,omitempty" json:"confidential,omitempty"`
 }
 
-// GetProjectIssuesStatistics gets issues count statistics for given project.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/issues_statistics/#get-project-issues-statistics
 func (s *IssuesStatisticsService) GetProjectIssuesStatistics(pid any, opt *GetProjectIssuesStatisticsOptions, options ...RequestOptionFunc) (*IssuesStatistics, *Response, error) {
 	return do[*IssuesStatistics](s.client,
 		withPath("projects/%s/issues_statistics", ProjectID{pid}),

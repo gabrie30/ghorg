@@ -23,12 +23,41 @@ import (
 
 type (
 	GroupMembersServiceInterface interface {
+		// GetGroupMember gets a member of a group.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/members/#get-a-member-of-a-group-or-project
 		GetGroupMember(gid any, user int64, options ...RequestOptionFunc) (*GroupMember, *Response, error)
+		// GetInheritedGroupMember gets a member of a group or project, including
+		// inherited and invited members
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/members/#get-a-member-of-a-group-or-project-including-inherited-and-invited-members
 		GetInheritedGroupMember(gid any, user int64, options ...RequestOptionFunc) (*GroupMember, *Response, error)
+		// AddGroupMember adds a user to the list of group members.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/members/#add-a-member-to-a-group-or-project
 		AddGroupMember(gid any, opt *AddGroupMemberOptions, options ...RequestOptionFunc) (*GroupMember, *Response, error)
+		// ShareWithGroup shares a group with the group.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/groups/#create-a-link-to-share-a-group-with-another-group
 		ShareWithGroup(gid any, opt *ShareWithGroupOptions, options ...RequestOptionFunc) (*Group, *Response, error)
+		// DeleteShareWithGroup allows to unshare a group from a group.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/groups/#delete-the-link-that-shares-a-group-with-another-group
 		DeleteShareWithGroup(gid any, groupID int64, options ...RequestOptionFunc) (*Response, error)
+		// EditGroupMember updates a member of a group.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/members/#edit-a-member-of-a-group-or-project
 		EditGroupMember(gid any, user int64, opt *EditGroupMemberOptions, options ...RequestOptionFunc) (*GroupMember, *Response, error)
+		// RemoveGroupMember removes user from user team.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/members/#remove-a-member-from-a-group-or-project
 		RemoveGroupMember(gid any, user int64, opt *RemoveGroupMemberOptions, options ...RequestOptionFunc) (*Response, error)
 	}
 
@@ -158,10 +187,6 @@ type AddGroupMemberOptions struct {
 	MemberRoleID *int64            `url:"member_role_id,omitempty" json:"member_role_id,omitempty"`
 }
 
-// GetGroupMember gets a member of a group.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/members/#get-a-member-of-a-group-or-project
 func (s *GroupMembersService) GetGroupMember(gid any, user int64, options ...RequestOptionFunc) (*GroupMember, *Response, error) {
 	return do[*GroupMember](s.client,
 		withPath("groups/%s/members/%d", GroupID{gid}, user),
@@ -169,11 +194,6 @@ func (s *GroupMembersService) GetGroupMember(gid any, user int64, options ...Req
 	)
 }
 
-// GetInheritedGroupMember get a member of a group or project, including
-// inherited and invited members
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/members/#get-a-member-of-a-group-or-project-including-inherited-and-invited-members
 func (s *GroupMembersService) GetInheritedGroupMember(gid any, user int64, options ...RequestOptionFunc) (*GroupMember, *Response, error) {
 	return do[*GroupMember](s.client,
 		withPath("groups/%s/members/all/%d", GroupID{gid}, user),
@@ -240,10 +260,6 @@ func (s *GroupsService) RemoveBillableGroupMember(gid any, user int64, options .
 	return resp, err
 }
 
-// AddGroupMember adds a user to the list of group members.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/members/#add-a-member-to-a-group-or-project
 func (s *GroupMembersService) AddGroupMember(gid any, opt *AddGroupMemberOptions, options ...RequestOptionFunc) (*GroupMember, *Response, error) {
 	return do[*GroupMember](s.client,
 		withMethod(http.MethodPost),
@@ -253,10 +269,6 @@ func (s *GroupMembersService) AddGroupMember(gid any, opt *AddGroupMemberOptions
 	)
 }
 
-// ShareWithGroup shares a group with the group.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/groups/#create-a-link-to-share-a-group-with-another-group
 func (s *GroupMembersService) ShareWithGroup(gid any, opt *ShareWithGroupOptions, options ...RequestOptionFunc) (*Group, *Response, error) {
 	return do[*Group](s.client,
 		withMethod(http.MethodPost),
@@ -266,10 +278,6 @@ func (s *GroupMembersService) ShareWithGroup(gid any, opt *ShareWithGroupOptions
 	)
 }
 
-// DeleteShareWithGroup allows to unshare a group from a group.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/groups/#delete-the-link-that-shares-a-group-with-another-group
 func (s *GroupMembersService) DeleteShareWithGroup(gid any, groupID int64, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodDelete),
@@ -290,10 +298,6 @@ type EditGroupMemberOptions struct {
 	MemberRoleID *int64            `url:"member_role_id,omitempty" json:"member_role_id,omitempty"`
 }
 
-// EditGroupMember updates a member of a group.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/members/#edit-a-member-of-a-group-or-project
 func (s *GroupMembersService) EditGroupMember(gid any, user int64, opt *EditGroupMemberOptions, options ...RequestOptionFunc) (*GroupMember, *Response, error) {
 	return do[*GroupMember](s.client,
 		withMethod(http.MethodPut),
@@ -312,10 +316,6 @@ type RemoveGroupMemberOptions struct {
 	UnassignIssuables *bool `url:"unassign_issuables,omitempty" json:"unassign_issuables,omitempty"`
 }
 
-// RemoveGroupMember removes user from user team.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/members/#remove-a-member-from-a-group-or-project
 func (s *GroupMembersService) RemoveGroupMember(gid any, user int64, opt *RemoveGroupMemberOptions, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodDelete),

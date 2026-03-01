@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -81,20 +80,10 @@ func (v InstanceCluster) String() string {
 // GitLab API docs:
 // https://docs.gitlab.com/api/instance_clusters/#list-instance-clusters
 func (s *InstanceClustersService) ListClusters(options ...RequestOptionFunc) ([]*InstanceCluster, *Response, error) {
-	u := "admin/clusters"
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var ics []*InstanceCluster
-	resp, err := s.client.Do(req, &ics)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ics, resp, nil
+	return do[[]*InstanceCluster](s.client,
+		withPath("admin/clusters"),
+		withRequestOpts(options...),
+	)
 }
 
 // GetCluster gets an instance cluster.
@@ -103,20 +92,10 @@ func (s *InstanceClustersService) ListClusters(options ...RequestOptionFunc) ([]
 // GitLab API docs:
 // https://docs.gitlab.com/api/instance_clusters/#get-a-single-instance-cluster
 func (s *InstanceClustersService) GetCluster(cluster int64, options ...RequestOptionFunc) (*InstanceCluster, *Response, error) {
-	u := fmt.Sprintf("admin/clusters/%d", cluster)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	ic := new(InstanceCluster)
-	resp, err := s.client.Do(req, &ic)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ic, resp, nil
+	return do[*InstanceCluster](s.client,
+		withPath("admin/clusters/%d", cluster),
+		withRequestOpts(options...),
+	)
 }
 
 // AddCluster adds an existing cluster to the instance.
@@ -125,20 +104,12 @@ func (s *InstanceClustersService) GetCluster(cluster int64, options ...RequestOp
 // GitLab API docs:
 // https://docs.gitlab.com/api/instance_clusters/#add-existing-instance-cluster
 func (s *InstanceClustersService) AddCluster(opt *AddClusterOptions, options ...RequestOptionFunc) (*InstanceCluster, *Response, error) {
-	u := "admin/clusters/add"
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	ic := new(InstanceCluster)
-	resp, err := s.client.Do(req, ic)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ic, resp, nil
+	return do[*InstanceCluster](s.client,
+		withMethod(http.MethodPost),
+		withPath("admin/clusters/add"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // EditCluster updates an existing instance cluster.
@@ -147,20 +118,12 @@ func (s *InstanceClustersService) AddCluster(opt *AddClusterOptions, options ...
 // GitLab API docs:
 // https://docs.gitlab.com/api/instance_clusters/#edit-instance-cluster
 func (s *InstanceClustersService) EditCluster(cluster int64, opt *EditClusterOptions, options ...RequestOptionFunc) (*InstanceCluster, *Response, error) {
-	u := fmt.Sprintf("admin/clusters/%d", cluster)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	ic := new(InstanceCluster)
-	resp, err := s.client.Do(req, ic)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ic, resp, nil
+	return do[*InstanceCluster](s.client,
+		withMethod(http.MethodPut),
+		withPath("admin/clusters/%d", cluster),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // DeleteCluster deletes an existing instance cluster.
@@ -169,12 +132,10 @@ func (s *InstanceClustersService) EditCluster(cluster int64, opt *EditClusterOpt
 // GitLab API docs:
 // https://docs.gitlab.com/api/instance_clusters/#delete-instance-cluster
 func (s *InstanceClustersService) DeleteCluster(cluster int64, options ...RequestOptionFunc) (*Response, error) {
-	u := fmt.Sprintf("admin/clusters/%d", cluster)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("admin/clusters/%d", cluster),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

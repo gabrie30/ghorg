@@ -15,7 +15,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -32,19 +31,19 @@ type (
 		// ListMetricImages lists all the metric images for a project alert.
 		//
 		// GitLab API docs:
-		// https://docs.gitlab.com/api/alert_management_alerts/#list-metric-images
+		// https://docs.gitlab.com/api/alert_management_alerts/#list-all-metric-images
 		ListMetricImages(pid any, alertIID int64, opt *ListMetricImagesOptions, options ...RequestOptionFunc) ([]*MetricImage, *Response, error)
 
 		// UpdateMetricImage updates a metric image for a project alert.
 		//
 		// GitLab API docs:
-		// https://docs.gitlab.com/api/alert_management_alerts/#update-metric-image
+		// https://docs.gitlab.com/api/alert_management_alerts/#update-a-metric-image
 		UpdateMetricImage(pid any, alertIID int64, id int64, opt *UpdateMetricImageOptions, options ...RequestOptionFunc) (*MetricImage, *Response, error)
 
 		// DeleteMetricImage deletes a metric image for a project alert.
 		//
 		// GitLab API docs:
-		// https://docs.gitlab.com/api/alert_management_alerts/#delete-metric-image
+		// https://docs.gitlab.com/api/alert_management_alerts/#delete-a-metric-image
 		DeleteMetricImage(pid any, alertIID int64, id int64, options ...RequestOptionFunc) (*Response, error)
 	}
 
@@ -83,24 +82,13 @@ type UploadMetricImageOptions struct {
 }
 
 func (s *AlertManagementService) UploadMetricImage(pid any, alertIID int64, content io.Reader, filename string, opt *UploadMetricImageOptions, options ...RequestOptionFunc) (*MetricImage, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/alert_management_alerts/%d/metric_images", PathEscape(project), alertIID)
-
-	req, err := s.client.UploadRequest(http.MethodPost, u, content, filename, UploadFile, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	mi := new(MetricImage)
-	resp, err := s.client.Do(req, mi)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return mi, resp, nil
+	return do[*MetricImage](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/alert_management_alerts/%d/metric_images", ProjectID{pid}, alertIID),
+		withUpload(content, filename, UploadFile),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // ListMetricImagesOptions represents the available ListMetricImages() options.

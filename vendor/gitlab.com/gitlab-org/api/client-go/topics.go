@@ -18,11 +18,8 @@ package gitlab
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-
-	retryablehttp "github.com/hashicorp/go-retryablehttp"
 )
 
 type (
@@ -144,33 +141,16 @@ func (a *TopicAvatar) MarshalJSON() ([]byte, error) {
 }
 
 func (s *TopicsService) CreateTopic(opt *CreateTopicOptions, options ...RequestOptionFunc) (*Topic, *Response, error) {
-	var err error
-	var req *retryablehttp.Request
-
-	if opt.Avatar == nil {
-		req, err = s.client.NewRequest(http.MethodPost, "topics", opt, options)
-	} else {
-		req, err = s.client.UploadRequest(
-			http.MethodPost,
-			"topics",
-			opt.Avatar.Image,
-			opt.Avatar.Filename,
-			UploadAvatar,
-			opt,
-			options,
-		)
+	reqOpts := []doOption{
+		withMethod(http.MethodPost),
+		withPath("topics"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
 	}
-	if err != nil {
-		return nil, nil, err
+	if opt.Avatar != nil {
+		reqOpts = append(reqOpts, withUpload(opt.Avatar.Image, opt.Avatar.Filename, UploadAvatar))
 	}
-
-	t := new(Topic)
-	resp, err := s.client.Do(req, t)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return t, resp, nil
+	return do[*Topic](s.client, reqOpts...)
 }
 
 // UpdateTopicOptions represents the available UpdateTopic() options.
@@ -185,33 +165,16 @@ type UpdateTopicOptions struct {
 }
 
 func (s *TopicsService) UpdateTopic(topic int64, opt *UpdateTopicOptions, options ...RequestOptionFunc) (*Topic, *Response, error) {
-	var err error
-	var req *retryablehttp.Request
-
-	if opt.Avatar == nil || (opt.Avatar.Filename == "" && opt.Avatar.Image == nil) {
-		req, err = s.client.NewRequest(http.MethodPut, fmt.Sprintf("topics/%d", topic), opt, options)
-	} else {
-		req, err = s.client.UploadRequest(
-			http.MethodPut,
-			fmt.Sprintf("topics/%d", topic),
-			opt.Avatar.Image,
-			opt.Avatar.Filename,
-			UploadAvatar,
-			opt,
-			options,
-		)
+	reqOpts := []doOption{
+		withMethod(http.MethodPut),
+		withPath("topics/%d", topic),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
 	}
-	if err != nil {
-		return nil, nil, err
+	if opt.Avatar != nil && (opt.Avatar.Filename != "" || opt.Avatar.Image != nil) {
+		reqOpts = append(reqOpts, withUpload(opt.Avatar.Image, opt.Avatar.Filename, UploadAvatar))
 	}
-
-	t := new(Topic)
-	resp, err := s.client.Do(req, t)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return t, resp, nil
+	return do[*Topic](s.client, reqOpts...)
 }
 
 func (s *TopicsService) DeleteTopic(topic int64, options ...RequestOptionFunc) (*Response, error) {

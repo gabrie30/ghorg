@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -83,24 +82,10 @@ func (v GroupCluster) String() string {
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_clusters/#list-group-clusters
 func (s *GroupClustersService) ListClusters(pid any, options ...RequestOptionFunc) ([]*GroupCluster, *Response, error) {
-	group, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/clusters", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var pcs []*GroupCluster
-	resp, err := s.client.Do(req, &pcs)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pcs, resp, nil
+	return do[[]*GroupCluster](s.client,
+		withPath("groups/%s/clusters", GroupID{pid}),
+		withRequestOpts(options...),
+	)
 }
 
 // GetCluster gets a cluster.
@@ -109,24 +94,10 @@ func (s *GroupClustersService) ListClusters(pid any, options ...RequestOptionFun
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_clusters/#get-a-single-group-cluster
 func (s *GroupClustersService) GetCluster(pid any, cluster int64, options ...RequestOptionFunc) (*GroupCluster, *Response, error) {
-	group, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/clusters/%d", PathEscape(group), cluster)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	gc := new(GroupCluster)
-	resp, err := s.client.Do(req, &gc)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return gc, resp, nil
+	return do[*GroupCluster](s.client,
+		withPath("groups/%s/clusters/%d", GroupID{pid}, cluster),
+		withRequestOpts(options...),
+	)
 }
 
 // AddGroupClusterOptions represents the available AddCluster() options.
@@ -160,24 +131,12 @@ type AddGroupPlatformKubernetesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_clusters/#add-existing-cluster-to-group
 func (s *GroupClustersService) AddCluster(pid any, opt *AddGroupClusterOptions, options ...RequestOptionFunc) (*GroupCluster, *Response, error) {
-	group, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/clusters/user", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	gc := new(GroupCluster)
-	resp, err := s.client.Do(req, gc)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return gc, resp, nil
+	return do[*GroupCluster](s.client,
+		withMethod(http.MethodPost),
+		withPath("groups/%s/clusters/user", GroupID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // EditGroupClusterOptions represents the available EditCluster() options.
@@ -207,24 +166,12 @@ type EditGroupPlatformKubernetesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_clusters/#edit-group-cluster
 func (s *GroupClustersService) EditCluster(pid any, cluster int64, opt *EditGroupClusterOptions, options ...RequestOptionFunc) (*GroupCluster, *Response, error) {
-	group, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/clusters/%d", PathEscape(group), cluster)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	gc := new(GroupCluster)
-	resp, err := s.client.Do(req, gc)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return gc, resp, nil
+	return do[*GroupCluster](s.client,
+		withMethod(http.MethodPut),
+		withPath("groups/%s/clusters/%d", GroupID{pid}, cluster),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // DeleteCluster deletes an existing group cluster.
@@ -233,16 +180,10 @@ func (s *GroupClustersService) EditCluster(pid any, cluster int64, opt *EditGrou
 // GitLab API docs:
 // https://docs.gitlab.com/api/group_clusters/#delete-group-cluster
 func (s *GroupClustersService) DeleteCluster(pid any, cluster int64, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/clusters/%d", PathEscape(group), cluster)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("groups/%s/clusters/%d", GroupID{pid}, cluster),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

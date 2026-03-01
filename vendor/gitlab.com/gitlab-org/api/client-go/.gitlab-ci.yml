@@ -9,9 +9,9 @@ include:
   - template: Jobs/SAST.gitlab-ci.yml
   - component: ${CI_SERVER_FQDN}/components/dependency-scanning/main@0.8.0
   - component: ${CI_SERVER_FQDN}/components/dependency-scanning/main@0.8.0
-  - component: ${CI_SERVER_FQDN}/gitlab-org/components/danger-review/danger-review@2.0.0
+  - component: ${CI_SERVER_FQDN}/gitlab-com/gl-infra/common-ci-tasks/danger@v3.5.3
     inputs:
-      job_stage: lint
+      stage: lint
       job_allow_failure: true
 
   # NOTE: the two includes below are a hack to conditionally set the tags node
@@ -121,7 +121,7 @@ golangci-lint:
   needs: []
   variables:
     REPORT_FILENAME: "gl-code-quality-report.json"
-  image: golangci/golangci-lint:v2.8.0
+  image: golangci/golangci-lint:v2.10.1
   script:
     - golangci-lint run
   artifacts:
@@ -157,11 +157,32 @@ verify-generated-code:
         exit 1;
       }
 
+Download GraphQL schema:
+  stage: test
+  needs: []
+  image: node:25-alpine
+  script:
+    - |
+      if [ ! -f schema/gitlab.graphql ]; then
+        mkdir schema
+        npm install -g get-graphql-schema
+        get-graphql-schema "${CI_API_GRAPHQL_URL}" --sdl >schema/gitlab.graphql
+      fi
+  cache:
+    key: $CI_COMMIT_REF_SLUG
+    paths:
+      - schema/gitlab.graphql
+    policy: pull-push
+  artifacts:
+    paths:
+      - schema/gitlab.graphql
+
 tests:unit:
   extends:
     - .go:versions
   stage: test
-  needs: []
+  needs:
+    - Download GraphQL schema
   image: golang:$GOLANG_IMAGE_VERSION
   variables:
     # configure tooling versions
@@ -190,7 +211,6 @@ tests:unit:
         coverage_format: cobertura
     when: always
 
-
 tests:integration:
   stage: test
   rules:
@@ -199,7 +219,7 @@ tests:integration:
   image: golang:1.25-bookworm
   timeout: 2 hours
   services:
-    - docker:29.2.0-dind
+    - docker:29.2.1-dind
   variables:
     # Docker-in-docker configuration
     DOCKER_HOST: tcp://docker:2376

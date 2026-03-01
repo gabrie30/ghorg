@@ -104,14 +104,16 @@ var _ IssueBoardsServiceInterface = (*IssueBoardsService)(nil)
 //
 // GitLab API docs: https://docs.gitlab.com/api/boards/
 type IssueBoard struct {
-	ID        int64           `json:"id"`
-	Name      string          `json:"name"`
-	Project   *Project        `json:"project"`
-	Milestone *Milestone      `json:"milestone"`
-	Assignee  *BasicUser      `json:"assignee"`
-	Lists     []*BoardList    `json:"lists"`
-	Weight    int64           `json:"weight"`
-	Labels    []*LabelDetails `json:"labels"`
+	ID              int64           `json:"id"`
+	Name            string          `json:"name"`
+	Project         *Project        `json:"project"`
+	Milestone       *Milestone      `json:"milestone"`
+	Assignee        *BasicUser      `json:"assignee"`
+	Lists           []*BoardList    `json:"lists"`
+	Weight          int64           `json:"weight"`
+	Labels          []*LabelDetails `json:"labels"`
+	HideBacklogList bool            `json:"hide_backlog_list"`
+	HideClosedList  bool            `json:"hide_closed_list"`
 }
 
 func (b IssueBoard) String() string {
@@ -169,11 +171,13 @@ func (s *IssueBoardsService) CreateIssueBoard(pid any, opt *CreateIssueBoardOpti
 //
 // GitLab API docs: https://docs.gitlab.com/api/boards/#update-an-issue-board
 type UpdateIssueBoardOptions struct {
-	Name        *string       `url:"name,omitempty" json:"name,omitempty"`
-	AssigneeID  *int64        `url:"assignee_id,omitempty" json:"assignee_id,omitempty"`
-	MilestoneID *int64        `url:"milestone_id,omitempty" json:"milestone_id,omitempty"`
-	Labels      *LabelOptions `url:"labels,omitempty" json:"labels,omitempty"`
-	Weight      *int64        `url:"weight,omitempty" json:"weight,omitempty"`
+	Name            *string       `url:"name,omitempty" json:"name,omitempty"`
+	AssigneeID      *int64        `url:"assignee_id,omitempty" json:"assignee_id,omitempty"`
+	MilestoneID     *int64        `url:"milestone_id,omitempty" json:"milestone_id,omitempty"`
+	Labels          *LabelOptions `url:"labels,omitempty" json:"labels,omitempty"`
+	Weight          *int64        `url:"weight,omitempty" json:"weight,omitempty"`
+	HideBacklogList *bool         `url:"hide_backlog_list,omitempty" json:"hide_backlog_list,omitempty"`
+	HideClosedList  *bool         `url:"hide_closed_list,omitempty" json:"hide_closed_list,omitempty"`
 }
 
 func (s *IssueBoardsService) UpdateIssueBoard(pid any, board int64, opt *UpdateIssueBoardOptions, options ...RequestOptionFunc) (*IssueBoard, *Response, error) {

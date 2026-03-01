@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -137,24 +136,11 @@ type ListProjectPackagesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/packages/#for-a-project
 func (s *PackagesService) ListProjectPackages(pid any, opt *ListProjectPackagesOptions, options ...RequestOptionFunc) ([]*Package, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/packages", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var ps []*Package
-	resp, err := s.client.Do(req, &ps)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ps, resp, nil
+	return do[[]*Package](s.client,
+		withPath("projects/%s/packages", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // ListGroupPackagesOptions represents the available ListGroupPackages()
@@ -178,24 +164,11 @@ type ListGroupPackagesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/packages/#for-a-group
 func (s *PackagesService) ListGroupPackages(gid any, opt *ListGroupPackagesOptions, options ...RequestOptionFunc) ([]*GroupPackage, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/packages", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var ps []*GroupPackage
-	resp, err := s.client.Do(req, &ps)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return ps, resp, nil
+	return do[[]*GroupPackage](s.client,
+		withPath("groups/%s/packages", GroupID{gid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // ListPackageFilesOptions represents the available ListPackageFiles()
@@ -212,28 +185,11 @@ type ListPackageFilesOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/packages/#list-package-files
 func (s *PackagesService) ListPackageFiles(pid any, pkg int64, opt *ListPackageFilesOptions, options ...RequestOptionFunc) ([]*PackageFile, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf(
-		"projects/%s/packages/%d/package_files",
-		PathEscape(project),
-		pkg,
+	return do[[]*PackageFile](s.client,
+		withPath("projects/%s/packages/%d/package_files", ProjectID{pid}, pkg),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
 	)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var pfs []*PackageFile
-	resp, err := s.client.Do(req, &pfs)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pfs, resp, nil
 }
 
 // DeleteProjectPackage deletes a package in a project.
@@ -241,18 +197,12 @@ func (s *PackagesService) ListPackageFiles(pid any, pkg int64, opt *ListPackageF
 // GitLab API docs:
 // https://docs.gitlab.com/api/packages/#delete-a-project-package
 func (s *PackagesService) DeleteProjectPackage(pid any, pkg int64, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/packages/%d", PathEscape(project), pkg)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("projects/%s/packages/%d", ProjectID{pid}, pkg),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
 
 // DeletePackageFile deletes a file in project package
@@ -260,16 +210,10 @@ func (s *PackagesService) DeleteProjectPackage(pid any, pkg int64, options ...Re
 // GitLab API docs:
 // https://docs.gitlab.com/api/packages/#delete-a-package-file
 func (s *PackagesService) DeletePackageFile(pid any, pkg, file int64, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/packages/%d/package_files/%d", PathEscape(project), pkg, file)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("projects/%s/packages/%d/package_files/%d", ProjectID{pid}, pkg, file),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

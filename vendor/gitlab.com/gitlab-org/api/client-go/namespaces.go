@@ -16,11 +16,6 @@
 
 package gitlab
 
-import (
-	"fmt"
-	"net/http"
-)
-
 type (
 	NamespacesServiceInterface interface {
 		ListNamespaces(opt *ListNamespacesOptions, options ...RequestOptionFunc) ([]*Namespace, *Response, error)
@@ -79,18 +74,11 @@ type ListNamespacesOptions struct {
 //
 // GitLab API docs: https://docs.gitlab.com/api/namespaces/#list-all-namespaces
 func (s *NamespacesService) ListNamespaces(opt *ListNamespacesOptions, options ...RequestOptionFunc) ([]*Namespace, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "namespaces", opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var n []*Namespace
-	resp, err := s.client.Do(req, &n)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return n, resp, nil
+	return do[[]*Namespace](s.client,
+		withPath("namespaces"),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // SearchNamespace gets all namespaces that match your string in their name
@@ -104,18 +92,11 @@ func (s *NamespacesService) SearchNamespace(query string, options ...RequestOpti
 	}
 	q.Search = query
 
-	req, err := s.client.NewRequest(http.MethodGet, "namespaces", &q, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var n []*Namespace
-	resp, err := s.client.Do(req, &n)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return n, resp, nil
+	return do[[]*Namespace](s.client,
+		withPath("namespaces"),
+		withAPIOpts(&q),
+		withRequestOpts(options...),
+	)
 }
 
 // GetNamespace gets a namespace by id.
@@ -127,20 +108,10 @@ func (s *NamespacesService) GetNamespace(id any, options ...RequestOptionFunc) (
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("namespaces/%s", PathEscape(namespace))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	n := new(Namespace)
-	resp, err := s.client.Do(req, n)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return n, resp, nil
+	return do[*Namespace](s.client,
+		withPath("namespaces/%s", namespace),
+		withRequestOpts(options...),
+	)
 }
 
 // NamespaceExistance represents a namespace exists result.
@@ -169,18 +140,9 @@ func (s *NamespacesService) NamespaceExists(id any, opt *NamespaceExistsOptions,
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("namespaces/%s/exists", namespace)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	n := new(NamespaceExistance)
-	resp, err := s.client.Do(req, n)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return n, resp, nil
+	return do[*NamespaceExistance](s.client,
+		withPath("namespaces/%s/exists", namespace),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }

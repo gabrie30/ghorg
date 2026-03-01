@@ -51,14 +51,25 @@ linters:
     revive:
       enable-all-rules: false
       rules:
+        - name: comment-spacings
         - name: deep-exit
+        - name: error-strings
         - name: get-return
+        - name: identical-switch-branches
+        - name: increment-decrement
+        - name: indent-error-flow
         - name: redundant-import-alias
         - name: struct-tag
         - name: time-date
+        - name: unnecessary-stmt
         - name: unused-parameter
         - name: use-errors-new
         - name: var-naming
+          arguments:
+           - []
+           - []
+           - - skip-package-name-collision-with-go-std: true
+
     staticcheck:
       checks:
         - ST1020
@@ -111,6 +122,9 @@ linters:
           - staticcheck
       - path: _test\.go$
         text: unused-parameter
+        linters:
+          - revive
+      - path: ^testing/
         linters:
           - revive
     paths:

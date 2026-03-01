@@ -238,7 +238,7 @@ func (s *GroupsService) TriggerTestGroupHook(pid any, hook int64, trigger GroupH
 func (s *GroupsService) SetGroupCustomHeader(gid any, hook int64, key string, opt *SetHookCustomHeaderOptions, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodPut),
-		withPath("groups/%s/hooks/%d/custom_headers/%s", GroupID{gid}, hook, key),
+		withPath("groups/%s/hooks/%d/custom_headers/%s", GroupID{gid}, hook, NoEscape{key}),
 		withAPIOpts(opt),
 		withRequestOpts(options...),
 	)
@@ -252,7 +252,7 @@ func (s *GroupsService) SetGroupCustomHeader(gid any, hook int64, key string, op
 func (s *GroupsService) DeleteGroupCustomHeader(gid any, hook int64, key string, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodDelete),
-		withPath("groups/%s/hooks/%d/custom_headers/%s", GroupID{gid}, hook, key),
+		withPath("groups/%s/hooks/%d/custom_headers/%s", GroupID{gid}, hook, NoEscape{key}),
 		withRequestOpts(options...),
 	)
 	return resp, err
@@ -274,7 +274,7 @@ type SetHookURLVariableOptions struct {
 func (s *GroupsService) SetGroupHookURLVariable(gid any, hook int64, key string, opt *SetHookURLVariableOptions, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodPut),
-		withPath("groups/%s/hooks/%d/url_variables/%s", GroupID{gid}, hook, key),
+		withPath("groups/%s/hooks/%d/url_variables/%s", GroupID{gid}, hook, NoEscape{key}),
 		withAPIOpts(opt),
 		withRequestOpts(options...),
 	)
@@ -288,7 +288,7 @@ func (s *GroupsService) SetGroupHookURLVariable(gid any, hook int64, key string,
 func (s *GroupsService) DeleteGroupHookURLVariable(gid any, hook int64, key string, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodDelete),
-		withPath("groups/%s/hooks/%d/url_variables/%s", GroupID{gid}, hook, key),
+		withPath("groups/%s/hooks/%d/url_variables/%s", GroupID{gid}, hook, NoEscape{key}),
 		withRequestOpts(options...),
 	)
 	return resp, err

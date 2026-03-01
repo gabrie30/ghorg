@@ -148,28 +148,12 @@ func (s *GenericPackagesService) PublishPackageFile(pid any, packageName, packag
 // GitLab docs:
 // https://docs.gitlab.com/user/packages/generic_packages/#download-a-single-file
 func (s *GenericPackagesService) DownloadPackageFile(pid any, packageName, packageVersion, fileName string, options ...RequestOptionFunc) ([]byte, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf(
-		"projects/%s/packages/generic/%s/%s/%s",
-		PathEscape(project),
-		PathEscape(packageName),
-		PathEscape(packageVersion),
-		PathEscape(fileName),
+	buf, resp, err := do[bytes.Buffer](s.client,
+		withPath("projects/%s/packages/generic/%s/%s/%s", ProjectID{pid}, packageName, packageVersion, fileName),
+		withRequestOpts(options...),
 	)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var f bytes.Buffer
-	resp, err := s.client.Do(req, &f)
 	if err != nil {
 		return nil, resp, err
 	}
-
-	return f.Bytes(), resp, err
+	return buf.Bytes(), resp, nil
 }

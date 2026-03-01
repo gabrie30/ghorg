@@ -265,7 +265,7 @@ type EditPipelineScheduleVariableOptions struct {
 func (s *PipelineSchedulesService) EditPipelineScheduleVariable(pid any, schedule int64, key string, opt *EditPipelineScheduleVariableOptions, options ...RequestOptionFunc) (*PipelineVariable, *Response, error) {
 	return do[*PipelineVariable](s.client,
 		withMethod(http.MethodPut),
-		withPath("projects/%s/pipeline_schedules/%d/variables/%s", ProjectID{pid}, schedule, key),
+		withPath("projects/%s/pipeline_schedules/%d/variables/%s", ProjectID{pid}, schedule, NoEscape{key}),
 		withAPIOpts(opt),
 		withRequestOpts(options...),
 	)
@@ -278,7 +278,7 @@ func (s *PipelineSchedulesService) EditPipelineScheduleVariable(pid any, schedul
 func (s *PipelineSchedulesService) DeletePipelineScheduleVariable(pid any, schedule int64, key string, options ...RequestOptionFunc) (*PipelineVariable, *Response, error) {
 	return do[*PipelineVariable](s.client,
 		withMethod(http.MethodDelete),
-		withPath("projects/%s/pipeline_schedules/%d/variables/%s", ProjectID{pid}, schedule, key),
+		withPath("projects/%s/pipeline_schedules/%d/variables/%s", ProjectID{pid}, schedule, NoEscape{key}),
 		withRequestOpts(options...),
 	)
 }

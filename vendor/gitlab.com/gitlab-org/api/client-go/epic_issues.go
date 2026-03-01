@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -65,24 +64,11 @@ type EpicIssueAssignment struct {
 // Gitlab API docs:
 // https://docs.gitlab.com/api/epic_issues/#list-issues-for-an-epic
 func (s *EpicIssuesService) ListEpicIssues(gid any, epic int64, opt *ListOptions, options ...RequestOptionFunc) ([]*Issue, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/epics/%d/issues", PathEscape(group), epic)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var is []*Issue
-	resp, err := s.client.Do(req, &is)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return is, resp, nil
+	return do[[]*Issue](s.client,
+		withPath("groups/%s/epics/%d/issues", GroupID{gid}, epic),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // AssignEpicIssue assigns an existing issue to an epic.
@@ -91,24 +77,11 @@ func (s *EpicIssuesService) ListEpicIssues(gid any, epic int64, opt *ListOptions
 // Gitlab API Docs:
 // https://docs.gitlab.com/api/epic_issues/#assign-an-issue-to-the-epic
 func (s *EpicIssuesService) AssignEpicIssue(gid any, epic, issue int64, options ...RequestOptionFunc) (*EpicIssueAssignment, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/epics/%d/issues/%d", PathEscape(group), epic, issue)
-
-	req, err := s.client.NewRequest(http.MethodPost, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	a := new(EpicIssueAssignment)
-	resp, err := s.client.Do(req, a)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return a, resp, nil
+	return do[*EpicIssueAssignment](s.client,
+		withMethod(http.MethodPost),
+		withPath("groups/%s/epics/%d/issues/%d", GroupID{gid}, epic, issue),
+		withRequestOpts(options...),
+	)
 }
 
 // RemoveEpicIssue removes an issue from an epic.
@@ -117,24 +90,11 @@ func (s *EpicIssuesService) AssignEpicIssue(gid any, epic, issue int64, options 
 // Gitlab API Docs:
 // https://docs.gitlab.com/api/epic_issues/#remove-an-issue-from-the-epic
 func (s *EpicIssuesService) RemoveEpicIssue(gid any, epic, epicIssue int64, options ...RequestOptionFunc) (*EpicIssueAssignment, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/epics/%d/issues/%d", PathEscape(group), epic, epicIssue)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	a := new(EpicIssueAssignment)
-	resp, err := s.client.Do(req, a)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return a, resp, nil
+	return do[*EpicIssueAssignment](s.client,
+		withMethod(http.MethodDelete),
+		withPath("groups/%s/epics/%d/issues/%d", GroupID{gid}, epic, epicIssue),
+		withRequestOpts(options...),
+	)
 }
 
 type UpdateEpicIssueAssignmentOptions struct {
@@ -150,22 +110,10 @@ type UpdateEpicIssueAssignmentOptions struct {
 // Gitlab API Docs:
 // https://docs.gitlab.com/api/epic_issues/#update-epic---issue-association
 func (s *EpicIssuesService) UpdateEpicIssueAssignment(gid any, epic, epicIssue int64, opt *UpdateEpicIssueAssignmentOptions, options ...RequestOptionFunc) ([]*Issue, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/epics/%d/issues/%d", PathEscape(group), epic, epicIssue)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var is []*Issue
-	resp, err := s.client.Do(req, &is)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return is, resp, nil
+	return do[[]*Issue](s.client,
+		withMethod(http.MethodPut),
+		withPath("groups/%s/epics/%d/issues/%d", GroupID{gid}, epic, epicIssue),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }

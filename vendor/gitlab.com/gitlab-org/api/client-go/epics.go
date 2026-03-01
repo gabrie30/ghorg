@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -138,24 +137,11 @@ type ListGroupEpicsOptions struct {
 }
 
 func (s *EpicsService) ListGroupEpics(gid any, opt *ListGroupEpicsOptions, options ...RequestOptionFunc) ([]*Epic, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/epics", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var es []*Epic
-	resp, err := s.client.Do(req, &es)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return es, resp, nil
+	return do[[]*Epic](s.client,
+		withPath("groups/%s/epics", GroupID{gid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // GetEpic gets a single group epic.
@@ -163,24 +149,10 @@ func (s *EpicsService) ListGroupEpics(gid any, opt *ListGroupEpicsOptions, optio
 //
 // GitLab API docs: https://docs.gitlab.com/api/epics/#single-epic
 func (s *EpicsService) GetEpic(gid any, epic int64, options ...RequestOptionFunc) (*Epic, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/epics/%d", PathEscape(group), epic)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	e := new(Epic)
-	resp, err := s.client.Do(req, e)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return e, resp, nil
+	return do[*Epic](s.client,
+		withPath("groups/%s/epics/%d", GroupID{gid}, epic),
+		withRequestOpts(options...),
+	)
 }
 
 // GetEpicLinks gets all child epics of an epic.
@@ -188,24 +160,10 @@ func (s *EpicsService) GetEpic(gid any, epic int64, options ...RequestOptionFunc
 //
 // GitLab API docs: https://docs.gitlab.com/api/epic_links/
 func (s *EpicsService) GetEpicLinks(gid any, epic int64, options ...RequestOptionFunc) ([]*Epic, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/epics/%d/epics", PathEscape(group), epic)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var e []*Epic
-	resp, err := s.client.Do(req, &e)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return e, resp, nil
+	return do[[]*Epic](s.client,
+		withPath("groups/%s/epics/%d/epics", GroupID{gid}, epic),
+		withRequestOpts(options...),
+	)
 }
 
 // CreateEpicOptions represents the available CreateEpic() options.
@@ -227,24 +185,12 @@ type CreateEpicOptions struct {
 }
 
 func (s *EpicsService) CreateEpic(gid any, opt *CreateEpicOptions, options ...RequestOptionFunc) (*Epic, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/epics", PathEscape(group))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	e := new(Epic)
-	resp, err := s.client.Do(req, e)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return e, resp, nil
+	return do[*Epic](s.client,
+		withMethod(http.MethodPost),
+		withPath("groups/%s/epics", GroupID{gid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // UpdateEpicOptions represents the available UpdateEpic() options.
@@ -274,24 +220,12 @@ type UpdateEpicOptions struct {
 //
 // GitLab API docs: https://docs.gitlab.com/api/epics/#update-epic
 func (s *EpicsService) UpdateEpic(gid any, epic int64, opt *UpdateEpicOptions, options ...RequestOptionFunc) (*Epic, *Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("groups/%s/epics/%d", PathEscape(group), epic)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	e := new(Epic)
-	resp, err := s.client.Do(req, e)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return e, resp, nil
+	return do[*Epic](s.client,
+		withMethod(http.MethodPut),
+		withPath("groups/%s/epics/%d", GroupID{gid}, epic),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // DeleteEpic deletes a single group epic.
@@ -299,16 +233,10 @@ func (s *EpicsService) UpdateEpic(gid any, epic int64, opt *UpdateEpicOptions, o
 //
 // GitLab API docs: https://docs.gitlab.com/api/epics/#delete-epic
 func (s *EpicsService) DeleteEpic(gid any, epic int64, options ...RequestOptionFunc) (*Response, error) {
-	group, err := parseID(gid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("groups/%s/epics/%d", PathEscape(group), epic)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("groups/%s/epics/%d", GroupID{gid}, epic),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }

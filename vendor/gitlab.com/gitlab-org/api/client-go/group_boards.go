@@ -22,14 +22,51 @@ import (
 
 type (
 	GroupIssueBoardsServiceInterface interface {
+		// ListGroupIssueBoards gets a list of all issue boards in a group.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_boards/#list-all-group-issue-boards-in-a-group
 		ListGroupIssueBoards(gid any, opt *ListGroupIssueBoardsOptions, options ...RequestOptionFunc) ([]*GroupIssueBoard, *Response, error)
+		// CreateGroupIssueBoard creates a new issue board.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_boards/#create-a-group-issue-board
 		CreateGroupIssueBoard(gid any, opt *CreateGroupIssueBoardOptions, options ...RequestOptionFunc) (*GroupIssueBoard, *Response, error)
+		// GetGroupIssueBoard gets a single issue board of a group.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_boards/#single-group-issue-board
 		GetGroupIssueBoard(gid any, board int64, options ...RequestOptionFunc) (*GroupIssueBoard, *Response, error)
+		// UpdateIssueBoard updates a single issue board of a group.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_boards/#update-a-group-issue-board
 		UpdateIssueBoard(gid any, board int64, opt *UpdateGroupIssueBoardOptions, options ...RequestOptionFunc) (*GroupIssueBoard, *Response, error)
+		// DeleteIssueBoard deletes a single issue board of a group.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_boards/#delete-a-group-issue-board
 		DeleteIssueBoard(gid any, board int64, options ...RequestOptionFunc) (*Response, error)
+		// ListGroupIssueBoardLists gets a list of the issue board's lists. Does not include
+		// backlog and closed lists.
+		//
+		// GitLab API docs: https://docs.gitlab.com/api/group_boards/#list-group-issue-board-lists
 		ListGroupIssueBoardLists(gid any, board int64, opt *ListGroupIssueBoardListsOptions, options ...RequestOptionFunc) ([]*BoardList, *Response, error)
+		// GetGroupIssueBoardList gets a single issue board list.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_boards/#single-group-issue-board-list
 		GetGroupIssueBoardList(gid any, board, list int64, options ...RequestOptionFunc) (*BoardList, *Response, error)
+		// CreateGroupIssueBoardList creates a new issue board list.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_boards/#new-group-issue-board-list
 		CreateGroupIssueBoardList(gid any, board int64, opt *CreateGroupIssueBoardListOptions, options ...RequestOptionFunc) (*BoardList, *Response, error)
+		// UpdateIssueBoardList updates the position of an existing
+		// group issue board list.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/group_boards/#edit-group-issue-board-list
 		UpdateIssueBoardList(gid any, board, list int64, opt *UpdateGroupIssueBoardListOptions, options ...RequestOptionFunc) ([]*BoardList, *Response, error)
 		DeleteGroupIssueBoardList(gid any, board, list int64, options ...RequestOptionFunc) (*Response, error)
 	}
@@ -72,10 +109,6 @@ type ListGroupIssueBoardsOptions struct {
 	ListOptions
 }
 
-// ListGroupIssueBoards gets a list of all issue boards in a group.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_boards/#list-all-group-issue-boards-in-a-group
 func (s *GroupIssueBoardsService) ListGroupIssueBoards(gid any, opt *ListGroupIssueBoardsOptions, options ...RequestOptionFunc) ([]*GroupIssueBoard, *Response, error) {
 	return do[[]*GroupIssueBoard](s.client,
 		withMethod(http.MethodGet),
@@ -94,10 +127,6 @@ type CreateGroupIssueBoardOptions struct {
 	Name *string `url:"name" json:"name"`
 }
 
-// CreateGroupIssueBoard creates a new issue board.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_boards/#create-a-group-issue-board
 func (s *GroupIssueBoardsService) CreateGroupIssueBoard(gid any, opt *CreateGroupIssueBoardOptions, options ...RequestOptionFunc) (*GroupIssueBoard, *Response, error) {
 	return do[*GroupIssueBoard](s.client,
 		withMethod(http.MethodPost),
@@ -107,10 +136,6 @@ func (s *GroupIssueBoardsService) CreateGroupIssueBoard(gid any, opt *CreateGrou
 	)
 }
 
-// GetGroupIssueBoard gets a single issue board of a group.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_boards/#single-group-issue-board
 func (s *GroupIssueBoardsService) GetGroupIssueBoard(gid any, board int64, options ...RequestOptionFunc) (*GroupIssueBoard, *Response, error) {
 	return do[*GroupIssueBoard](s.client,
 		withMethod(http.MethodGet),
@@ -131,10 +156,6 @@ type UpdateGroupIssueBoardOptions struct {
 	Weight      *int64        `url:"weight,omitempty" json:"weight,omitempty"`
 }
 
-// UpdateIssueBoard updates a single issue board of a group.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_boards/#update-a-group-issue-board
 func (s *GroupIssueBoardsService) UpdateIssueBoard(gid any, board int64, opt *UpdateGroupIssueBoardOptions, options ...RequestOptionFunc) (*GroupIssueBoard, *Response, error) {
 	return do[*GroupIssueBoard](s.client,
 		withMethod(http.MethodPut),
@@ -144,10 +165,6 @@ func (s *GroupIssueBoardsService) UpdateIssueBoard(gid any, board int64, opt *Up
 	)
 }
 
-// DeleteIssueBoard delete a single issue board of a group.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_boards/#delete-a-group-issue-board
 func (s *GroupIssueBoardsService) DeleteIssueBoard(gid any, board int64, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodDelete),
@@ -166,10 +183,6 @@ type ListGroupIssueBoardListsOptions struct {
 	ListOptions
 }
 
-// ListGroupIssueBoardLists gets a list of the issue board's lists. Does not include
-// backlog and closed lists.
-//
-// GitLab API docs: https://docs.gitlab.com/api/group_boards/#list-group-issue-board-lists
 func (s *GroupIssueBoardsService) ListGroupIssueBoardLists(gid any, board int64, opt *ListGroupIssueBoardListsOptions, options ...RequestOptionFunc) ([]*BoardList, *Response, error) {
 	return do[[]*BoardList](s.client,
 		withMethod(http.MethodGet),
@@ -179,10 +192,6 @@ func (s *GroupIssueBoardsService) ListGroupIssueBoardLists(gid any, board int64,
 	)
 }
 
-// GetGroupIssueBoardList gets a single issue board list.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_boards/#single-group-issue-board-list
 func (s *GroupIssueBoardsService) GetGroupIssueBoardList(gid any, board, list int64, options ...RequestOptionFunc) (*BoardList, *Response, error) {
 	return do[*BoardList](s.client,
 		withMethod(http.MethodGet),
@@ -200,10 +209,6 @@ type CreateGroupIssueBoardListOptions struct {
 	LabelID *int64 `url:"label_id" json:"label_id"`
 }
 
-// CreateGroupIssueBoardList creates a new issue board list.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_boards/#new-group-issue-board-list
 func (s *GroupIssueBoardsService) CreateGroupIssueBoardList(gid any, board int64, opt *CreateGroupIssueBoardListOptions, options ...RequestOptionFunc) (*BoardList, *Response, error) {
 	return do[*BoardList](s.client,
 		withMethod(http.MethodPost),
@@ -222,11 +227,6 @@ type UpdateGroupIssueBoardListOptions struct {
 	Position *int64 `url:"position" json:"position"`
 }
 
-// UpdateIssueBoardList updates the position of an existing
-// group issue board list.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/group_boards/#edit-group-issue-board-list
 func (s *GroupIssueBoardsService) UpdateIssueBoardList(gid any, board, list int64, opt *UpdateGroupIssueBoardListOptions, options ...RequestOptionFunc) ([]*BoardList, *Response, error) {
 	return do[[]*BoardList](s.client,
 		withMethod(http.MethodPut),

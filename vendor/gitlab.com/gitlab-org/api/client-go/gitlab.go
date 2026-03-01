@@ -27,7 +27,7 @@ import (
 	"log/slog"
 	"maps"
 	"math"
-	"math/rand"
+	"math/rand/v2"
 	"mime/multipart"
 	"net"
 	"net/http"
@@ -73,7 +73,13 @@ const (
 	PrivateToken
 )
 
-var ErrNotFound = errors.New("404 Not Found")
+var (
+	// ErrNotFound is returned for 404 Not Found errors
+	ErrNotFound = errors.New("404 Not Found")
+
+	// errUnauthenticated is an internal sentinel error to indicate that the auth source doesn't use any authentication
+	errUnauthenticated = errors.New("unauthenticated")
+)
 
 // URLValidationError wraps URL parsing errors with helpful context
 type URLValidationError struct {
@@ -276,6 +282,7 @@ type Client struct {
 	ResourceStateEvents              ResourceStateEventsServiceInterface
 	ResourceWeightEvents             ResourceWeightEventsServiceInterface
 	RunnerControllers                RunnerControllersServiceInterface
+	RunnerControllerScopes           RunnerControllerScopesServiceInterface
 	RunnerControllerTokens           RunnerControllerTokensServiceInterface
 	Runners                          RunnersServiceInterface
 	Search                           SearchServiceInterface
@@ -295,6 +302,7 @@ type Client struct {
 	Validate                         ValidateServiceInterface
 	Version                          VersionServiceInterface
 	Wikis                            WikisServiceInterface
+	WorkItems                        WorkItemsServiceInterface
 }
 
 // Interceptor is used to build a *http.Client request pipeline,
@@ -596,6 +604,7 @@ func NewAuthSourceClient(as AuthSource, options ...ClientOptionFunc) (*Client, e
 	c.ResourceStateEvents = &ResourceStateEventsService{client: c}
 	c.ResourceWeightEvents = &ResourceWeightEventsService{client: c}
 	c.RunnerControllers = &RunnerControllersService{client: c}
+	c.RunnerControllerScopes = &RunnerControllerScopesService{client: c}
 	c.RunnerControllerTokens = &RunnerControllerTokensService{client: c}
 	c.Runners = &RunnersService{client: c}
 	c.Search = &SearchService{client: c}
@@ -615,6 +624,7 @@ func NewAuthSourceClient(as AuthSource, options ...ClientOptionFunc) (*Client, e
 	c.Validate = &ValidateService{client: c}
 	c.Version = &VersionService{client: c}
 	c.Wikis = &WikisService{client: c}
+	c.WorkItems = &WorkItemsService{client: c}
 
 	return c, nil
 }
@@ -758,11 +768,8 @@ func (c *Client) retryHTTPBackoff(min, max time.Duration, attemptNum int, resp *
 // the reset time retrieved from the headers. But if the final wait time is
 // less then min, min will be used instead.
 func rateLimitBackoff(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
-	// rnd is used to generate pseudo-random numbers.
-	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
-
 	// First create some jitter bounded by the min and max durations.
-	jitter := time.Duration(rnd.Float64() * float64(max-min))
+	jitter := time.Duration(rand.Float64() * float64(max-min))
 
 	if resp != nil {
 		if v := resp.Header.Get(headerRateReset); v != "" {
@@ -963,8 +970,12 @@ func (c *Client) NewRequestToURL(method string, u *url.URL, opt any, options []R
 		}
 	}
 
-	// Set the request specific headers.
-	maps.Copy(req.Header, reqHeaders)
+	// Set the request specific headers if they don't yet exist.
+	for k, v := range reqHeaders {
+		if _, ok := req.Header[k]; !ok {
+			req.Header[k] = v
+		}
+	}
 
 	return req, nil
 }
@@ -1062,6 +1073,9 @@ type Response struct {
 	NextLink     string
 	FirstLink    string
 	LastLink     string
+
+	// GraphQL pagination.
+	PageInfo *PageInfo
 }
 
 // newResponse creates a new Response for the provided http.Response.
@@ -1136,25 +1150,11 @@ func (r *Response) populateLinkValues() {
 	}
 }
 
-// bodyPreserver is a special type that signals to Client.Do that we want to
-// preserve the response body without copying it. The body field will be set
-// to the actual response body, and the caller is responsible for closing it.
-type bodyPreserver struct {
-	body io.ReadCloser
-}
-
-// Write implements io.Writer but does nothing. This prevents Client.Do from
-// copying the body content.
-func (bp *bodyPreserver) Write(_ []byte) (n int, err error) {
-	return 0, nil
-}
-
 // Do sends an API request and returns the API response. The API response is
 // JSON decoded and stored in the value pointed to by v, or returned as an
 // error if an API error has occurred. If v implements the io.Writer
 // interface, the raw response body will be written to v, without attempting to
-// first decode it. If v is a *bodyPreserver, the response body is preserved
-// without copying and the caller is responsible for closing it.
+// first decode it.
 func (c *Client) Do(req *retryablehttp.Request, v any) (*Response, error) {
 	// Wait will block until the limiter can obtain a new token.
 	err := c.limiter.Wait(req.Context())
@@ -1170,12 +1170,15 @@ func (c *Client) Do(req *retryablehttp.Request, v any) (*Response, error) {
 	}
 
 	authKey, authValue, err := c.authSource.Header(req.Context())
-	if err != nil {
+	switch err {
+	case nil:
+		if v := req.Header.Values(authKey); len(v) == 0 {
+			req.Header.Set(authKey, authValue)
+		}
+	case errUnauthenticated: //nolint:errorlint
+		// we simply skip using an auth header
+	default: // err != nil
 		return nil, err
-	}
-
-	if v := req.Header.Values(authKey); len(v) == 0 {
-		req.Header.Set(authKey, authValue)
 	}
 
 	client := c.client
@@ -1190,14 +1193,10 @@ func (c *Client) Do(req *retryablehttp.Request, v any) (*Response, error) {
 		return nil, err
 	}
 
-	// Check if v is a bodyPreserver before setting up the defer
-	preserver, isPreserver := v.(*bodyPreserver)
-	if !isPreserver {
-		defer func() {
-			io.Copy(io.Discard, resp.Body)
-			resp.Body.Close()
-		}()
-	}
+	defer func() {
+		io.Copy(io.Discard, resp.Body)
+		resp.Body.Close()
+	}()
 
 	// If not yet configured, try to configure the rate limiter
 	// using the response headers we just received. Fail silently
@@ -1210,19 +1209,11 @@ func (c *Client) Do(req *retryablehttp.Request, v any) (*Response, error) {
 	if err != nil {
 		// Even though there was an error, we still return the response
 		// in case the caller wants to inspect it further.
-		// If using bodyPreserver, still need to close the body on error
-		if isPreserver {
-			io.Copy(io.Discard, resp.Body)
-			resp.Body.Close()
-		}
 		return response, err
 	}
 
 	if v != nil {
-		if isPreserver {
-			// Preserve the body without copying
-			preserver.body = resp.Body
-		} else if w, ok := v.(io.Writer); ok {
+		if w, ok := v.(io.Writer); ok {
 			_, err = io.Copy(w, resp.Body)
 		} else {
 			err = json.NewDecoder(resp.Body).Decode(v)
@@ -1287,9 +1278,8 @@ func (e *ErrorResponse) Error() string {
 
 	if e.Message == "" {
 		return fmt.Sprintf("%s %s: %d", e.Response.Request.Method, url, e.Response.StatusCode)
-	} else {
-		return fmt.Sprintf("%s %s: %d %s", e.Response.Request.Method, url, e.Response.StatusCode, e.Message)
 	}
+	return fmt.Sprintf("%s %s: %d %s", e.Response.Request.Method, url, e.Response.StatusCode, e.Message)
 }
 
 func (e *ErrorResponse) HasStatusCode(statusCode int) bool {
@@ -1473,4 +1463,15 @@ func (as *PasswordCredentialsAuthSource) Init(ctx context.Context, client *Clien
 	}
 
 	return nil
+}
+
+// Unauthenticated is an authentication source for unauthenticated clients
+type Unauthenticated struct{}
+
+func (Unauthenticated) Init(context.Context, *Client) error {
+	return nil
+}
+
+func (u Unauthenticated) Header(context.Context) (string, string, error) {
+	return "", "", errUnauthenticated
 }

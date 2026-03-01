@@ -234,10 +234,13 @@ type GroupResourceAccessTokenEvent struct {
 	ObjectAttributes GroupResourceAccessTokenEventObjectAttributes `json:"object_attributes"`
 }
 
+// GroupResourceAccessTokenEventGroup represents a group in a resource access
+// token event.
 type GroupResourceAccessTokenEventGroup struct {
 	GroupID   int64  `json:"group_id"`
 	GroupName string `json:"group_name"`
 	GroupPath string `json:"group_path"`
+	FullPath  string `json:"full_path"`
 }
 
 type GroupResourceAccessTokenEventObjectAttributes struct {
@@ -767,6 +770,8 @@ type MergeEventObjectAttributes struct {
 	Action                      string                      `json:"action"`
 	DetailedMergeStatus         string                      `json:"detailed_merge_status"`
 	OldRev                      string                      `json:"oldrev"`
+	System                      bool                        `json:"system"`
+	SystemAction                string                      `json:"system_action"`
 }
 
 type MergeEventChanges struct {
@@ -839,7 +844,7 @@ type MergeEventChangesTargetProjectID struct {
 	Current  int64 `json:"current"`
 }
 
-// EventUser represents a user record in an event and is used as an even
+// EventUser represents a user record in an event and is used as an event
 // initiator or a merge assignee.
 type EventUser struct {
 	ID        int64  `json:"id"`
@@ -1364,8 +1369,12 @@ type EmojiEvent struct {
 	ObjectAttributes EmojiEventObjectAttributes `json:"object_attributes"`
 	Note             *EmojiEventNote            `json:"note,omitempty"`
 	Issue            *EmojiEventIssue           `json:"issue,omitempty"`
+	MergeRequest     *EmojiEventMergeRequest    `json:"merge_request,omitempty"`
+	ProjectSnippet   *EmojiEventSnippet         `json:"project_snippet,omitempty"`
+	Commit           *EmojiEventCommit          `json:"commit,omitempty"`
 }
 
+// EmojiEventProject represents a project in an emoji event.
 type EmojiEventProject struct {
 	ID                int64  `json:"id"`
 	Name              string `json:"name"`
@@ -1461,6 +1470,82 @@ type EmojiEventIssue struct {
 	Severity            string        `json:"severity"`
 }
 
+// EmojiEventMergeRequest represents a merge request in an emoji event.
+type EmojiEventMergeRequest struct {
+	ID                        int64                       `json:"id"`
+	TargetBranch              string                      `json:"target_branch"`
+	SourceBranch              string                      `json:"source_branch"`
+	SourceProjectID           int64                       `json:"source_project_id"`
+	AuthorID                  int64                       `json:"author_id"`
+	AssigneeID                int64                       `json:"assignee_id"`
+	AssigneeIDs               []int64                     `json:"assignee_ids"`
+	ReviewerIDs               []int64                     `json:"reviewer_ids"`
+	Title                     string                      `json:"title"`
+	CreatedAt                 string                      `json:"created_at"`
+	UpdatedAt                 string                      `json:"updated_at"`
+	MilestoneID               int64                       `json:"milestone_id"`
+	State                     string                      `json:"state"`
+	MergeStatus               string                      `json:"merge_status"`
+	TargetProjectID           int64                       `json:"target_project_id"`
+	IID                       int64                       `json:"iid"`
+	Description               string                      `json:"description"`
+	Position                  int64                       `json:"position"`
+	Labels                    []*EventLabel               `json:"labels"`
+	LockedAt                  string                      `json:"locked_at"`
+	UpdatedByID               int64                       `json:"updated_by_id"`
+	MergeError                string                      `json:"merge_error"`
+	MergeParams               *MergeParams                `json:"merge_params"`
+	MergeWhenPipelineSucceeds bool                        `json:"merge_when_pipeline_succeeds"`
+	MergeUserID               int64                       `json:"merge_user_id"`
+	MergeCommitSHA            string                      `json:"merge_commit_sha"`
+	DeletedAt                 string                      `json:"deleted_at"`
+	InProgressMergeCommitSHA  string                      `json:"in_progress_merge_commit_sha"`
+	LockVersion               int64                       `json:"lock_version"`
+	ApprovalsBeforeMerge      string                      `json:"approvals_before_merge"`
+	RebaseCommitSHA           string                      `json:"rebase_commit_sha"`
+	TimeEstimate              int64                       `json:"time_estimate"`
+	Squash                    bool                        `json:"squash"`
+	LastEditedAt              string                      `json:"last_edited_at"`
+	LastEditedByID            int64                       `json:"last_edited_by_id"`
+	Source                    *Repository                 `json:"source"`
+	Target                    *Repository                 `json:"target"`
+	LastCommit                EventMergeRequestLastCommit `json:"last_commit"`
+	WorkInProgress            bool                        `json:"work_in_progress"`
+	TotalTimeSpent            int64                       `json:"total_time_spent"`
+	HeadPipelineID            int64                       `json:"head_pipeline_id"`
+	Assignee                  *EventUser                  `json:"assignee"`
+	DetailedMergeStatus       string                      `json:"detailed_merge_status"`
+	URL                       string                      `json:"url"`
+}
+
+// EmojiEventSnippet represents a snippet in an emoji event.
+type EmojiEventSnippet struct {
+	ID                 int64  `json:"id"`
+	Title              string `json:"title"`
+	Content            string `json:"content"`
+	AuthorID           int64  `json:"author_id"`
+	ProjectID          int64  `json:"project_id"`
+	CreatedAt          string `json:"created_at"`
+	UpdatedAt          string `json:"updated_at"`
+	Filename           string `json:"file_name"`
+	ExpiresAt          string `json:"expires_at"`
+	Type               string `json:"type"`
+	VisibilityLevel    int64  `json:"visibility_level"`
+	Description        string `json:"description"`
+	Secret             bool   `json:"secret"`
+	RepositoryReadOnly bool   `json:"repository_read_only"`
+}
+
+// EmojiEventCommit represents a commit in an emoji event.
+type EmojiEventCommit struct {
+	ID        string            `json:"id"`
+	Title     string            `json:"title"`
+	Message   string            `json:"message"`
+	Timestamp *time.Time        `json:"timestamp"`
+	URL       string            `json:"url"`
+	Author    EventCommitAuthor `json:"author"`
+}
+
 // MilestoneWebhookEvent represents a milestone webhook event.
 //
 // GitLab API docs:
@@ -1469,10 +1554,34 @@ type MilestoneWebhookEvent struct {
 	ObjectKind       string                         `json:"object_kind"`
 	EventType        string                         `json:"event_type"`
 	Project          MilestoneEventProject          `json:"project"`
+	Group            *MilestoneEventGroup           `json:"group,omitempty"`
 	ObjectAttributes MilestoneEventObjectAttributes `json:"object_attributes"`
 	Action           string                         `json:"action"`
 }
 
+type MilestoneEventObjectAttributes struct {
+	ID          int64    `json:"id"`
+	IID         int64    `json:"iid"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	State       string   `json:"state"`
+	CreatedAt   string   `json:"created_at"`
+	UpdatedAt   string   `json:"updated_at"`
+	DueDate     *ISOTime `json:"due_date"`
+	StartDate   *ISOTime `json:"start_date"`
+	GroupID     *int64   `json:"group_id"`
+	ProjectID   int64    `json:"project_id"`
+}
+
+// MilestoneEventGroup represents a group in a milestone event.
+type MilestoneEventGroup struct {
+	GroupID   int64  `json:"group_id"`
+	GroupName string `json:"group_name"`
+	GroupPath string `json:"group_path"`
+	FullPath  string `json:"full_path"`
+}
+
+// MilestoneEventProject represents a project in a milestone event.
 type MilestoneEventProject struct {
 	ID                int64  `json:"id"`
 	Name              string `json:"name"`
@@ -1492,35 +1601,22 @@ type MilestoneEventProject struct {
 	HTTPURL           string `json:"http_url"`
 }
 
-type MilestoneEventObjectAttributes struct {
-	ID          int64    `json:"id"`
-	IID         int64    `json:"iid"`
-	Title       string   `json:"title"`
-	Description string   `json:"description"`
-	State       string   `json:"state"`
-	CreatedAt   string   `json:"created_at"`
-	UpdatedAt   string   `json:"updated_at"`
-	DueDate     *ISOTime `json:"due_date"`
-	StartDate   *ISOTime `json:"start_date"`
-	GroupID     *int64   `json:"group_id"`
-	ProjectID   int64    `json:"project_id"`
-}
-
 // ProjectWebhookEvent represents a project webhook event for group webhooks.
 //
 // GitLab API docs:
 // https://docs.gitlab.com/user/project/integrations/webhook_events/#project-events
 type ProjectWebhookEvent struct {
-	EventName          string              `json:"event_name"`
-	CreatedAt          string              `json:"created_at"`
-	UpdatedAt          string              `json:"updated_at"`
-	Name               string              `json:"name"`
-	Path               string              `json:"path"`
-	PathWithNamespace  string              `json:"path_with_namespace"`
-	ProjectID          int64               `json:"project_id"`
-	ProjectNamespaceID int64               `json:"project_namespace_id"`
-	Owners             []ProjectEventOwner `json:"owners"`
-	ProjectVisibility  string              `json:"project_visibility"`
+	EventName            string              `json:"event_name"`
+	CreatedAt            string              `json:"created_at"`
+	UpdatedAt            string              `json:"updated_at"`
+	Name                 string              `json:"name"`
+	Path                 string              `json:"path"`
+	PathWithNamespace    string              `json:"path_with_namespace"`
+	ProjectID            int64               `json:"project_id"`
+	ProjectNamespaceID   int64               `json:"project_namespace_id"`
+	Owners               []ProjectEventOwner `json:"owners"`
+	ProjectVisibility    string              `json:"project_visibility"`
+	OldPathWithNamespace string              `json:"old_path_with_namespace,omitempty"`
 }
 
 type ProjectEventOwner struct {

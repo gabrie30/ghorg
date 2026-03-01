@@ -24,10 +24,33 @@ import (
 
 type (
 	TagsServiceInterface interface {
+		// ListTags gets a list of tags from a project, sorted by name in reverse
+		// alphabetical order.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/tags/#list-project-repository-tags
 		ListTags(pid any, opt *ListTagsOptions, options ...RequestOptionFunc) ([]*Tag, *Response, error)
+		// GetTag a specific repository tag determined by its name. It returns 200 together
+		// with the tag information if the tag exists. It returns 404 if the tag does not exist.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/tags/#get-a-single-repository-tag
 		GetTag(pid any, tag string, options ...RequestOptionFunc) (*Tag, *Response, error)
+		// GetTagSignature a specific repository tag determined by its name. It returns 200 together
+		// with the signature if the tag exists. It returns 404 if the tag does not exist.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/tags/#get-x509-signature-of-a-tag
 		GetTagSignature(pid any, tag string, options ...RequestOptionFunc) (*X509Signature, *Response, error)
+		// CreateTag creates a new tag in the repository that points to the supplied ref.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/tags/#create-a-new-tag
 		CreateTag(pid any, opt *CreateTagOptions, options ...RequestOptionFunc) (*Tag, *Response, error)
+		// DeleteTag deletes a tag of a repository with given name.
+		//
+		// GitLab API docs:
+		// https://docs.gitlab.com/api/tags/#delete-a-tag
 		DeleteTag(pid any, tag string, options ...RequestOptionFunc) (*Response, error)
 	}
 
@@ -104,11 +127,6 @@ type ListTagsOptions struct {
 	Sort    *string `url:"sort,omitempty" json:"sort,omitempty"`
 }
 
-// ListTags gets a list of tags from a project, sorted by name in reverse
-// alphabetical order.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/tags/#list-project-repository-tags
 func (s *TagsService) ListTags(pid any, opt *ListTagsOptions, options ...RequestOptionFunc) ([]*Tag, *Response, error) {
 	return do[[]*Tag](s.client,
 		withPath("projects/%s/repository/tags", ProjectID{pid}),
@@ -117,11 +135,6 @@ func (s *TagsService) ListTags(pid any, opt *ListTagsOptions, options ...Request
 	)
 }
 
-// GetTag a specific repository tag determined by its name. It returns 200 together
-// with the tag information if the tag exists. It returns 404 if the tag does not exist.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/tags/#get-a-single-repository-tag
 func (s *TagsService) GetTag(pid any, tag string, options ...RequestOptionFunc) (*Tag, *Response, error) {
 	return do[*Tag](s.client,
 		withPath("projects/%s/repository/tags/%s", ProjectID{pid}, tag),
@@ -129,11 +142,6 @@ func (s *TagsService) GetTag(pid any, tag string, options ...RequestOptionFunc) 
 	)
 }
 
-// GetTagSignature a specific repository tag determined by its name. It returns 200 together
-// with the signature if the tag exists. It returns 404 if the tag does not exist.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/tags/#get-x509-signature-of-a-tag
 func (s *TagsService) GetTagSignature(pid any, tag string, options ...RequestOptionFunc) (*X509Signature, *Response, error) {
 	return do[*X509Signature](s.client,
 		withPath("projects/%s/repository/tags/%s/signature", ProjectID{pid}, tag),
@@ -151,10 +159,6 @@ type CreateTagOptions struct {
 	Message *string `url:"message,omitempty" json:"message,omitempty"`
 }
 
-// CreateTag creates a new tag in the repository that points to the supplied ref.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/tags/#create-a-new-tag
 func (s *TagsService) CreateTag(pid any, opt *CreateTagOptions, options ...RequestOptionFunc) (*Tag, *Response, error) {
 	return do[*Tag](s.client,
 		withMethod(http.MethodPost),
@@ -164,10 +168,6 @@ func (s *TagsService) CreateTag(pid any, opt *CreateTagOptions, options ...Reque
 	)
 }
 
-// DeleteTag deletes a tag of a repository with given name.
-//
-// GitLab API docs:
-// https://docs.gitlab.com/api/tags/#delete-a-tag
 func (s *TagsService) DeleteTag(pid any, tag string, options ...RequestOptionFunc) (*Response, error) {
 	_, resp, err := do[none](s.client,
 		withMethod(http.MethodDelete),

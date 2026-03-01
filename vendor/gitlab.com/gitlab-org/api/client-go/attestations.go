@@ -10,12 +10,12 @@ type (
 	AttestationsServiceInterface interface {
 		// ListAttestations gets a list of all attestations
 		//
-		// GitLab API docs: https://docs.gitlab.com/api/attestations
+		// GitLab API docs: https://docs.gitlab.com/api/attestations/#list-all-attestations
 		ListAttestations(pid any, subjectDigest string, options ...RequestOptionFunc) ([]*Attestation, *Response, error)
 
 		// DownloadAttestation
 		//
-		// GitLab API docs: https://docs.gitlab.com/api/attestations
+		// GitLab API docs: https://docs.gitlab.com/api/attestations/#download-an-attestation
 		DownloadAttestation(pid any, attestationIID int64, options ...RequestOptionFunc) ([]byte, *Response, error)
 	}
 

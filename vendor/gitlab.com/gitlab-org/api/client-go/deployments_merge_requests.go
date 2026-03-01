@@ -14,11 +14,6 @@
 
 package gitlab
 
-import (
-	"fmt"
-	"net/http"
-)
-
 type (
 	// DeploymentMergeRequestsServiceInterface defines all the API methods for the DeploymentMergeRequestsService
 	DeploymentMergeRequestsServiceInterface interface {
@@ -42,22 +37,9 @@ type (
 var _ DeploymentMergeRequestsServiceInterface = (*DeploymentMergeRequestsService)(nil)
 
 func (s *DeploymentMergeRequestsService) ListDeploymentMergeRequests(pid any, deployment int64, opts *ListMergeRequestsOptions, options ...RequestOptionFunc) ([]*MergeRequest, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/deployments/%d/merge_requests", PathEscape(project), deployment)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opts, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var mrs []*MergeRequest
-	resp, err := s.client.Do(req, &mrs)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return mrs, resp, nil
+	return do[[]*MergeRequest](s.client,
+		withPath("projects/%s/deployments/%d/merge_requests", ProjectID{pid}, deployment),
+		withAPIOpts(opts),
+		withRequestOpts(options...),
+	)
 }

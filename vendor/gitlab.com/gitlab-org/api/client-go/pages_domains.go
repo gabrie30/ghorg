@@ -17,7 +17,6 @@
 package gitlab
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -81,24 +80,11 @@ type ListPagesDomainsOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/pages_domains/#list-pages-domains
 func (s *PagesDomainsService) ListPagesDomains(pid any, opt *ListPagesDomainsOptions, options ...RequestOptionFunc) ([]*PagesDomain, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pages/domains", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodGet, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var pd []*PagesDomain
-	resp, err := s.client.Do(req, &pd)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pd, resp, nil
+	return do[[]*PagesDomain](s.client,
+		withPath("projects/%s/pages/domains", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // ListAllPagesDomains gets a list of all pages domains.
@@ -106,18 +92,10 @@ func (s *PagesDomainsService) ListPagesDomains(pid any, opt *ListPagesDomainsOpt
 // GitLab API docs:
 // https://docs.gitlab.com/api/pages_domains/#list-all-pages-domains
 func (s *PagesDomainsService) ListAllPagesDomains(options ...RequestOptionFunc) ([]*PagesDomain, *Response, error) {
-	req, err := s.client.NewRequest(http.MethodGet, "pages/domains", nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var pd []*PagesDomain
-	resp, err := s.client.Do(req, &pd)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pd, resp, nil
+	return do[[]*PagesDomain](s.client,
+		withPath("pages/domains"),
+		withRequestOpts(options...),
+	)
 }
 
 // GetPagesDomain get a specific pages domain for a project.
@@ -125,24 +103,10 @@ func (s *PagesDomainsService) ListAllPagesDomains(options ...RequestOptionFunc) 
 // GitLab API docs:
 // https://docs.gitlab.com/api/pages_domains/#single-pages-domain
 func (s *PagesDomainsService) GetPagesDomain(pid any, domain string, options ...RequestOptionFunc) (*PagesDomain, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pages/domains/%s", PathEscape(project), domain)
-
-	req, err := s.client.NewRequest(http.MethodGet, u, nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pd := new(PagesDomain)
-	resp, err := s.client.Do(req, pd)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pd, resp, nil
+	return do[*PagesDomain](s.client,
+		withPath("projects/%s/pages/domains/%s", ProjectID{pid}, domain),
+		withRequestOpts(options...),
+	)
 }
 
 // CreatePagesDomainOptions represents the available CreatePagesDomain() options.
@@ -161,24 +125,12 @@ type CreatePagesDomainOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/pages_domains/#create-new-pages-domain
 func (s *PagesDomainsService) CreatePagesDomain(pid any, opt *CreatePagesDomainOptions, options ...RequestOptionFunc) (*PagesDomain, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pages/domains", PathEscape(project))
-
-	req, err := s.client.NewRequest(http.MethodPost, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pd := new(PagesDomain)
-	resp, err := s.client.Do(req, pd)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pd, resp, nil
+	return do[*PagesDomain](s.client,
+		withMethod(http.MethodPost),
+		withPath("projects/%s/pages/domains", ProjectID{pid}),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // UpdatePagesDomainOptions represents the available UpdatePagesDomain() options.
@@ -196,24 +148,12 @@ type UpdatePagesDomainOptions struct {
 // GitLab API docs:
 // https://docs.gitlab.com/api/pages_domains/#update-pages-domain
 func (s *PagesDomainsService) UpdatePagesDomain(pid any, domain string, opt *UpdatePagesDomainOptions, options ...RequestOptionFunc) (*PagesDomain, *Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pages/domains/%s", PathEscape(project), domain)
-
-	req, err := s.client.NewRequest(http.MethodPut, u, opt, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pd := new(PagesDomain)
-	resp, err := s.client.Do(req, pd)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return pd, resp, nil
+	return do[*PagesDomain](s.client,
+		withMethod(http.MethodPut),
+		withPath("projects/%s/pages/domains/%s", ProjectID{pid}, domain),
+		withAPIOpts(opt),
+		withRequestOpts(options...),
+	)
 }
 
 // DeletePagesDomain deletes an existing project pages domain.
@@ -221,16 +161,10 @@ func (s *PagesDomainsService) UpdatePagesDomain(pid any, domain string, opt *Upd
 // GitLab API docs:
 // https://docs.gitlab.com/api/pages_domains/#delete-pages-domain
 func (s *PagesDomainsService) DeletePagesDomain(pid any, domain string, options ...RequestOptionFunc) (*Response, error) {
-	project, err := parseID(pid)
-	if err != nil {
-		return nil, err
-	}
-	u := fmt.Sprintf("projects/%s/pages/domains/%s", PathEscape(project), domain)
-
-	req, err := s.client.NewRequest(http.MethodDelete, u, nil, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.client.Do(req, nil)
+	_, resp, err := do[none](s.client,
+		withMethod(http.MethodDelete),
+		withPath("projects/%s/pages/domains/%s", ProjectID{pid}, domain),
+		withRequestOpts(options...),
+	)
+	return resp, err
 }
