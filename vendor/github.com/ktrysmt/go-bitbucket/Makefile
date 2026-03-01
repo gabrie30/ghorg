@@ -13,12 +13,23 @@ endif
 ifndef BITBUCKET_TEST_REPOSLUG
 	$(error `BITBUCKET_TEST_REPOSLUG` is not set)
 endif
+ifndef BITBUCKET_TEST_ACCESS_TOKEN
+	$(error `BITBUCKET_TEST_ACCESS_TOKEN` is not set)
+endif
 
-test: env ## run go test all
+test: env test/unit test/mock test/e2e
+
+test/unit:
+	go test -v *.go
+
+test/e2e: env ## run go test all
 	go test -v ./tests
 
 test/swagger:
-	env BITBUCKET_API_BASE_URL=http://0.0.0.0:4010 go test -v ./...
+	env BITBUCKET_API_BASE_URL=http://0.0.0.0:4010 go test -v ./tests
+
+test/mock:
+	go test -v ./mock_tests
 
 help: ## print this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
