@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -322,10 +323,12 @@ func (c Gitlab) GetSnippets(cloneData []Repo, target string) ([]Repo, error) {
 	for _, snippet := range allSnippetsToClone {
 		snippetID := strconv.FormatInt(snippet.ID, 10)
 		snippetTitle := ToSlug(snippet.Title)
+		snippetFileName := ToSlug(strings.TrimSuffix(snippet.FileName, filepath.Ext(snippet.FileName)))
 		s := Repo{}
 		s.IsGitLabSnippet = true
 		s.CloneBranch = "main"
 		s.GitLabSnippetInfo.Title = snippetTitle
+		s.GitLabSnippetInfo.FileName = snippetFileName
 		s.Name = snippetTitle
 		s.GitLabSnippetInfo.ID = snippetID
 		s.URL = snippet.WebURL

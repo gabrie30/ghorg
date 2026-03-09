@@ -524,7 +524,7 @@ func TestRepositoryProcessor_ProcessRepository_GitLabSnippets(t *testing.T) {
 	mockGit := NewExtendedMockGit()
 	processor := NewRepositoryProcessor(mockGit)
 
-	// Test regular snippet
+	// Test regular snippet with a FileName set - folder should be named after the file (without extension)
 	repo := scm.Repo{
 		Name:            "test-repo",
 		URL:             "https://gitlab.com/org/test-repo",
@@ -533,6 +533,7 @@ func TestRepositoryProcessor_ProcessRepository_GitLabSnippets(t *testing.T) {
 		GitLabSnippetInfo: scm.GitLabSnippet{
 			Title:     "My Snippet",
 			ID:        "123",
+			FileName:  "my-snippet",
 			URLOfRepo: "https://gitlab.com/org/test-repo.git",
 		},
 	}
@@ -540,12 +541,12 @@ func TestRepositoryProcessor_ProcessRepository_GitLabSnippets(t *testing.T) {
 	repoNameWithCollisions := make(map[string]bool)
 	processor.ProcessRepository(&repo, repoNameWithCollisions, false, "test-repo", 0)
 
-	expectedPath := filepath.Join(outputDirAbsolutePath, "test-repo.snippets", "My Snippet-123")
+	expectedPath := filepath.Join(outputDirAbsolutePath, "test-repo.snippets", "my-snippet")
 	if repo.HostPath != expectedPath {
 		t.Errorf("Expected host path %s, got %s", expectedPath, repo.HostPath)
 	}
 
-	// Test root level snippet
+	// Test root level snippet with a FileName set
 	rootSnippetRepo := scm.Repo{
 		Name:                     "root-snippet",
 		URL:                      "https://gitlab.com/snippets/456",
@@ -553,21 +554,42 @@ func TestRepositoryProcessor_ProcessRepository_GitLabSnippets(t *testing.T) {
 		IsGitLabSnippet:          true,
 		IsGitLabRootLevelSnippet: true,
 		GitLabSnippetInfo: scm.GitLabSnippet{
-			Title: "Root Snippet",
-			ID:    "456",
+			Title:    "Root Snippet",
+			ID:       "456",
+			FileName: "root-snippet",
 		},
 	}
 
 	processor.ProcessRepository(&rootSnippetRepo, repoNameWithCollisions, false, "root-snippet", 0)
 
-	expectedRootPath := filepath.Join(outputDirAbsolutePath, "_ghorg_root_level_snippets", "Root Snippet-456")
+	expectedRootPath := filepath.Join(outputDirAbsolutePath, "_ghorg_root_level_snippets", "root-snippet")
 	if rootSnippetRepo.HostPath != expectedRootPath {
 		t.Errorf("Expected host path %s, got %s", expectedRootPath, rootSnippetRepo.HostPath)
 	}
 
+	// Test snippet without FileName falls back to Title-ID naming
+	repoNoFileName := scm.Repo{
+		Name:            "test-repo-fallback",
+		URL:             "https://gitlab.com/org/test-repo-fallback",
+		CloneBranch:     "main",
+		IsGitLabSnippet: true,
+		GitLabSnippetInfo: scm.GitLabSnippet{
+			Title:     "My Snippet",
+			ID:        "789",
+			URLOfRepo: "https://gitlab.com/org/test-repo-fallback.git",
+		},
+	}
+
+	processor.ProcessRepository(&repoNoFileName, repoNameWithCollisions, false, "test-repo-fallback", 0)
+
+	expectedFallbackPath := filepath.Join(outputDirAbsolutePath, "test-repo-fallback.snippets", "My Snippet-789")
+	if repoNoFileName.HostPath != expectedFallbackPath {
+		t.Errorf("Expected host path %s, got %s", expectedFallbackPath, repoNoFileName.HostPath)
+	}
+
 	stats := processor.GetStats()
-	if stats.CloneCount != 2 {
-		t.Errorf("Expected clone count to be 2, got %d", stats.CloneCount)
+	if stats.CloneCount != 3 {
+		t.Errorf("Expected clone count to be 3, got %d", stats.CloneCount)
 	}
 }
 

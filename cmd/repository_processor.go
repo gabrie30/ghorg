@@ -153,14 +153,24 @@ func (rp *RepositoryProcessor) addSuffixesIfNeeded(repo scm.Repo, repoSlug strin
 	return repoSlug
 }
 
+// snippetFolderName returns the folder name to use for a GitLab snippet clone.
+// It uses the snippet's file name (without extension) when available, and falls
+// back to the title slug combined with the snippet ID to ensure uniqueness.
+func snippetFolderName(info scm.GitLabSnippet) string {
+	if info.FileName != "" {
+		return info.FileName
+	}
+	return info.Title + "-" + info.ID
+}
+
 // buildHostPath constructs the final host path for the repository
 func (rp *RepositoryProcessor) buildHostPath(repo scm.Repo, repoSlug string) string {
 	if repo.IsGitLabRootLevelSnippet {
-		return filepath.Join(outputDirAbsolutePath, "_ghorg_root_level_snippets", repo.GitLabSnippetInfo.Title+"-"+repo.GitLabSnippetInfo.ID)
+		return filepath.Join(outputDirAbsolutePath, "_ghorg_root_level_snippets", snippetFolderName(repo.GitLabSnippetInfo))
 	}
 
 	if repo.IsGitLabSnippet {
-		return filepath.Join(outputDirAbsolutePath, repoSlug, repo.GitLabSnippetInfo.Title+"-"+repo.GitLabSnippetInfo.ID)
+		return filepath.Join(outputDirAbsolutePath, repoSlug, snippetFolderName(repo.GitLabSnippetInfo))
 	}
 
 	return filepath.Join(outputDirAbsolutePath, repoSlug)

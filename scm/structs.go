@@ -38,6 +38,8 @@ type GitLabSnippet struct {
 	ID string
 	// Title of the snippet
 	Title string
+	// FileName is the primary file name of the snippet without its extension, in slug format
+	FileName string
 	// URL of the repo that snippet was made on
 	URLOfRepo string
 	// Name of the repo that the snippet was made on
