@@ -811,6 +811,10 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			// The URL handling in getAppNameFromURL makes strong presumptions that the URL will end in an
 			// extension like '.git', but this is not the case for sourcehut (and possibly other forges).
 			repoSlug = repo.Name
+		} else if repo.IsGitHubGist {
+			// Gist folder names are pre-computed in filterGists from the primary filename
+			// (without extension, lowercased, with collision suffix appended when needed).
+			repoSlug = repo.Name
 		} else if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
 			repoSlug = getAppNameFromURL(repo.GitLabSnippetInfo.URLOfRepo)
 		} else if repo.IsGitLabRootLevelSnippet {

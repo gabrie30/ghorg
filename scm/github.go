@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -296,17 +298,67 @@ func (c Github) GetUserGists(targetUser string) ([]Repo, error) {
 	return c.filterGists(allGists), nil
 }
 
+// gistFolderName returns the folder name to use for a gist, derived from the
+// gist's primary filename (first filename alphabetically). The extension is
+// stripped and the result is lowercased. Falls back to the gist ID when the
+// gist has no files or the derived base name is empty.
+func gistFolderName(gist *github.Gist) string {
+	if len(gist.Files) == 0 {
+		return strings.ToLower(*gist.ID)
+	}
+
+	// Collect and sort filenames for a stable, deterministic result.
+	filenames := make([]string, 0, len(gist.Files))
+	for fn := range gist.Files {
+		filenames = append(filenames, string(fn))
+	}
+	sort.Strings(filenames)
+
+	firstName := filenames[0]
+	ext := filepath.Ext(firstName)
+	base := strings.ToLower(firstName[:len(firstName)-len(ext)])
+	if base == "" {
+		return strings.ToLower(*gist.ID)
+	}
+	return base
+}
+
 func (c Github) filterGists(allGists []*github.Gist) []Repo {
-	var repoData []Repo
+	// First pass: compute a derived folder name for every valid gist and
+	// count how many gists share the same name so we can detect collisions.
+	type gistEntry struct {
+		gist       *github.Gist
+		folderName string
+	}
+
+	entries := make([]gistEntry, 0, len(allGists))
+	nameCount := make(map[string]int)
 
 	for _, gist := range allGists {
 		if gist.ID == nil || gist.GitPullURL == nil {
 			continue
 		}
+		name := gistFolderName(gist)
+		entries = append(entries, gistEntry{gist: gist, folderName: name})
+		nameCount[name]++
+	}
+
+	// Second pass: build Repo records, appending the gist ID to the folder
+	// name whenever two or more gists share the same derived name.
+	var repoData []Repo
+
+	for _, entry := range entries {
+		gist := entry.gist
+		folderName := entry.folderName
+
+		if nameCount[folderName] > 1 {
+			folderName = folderName + "-" + *gist.ID
+		}
 
 		r := Repo{}
-		r.Name = *gist.ID
-		r.Path = *gist.ID
+		r.ID = *gist.ID
+		r.Name = folderName
+		r.Path = folderName
 		r.IsGitHubGist = true
 		if os.Getenv("GHORG_BRANCH") != "" {
 			r.CloneBranch = os.Getenv("GHORG_BRANCH")
