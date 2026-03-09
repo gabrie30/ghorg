@@ -266,6 +266,70 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 	return repoData
 }
 
+// GetUserGists gets all gists for a GitHub user
+func (c Github) GetUserGists(targetUser string) ([]Repo, error) {
+	c.SetTokensUsername()
+
+	spinningSpinner.Start()
+	defer spinningSpinner.Stop()
+
+	opt := &github.GistListOptions{
+		ListOptions: github.ListOptions{PerPage: reposPerPage, Page: 1},
+	}
+
+	gists, resp, err := c.Gists.List(context.Background(), targetUser, opt)
+	if err != nil {
+		return nil, err
+	}
+
+	allGists := gists
+
+	for page := 2; page <= resp.LastPage; page++ {
+		opt.Page = page
+		g, _, err := c.Gists.List(context.Background(), targetUser, opt)
+		if err != nil {
+			return nil, err
+		}
+		allGists = append(allGists, g...)
+	}
+
+	return c.filterGists(allGists), nil
+}
+
+func (c Github) filterGists(allGists []*github.Gist) []Repo {
+	var repoData []Repo
+
+	for _, gist := range allGists {
+		if gist.ID == nil || gist.GitPullURL == nil {
+			continue
+		}
+
+		r := Repo{}
+		r.Name = *gist.ID
+		r.Path = *gist.ID
+		r.IsGitHubGist = true
+		if os.Getenv("GHORG_BRANCH") != "" {
+			r.CloneBranch = os.Getenv("GHORG_BRANCH")
+		} else {
+			r.CloneBranch = "master"
+		}
+		r.URL = *gist.GitPullURL
+
+		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" || os.Getenv("GHORG_GITHUB_APP_PEM_PATH") != "" {
+			r.CloneURL = c.addTokenToHTTPSCloneURL(*gist.GitPullURL, os.Getenv("GHORG_GITHUB_TOKEN"))
+		} else {
+			// Convert HTTPS gist pull URL to SSH URL
+			// https://gist.github.com/<id>.git → git@gist.github.com:<id>.git
+			sshURL := strings.Replace(*gist.GitPullURL, "https://gist.github.com/", "git@gist.github.com:", 1)
+			r.CloneURL = ReplaceSSHHostname(sshURL, os.Getenv("GHORG_SSH_HOSTNAME"))
+		}
+
+		repoData = append(repoData, r)
+	}
+
+	return repoData
+}
+
 // Sets the GitHub username tied to the github token to the package variable tokenUsername
 // Then if https clone method is used the clone url will be https://username:token@github.com/org/repo.git
 // The username is now needed when using the new fine-grained tokens for github

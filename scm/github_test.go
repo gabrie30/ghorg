@@ -134,3 +134,88 @@ func TestGetOrgRepos(t *testing.T) {
 		os.Setenv("GHORG_TOPICS", "")
 	})
 }
+
+func TestGetUserGists(t *testing.T) {
+	client, mux, _, teardown := setup()
+
+	github := Github{Client: client}
+
+	defer teardown()
+
+	mux.HandleFunc("/users/testuser/gists", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `[
+			{"id":"abc123", "git_pull_url": "https://gist.github.com/abc123.git", "public": true},
+			{"id":"def456", "git_pull_url": "https://gist.github.com/def456.git", "public": true},
+			{"id":"ghi789", "git_pull_url": "https://gist.github.com/ghi789.git", "public": false}
+		]`)
+	})
+
+	t.Run("Should return all gists with HTTPS protocol", func(tt *testing.T) {
+		os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+		os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
+
+		resp, err := github.GetUserGists("testuser")
+
+		if err != nil {
+			tt.Fatal(err)
+		}
+
+		want := 3
+		got := len(resp)
+		if want != got {
+			tt.Errorf("Expected %v gists, got: %v", want, got)
+		}
+
+		for _, repo := range resp {
+			if !repo.IsGitHubGist {
+				tt.Errorf("Expected IsGitHubGist to be true for gist %s", repo.Name)
+			}
+		}
+
+		os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		os.Unsetenv("GHORG_GITHUB_TOKEN")
+	})
+
+	t.Run("Should set correct clone branch for gists", func(tt *testing.T) {
+		os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+		os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
+
+		resp, err := github.GetUserGists("testuser")
+
+		if err != nil {
+			tt.Fatal(err)
+		}
+
+		// When GHORG_BRANCH is not set, gists default to "master"
+		for _, repo := range resp {
+			if repo.CloneBranch != "master" {
+				tt.Errorf("Expected CloneBranch to be 'master' when GHORG_BRANCH is unset, got: %s", repo.CloneBranch)
+			}
+		}
+
+		os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		os.Unsetenv("GHORG_GITHUB_TOKEN")
+	})
+
+	t.Run("Should respect GHORG_BRANCH for gists", func(tt *testing.T) {
+		os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+		os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
+		os.Setenv("GHORG_BRANCH", "main")
+
+		resp, err := github.GetUserGists("testuser")
+
+		if err != nil {
+			tt.Fatal(err)
+		}
+
+		for _, repo := range resp {
+			if repo.CloneBranch != "main" {
+				tt.Errorf("Expected CloneBranch to be 'main', got: %s", repo.CloneBranch)
+			}
+		}
+
+		os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		os.Unsetenv("GHORG_GITHUB_TOKEN")
+		os.Unsetenv("GHORG_BRANCH")
+	})
+}

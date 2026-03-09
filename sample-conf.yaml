@@ -240,6 +240,11 @@ GHORG_GITHUB_APP_ID:
 # Can be one of: all, owner, member (default: owner)
 GHORG_GITHUB_USER_OPTION:
 
+# Clone all of a user's gists into clone-dir/ghorg-gists
+# Only available when using GHORG_SCM_TYPE: github and GHORG_CLONE_TYPE: user
+# flag (--github-user-gists)
+GHORG_GITHUB_USER_GISTS: false
+
 # Filter repos by a language
 # Can be a comma separated value with no spaces
 # falg (--github-filter-language) e.g.: --github-filter-language=go,ruby,elixir

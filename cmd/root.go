@@ -75,6 +75,7 @@ var (
 	ghorgReCloneList             bool
 	ghorgReCloneEnvConfigOnly    bool
 	githubTokenFromGithubApp     bool
+	githubUserGists              bool
 	noToken                      bool
 	quietMode                    bool
 	noDirSize                    bool
@@ -232,6 +233,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "1")
 		case "GHORG_GITHUB_TOKEN_FROM_GITHUB_APP":
 			os.Setenv(envVar, "false")
+		case "GHORG_GITHUB_USER_GISTS":
+			os.Setenv(envVar, "false")
 		case "GHORG_SSH_HOSTNAME":
 			os.Setenv(envVar, "")
 		}
@@ -330,6 +333,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_CLONE_DEPTH")
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
 	getOrSetDefaults("GHORG_GITHUB_TOKEN_FROM_GITHUB_APP")
+	getOrSetDefaults("GHORG_GITHUB_USER_GISTS")
 	getOrSetDefaults("GHORG_GITHUB_FILTER_LANGUAGE")
 	getOrSetDefaults("GHORG_COLOR")
 	getOrSetDefaults("GHORG_TOPICS")
@@ -429,6 +433,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&exitCodeOnCloneIssues, "exit-code-on-clone-issues", "", "", "GHORG_EXIT_CODE_ON_CLONE_ISSUES - Exit code when issues/errors occur during cloning. Useful for CI/CD failure detection (default: 1)")
 	cloneCmd.Flags().StringVarP(&gitFilter, "git-filter", "", "", "GHORG_GIT_FILTER - Arguments to pass to git's --filter flag. Use --git-filter=blob:none to exclude binary objects and reduce clone size. Requires git 2.19+")
 	cloneCmd.Flags().BoolVarP(&githubTokenFromGithubApp, "github-token-from-github-app", "", false, "GHORG_GITHUB_TOKEN_FROM_GITHUB_APP - GitHub only: Treat the provided token as a GitHub App token (when obtained outside ghorg). Use with pre-generated app tokens")
+	cloneCmd.Flags().BoolVarP(&githubUserGists, "github-user-gists", "", false, "GHORG_GITHUB_USER_GISTS - GitHub only: Clone all of a user's gists into clone-dir/ghorg-gists. Requires --clone-type=user and --scm=github")
 	cloneCmd.Flags().StringVarP(&githubAppPemPath, "github-app-pem-path", "", "", "GHORG_GITHUB_APP_PEM_PATH - GitHub only: Path to GitHub App private key (.pem file) for app-based authentication. Requires --github-app-id and --github-app-installation-id")
 	cloneCmd.Flags().StringVarP(&githubAppInstallationID, "github-app-installation-id", "", "", "GHORG_GITHUB_APP_INSTALLATION_ID - GitHub only: Installation ID for GitHub App authentication. Find in org settings URL")
 	cloneCmd.Flags().StringVarP(&githubFilterLanguage, "github-filter-language", "", "", "GHORG_GITHUB_FILTER_LANGUAGE - GitHub only: Filter repositories by programming language. Comma-separated values (e.g., --github-filter-language=go,python)")
