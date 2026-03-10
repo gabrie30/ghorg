@@ -22,6 +22,8 @@ type Repo struct {
 	IsGitLabSnippet bool
 	// IsGitLabRootLevelSnippet is set to true when a snippet was not created for a repo
 	IsGitLabRootLevelSnippet bool
+	// IsGitHubGist is set to true when the data is for a github gist
+	IsGitHubGist bool
 	// GitLabSnippetInfo provides additional information when the thing we are cloning is a gitlab snippet
 	GitLabSnippetInfo GitLabSnippet
 	Commits           RepoCommits

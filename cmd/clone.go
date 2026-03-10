@@ -303,6 +303,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_CLONE_SNIPPETS", "true")
 	}
 
+	if cmd.Flags().Changed("github-user-gists") {
+		os.Setenv("GHORG_GITHUB_USER_GISTS", "true")
+	}
+
 	if cmd.Flags().Changed("insecure-gitlab-client") {
 		os.Setenv("GHORG_INSECURE_GITLAB_CLIENT", "true")
 	}
@@ -434,6 +438,35 @@ func setupRepoClone() {
 	cachedDirSizeMB = 0
 	isDirSizeCached = false
 
+	if os.Getenv("GHORG_GITHUB_USER_GISTS") == "true" {
+		if os.Getenv("GHORG_SCM_TYPE") != "github" {
+			colorlog.PrintErrorAndExit("GHORG_GITHUB_USER_GISTS is only supported for GitHub, please set --scm=github")
+		}
+		if os.Getenv("GHORG_CLONE_TYPE") != "user" {
+			colorlog.PrintErrorAndExit("GHORG_GITHUB_USER_GISTS is only supported for user clones, please set --clone-type=user")
+		}
+
+		gistTargets, err := getAllUserGistCloneUrls()
+		if err != nil {
+			colorlog.PrintError("Encountered an error fetching gists, aborting")
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		if len(gistTargets) == 0 {
+			colorlog.PrintInfo("No gists found for github user: " + targetCloneSource + ", please verify you have sufficient permissions, double check spelling and try again.")
+			os.Exit(0)
+		}
+
+		// Clone gists into a ghorg-gists subdirectory within the user's clone directory
+		originalOutputDirAbsolutePath := outputDirAbsolutePath
+		outputDirAbsolutePath = filepath.Join(originalOutputDirAbsolutePath, "ghorg-gists")
+		g := git.NewGit()
+		CloneAllRepos(g, gistTargets)
+		outputDirAbsolutePath = originalOutputDirAbsolutePath
+		return
+	}
+
 	var cloneTargets []scm.Repo
 	var err error
 
@@ -456,8 +489,8 @@ func setupRepoClone() {
 		colorlog.PrintInfo("No repos found for " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + targetCloneSource + ", please verify you have sufficient permissions to clone target repos, double check spelling and try again.")
 		os.Exit(0)
 	}
-	git := git.NewGit()
-	CloneAllRepos(git, cloneTargets)
+	g := git.NewGit()
+	CloneAllRepos(g, cloneTargets)
 }
 
 func getAllOrgCloneUrls() ([]scm.Repo, error) {
@@ -466,6 +499,23 @@ func getAllOrgCloneUrls() ([]scm.Repo, error) {
 
 func getAllUserCloneUrls() ([]scm.Repo, error) {
 	return getCloneUrls(false)
+}
+
+func getAllUserGistCloneUrls() ([]scm.Repo, error) {
+	asciiTime()
+	PrintConfigs()
+	client, err := scm.GetClient("github")
+	if err != nil {
+		colorlog.PrintError(err)
+		os.Exit(1)
+	}
+
+	githubClient, ok := client.(scm.Github)
+	if !ok {
+		colorlog.PrintErrorAndExit("Unable to cast client to GitHub client for gist fetching")
+	}
+
+	return githubClient.GetUserGists(targetCloneSource)
 }
 
 func getCloneUrls(isOrg bool) ([]scm.Repo, error) {
@@ -658,19 +708,21 @@ func trimCollisionFilename(filename string) string {
 	return filename
 }
 
-func getCloneableInventory(allRepos []scm.Repo) (int, int, int, int) {
-	var wikis, snippets, repos, total int
+func getCloneableInventory(allRepos []scm.Repo) (int, int, int, int, int) {
+	var wikis, snippets, repos, gists, total int
 	for _, repo := range allRepos {
 		if repo.IsGitLabSnippet {
 			snippets++
 		} else if repo.IsWiki {
 			wikis++
+		} else if repo.IsGitHubGist {
+			gists++
 		} else {
 			repos++
 		}
 	}
-	total = repos + snippets + wikis
-	return total, repos, snippets, wikis
+	total = repos + snippets + wikis + gists
+	return total, repos, snippets, wikis, gists
 }
 
 func isGitRepository(path string) bool {
@@ -702,10 +754,12 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	filter := NewRepositoryFilter()
 	cloneTargets = filter.ApplyAllFilters(cloneTargets)
 
-	totalResourcesToClone, reposToCloneCount, snippetToCloneCount, wikisToCloneCount := getCloneableInventory(cloneTargets)
+	totalResourcesToClone, reposToCloneCount, snippetToCloneCount, wikisToCloneCount, gistsToCloneCount := getCloneableInventory(cloneTargets)
 
-	if os.Getenv("GHORG_CLONE_WIKI") == "true" && os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
-		m := fmt.Sprintf("%v resources to clone found in %v, %v repos, %v snippets, and %v wikis\n", totalResourcesToClone, targetCloneSource, snippetToCloneCount, reposToCloneCount, wikisToCloneCount)
+	if os.Getenv("GHORG_GITHUB_USER_GISTS") == "true" {
+		colorlog.PrintInfo(fmt.Sprintf("%v gists found for %v\n", gistsToCloneCount, targetCloneSource))
+	} else if os.Getenv("GHORG_CLONE_WIKI") == "true" && os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
+		m := fmt.Sprintf("%v resources to clone found in %v, %v repos, %v snippets, and %v wikis\n", totalResourcesToClone, targetCloneSource, reposToCloneCount, snippetToCloneCount, wikisToCloneCount)
 		colorlog.PrintInfo(m)
 	} else if os.Getenv("GHORG_CLONE_WIKI") == "true" {
 		m := fmt.Sprintf("%v resources to clone found in %v, %v repos and %v wikis\n", totalResourcesToClone, targetCloneSource, reposToCloneCount, wikisToCloneCount)
@@ -756,6 +810,10 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		if os.Getenv("GHORG_SCM_TYPE") == "sourcehut" {
 			// The URL handling in getAppNameFromURL makes strong presumptions that the URL will end in an
 			// extension like '.git', but this is not the case for sourcehut (and possibly other forges).
+			repoSlug = repo.Name
+		} else if repo.IsGitHubGist {
+			// Gist folder names are pre-computed in filterGists from the primary filename
+			// (without extension, lowercased, with collision suffix appended when needed).
 			repoSlug = repo.Name
 		} else if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
 			repoSlug = getAppNameFromURL(repo.GitLabSnippetInfo.URLOfRepo)
@@ -1276,6 +1334,9 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_CLONE_SNIPPETS") == "true" {
 		colorlog.PrintInfo("* Snippets      : " + os.Getenv("GHORG_CLONE_SNIPPETS"))
+	}
+	if os.Getenv("GHORG_GITHUB_USER_GISTS") == "true" {
+		colorlog.PrintInfo("* Gists         : " + os.Getenv("GHORG_GITHUB_USER_GISTS"))
 	}
 	if configs.GhorgIgnoreDetected() {
 		colorlog.PrintInfo("* Ghorgignore   : " + configs.GhorgIgnoreLocation())

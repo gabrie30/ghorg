@@ -134,3 +134,211 @@ func TestGetOrgRepos(t *testing.T) {
 		os.Setenv("GHORG_TOPICS", "")
 	})
 }
+
+func TestGetUserGists(t *testing.T) {
+	client, mux, _, teardown := setup()
+
+	github := Github{Client: client}
+
+	defer teardown()
+
+	mux.HandleFunc("/users/testuser/gists", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `[
+			{"id":"abc123", "git_pull_url": "https://gist.github.com/abc123.git", "public": true, "files": {"foobar.md": {"filename": "foobar.md"}}},
+			{"id":"def456", "git_pull_url": "https://gist.github.com/def456.git", "public": true, "files": {"script.sh": {"filename": "script.sh"}}},
+			{"id":"ghi789", "git_pull_url": "https://gist.github.com/ghi789.git", "public": false, "files": {"README.txt": {"filename": "README.txt"}}}
+		]`)
+	})
+
+	t.Run("Should return all gists with HTTPS protocol", func(tt *testing.T) {
+		os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+		os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
+
+		resp, err := github.GetUserGists("testuser")
+
+		if err != nil {
+			tt.Fatal(err)
+		}
+
+		want := 3
+		got := len(resp)
+		if want != got {
+			tt.Errorf("Expected %v gists, got: %v", want, got)
+		}
+
+		for _, repo := range resp {
+			if !repo.IsGitHubGist {
+				tt.Errorf("Expected IsGitHubGist to be true for gist %s", repo.Name)
+			}
+		}
+
+		os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		os.Unsetenv("GHORG_GITHUB_TOKEN")
+	})
+
+	t.Run("Should use filename without extension as folder name", func(tt *testing.T) {
+		os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+		os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
+
+		resp, err := github.GetUserGists("testuser")
+		if err != nil {
+			tt.Fatal(err)
+		}
+
+		// Build a map of ID→Name for easy lookup
+		names := make(map[string]string)
+		for _, repo := range resp {
+			names[repo.ID] = repo.Name
+		}
+
+		tests := []struct{ id, wantName string }{
+			{"abc123", "foobar"}, // foobar.md  → foobar
+			{"def456", "script"}, // script.sh  → script
+			{"ghi789", "readme"}, // README.txt → readme (lowercased)
+		}
+		for _, tc := range tests {
+			if got := names[tc.id]; got != tc.wantName {
+				tt.Errorf("gist %s: expected folder name %q, got %q", tc.id, tc.wantName, got)
+			}
+		}
+
+		os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		os.Unsetenv("GHORG_GITHUB_TOKEN")
+	})
+
+	t.Run("Should set correct clone branch for gists", func(tt *testing.T) {
+		os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+		os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
+
+		resp, err := github.GetUserGists("testuser")
+
+		if err != nil {
+			tt.Fatal(err)
+		}
+
+		// When GHORG_BRANCH is not set, gists default to "master"
+		for _, repo := range resp {
+			if repo.CloneBranch != "master" {
+				tt.Errorf("Expected CloneBranch to be 'master' when GHORG_BRANCH is unset, got: %s", repo.CloneBranch)
+			}
+		}
+
+		os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		os.Unsetenv("GHORG_GITHUB_TOKEN")
+	})
+
+	t.Run("Should respect GHORG_BRANCH for gists", func(tt *testing.T) {
+		os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+		os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
+		os.Setenv("GHORG_BRANCH", "main")
+
+		resp, err := github.GetUserGists("testuser")
+
+		if err != nil {
+			tt.Fatal(err)
+		}
+
+		for _, repo := range resp {
+			if repo.CloneBranch != "main" {
+				tt.Errorf("Expected CloneBranch to be 'main', got: %s", repo.CloneBranch)
+			}
+		}
+
+		os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		os.Unsetenv("GHORG_GITHUB_TOKEN")
+		os.Unsetenv("GHORG_BRANCH")
+	})
+}
+
+func TestGistFolderName(t *testing.T) {
+	strPtr := func(s string) *string { return &s }
+
+	tests := []struct {
+		name     string
+		gist     *ghpkg.Gist
+		wantName string
+	}{
+		{
+			name:     "single file with extension",
+			gist:     &ghpkg.Gist{ID: strPtr("id1"), Files: map[ghpkg.GistFilename]ghpkg.GistFile{"foobar.md": {}}},
+			wantName: "foobar",
+		},
+		{
+			name:     "uppercase extension is lowercased",
+			gist:     &ghpkg.Gist{ID: strPtr("id2"), Files: map[ghpkg.GistFilename]ghpkg.GistFile{"README.txt": {}}},
+			wantName: "readme",
+		},
+		{
+			name:     "no extension",
+			gist:     &ghpkg.Gist{ID: strPtr("id3"), Files: map[ghpkg.GistFilename]ghpkg.GistFile{"Makefile": {}}},
+			wantName: "makefile",
+		},
+		{
+			name:     "multiple files uses first alphabetically",
+			gist:     &ghpkg.Gist{ID: strPtr("id4"), Files: map[ghpkg.GistFilename]ghpkg.GistFile{"zebra.go": {}, "alpha.go": {}, "middle.go": {}}},
+			wantName: "alpha",
+		},
+		{
+			name:     "no files falls back to gist id",
+			gist:     &ghpkg.Gist{ID: strPtr("abc999"), Files: map[ghpkg.GistFilename]ghpkg.GistFile{}},
+			wantName: "abc999",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(tt *testing.T) {
+			got := gistFolderName(tc.gist)
+			if got != tc.wantName {
+				tt.Errorf("gistFolderName: expected %q, got %q", tc.wantName, got)
+			}
+		})
+	}
+}
+
+func TestFilterGistsCollisions(t *testing.T) {
+	client, mux, _, teardown := setup()
+	gh := Github{Client: client}
+	defer teardown()
+
+	// Two gists share the same derived folder name ("foobar")
+	mux.HandleFunc("/users/collisionuser/gists", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `[
+			{"id":"aaa111", "git_pull_url": "https://gist.github.com/aaa111.git", "files": {"foobar.md": {"filename": "foobar.md"}}},
+			{"id":"bbb222", "git_pull_url": "https://gist.github.com/bbb222.git", "files": {"foobar.sh": {"filename": "foobar.sh"}}},
+			{"id":"ccc333", "git_pull_url": "https://gist.github.com/ccc333.git", "files": {"unique.py": {"filename": "unique.py"}}}
+		]`)
+	})
+
+	os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+	os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
+	defer func() {
+		os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		os.Unsetenv("GHORG_GITHUB_TOKEN")
+	}()
+
+	resp, err := gh.GetUserGists("collisionuser")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(resp) != 3 {
+		t.Fatalf("Expected 3 repos, got %d", len(resp))
+	}
+
+	names := make(map[string]string) // id → Name
+	for _, repo := range resp {
+		names[repo.ID] = repo.Name
+	}
+
+	// Both "foobar.md" and "foobar.sh" collide on "foobar", so both get the gist ID appended
+	if got := names["aaa111"]; got != "foobar-aaa111" {
+		t.Errorf("aaa111: expected 'foobar-aaa111', got %q", got)
+	}
+	if got := names["bbb222"]; got != "foobar-bbb222" {
+		t.Errorf("bbb222: expected 'foobar-bbb222', got %q", got)
+	}
+	// No collision for "unique"
+	if got := names["ccc333"]; got != "unique" {
+		t.Errorf("ccc333: expected 'unique', got %q", got)
+	}
+}

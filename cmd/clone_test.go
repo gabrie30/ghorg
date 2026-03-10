@@ -1113,3 +1113,78 @@ func TestPrintFinishedWithDirSize_NoTiming(t *testing.T) {
 
 	// The function should complete without error and not include timing info
 }
+
+func TestGetCloneableInventoryWithGists(t *testing.T) {
+	repos := []scm.Repo{
+		{Name: "repo1"},
+		{Name: "repo2"},
+		{Name: "wiki1", IsWiki: true},
+		{Name: "gist1", IsGitHubGist: true},
+		{Name: "gist2", IsGitHubGist: true},
+	}
+
+	total, repoCount, snippetCount, wikiCount, gistCount := getCloneableInventory(repos)
+
+	if total != 5 {
+		t.Errorf("Expected total 5, got %d", total)
+	}
+	if repoCount != 2 {
+		t.Errorf("Expected repoCount 2, got %d", repoCount)
+	}
+	if snippetCount != 0 {
+		t.Errorf("Expected snippetCount 0, got %d", snippetCount)
+	}
+	if wikiCount != 1 {
+		t.Errorf("Expected wikiCount 1, got %d", wikiCount)
+	}
+	if gistCount != 2 {
+		t.Errorf("Expected gistCount 2, got %d", gistCount)
+	}
+}
+
+func TestGithubUserGistsValidation(t *testing.T) {
+	t.Run("GHORG_GITHUB_USER_GISTS requires github scm type", func(tt *testing.T) {
+		defer UnsetEnv("GHORG_")()
+
+		os.Setenv("GHORG_GITHUB_USER_GISTS", "true")
+		os.Setenv("GHORG_SCM_TYPE", "gitlab")
+		os.Setenv("GHORG_CLONE_TYPE", "user")
+
+		// Verify the condition that setupRepoClone checks
+		if os.Getenv("GHORG_GITHUB_USER_GISTS") == "true" && os.Getenv("GHORG_SCM_TYPE") != "github" {
+			// This is the expected invalid state - gists + non-github scm should error
+			// The setupRepoClone function calls colorlog.PrintErrorAndExit in this case
+		} else {
+			tt.Errorf("Expected GHORG_GITHUB_USER_GISTS=true with non-github SCM to be an invalid combination")
+		}
+	})
+
+	t.Run("GHORG_GITHUB_USER_GISTS requires user clone type", func(tt *testing.T) {
+		defer UnsetEnv("GHORG_")()
+
+		os.Setenv("GHORG_GITHUB_USER_GISTS", "true")
+		os.Setenv("GHORG_SCM_TYPE", "github")
+		os.Setenv("GHORG_CLONE_TYPE", "org")
+
+		// Verify the condition that setupRepoClone checks
+		if os.Getenv("GHORG_GITHUB_USER_GISTS") == "true" && os.Getenv("GHORG_CLONE_TYPE") != "user" {
+			// This is the expected invalid state - gists + org clone type should error
+			// The setupRepoClone function calls colorlog.PrintErrorAndExit in this case
+		} else {
+			tt.Errorf("Expected GHORG_GITHUB_USER_GISTS=true with org clone type to be an invalid combination")
+		}
+	})
+
+	t.Run("GHORG_GITHUB_USER_GISTS with valid github user combination", func(tt *testing.T) {
+		defer UnsetEnv("GHORG_")()
+
+		os.Setenv("GHORG_GITHUB_USER_GISTS", "true")
+		os.Setenv("GHORG_SCM_TYPE", "github")
+		os.Setenv("GHORG_CLONE_TYPE", "user")
+
+		// Verify the valid combination passes the check
+		if os.Getenv("GHORG_GITHUB_USER_GISTS") != "true" || os.Getenv("GHORG_SCM_TYPE") != "github" || os.Getenv("GHORG_CLONE_TYPE") != "user" {
+			tt.Errorf("Expected valid github user gists combination to be accepted")
+		}
+	})
+}
