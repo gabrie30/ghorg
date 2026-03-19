@@ -13,13 +13,13 @@ SOURCEHUT_USER=${SOURCEHUT_TEST_USER:-"gabrie30"}
 GHORG_TEST_REPO=${SOURCEHUT_TEST_REPO:-"ghorg-test"}
 GHORG_EXIT_CODE_ON_CLONE_ISSUES=0
 
-if [ -z "$SOURCEHUT_USER" ]; then
+if [ -z "${SOURCEHUT_USER:-}" ]; then
     echo "SOURCEHUT_TEST_USER environment variable is not set"
     echo "Skipping sourcehut integration tests"
     exit 0
 fi
 
-if [ -z "$SOURCEHUT_TOKEN" ]; then
+if [ -z "${SOURCEHUT_TOKEN:-}" ]; then
     echo "SOURCEHUT_TOKEN environment variable is not set"
     echo "Skipping sourcehut integration tests"
     exit 0
