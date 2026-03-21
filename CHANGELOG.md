@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - ghorg-create-workspace skill
 - GHORG_GITHUB_USER_GISTS flag to clone a GitHub user's gists (#626)
 - GHORG_PROTECT_LOCAL - Skip updating repositories with uncommitted changes or unpushed commits
-- GHORG_FETCH_PRUNE to toggle the --prune flag on git fetches
+- GHORG_FETCH_PRUNE to toggle the --prune flag on git fetches; thanks @batagy
 ### Changed
 ### Deprecated
 ### Removed
