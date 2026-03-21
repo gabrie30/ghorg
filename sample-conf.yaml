@@ -141,6 +141,20 @@ GHORG_EXCLUDE_MATCH_REGEX:
 # flag (--no-clean)
 GHORG_NO_CLEAN: false
 
+# Skip updating repositories that have local changes (uncommitted changes or unpushed commits).
+# This is a safer alternative to --no-clean that still updates repos without local modifications.
+#
+# How --protect-local differs from --no-clean:
+#   --no-clean:       Skips ALL update operations on existing repos (no checkout, clean, reset, or pull)
+#   --protect-local:  Checks each repo for local changes first, then:
+#                     - If repo has uncommitted changes or unpushed commits: skip with warning
+#                     - If repo is clean: proceed with normal update operations (checkout, clean, reset, pull)
+#
+# Use --no-clean when you want to preserve ALL existing repos exactly as-is.
+# Use --protect-local when you want to update clean repos but protect repos you're actively working on.
+# flag (--protect-local)
+GHORG_PROTECT_LOCAL: false
+
 # Additionally clone the wiki page for repo
 # flag (--clone-wiki)
 GHORG_CLONE_WIKI: false

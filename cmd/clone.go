@@ -347,6 +347,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_BACKUP", "true")
 	}
 
+	if cmd.Flags().Changed("protect-local") {
+		os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	}
+
 	if cmd.Flags().Changed("output-dir") {
 		d := cmd.Flag("output-dir").Value.String()
 		os.Setenv("GHORG_OUTPUT_DIR", d)
@@ -874,7 +878,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	cloneErrors = stats.CloneErrors
 
 	printRemainingMessages()
-	printCloneStatsMessage(stats.CloneCount, stats.PulledCount, stats.UpdateRemoteCount, stats.NewCommits, untouchedPrunes, stats.TotalDurationSeconds)
+	printCloneStatsMessage(stats.CloneCount, stats.PulledCount, stats.UpdateRemoteCount, stats.NewCommits, untouchedPrunes, stats.ProtectedCount, stats.TotalDurationSeconds)
 
 	if hasCollisions {
 		fmt.Println("")
@@ -1219,21 +1223,38 @@ func formatDurationText(durationSeconds int) string {
 	}
 }
 
-func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits, untouchedPrunes, durationSeconds int) {
+func printCloneStatsMessage(cloneCount, pulledCount, updateRemoteCount, newCommits, untouchedPrunes, protectedCount, durationSeconds int) {
 	durationText := formatDurationText(durationSeconds)
 
 	if updateRemoteCount > 0 {
-		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v, remotes updated: %v%s", cloneCount, pulledCount, newCommits, updateRemoteCount, durationText))
+		if protectedCount > 0 {
+			colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v, remotes updated: %v, protected: %v%s", cloneCount, pulledCount, newCommits, updateRemoteCount, protectedCount, durationText))
+		} else {
+			colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v, remotes updated: %v%s", cloneCount, pulledCount, newCommits, updateRemoteCount, durationText))
+		}
 		return
 	}
 
 	if newCommits > 0 {
-		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v%s", cloneCount, pulledCount, newCommits, durationText))
+		if protectedCount > 0 {
+			colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v, protected: %v%s", cloneCount, pulledCount, newCommits, protectedCount, durationText))
+		} else {
+			colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total new commits: %v%s", cloneCount, pulledCount, newCommits, durationText))
+		}
 		return
 	}
 
 	if untouchedPrunes > 0 {
-		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total prunes: %v%s", cloneCount, pulledCount, untouchedPrunes, durationText))
+		if protectedCount > 0 {
+			colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total prunes: %v, protected: %v%s", cloneCount, pulledCount, untouchedPrunes, protectedCount, durationText))
+		} else {
+			colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, total prunes: %v%s", cloneCount, pulledCount, untouchedPrunes, durationText))
+		}
+		return
+	}
+
+	if protectedCount > 0 {
+		colorlog.PrintSuccess(fmt.Sprintf("New clones: %v, existing resources pulled: %v, protected: %v%s", cloneCount, pulledCount, protectedCount, durationText))
 		return
 	}
 
@@ -1376,6 +1397,9 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_NO_CLEAN") == "true" {
 		colorlog.PrintInfo("* No Clean      : " + "true")
+	}
+	if os.Getenv("GHORG_PROTECT_LOCAL") == "true" {
+		colorlog.PrintInfo("* Protect Local : " + "true")
 	}
 	if os.Getenv("GHORG_PRUNE") == "true" {
 		noConfirmText := ""

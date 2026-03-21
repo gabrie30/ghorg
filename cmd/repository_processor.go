@@ -33,6 +33,7 @@ type RepositoryProcessor struct {
 	stats          *CloneStats
 	mutex          *sync.RWMutex
 	untouchedRepos []string
+	protectedRepos []string
 }
 
 // CloneStats tracks statistics during clone operations
@@ -42,6 +43,7 @@ type CloneStats struct {
 	UpdateRemoteCount    int
 	NewCommits           int
 	UntouchedPrunes      int
+	ProtectedCount       int
 	TotalDurationSeconds int
 	CloneInfos           []string
 	CloneErrors          []string
@@ -222,9 +224,50 @@ func (rp *RepositoryProcessor) shouldPruneUntouched(repo *scm.Repo) bool {
 	return true
 }
 
+// hasLocalChanges checks if a repository has uncommitted changes or unpushed commits
+// Returns: hasChanges bool, reason string, error
+func (rp *RepositoryProcessor) hasLocalChanges(repo *scm.Repo) (bool, string, error) {
+	// Check for uncommitted changes (modified files, staged changes, untracked files)
+	status, err := rp.git.ShortStatus(*repo)
+	if err != nil {
+		return false, "", err
+	}
+	if status != "" {
+		return true, "uncommitted changes", nil
+	}
+
+	// Check for unpushed commits (commits ahead of remote)
+	commits, err := rp.git.RevListCompare(*repo, "HEAD", "@{u}")
+	if err != nil {
+		// If error occurs (e.g., no upstream), we can't determine unpushed commits
+		// This is not necessarily an error - repo may not have upstream tracking
+		return false, "", nil
+	}
+	if commits != "" {
+		return true, "unpushed commits", nil
+	}
+
+	return false, "", nil
+}
+
 // handleExistingRepository processes repositories that already exist locally
 func (rp *RepositoryProcessor) handleExistingRepository(repo *scm.Repo, action *string) bool {
 	*action = "pulling"
+
+	// Check for local changes if protect-local is enabled
+	// Only applies to standard pull mode (backup and no-clean modes are already safe)
+	if os.Getenv("GHORG_PROTECT_LOCAL") == "true" {
+		if os.Getenv("GHORG_BACKUP") != "true" && os.Getenv("GHORG_NO_CLEAN") != "true" {
+			hasChanges, reason, err := rp.hasLocalChanges(repo)
+			if err != nil {
+				rp.addInfo(fmt.Sprintf("Could not check for local changes on %s: %v", repo.Name, err))
+			} else if hasChanges {
+				rp.addProtected(repo.HostPath)
+				colorlog.PrintInfo(fmt.Sprintf("Skipping %s: %s (--protect-local)", repo.URL, reason))
+				return false
+			}
+		}
+	}
 
 	// Set origin with credentials
 	err := rp.git.SetOriginWithCredentials(*repo)
@@ -495,6 +538,14 @@ func (rp *RepositoryProcessor) addInfo(msg string) {
 	rp.mutex.Unlock()
 }
 
+// addProtected adds a protected repo and increments the count in a thread-safe manner
+func (rp *RepositoryProcessor) addProtected(repoPath string) {
+	rp.mutex.Lock()
+	rp.protectedRepos = append(rp.protectedRepos, repoPath)
+	rp.stats.ProtectedCount++
+	rp.mutex.Unlock()
+}
+
 // GetStats returns a copy of the current statistics
 func (rp *RepositoryProcessor) GetStats() CloneStats {
 	rp.mutex.RLock()
@@ -506,6 +557,7 @@ func (rp *RepositoryProcessor) GetStats() CloneStats {
 		UpdateRemoteCount:    rp.stats.UpdateRemoteCount,
 		NewCommits:           rp.stats.NewCommits,
 		UntouchedPrunes:      rp.stats.UntouchedPrunes,
+		ProtectedCount:       rp.stats.ProtectedCount,
 		TotalDurationSeconds: rp.stats.TotalDurationSeconds,
 		CloneInfos:           append([]string(nil), rp.stats.CloneInfos...),
 		CloneErrors:          append([]string(nil), rp.stats.CloneErrors...),
@@ -518,6 +570,14 @@ func (rp *RepositoryProcessor) GetUntouchedRepos() []string {
 	defer rp.mutex.RUnlock()
 	// Return a copy to prevent external modifications
 	return append([]string(nil), rp.untouchedRepos...)
+}
+
+// GetProtectedRepos returns the list of protected repositories (skipped due to local changes)
+func (rp *RepositoryProcessor) GetProtectedRepos() []string {
+	rp.mutex.RLock()
+	defer rp.mutex.RUnlock()
+	// Return a copy to prevent external modifications
+	return append([]string(nil), rp.protectedRepos...)
 }
 
 // SetTotalDuration sets the total duration in seconds for the clone operation

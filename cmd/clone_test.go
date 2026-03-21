@@ -1024,6 +1024,7 @@ func TestPrintCloneStatsMessage_WithTiming(t *testing.T) {
 		updateRemoteCount int
 		newCommits        int
 		untouchedPrunes   int
+		protectedCount    int
 		durationSeconds   int
 		expectedText      string
 	}{
@@ -1073,6 +1074,14 @@ func TestPrintCloneStatsMessage_WithTiming(t *testing.T) {
 			durationSeconds: 25,
 			expectedText:    "completed in 25s",
 		},
+		{
+			name:           "Stats with protected repos",
+			cloneCount:     3,
+			pulledCount:    2,
+			protectedCount: 2,
+			durationSeconds: 30,
+			expectedText:   "protected: 2",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1084,7 +1093,7 @@ func TestPrintCloneStatsMessage_WithTiming(t *testing.T) {
 
 			// This should not panic and should execute successfully
 			printCloneStatsMessage(tc.cloneCount, tc.pulledCount, tc.updateRemoteCount,
-				tc.newCommits, tc.untouchedPrunes, tc.durationSeconds)
+				tc.newCommits, tc.untouchedPrunes, tc.protectedCount, tc.durationSeconds)
 
 			// The expectedText should be present in the output (in a real test with output capture)
 			// For now, we'll just verify the function runs without error
