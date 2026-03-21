@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Added
 - ghorg-create-workspace skill
 - GHORG_GITHUB_USER_GISTS flag to clone a GitHub user's gists (#626)
+- GHORG_PROTECT_LOCAL - Skip updating repositories with uncommitted changes or unpushed commits
 ### Changed
 ### Deprecated
 ### Removed

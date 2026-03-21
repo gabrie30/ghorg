@@ -83,6 +83,7 @@ var (
 	ghorgPreserveScmHostname     bool
 	ghorgPruneUntouched          bool
 	ghorgPruneUntouchedNoConfirm bool
+	protectLocal                 bool
 	cloneErrors                  []string
 	cloneInfos                   []string
 )
@@ -415,6 +416,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&ghorgPreserveScmHostname, "preserve-scm-hostname", false, "GHORG_PRESERVE_SCM_HOSTNAME - Organize clones into subdirectories by SCM hostname (e.g., github.com/kubernetes, gitlab.com/myorg). Useful when cloning from multiple SCM providers")
 	cloneCmd.Flags().BoolVar(&ghorgPruneUntouched, "prune-untouched", false, "GHORG_PRUNE_UNTOUCHED - Remove local repositories without uncommitted changes. See sample-conf.yaml for details. Prompts before deletion unless using --prune-untouched-no-confirm")
 	cloneCmd.Flags().BoolVar(&ghorgPruneUntouchedNoConfirm, "prune-untouched-no-confirm", false, "GHORG_PRUNE_UNTOUCHED_NO_CONFIRM - Skip confirmation when pruning untouched repositories. Use with caution")
+	cloneCmd.Flags().BoolVar(&protectLocal, "protect-local", false, "GHORG_PROTECT_LOCAL - Skip updating repositories with uncommitted changes or unpushed commits. Use this to safely re-clone without losing local work")
 	cloneCmd.Flags().StringVarP(&baseURL, "base-url", "", "", "GHORG_SCM_BASE_URL - Base URL for self-hosted SCM instances. For GitHub Enterprise use format: https://github.example.com/api/v3. Required for self-hosted GitLab, Gitea, and GitHub")
 	cloneCmd.Flags().StringVarP(&concurrency, "concurrency", "", "", "GHORG_CONCURRENCY - Maximum number of concurrent clone operations (goroutines). Higher values speed up cloning but use more resources. (default: 25)")
 	cloneCmd.Flags().StringVarP(&cloneDelaySeconds, "clone-delay-seconds", "", "", "GHORG_CLONE_DELAY_SECONDS - Delay in seconds between each clone operation. Useful for rate limiting or reducing server load. Auto-sets concurrency to 1 when > 0 (default: 0)")

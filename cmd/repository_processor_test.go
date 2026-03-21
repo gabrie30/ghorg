@@ -12,12 +12,14 @@ import (
 // ExtendedMockGitClient extends the existing MockGitClient with additional methods needed for RepositoryProcessor
 type ExtendedMockGitClient struct {
 	MockGitClient
-	shouldFailClone       bool
-	shouldFailCheckout    bool
-	shouldFailSetOrigin   bool
-	shouldReturnEmptyRepo bool
-	preCommitCount        int
-	postCommitCount       int
+	shouldFailClone           bool
+	shouldFailCheckout        bool
+	shouldFailSetOrigin       bool
+	shouldReturnEmptyRepo     bool
+	shouldReturnDirtyStatus   bool
+	shouldReturnUnpushedCommits bool
+	preCommitCount            int
+	postCommitCount           int
 }
 
 func NewExtendedMockGit() *ExtendedMockGitClient {
@@ -58,6 +60,20 @@ func (g *ExtendedMockGitClient) RepoCommitCount(repo scm.Repo) (int, error) {
 		return g.preCommitCount, nil
 	}
 	return g.postCommitCount, nil
+}
+
+func (g *ExtendedMockGitClient) ShortStatus(repo scm.Repo) (string, error) {
+	if g.shouldReturnDirtyStatus {
+		return " M modified_file.go", nil
+	}
+	return "", nil
+}
+
+func (g *ExtendedMockGitClient) RevListCompare(repo scm.Repo, ref1 string, ref2 string) (string, error) {
+	if g.shouldReturnUnpushedCommits {
+		return "abc123\ndef456", nil
+	}
+	return "", nil
 }
 
 func TestRepositoryProcessor_NewRepositoryProcessor(t *testing.T) {
@@ -720,5 +736,394 @@ func TestCloneStats_NewStruct(t *testing.T) {
 	}
 	if len(stats.CloneErrors) != 1 {
 		t.Errorf("Expected 1 CloneError, got %d", len(stats.CloneErrors))
+	}
+}
+
+func TestRepositoryProcessor_ProtectLocal_SkipsDirtyRepo(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+
+	// Set up temporary directory with existing repo
+	dir, err := os.MkdirTemp("", "ghorg_test_protect_local_dirty")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	outputDirAbsolutePath = dir
+
+	// Create existing repo directory
+	repoDir := filepath.Join(dir, "test-repo")
+	err = os.MkdirAll(repoDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockGit := NewExtendedMockGit()
+	mockGit.shouldReturnDirtyStatus = true
+	processor := NewRepositoryProcessor(mockGit)
+
+	repo := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+		HostPath:    repoDir,
+	}
+
+	repoNameWithCollisions := make(map[string]bool)
+	processor.ProcessRepository(&repo, repoNameWithCollisions, false, "test-repo", 0)
+
+	stats := processor.GetStats()
+	// Should not be pulled because it has uncommitted changes
+	if stats.PulledCount != 0 {
+		t.Errorf("Expected pulled count to be 0, got %d", stats.PulledCount)
+	}
+	// Should be counted as protected
+	if stats.ProtectedCount != 1 {
+		t.Errorf("Expected protected count to be 1, got %d", stats.ProtectedCount)
+	}
+	// Verify GetProtectedRepos returns the repo
+	protectedRepos := processor.GetProtectedRepos()
+	if len(protectedRepos) != 1 {
+		t.Errorf("Expected 1 protected repo, got %d", len(protectedRepos))
+	}
+}
+
+func TestRepositoryProcessor_ProtectLocal_SkipsUnpushedCommits(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+
+	// Set up temporary directory with existing repo
+	dir, err := os.MkdirTemp("", "ghorg_test_protect_local_unpushed")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	outputDirAbsolutePath = dir
+
+	// Create existing repo directory
+	repoDir := filepath.Join(dir, "test-repo")
+	err = os.MkdirAll(repoDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockGit := NewExtendedMockGit()
+	mockGit.shouldReturnUnpushedCommits = true
+	processor := NewRepositoryProcessor(mockGit)
+
+	repo := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+		HostPath:    repoDir,
+	}
+
+	repoNameWithCollisions := make(map[string]bool)
+	processor.ProcessRepository(&repo, repoNameWithCollisions, false, "test-repo", 0)
+
+	stats := processor.GetStats()
+	// Should not be pulled because it has unpushed commits
+	if stats.PulledCount != 0 {
+		t.Errorf("Expected pulled count to be 0, got %d", stats.PulledCount)
+	}
+	// Should be counted as protected
+	if stats.ProtectedCount != 1 {
+		t.Errorf("Expected protected count to be 1, got %d", stats.ProtectedCount)
+	}
+}
+
+func TestRepositoryProcessor_ProtectLocal_AllowsCleanRepo(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+
+	// Set up temporary directory with existing repo
+	dir, err := os.MkdirTemp("", "ghorg_test_protect_local_clean")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	outputDirAbsolutePath = dir
+
+	// Create existing repo directory
+	repoDir := filepath.Join(dir, "test-repo")
+	err = os.MkdirAll(repoDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockGit := NewExtendedMockGit()
+	// Neither dirty status nor unpushed commits - repo is clean
+	processor := NewRepositoryProcessor(mockGit)
+
+	repo := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+		HostPath:    repoDir,
+	}
+
+	repoNameWithCollisions := make(map[string]bool)
+	processor.ProcessRepository(&repo, repoNameWithCollisions, false, "test-repo", 0)
+
+	stats := processor.GetStats()
+	// Should be pulled because repo is clean
+	if stats.PulledCount != 1 {
+		t.Errorf("Expected pulled count to be 1, got %d", stats.PulledCount)
+	}
+	// Should not be counted as protected
+	if stats.ProtectedCount != 0 {
+		t.Errorf("Expected protected count to be 0, got %d", stats.ProtectedCount)
+	}
+}
+
+func TestRepositoryProcessor_ProtectLocal_BypassedInBackupMode(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	os.Setenv("GHORG_BACKUP", "true")
+
+	// Set up temporary directory with existing repo
+	dir, err := os.MkdirTemp("", "ghorg_test_protect_local_backup")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	outputDirAbsolutePath = dir
+
+	// Create existing repo directory
+	repoDir := filepath.Join(dir, "test-repo")
+	err = os.MkdirAll(repoDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockGit := NewExtendedMockGit()
+	mockGit.shouldReturnDirtyStatus = true // Would normally be skipped
+	processor := NewRepositoryProcessor(mockGit)
+
+	repo := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+		HostPath:    repoDir,
+	}
+
+	repoNameWithCollisions := make(map[string]bool)
+	processor.ProcessRepository(&repo, repoNameWithCollisions, false, "test-repo", 0)
+
+	stats := processor.GetStats()
+	// Backup mode is safe, so protect-local check is bypassed
+	if stats.UpdateRemoteCount != 1 {
+		t.Errorf("Expected update remote count to be 1, got %d", stats.UpdateRemoteCount)
+	}
+	// Should not be counted as protected since backup mode is already safe
+	if stats.ProtectedCount != 0 {
+		t.Errorf("Expected protected count to be 0, got %d", stats.ProtectedCount)
+	}
+}
+
+func TestRepositoryProcessor_ProtectLocal_BypassedInNoCleanMode(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	os.Setenv("GHORG_NO_CLEAN", "true")
+
+	// Set up temporary directory with existing repo
+	dir, err := os.MkdirTemp("", "ghorg_test_protect_local_no_clean")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	outputDirAbsolutePath = dir
+
+	// Create existing repo directory
+	repoDir := filepath.Join(dir, "test-repo")
+	err = os.MkdirAll(repoDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockGit := NewExtendedMockGit()
+	mockGit.shouldReturnDirtyStatus = true // Would normally be skipped
+	processor := NewRepositoryProcessor(mockGit)
+
+	repo := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+		HostPath:    repoDir,
+	}
+
+	repoNameWithCollisions := make(map[string]bool)
+	processor.ProcessRepository(&repo, repoNameWithCollisions, false, "test-repo", 0)
+
+	stats := processor.GetStats()
+	// No-clean mode is safe, so protect-local check is bypassed
+	if stats.PulledCount != 1 {
+		t.Errorf("Expected pulled count to be 1, got %d", stats.PulledCount)
+	}
+	// Should not be counted as protected since no-clean mode is already safe
+	if stats.ProtectedCount != 0 {
+		t.Errorf("Expected protected count to be 0, got %d", stats.ProtectedCount)
+	}
+}
+
+func TestRepositoryProcessor_ProtectLocal_DisabledByDefault(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	// GHORG_PROTECT_LOCAL is NOT set
+
+	// Set up temporary directory with existing repo
+	dir, err := os.MkdirTemp("", "ghorg_test_protect_local_disabled")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	outputDirAbsolutePath = dir
+
+	// Create existing repo directory
+	repoDir := filepath.Join(dir, "test-repo")
+	err = os.MkdirAll(repoDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockGit := NewExtendedMockGit()
+	mockGit.shouldReturnDirtyStatus = true // Would be skipped if protect-local was enabled
+	processor := NewRepositoryProcessor(mockGit)
+
+	repo := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+		HostPath:    repoDir,
+	}
+
+	repoNameWithCollisions := make(map[string]bool)
+	processor.ProcessRepository(&repo, repoNameWithCollisions, false, "test-repo", 0)
+
+	stats := processor.GetStats()
+	// Should be pulled because protect-local is not enabled
+	if stats.PulledCount != 1 {
+		t.Errorf("Expected pulled count to be 1, got %d", stats.PulledCount)
+	}
+	// Should not be counted as protected
+	if stats.ProtectedCount != 0 {
+		t.Errorf("Expected protected count to be 0, got %d", stats.ProtectedCount)
+	}
+}
+
+func TestRepositoryProcessor_ProtectLocal_NewRepoNotAffected(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+
+	// Set up temporary directory (no existing repo)
+	dir, err := os.MkdirTemp("", "ghorg_test_protect_local_new_repo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	outputDirAbsolutePath = dir
+
+	mockGit := NewExtendedMockGit()
+	processor := NewRepositoryProcessor(mockGit)
+
+	repo := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+	}
+
+	repoNameWithCollisions := make(map[string]bool)
+	processor.ProcessRepository(&repo, repoNameWithCollisions, false, "test-repo", 0)
+
+	stats := processor.GetStats()
+	// New repos should be cloned regardless of protect-local
+	if stats.CloneCount != 1 {
+		t.Errorf("Expected clone count to be 1, got %d", stats.CloneCount)
+	}
+	// Should not be counted as protected
+	if stats.ProtectedCount != 0 {
+		t.Errorf("Expected protected count to be 0, got %d", stats.ProtectedCount)
+	}
+}
+
+func TestRepositoryProcessor_HasLocalChanges(t *testing.T) {
+	mockGit := NewExtendedMockGit()
+	processor := NewRepositoryProcessor(mockGit)
+
+	repo := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+		HostPath:    "/tmp/test-repo",
+	}
+
+	// Test clean repo
+	hasChanges, reason, err := processor.hasLocalChanges(&repo)
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
+	if hasChanges {
+		t.Error("Expected hasChanges to be false for clean repo")
+	}
+	if reason != "" {
+		t.Errorf("Expected empty reason, got %s", reason)
+	}
+
+	// Test dirty status
+	mockGit.shouldReturnDirtyStatus = true
+	hasChanges, reason, err = processor.hasLocalChanges(&repo)
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
+	if !hasChanges {
+		t.Error("Expected hasChanges to be true for dirty repo")
+	}
+	if reason != "uncommitted changes" {
+		t.Errorf("Expected reason to be 'uncommitted changes', got %s", reason)
+	}
+
+	// Test unpushed commits (reset dirty status first)
+	mockGit.shouldReturnDirtyStatus = false
+	mockGit.shouldReturnUnpushedCommits = true
+	hasChanges, reason, err = processor.hasLocalChanges(&repo)
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
+	if !hasChanges {
+		t.Error("Expected hasChanges to be true for repo with unpushed commits")
+	}
+	if reason != "unpushed commits" {
+		t.Errorf("Expected reason to be 'unpushed commits', got %s", reason)
+	}
+}
+
+func TestRepositoryProcessor_AddProtected(t *testing.T) {
+	mockGit := NewExtendedMockGit()
+	processor := NewRepositoryProcessor(mockGit)
+
+	// Add protected repos
+	processor.addProtected("/tmp/repo1")
+	processor.addProtected("/tmp/repo2")
+
+	stats := processor.GetStats()
+	if stats.ProtectedCount != 2 {
+		t.Errorf("Expected protected count to be 2, got %d", stats.ProtectedCount)
+	}
+
+	protectedRepos := processor.GetProtectedRepos()
+	if len(protectedRepos) != 2 {
+		t.Errorf("Expected 2 protected repos, got %d", len(protectedRepos))
+	}
+	if protectedRepos[0] != "/tmp/repo1" {
+		t.Errorf("Expected first protected repo to be '/tmp/repo1', got %s", protectedRepos[0])
+	}
+	if protectedRepos[1] != "/tmp/repo2" {
+		t.Errorf("Expected second protected repo to be '/tmp/repo2', got %s", protectedRepos[1])
 	}
 }
