@@ -209,6 +209,11 @@ func (g GitClient) FetchAll(repo scm.Repo) error {
 		args = append(args[:index+1], args[index:]...)
 		args[index] = fmt.Sprintf("--depth=%v", os.Getenv("GHORG_CLONE_DEPTH"))
 	}
+
+	if os.Getenv("GHORG_FETCH_PRUNE") == "true" {
+		args = append(args, "--prune")
+	}
+
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repo.HostPath
 	if os.Getenv("GHORG_DEBUG") != "" {

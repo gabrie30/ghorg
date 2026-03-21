@@ -137,21 +137,31 @@ GHORG_MATCH_REGEX:
 # flag (--exclude-match-regex) eg: --exclude-match-regex=^foo
 GHORG_EXCLUDE_MATCH_REGEX:
 
-# Only clones new repos and does not perform a git clean on existing repos. Useful if you don't want to lose changes made to repos in the org/user directory.
+# Only clones new repos and does not perform git checkout, clean, reset, or pull on existing repos.
+# Existing repos will only have their remote URL updated (and optionally fetch if --fetch-all is set).
+#
+# Use cases:
+#   --no-clean                   Existing repos left completely untouched (only remote URL updated)
+#   --no-clean --fetch-all       Fetch-only mode: fetches all remote branches without modifying working directory
+#
+# Compare to --protect-local:
+#   --no-clean skips ALL existing repos regardless of their state
+#   --protect-local only skips repos that have uncommitted changes or unpushed commits
+#
 # flag (--no-clean)
 GHORG_NO_CLEAN: false
 
 # Skip updating repositories that have local changes (uncommitted changes or unpushed commits).
-# This is a safer alternative to --no-clean that still updates repos without local modifications.
+# Clean repos (no local modifications) will still be updated normally.
 #
-# How --protect-local differs from --no-clean:
-#   --no-clean:       Skips ALL update operations on existing repos (no checkout, clean, reset, or pull)
-#   --protect-local:  Checks each repo for local changes first, then:
-#                     - If repo has uncommitted changes or unpushed commits: skip with warning
-#                     - If repo is clean: proceed with normal update operations (checkout, clean, reset, pull)
+# Use cases:
+#   --protect-local              Safe re-clone: updates clean repos, skips dirty ones with warning
+#   --protect-local --dry-run    Preview which repos would be skipped due to local changes
 #
-# Use --no-clean when you want to preserve ALL existing repos exactly as-is.
-# Use --protect-local when you want to update clean repos but protect repos you're actively working on.
+# Compare to --no-clean:
+#   --no-clean skips ALL existing repos regardless of their state
+#   --protect-local only skips repos that have uncommitted changes or unpushed commits
+#
 # flag (--protect-local)
 GHORG_PROTECT_LOCAL: false
 
@@ -159,9 +169,29 @@ GHORG_PROTECT_LOCAL: false
 # flag (--clone-wiki)
 GHORG_CLONE_WIKI: false
 
-# Fetches all remote branches for each repo by running a git fetch --all
+# Fetches all remote branches for each repo by running git fetch --all.
+# This updates remote-tracking branches without modifying your working directory or current branch.
+#
+# Use cases:
+#   --fetch-all                  Get all branch updates (combined with normal pull workflow)
+#   --no-clean --fetch-all       Fetch-only mode: fetch without checkout/clean/reset/pull
+#   --fetch-all --fetch-prune    Fetch all and remove stale remote-tracking branches
+#
 # flag (--fetch-all)
 GHORG_FETCH_ALL: false
+
+# Remove stale remote-tracking branches during fetch by adding --prune to git fetch.
+# Only applies when --fetch-all is used. Removes local references to branches that no longer exist on remote.
+#
+# IMPORTANT: This is different from --prune!
+#   --fetch-prune    Removes stale REMOTE-TRACKING branches (git refs like origin/deleted-branch)
+#   --prune          Removes LOCAL CLONE DIRECTORIES for repos that no longer exist on remote
+#
+# Use cases:
+#   --fetch-all --fetch-prune    Fetch all branches and clean up stale remote-tracking refs
+#
+# flag (--fetch-prune)
+GHORG_FETCH_PRUNE: false
 
 # If you want to set a path other than $HOME/.config/ghorg/ghorgignore for your ghorgignore
 # flag (--ghorgignore-path)

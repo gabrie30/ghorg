@@ -287,6 +287,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_FETCH_ALL", "true")
 	}
 
+	if cmd.Flags().Changed("fetch-prune") {
+		os.Setenv("GHORG_FETCH_PRUNE", "true")
+	}
+
 	if cmd.Flags().Changed("include-submodules") {
 		os.Setenv("GHORG_INCLUDE_SUBMODULES", "true")
 	}
@@ -1410,6 +1414,9 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_FETCH_ALL") == "true" {
 		colorlog.PrintInfo("* Fetch All     : " + "true")
+	}
+	if os.Getenv("GHORG_FETCH_PRUNE") == "true" {
+		colorlog.PrintInfo("* Fetch Prune   : " + "true")
 	}
 	if os.Getenv("GHORG_DRY_RUN") == "true" {
 		colorlog.PrintInfo("* Dry Run       : " + "true")
