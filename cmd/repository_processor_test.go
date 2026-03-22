@@ -12,14 +12,17 @@ import (
 // ExtendedMockGitClient extends the existing MockGitClient with additional methods needed for RepositoryProcessor
 type ExtendedMockGitClient struct {
 	MockGitClient
-	shouldFailClone           bool
-	shouldFailCheckout        bool
-	shouldFailSetOrigin       bool
-	shouldReturnEmptyRepo     bool
-	shouldReturnDirtyStatus   bool
+	shouldFailClone             bool
+	shouldFailCheckout          bool
+	shouldFailSetOrigin         bool
+	shouldReturnEmptyRepo       bool
+	shouldReturnDirtyStatus     bool
 	shouldReturnUnpushedCommits bool
-	preCommitCount            int
-	postCommitCount           int
+	preCommitCount              int
+	postCommitCount             int
+	currentBranch               string
+	checkoutBranchCalled        bool
+	checkoutBranchArg           string
 }
 
 func NewExtendedMockGit() *ExtendedMockGitClient {
@@ -27,6 +30,7 @@ func NewExtendedMockGit() *ExtendedMockGitClient {
 		MockGitClient:   NewMockGit(),
 		preCommitCount:  5,
 		postCommitCount: 7,
+		currentBranch:   "main",
 	}
 }
 
@@ -74,6 +78,16 @@ func (g *ExtendedMockGitClient) RevListCompare(repo scm.Repo, ref1 string, ref2 
 		return "abc123\ndef456", nil
 	}
 	return "", nil
+}
+
+func (g *ExtendedMockGitClient) GetCurrentBranch(repo scm.Repo) (string, error) {
+	return g.currentBranch, nil
+}
+
+func (g *ExtendedMockGitClient) CheckoutBranch(repo scm.Repo, branch string) error {
+	g.checkoutBranchCalled = true
+	g.checkoutBranchArg = branch
+	return nil
 }
 
 func TestRepositoryProcessor_NewRepositoryProcessor(t *testing.T) {
@@ -1125,5 +1139,146 @@ func TestRepositoryProcessor_AddProtected(t *testing.T) {
 	}
 	if protectedRepos[1] != "/tmp/repo2" {
 		t.Errorf("Expected second protected repo to be '/tmp/repo2', got %s", protectedRepos[1])
+	}
+}
+
+func TestRepositoryProcessor_ProtectLocal_RestoresBranchWhenDifferent(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+
+	// Set up temporary directory with existing repo
+	dir, err := os.MkdirTemp("", "ghorg_test_restore_branch")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	outputDirAbsolutePath = dir
+
+	// Create existing repo directory
+	repoDir := filepath.Join(dir, "test-repo")
+	err = os.MkdirAll(repoDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockGit := NewExtendedMockGit()
+	mockGit.currentBranch = "feature-branch" // On a different branch than default
+	processor := NewRepositoryProcessor(mockGit)
+
+	repo := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+		HostPath:    repoDir,
+	}
+
+	repoNameWithCollisions := make(map[string]bool)
+	processor.ProcessRepository(&repo, repoNameWithCollisions, false, "test-repo", 0)
+
+	stats := processor.GetStats()
+	// Should be pulled because repo is clean
+	if stats.PulledCount != 1 {
+		t.Errorf("Expected pulled count to be 1, got %d", stats.PulledCount)
+	}
+
+	// CheckoutBranch should have been called to restore the original branch
+	if !mockGit.checkoutBranchCalled {
+		t.Error("Expected CheckoutBranch to be called to restore original branch")
+	}
+	if mockGit.checkoutBranchArg != "feature-branch" {
+		t.Errorf("Expected CheckoutBranch to be called with 'feature-branch', got '%s'", mockGit.checkoutBranchArg)
+	}
+}
+
+func TestRepositoryProcessor_ProtectLocal_NoRestoreWhenOnDefaultBranch(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+
+	// Set up temporary directory with existing repo
+	dir, err := os.MkdirTemp("", "ghorg_test_no_restore_default")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	outputDirAbsolutePath = dir
+
+	// Create existing repo directory
+	repoDir := filepath.Join(dir, "test-repo")
+	err = os.MkdirAll(repoDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockGit := NewExtendedMockGit()
+	mockGit.currentBranch = "main" // Already on default branch
+	processor := NewRepositoryProcessor(mockGit)
+
+	repo := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+		HostPath:    repoDir,
+	}
+
+	repoNameWithCollisions := make(map[string]bool)
+	processor.ProcessRepository(&repo, repoNameWithCollisions, false, "test-repo", 0)
+
+	stats := processor.GetStats()
+	// Should be pulled because repo is clean
+	if stats.PulledCount != 1 {
+		t.Errorf("Expected pulled count to be 1, got %d", stats.PulledCount)
+	}
+
+	// CheckoutBranch should NOT have been called (already on default branch)
+	if mockGit.checkoutBranchCalled {
+		t.Error("Expected CheckoutBranch NOT to be called when already on default branch")
+	}
+}
+
+func TestRepositoryProcessor_ProtectLocal_NoRestoreWhenDisabled(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	// GHORG_PROTECT_LOCAL is NOT set
+
+	// Set up temporary directory with existing repo
+	dir, err := os.MkdirTemp("", "ghorg_test_no_restore_disabled")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	outputDirAbsolutePath = dir
+
+	// Create existing repo directory
+	repoDir := filepath.Join(dir, "test-repo")
+	err = os.MkdirAll(repoDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockGit := NewExtendedMockGit()
+	mockGit.currentBranch = "feature-branch" // On a different branch
+	processor := NewRepositoryProcessor(mockGit)
+
+	repo := scm.Repo{
+		Name:        "test-repo",
+		URL:         "https://github.com/org/test-repo",
+		CloneBranch: "main",
+		HostPath:    repoDir,
+	}
+
+	repoNameWithCollisions := make(map[string]bool)
+	processor.ProcessRepository(&repo, repoNameWithCollisions, false, "test-repo", 0)
+
+	stats := processor.GetStats()
+	// Should be pulled
+	if stats.PulledCount != 1 {
+		t.Errorf("Expected pulled count to be 1, got %d", stats.PulledCount)
+	}
+
+	// CheckoutBranch should NOT have been called (protect-local is disabled)
+	if mockGit.checkoutBranchCalled {
+		t.Error("Expected CheckoutBranch NOT to be called when protect-local is disabled")
 	}
 }
