@@ -20,6 +20,8 @@ type Gitter interface {
 	SetOriginWithCredentials(scm.Repo) error
 	Clean(scm.Repo) error
 	Checkout(scm.Repo) error
+	CheckoutBranch(scm.Repo, string) error
+	GetCurrentBranch(scm.Repo) (string, error)
 	RevListCompare(scm.Repo, string, string) (string, error)
 	ShortStatus(scm.Repo) (string, error)
 	Branch(scm.Repo) (string, error)
@@ -147,6 +149,35 @@ func (g GitClient) Checkout(repo scm.Repo) error {
 	}
 
 	return cmd.Run()
+}
+
+func (g GitClient) CheckoutBranch(repo scm.Repo, branch string) error {
+	cmd := exec.Command("git", "checkout", branch)
+	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		return printDebugCmd(cmd, repo)
+	}
+
+	return cmd.Run()
+}
+
+func (g GitClient) GetCurrentBranch(repo scm.Repo) (string, error) {
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		if err := printDebugCmd(cmd, repo); err != nil {
+			return "", err
+		}
+	}
+
+	output, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(output)), nil
 }
 
 func (g GitClient) Clean(repo scm.Repo) error {

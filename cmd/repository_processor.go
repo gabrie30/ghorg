@@ -254,6 +254,10 @@ func (rp *RepositoryProcessor) hasLocalChanges(repo *scm.Repo) (bool, string, er
 func (rp *RepositoryProcessor) handleExistingRepository(repo *scm.Repo, action *string) bool {
 	*action = "pulling"
 
+	// Track original branch for restoration when protect-local is enabled
+	var originalBranch string
+	var shouldRestoreBranch bool
+
 	// Check for local changes if protect-local is enabled
 	// Only applies to standard pull mode (backup and no-clean modes are already safe)
 	if os.Getenv("GHORG_PROTECT_LOCAL") == "true" {
@@ -265,6 +269,15 @@ func (rp *RepositoryProcessor) handleExistingRepository(repo *scm.Repo, action *
 				rp.addProtected(repo.HostPath)
 				colorlog.PrintInfo(fmt.Sprintf("Skipping %s: %s (--protect-local)", repo.URL, reason))
 				return false
+			}
+
+			// Repo is clean, save current branch for restoration after pull
+			originalBranch, err = rp.git.GetCurrentBranch(*repo)
+			if err != nil {
+				rp.addInfo(fmt.Sprintf("Could not get current branch on %s: %v", repo.Name, err))
+			} else if originalBranch != "" && originalBranch != "HEAD" && originalBranch != repo.CloneBranch {
+				// Only restore if on a different branch than what we'll checkout
+				shouldRestoreBranch = true
 			}
 		}
 	}
@@ -298,6 +311,14 @@ func (rp *RepositoryProcessor) handleExistingRepository(repo *scm.Repo, action *
 	// Return success after ensuring tokens are stripped
 	if !success {
 		return false
+	}
+
+	// Restore original branch if protect-local is enabled and we were on a different branch
+	if shouldRestoreBranch {
+		err = rp.git.CheckoutBranch(*repo, originalBranch)
+		if err != nil {
+			rp.addInfo(fmt.Sprintf("Could not restore branch %s on %s: %v", originalBranch, repo.Name, err))
+		}
 	}
 
 	rp.mutex.Lock()

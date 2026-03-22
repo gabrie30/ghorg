@@ -152,6 +152,14 @@ func (g MockGitClient) Checkout(repo scm.Repo) error {
 	return nil
 }
 
+func (g MockGitClient) CheckoutBranch(repo scm.Repo, branch string) error {
+	return nil
+}
+
+func (g MockGitClient) GetCurrentBranch(repo scm.Repo) (string, error) {
+	return "main", nil
+}
+
 func (g MockGitClient) Clean(repo scm.Repo) error {
 	return nil
 }

@@ -154,13 +154,21 @@ GHORG_NO_CLEAN: false
 # Skip updating repositories that have local changes (uncommitted changes or unpushed commits).
 # Clean repos (no local modifications) will still be updated normally.
 #
+# Additionally, if you are on a branch other than the default branch, ghorg will restore
+# your original branch after pulling the default branch. This protects your working context.
+#
+# What --protect-local protects:
+#   - Uncommitted changes: repos with dirty working directory are skipped
+#   - Unpushed commits: repos with commits ahead of remote are skipped
+#   - Current branch: restores your original branch after pulling default branch
+#
 # Use cases:
-#   --protect-local              Safe re-clone: updates clean repos, skips dirty ones with warning
+#   --protect-local              Safe re-clone: updates clean repos, skips dirty ones, restores branches
 #   --protect-local --dry-run    Preview which repos would be skipped due to local changes
 #
 # Compare to --no-clean:
 #   --no-clean skips ALL existing repos regardless of their state
-#   --protect-local only skips repos that have uncommitted changes or unpushed commits
+#   --protect-local only skips repos that have local changes, and restores your branch checkout
 #
 # flag (--protect-local)
 GHORG_PROTECT_LOCAL: false
