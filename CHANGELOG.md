@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.10] - unreleased
+## [1.11.10] - 3/29/26
 ### Added
 - ghorg-create-workspace skill
 - GHORG_GITHUB_USER_GISTS flag to clone a GitHub user's gists (#626)
