@@ -103,7 +103,7 @@ func decode(r io.Reader, configOnly bool) (image.Image, image.Config, error) {
 			return m, image.Config{}, nil
 
 		case fccVP8L:
-			if wantAlpha || alpha != nil {
+			if alpha != nil {
 				return nil, image.Config{}, errInvalidFormat
 			}
 			if configOnly {
@@ -261,7 +261,7 @@ func Decode(r io.Reader) (image.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	return m, err
+	return m, nil
 }
 
 // DecodeConfig returns the color model and dimensions of a WEBP image without
