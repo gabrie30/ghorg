@@ -178,7 +178,7 @@ var unpack = [16][4]uint8{
 var (
 	// The mapping from 4x4 region position to band is specified in section 13.3.
 	bands = [17]uint8{0, 1, 2, 3, 6, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 0}
-	// Category probabilties are specified in section 13.2.
+	// Category probabilities are specified in section 13.2.
 	// Decoding categories 1 and 2 are done inline.
 	cat3456 = [4][12]uint8{
 		{173, 148, 140, 0, 0, 0, 0, 0, 0, 0, 0, 0},

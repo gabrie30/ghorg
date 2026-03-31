@@ -4,7 +4,7 @@
 
 package vp8
 
-// This file implements the predicition functions, as specified in chapter 12.
+// This file implements the prediction functions, as specified in chapter 12.
 //
 // For each macroblock (of 1x16x16 luma and 2x8x8 chroma coefficients), the
 // luma values are either predicted as one large 16x16 region or 16 separate
