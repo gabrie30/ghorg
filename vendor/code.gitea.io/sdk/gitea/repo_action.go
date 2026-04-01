@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
 )
 
@@ -62,37 +61,18 @@ func (c *Client) ListRepoActionVariable(user, repo string, opt ListRepoActionVar
 }
 
 // CreateRepoActionSecret creates a secret for the specified repository in the Gitea Actions.
-// It takes the organization name and the secret options as parameters.
-// The function returns the HTTP response and an error, if any.
-func (c *Client) CreateRepoActionSecret(user, repo string, opt CreateSecretOption) (*Response, error) {
-	if err := escapeValidatePathSegments(&user, &repo); err != nil {
+func (c *Client) CreateRepoActionSecret(user, repo, secretName string, opt CreateOrUpdateSecretOption) (*Response, error) {
+	if err := escapeValidatePathSegments(&user, &repo, &secretName); err != nil {
 		return nil, err
 	}
-	if err := (&opt).Validate(); err != nil {
+	if err := opt.Validate(); err != nil {
 		return nil, err
 	}
 	body, err := json.Marshal(&opt)
 	if err != nil {
 		return nil, err
 	}
-
-	status, resp, err := c.getStatusCode("PUT", fmt.Sprintf("/repos/%s/%s/actions/secrets/%s", user, repo, opt.Name), jsonHeader, bytes.NewReader(body))
-	if err != nil {
-		return nil, err
-	}
-
-	switch status {
-	case http.StatusCreated:
-		return resp, nil
-	case http.StatusNoContent:
-		return resp, nil
-	case http.StatusNotFound:
-		return resp, fmt.Errorf("forbidden")
-	case http.StatusBadRequest:
-		return resp, fmt.Errorf("bad request")
-	default:
-		return resp, fmt.Errorf("unexpected Status: %d", status)
-	}
+	return c.doRequestWithStatusHandle("PUT", fmt.Sprintf("/repos/%s/%s/actions/secrets/%s", user, repo, secretName), jsonHeader, bytes.NewReader(body))
 }
 
 // DeleteRepoActionSecret deletes a secret from the Gitea Actions.

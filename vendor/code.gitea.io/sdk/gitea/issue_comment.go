@@ -8,22 +8,26 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"mime/multipart"
+	"net/http"
 	"net/url"
 	"time"
 )
 
 // Comment represents a comment on a commit or issue
 type Comment struct {
-	ID               int64     `json:"id"`
-	HTMLURL          string    `json:"html_url"`
-	PRURL            string    `json:"pull_request_url"`
-	IssueURL         string    `json:"issue_url"`
-	Poster           *User     `json:"user"`
-	OriginalAuthor   string    `json:"original_author"`
-	OriginalAuthorID int64     `json:"original_author_id"`
-	Body             string    `json:"body"`
-	Created          time.Time `json:"created_at"`
-	Updated          time.Time `json:"updated_at"`
+	ID               int64         `json:"id"`
+	HTMLURL          string        `json:"html_url"`
+	PRURL            string        `json:"pull_request_url"`
+	IssueURL         string        `json:"issue_url"`
+	Poster           *User         `json:"user"`
+	OriginalAuthor   string        `json:"original_author"`
+	OriginalAuthorID int64         `json:"original_author_id"`
+	Body             string        `json:"body"`
+	Created          time.Time     `json:"created_at"`
+	Updated          time.Time     `json:"updated_at"`
+	Attachments      []*Attachment `json:"assets"`
 }
 
 // ListIssueCommentOptions list comment options
@@ -162,6 +166,33 @@ func (c *Client) ListIssueCommentAttachments(owner, repo string, commentID int64
 		fmt.Sprintf("/repos/%s/%s/issues/comments/%d/assets", owner, repo, commentID),
 		nil, nil, &attachments)
 	return attachments, resp, err
+}
+
+// CreateIssueCommentAttachment uploads an attachment for a comment.
+func (c *Client) CreateIssueCommentAttachment(owner, repo string, commentID int64, file io.Reader, filename string) (*Attachment, *Response, error) {
+	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
+		return nil, nil, err
+	}
+
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("attachment", filename)
+	if err != nil {
+		return nil, nil, err
+	}
+	if _, err = io.Copy(part, file); err != nil {
+		return nil, nil, err
+	}
+	if err = writer.Close(); err != nil {
+		return nil, nil, err
+	}
+
+	link, _ := url.Parse(fmt.Sprintf("/repos/%s/%s/issues/comments/%d/assets", owner, repo, commentID))
+	link.RawQuery = url.Values{"name": []string{filename}}.Encode()
+
+	attachment := new(Attachment)
+	resp, err := c.getParsedResponse("POST", link.String(), http.Header{"Content-Type": []string{writer.FormDataContentType()}}, body, attachment)
+	return attachment, resp, err
 }
 
 // GetIssueCommentAttachment gets a comment attachment

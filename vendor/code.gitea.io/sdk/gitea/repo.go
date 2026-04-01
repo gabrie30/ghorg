@@ -421,7 +421,7 @@ func (c *Client) CreateOrgRepo(org string, opt CreateRepoOption) (*Repository, *
 		return nil, nil, err
 	}
 	repo := new(Repository)
-	resp, err := c.getParsedResponse("POST", fmt.Sprintf("/org/%s/repos", org), jsonHeader, bytes.NewReader(body), repo)
+	resp, err := c.getParsedResponse("POST", fmt.Sprintf("/orgs/%s/repos", org), jsonHeader, bytes.NewReader(body), repo)
 	return repo, resp, err
 }
 
