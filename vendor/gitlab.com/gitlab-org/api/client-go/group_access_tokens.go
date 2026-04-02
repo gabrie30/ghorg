@@ -67,6 +67,9 @@ type ListGroupAccessTokensOptions struct {
 	Revoked        *bool             `url:"revoked,omitempty" json:"revoked,omitempty"`
 	Search         *string           `url:"search,omitempty" json:"search,omitempty"`
 	State          *AccessTokenState `url:"state,omitempty" json:"state,omitempty"`
+	ExpiresAfter   *ISOTime          `url:"expires_after,omitempty" json:"expires_after,omitempty"`
+	ExpiresBefore  *ISOTime          `url:"expires_before,omitempty" json:"expires_before,omitempty"`
+	Sort           *AccessTokenSort  `url:"sort,omitempty" json:"sort,omitempty"`
 }
 
 // ListGroupAccessTokens gets a list of all group access tokens in a group.
