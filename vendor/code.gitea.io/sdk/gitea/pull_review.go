@@ -318,3 +318,21 @@ func (c *Client) UnDismissPullReview(owner, repo string, index, id int64) (*Resp
 		fmt.Sprintf("/repos/%s/%s/pulls/%d/reviews/%d/undismissals", owner, repo, index, id),
 		jsonHeader, nil)
 }
+
+// ResolvePullReviewComment resolves a pull-request review comment conversation.
+// This endpoint is not yet available in any released Gitea version.
+func (c *Client) ResolvePullReviewComment(owner, repo string, commentID int64) (*Response, error) {
+	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
+		return nil, err
+	}
+	return c.doRequestWithStatusHandle("POST", fmt.Sprintf("/repos/%s/%s/pulls/comments/%d/resolve", owner, repo, commentID), nil, nil)
+}
+
+// UnresolvePullReviewComment unresolves a pull-request review comment conversation.
+// This endpoint is not yet available in any released Gitea version.
+func (c *Client) UnresolvePullReviewComment(owner, repo string, commentID int64) (*Response, error) {
+	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
+		return nil, err
+	}
+	return c.doRequestWithStatusHandle("POST", fmt.Sprintf("/repos/%s/%s/pulls/comments/%d/unresolve", owner, repo, commentID), nil, nil)
+}

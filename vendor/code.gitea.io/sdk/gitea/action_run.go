@@ -40,22 +40,22 @@ type ActionWorkflowRun struct {
 	ID             int64       `json:"id"`
 	DisplayTitle   string      `json:"display_title"`
 	Event          string      `json:"event"`
-	HeadBranch     string      `json:"head_branch"`
+	HeadBranch     string      `json:"head_branch,omitempty"`
 	HeadSha        string      `json:"head_sha"`
 	Path           string      `json:"path"`
 	RunAttempt     int64       `json:"run_attempt"`
 	RunNumber      int64       `json:"run_number"`
 	Status         string      `json:"status"`
-	Conclusion     string      `json:"conclusion"`
+	Conclusion     string      `json:"conclusion,omitempty"`
 	URL            string      `json:"url"`
 	HTMLURL        string      `json:"html_url"`
 	StartedAt      time.Time   `json:"started_at"`
 	CompletedAt    time.Time   `json:"completed_at"`
-	Actor          *User       `json:"actor"`
-	TriggerActor   *User       `json:"trigger_actor"`
-	Repository     *Repository `json:"repository"`
-	HeadRepository *Repository `json:"head_repository"`
-	RepositoryID   int64       `json:"repository_id"`
+	Actor          *User       `json:"actor,omitempty"`
+	TriggerActor   *User       `json:"trigger_actor,omitempty"`
+	Repository     *Repository `json:"repository,omitempty"`
+	HeadRepository *Repository `json:"head_repository,omitempty"`
+	RepositoryID   int64       `json:"repository_id,omitempty"`
 }
 
 // ActionWorkflowRunsResponse holds the response for listing workflow runs
@@ -71,17 +71,17 @@ type ActionWorkflowJob struct {
 	RunURL      string                `json:"run_url"`
 	RunAttempt  int64                 `json:"run_attempt"`
 	Name        string                `json:"name"`
-	HeadBranch  string                `json:"head_branch"`
+	HeadBranch  string                `json:"head_branch,omitempty"`
 	HeadSha     string                `json:"head_sha"`
 	Status      string                `json:"status"`
-	Conclusion  string                `json:"conclusion"`
+	Conclusion  string                `json:"conclusion,omitempty"`
 	URL         string                `json:"url"`
 	HTMLURL     string                `json:"html_url"`
 	CreatedAt   time.Time             `json:"created_at"`
 	StartedAt   time.Time             `json:"started_at"`
 	CompletedAt time.Time             `json:"completed_at"`
-	RunnerID    int64                 `json:"runner_id"`
-	RunnerName  string                `json:"runner_name"`
+	RunnerID    int64                 `json:"runner_id,omitempty"`
+	RunnerName  string                `json:"runner_name,omitempty"`
 	Labels      []string              `json:"labels"`
 	Steps       []*ActionWorkflowStep `json:"steps"`
 }
@@ -97,7 +97,7 @@ type ActionWorkflowStep struct {
 	Name        string    `json:"name"`
 	Number      int64     `json:"number"`
 	Status      string    `json:"status"`
-	Conclusion  string    `json:"conclusion"`
+	Conclusion  string    `json:"conclusion,omitempty"`
 	StartedAt   time.Time `json:"started_at"`
 	CompletedAt time.Time `json:"completed_at"`
 }
@@ -149,9 +149,9 @@ func (opt *ListRepoActionJobsOptions) QueryEncode() string {
 }
 
 // ListRepoActionRuns lists workflow runs for a repository.
-// Requires Gitea 1.25.0 or later. For older versions, use ListRepoActionTasks.
+// Requires Gitea 1.26.0 or later. For older versions, use ListRepoActionTasks.
 func (c *Client) ListRepoActionRuns(owner, repo string, opt ListRepoActionRunsOptions) (*ActionWorkflowRunsResponse, *Response, error) {
-	if err := c.checkServerVersionGreaterThanOrEqual(version1_25_0); err != nil {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_26_0); err != nil {
 		return nil, nil, err
 	}
 	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
@@ -168,9 +168,9 @@ func (c *Client) ListRepoActionRuns(owner, repo string, opt ListRepoActionRunsOp
 }
 
 // GetRepoActionRun gets a single workflow run.
-// Requires Gitea 1.25.0 or later.
+// Requires Gitea 1.26.0 or later.
 func (c *Client) GetRepoActionRun(owner, repo string, runID int64) (*ActionWorkflowRun, *Response, error) {
-	if err := c.checkServerVersionGreaterThanOrEqual(version1_25_0); err != nil {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_26_0); err != nil {
 		return nil, nil, err
 	}
 	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
@@ -183,9 +183,9 @@ func (c *Client) GetRepoActionRun(owner, repo string, runID int64) (*ActionWorkf
 }
 
 // ListRepoActionRunJobs lists jobs for a workflow run.
-// Requires Gitea 1.25.0 or later.
+// Requires Gitea 1.26.0 or later.
 func (c *Client) ListRepoActionRunJobs(owner, repo string, runID int64, opt ListRepoActionJobsOptions) (*ActionWorkflowJobsResponse, *Response, error) {
-	if err := c.checkServerVersionGreaterThanOrEqual(version1_25_0); err != nil {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_26_0); err != nil {
 		return nil, nil, err
 	}
 	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
@@ -202,9 +202,9 @@ func (c *Client) ListRepoActionRunJobs(owner, repo string, runID int64, opt List
 }
 
 // ListRepoActionJobs lists all jobs for a repository.
-// Requires Gitea 1.25.0 or later.
+// Requires Gitea 1.26.0 or later.
 func (c *Client) ListRepoActionJobs(owner, repo string, opt ListRepoActionJobsOptions) (*ActionWorkflowJobsResponse, *Response, error) {
-	if err := c.checkServerVersionGreaterThanOrEqual(version1_25_0); err != nil {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_26_0); err != nil {
 		return nil, nil, err
 	}
 	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
@@ -221,9 +221,9 @@ func (c *Client) ListRepoActionJobs(owner, repo string, opt ListRepoActionJobsOp
 }
 
 // GetRepoActionJob gets a single job.
-// Requires Gitea 1.25.0 or later.
+// Requires Gitea 1.26.0 or later.
 func (c *Client) GetRepoActionJob(owner, repo string, jobID int64) (*ActionWorkflowJob, *Response, error) {
-	if err := c.checkServerVersionGreaterThanOrEqual(version1_25_0); err != nil {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_26_0); err != nil {
 		return nil, nil, err
 	}
 	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
@@ -236,9 +236,9 @@ func (c *Client) GetRepoActionJob(owner, repo string, jobID int64) (*ActionWorkf
 }
 
 // GetRepoActionJobLogs gets the logs for a specific job.
-// Requires Gitea 1.25.0 or later.
+// Requires Gitea 1.26.0 or later.
 func (c *Client) GetRepoActionJobLogs(owner, repo string, jobID int64) ([]byte, *Response, error) {
-	if err := c.checkServerVersionGreaterThanOrEqual(version1_25_0); err != nil {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_26_0); err != nil {
 		return nil, nil, err
 	}
 	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
@@ -265,15 +265,57 @@ func (c *Client) ListRepoActionTasks(owner, repo string, opt ListOptions) (*Acti
 }
 
 // DeleteRepoActionRun deletes a workflow run.
-// Requires Gitea 1.25.0 or later.
+// Requires Gitea 1.26.0 or later.
 func (c *Client) DeleteRepoActionRun(owner, repo string, runID int64) (*Response, error) {
-	if err := c.checkServerVersionGreaterThanOrEqual(version1_25_0); err != nil {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_26_0); err != nil {
 		return nil, err
 	}
 	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
 		return nil, err
 	}
 
-	_, resp, err := c.getResponse("DELETE", fmt.Sprintf("/repos/%s/%s/actions/runs/%d", owner, repo, runID), jsonHeader, nil)
-	return resp, err
+	return c.doRequestWithStatusHandle("DELETE", fmt.Sprintf("/repos/%s/%s/actions/runs/%d", owner, repo, runID), jsonHeader, nil)
+}
+
+// RerunRepoActionRun reruns an entire workflow run.
+// Requires Gitea 1.26.0 or later.
+func (c *Client) RerunRepoActionRun(owner, repo string, runID int64) (*ActionWorkflowRun, *Response, error) {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_26_0); err != nil {
+		return nil, nil, err
+	}
+	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
+		return nil, nil, err
+	}
+
+	run := new(ActionWorkflowRun)
+	resp, err := c.getParsedResponse("POST", fmt.Sprintf("/repos/%s/%s/actions/runs/%d/rerun", owner, repo, runID), jsonHeader, nil, run)
+	return run, resp, err
+}
+
+// RerunRepoActionRunFailedJobs reruns all failed jobs in a workflow run.
+// Requires Gitea 1.26.0 or later.
+func (c *Client) RerunRepoActionRunFailedJobs(owner, repo string, runID int64) (*Response, error) {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_26_0); err != nil {
+		return nil, err
+	}
+	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
+		return nil, err
+	}
+
+	return c.doRequestWithStatusHandle("POST", fmt.Sprintf("/repos/%s/%s/actions/runs/%d/rerun-failed-jobs", owner, repo, runID), jsonHeader, nil)
+}
+
+// RerunRepoActionJob reruns a specific workflow job in a run.
+// Requires Gitea 1.26.0 or later.
+func (c *Client) RerunRepoActionJob(owner, repo string, runID, jobID int64) (*ActionWorkflowJob, *Response, error) {
+	if err := c.checkServerVersionGreaterThanOrEqual(version1_26_0); err != nil {
+		return nil, nil, err
+	}
+	if err := escapeValidatePathSegments(&owner, &repo); err != nil {
+		return nil, nil, err
+	}
+
+	job := new(ActionWorkflowJob)
+	resp, err := c.getParsedResponse("POST", fmt.Sprintf("/repos/%s/%s/actions/runs/%d/jobs/%d/rerun", owner, repo, runID, jobID), jsonHeader, nil, job)
+	return job, resp, err
 }
