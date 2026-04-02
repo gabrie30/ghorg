@@ -14,17 +14,19 @@ type Package struct {
 	// the package's id
 	ID int64 `json:"id"`
 	// the package's owner
-	Owner User `json:"owner"`
+	Owner *User `json:"owner"`
 	// the repo this package belongs to (if any)
 	Repository *Repository `json:"repository"`
 	// the package's creator
-	Creator User `json:"creator"`
+	Creator *User `json:"creator"`
 	// the type of package:
 	Type string `json:"type"`
 	// the name of the package
 	Name string `json:"name"`
 	// the version of the package
 	Version string `json:"version"`
+	// the HTML URL for viewing the package
+	HTMLURL string `json:"html_url"`
 	// the date the package was uploaded
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -60,6 +62,17 @@ func (c *Client) ListPackages(owner string, opt ListPackagesOptions) ([]*Package
 	opt.setDefaults()
 	packages := make([]*Package, 0, opt.PageSize)
 	resp, err := c.getParsedResponse("GET", fmt.Sprintf("/packages/%s?%s", owner, opt.getURLQuery().Encode()), nil, nil, &packages)
+	return packages, resp, err
+}
+
+// ListPackageVersions lists all versions of a package.
+func (c *Client) ListPackageVersions(owner, packageType, name string, opt ListPackagesOptions) ([]*Package, *Response, error) {
+	if err := escapeValidatePathSegments(&owner, &packageType, &name); err != nil {
+		return nil, nil, err
+	}
+	opt.setDefaults()
+	packages := make([]*Package, 0, opt.PageSize)
+	resp, err := c.getParsedResponse("GET", fmt.Sprintf("/packages/%s/%s/%s?%s", owner, packageType, name, opt.getURLQuery().Encode()), nil, nil, &packages)
 	return packages, resp, err
 }
 
