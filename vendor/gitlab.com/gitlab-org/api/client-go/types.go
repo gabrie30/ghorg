@@ -86,6 +86,23 @@ const (
 	AccessTokenStateInactive AccessTokenState = "inactive"
 )
 
+// AccessTokenSort represents the available sorting options for access tokens.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/api/group_access_tokens/#list-all-group-access-tokens
+type AccessTokenSort string
+
+const (
+	CreatedAsc   AccessTokenSort = "created_asc"
+	CreatedDesc  AccessTokenSort = "created_desc"
+	ExpiresAsc   AccessTokenSort = "expires_asc"
+	ExpiresDesc  AccessTokenSort = "expires_desc"
+	LastUsedAsc  AccessTokenSort = "last_used_asc"
+	LastUsedDesc AccessTokenSort = "last_used_desc"
+	NameAsc      AccessTokenSort = "name_asc"
+	NameDesc     AccessTokenSort = "name_desc"
+)
+
 // UserIDValue represents a user ID value within GitLab.
 type UserIDValue string
 

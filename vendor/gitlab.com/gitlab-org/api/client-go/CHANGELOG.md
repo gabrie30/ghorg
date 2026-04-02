@@ -1,3 +1,13 @@
+## 1.46.0
+
+### 🚀 Features
+
+- Update urls and add missing ([!2785](https://gitlab.com/gitlab-org/api/client-go/-/merge_requests/2785)) by [Mohamed Mongy](https://gitlab.com/mohamedmongy96)
+
+
+
+# [1.46.0](https://gitlab.com/gitlab-org/api/client-go/compare/v1.45.0...v1.46.0) (2026-03-01)
+
 ## 1.45.0
 
 ### 🚀 Features
