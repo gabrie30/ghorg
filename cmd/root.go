@@ -51,6 +51,7 @@ var (
 	githubAppInstallationID      string
 	githubUserOption             string
 	githubFilterLanguage         string
+	githubRepoListConcurrency    string
 	cronTimerMinutes             string
 	recloneServerPort            string
 	cloneDelaySeconds            string
@@ -337,6 +338,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_GITHUB_TOKEN_FROM_GITHUB_APP")
 	getOrSetDefaults("GHORG_GITHUB_USER_GISTS")
 	getOrSetDefaults("GHORG_GITHUB_FILTER_LANGUAGE")
+	getOrSetDefaults("GHORG_GITHUB_REPO_LIST_CONCURRENCY")
 	getOrSetDefaults("GHORG_COLOR")
 	getOrSetDefaults("GHORG_TOPICS")
 	getOrSetDefaults("GHORG_GITLAB_TOKEN")
@@ -441,6 +443,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&githubAppPemPath, "github-app-pem-path", "", "", "GHORG_GITHUB_APP_PEM_PATH - GitHub only: Path to GitHub App private key (.pem file) for app-based authentication. Requires --github-app-id and --github-app-installation-id")
 	cloneCmd.Flags().StringVarP(&githubAppInstallationID, "github-app-installation-id", "", "", "GHORG_GITHUB_APP_INSTALLATION_ID - GitHub only: Installation ID for GitHub App authentication. Find in org settings URL")
 	cloneCmd.Flags().StringVarP(&githubFilterLanguage, "github-filter-language", "", "", "GHORG_GITHUB_FILTER_LANGUAGE - GitHub only: Filter repositories by programming language. Comma-separated values (e.g., --github-filter-language=go,python)")
+	cloneCmd.Flags().StringVarP(&githubRepoListConcurrency, "github-repo-list-concurrency", "", "", "GHORG_GITHUB_REPO_LIST_CONCURRENCY - GitHub only: Max concurrent REST requests when listing org/user repos (API pagination). If unset, all pages are fetched in parallel (fastest; may hit GitHub secondary rate limits on huge orgs). Set to a lower number (e.g. 8 or 1) to throttle listing. Separate from GHORG_CONCURRENCY (git clones only).")
 	cloneCmd.Flags().StringVarP(&githubUserOption, "github-user-option", "", "", "GHORG_GITHUB_USER_OPTION - GitHub only: When using --clone-type=user, specify which repos to include: 'all', 'owner' (created by user), or 'member' (contributed to). (default: owner)")
 	cloneCmd.Flags().StringVarP(&githubAppID, "github-app-id", "", "", "GHORG_GITHUB_APP_ID - GitHub only: GitHub App ID for app-based authentication. Required with --github-app-pem-path")
 	cloneCmd.Flags().StringVar(&sshHostname, "ssh-hostname", "", "GHORG_SSH_HOSTNAME - Custom hostname to use in SSH clone URLs. Useful for SSH aliases in ~/.ssh/config (e.g., --ssh-hostname=my-github-alias creates git@my-github-alias:org/repo.git URLs)")

@@ -5,10 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.11.11] - unreleased
 ### Added
+- GHORG_GITHUB_REPO_LIST_CONCURRENCY to prevent github secondary ratelimiting
+- Automatic git clone retries (up to 3 retries with 1s, 2s, then 3s delay) on failure
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+- GitHub Actions use Go 1.26.0 so `go test` matches `go 1.26` and vendored module requirements (was 1.25.0 with `GOTOOLCHAIN=local`)
+
 ### Security
 
 ## [1.11.10] - 3/29/26

@@ -6,7 +6,9 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"sync"
 	"testing"
+	"time"
 
 	ghpkg "github.com/google/go-github/v72/github"
 )
@@ -340,5 +342,79 @@ func TestFilterGistsCollisions(t *testing.T) {
 	// No collision for "unique"
 	if got := names["ccc333"]; got != "unique" {
 		t.Errorf("ccc333: expected 'unique', got %q", got)
+	}
+}
+
+func TestGetOrgRepos_MultiPageRespectsListConcurrency(t *testing.T) {
+	mux := http.NewServeMux()
+	var mu sync.Mutex
+	inFlight, maxInFlight := 0, 0
+
+	mux.HandleFunc("/orgs/conctest/repos", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		inFlight++
+		if inFlight > maxInFlight {
+			maxInFlight = inFlight
+		}
+		mu.Unlock()
+		defer func() {
+			mu.Lock()
+			inFlight--
+			mu.Unlock()
+		}()
+
+		time.Sleep(20 * time.Millisecond)
+
+		page := r.URL.Query().Get("page")
+		if page == "" {
+			page = "1"
+		}
+		if page == "1" {
+			per := r.URL.Query().Get("per_page")
+			if per == "" {
+				per = "100"
+			}
+			w.Header().Set("Link", fmt.Sprintf(`<https://example.invalid/repos?page=2&per_page=%s>; rel="next", <https://example.invalid/repos?page=4&per_page=%s>; rel="last"`, per, per))
+		}
+		fmt.Fprintf(w, `[{"id":%s,"name":"repo-p%s","clone_url":"https://github.com/o/r%s.git","ssh_url":"git@github.com:o/r%s.git","archived":false,"fork":false,"topics":[],"default_branch":"main"}]`, page, page, page, page)
+	})
+
+	apiHandler := http.NewServeMux()
+	apiHandler.Handle(baseURLPath+"/", http.StripPrefix(baseURLPath, mux))
+	apiHandler.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		http.Error(w, "unexpected request "+req.URL.String(), http.StatusInternalServerError)
+	})
+
+	server := httptest.NewServer(apiHandler)
+	defer server.Close()
+
+	client := ghpkg.NewClient(nil)
+	u, _ := url.Parse(server.URL + baseURLPath + "/")
+	client.BaseURL = u
+	client.UploadURL = u
+
+	gh := Github{Client: client}
+
+	os.Setenv("GHORG_GITHUB_REPO_LIST_CONCURRENCY", "2")
+	os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+	os.Setenv("GHORG_GITHUB_TOKEN", "tok")
+	defer func() {
+		os.Unsetenv("GHORG_GITHUB_REPO_LIST_CONCURRENCY")
+		os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		os.Unsetenv("GHORG_GITHUB_TOKEN")
+	}()
+
+	resp, err := gh.GetOrgRepos("conctest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(resp) != 4 {
+		t.Fatalf("want 4 repos, got %d", len(resp))
+	}
+	if maxInFlight > 2 {
+		t.Fatalf("max concurrent list requests was %d, want at most 2", maxInFlight)
+	}
+	if maxInFlight < 2 {
+		t.Fatalf("max concurrent list requests was %d, want 2 to confirm bounded parallelism", maxInFlight)
 	}
 }
