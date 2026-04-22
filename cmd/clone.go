@@ -59,7 +59,7 @@ func shouldAutoAdjustConcurrency() (int, bool, bool) {
 var cloneCmd = &cobra.Command{
 	Use:   "clone [org/user]",
 	Short: "Clone user or org repos from GitHub, GitLab, Gitea or Bitbucket",
-	Long: `Clone user or org repos from GitHub, GitLab, Gitea or Bitbucket. 
+	Long: `Clone user or org repos from GitHub, GitLab, Gitea or Bitbucket.
 
 CONFIGURATION:
   Configuration values are set with the following precedence (highest to lowest):
@@ -137,6 +137,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 
 	if cmd.Flags().Changed("github-filter-language") {
 		os.Setenv("GHORG_GITHUB_FILTER_LANGUAGE", cmd.Flag("github-filter-language").Value.String())
+	}
+
+	if cmd.Flags().Changed("github-repo-list-concurrency") {
+		os.Setenv("GHORG_GITHUB_REPO_LIST_CONCURRENCY", cmd.Flag("github-repo-list-concurrency").Value.String())
 	}
 
 	if cmd.Flags().Changed("github-app-id") {
@@ -1362,6 +1366,11 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_GITHUB_USER_GISTS") == "true" {
 		colorlog.PrintInfo("* Gists         : " + os.Getenv("GHORG_GITHUB_USER_GISTS"))
+	}
+	if strings.EqualFold(os.Getenv("GHORG_SCM_TYPE"), "github") {
+		if ghList := strings.TrimSpace(os.Getenv("GHORG_GITHUB_REPO_LIST_CONCURRENCY")); ghList != "" {
+			colorlog.PrintInfo("* Concurrency   : " + ghList + " max concurrent API pages")
+		}
 	}
 	if configs.GhorgIgnoreDetected() {
 		colorlog.PrintInfo("* Ghorgignore   : " + configs.GhorgIgnoreLocation())
