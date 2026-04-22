@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gabrie30/ghorg/scm"
@@ -85,7 +86,7 @@ func (g GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
 
 }
 
-func (g GitClient) Clone(repo scm.Repo) error {
+func cloneGitArgs(repo scm.Repo) []string {
 	args := []string{"clone", repo.CloneURL, repo.HostPath}
 
 	if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
@@ -109,15 +110,34 @@ func (g GitClient) Clone(repo scm.Repo) error {
 	if os.Getenv("GHORG_BACKUP") == "true" {
 		args = append(args, "--mirror")
 	}
+	return args
+}
 
-	cmd := exec.Command("git", args...)
+// cloneRetryDelays are sleeps before each retry after a failed git clone (three retries, two attempts total).
+var cloneRetryDelays = []time.Duration{1 * time.Second}
+
+func (g GitClient) Clone(repo scm.Repo) error {
+	args := cloneGitArgs(repo)
 
 	if os.Getenv("GHORG_DEBUG") != "" {
+		cmd := exec.Command("git", args...)
 		return printDebugCmd(cmd, repo)
 	}
 
-	err := cmd.Run()
-	return err
+	maxAttempts := 1 + len(cloneRetryDelays)
+	var lastErr error
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		if attempt > 0 {
+			_ = os.RemoveAll(repo.HostPath)
+			time.Sleep(cloneRetryDelays[attempt-1])
+		}
+		cmd := exec.Command("git", args...)
+		lastErr = cmd.Run()
+		if lastErr == nil {
+			return nil
+		}
+	}
+	return lastErr
 }
 
 func (g GitClient) SetOriginWithCredentials(repo scm.Repo) error {

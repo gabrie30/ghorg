@@ -1446,7 +1446,6 @@ func PrintConfigs() {
 	if os.Getenv("GHORG_CLONE_DEPTH") != "" {
 		colorlog.PrintInfo("* Clone Depth   : " + os.Getenv("GHORG_CLONE_DEPTH"))
 	}
-
 	colorlog.PrintInfo("* Config Used   : " + os.Getenv("GHORG_CONFIG"))
 	if os.Getenv("GHORG_STATS_ENABLED") == "true" {
 		colorlog.PrintInfo("* Stats Enabled : " + os.Getenv("GHORG_STATS_ENABLED"))
