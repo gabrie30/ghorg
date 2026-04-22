@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- GitHub Actions use Go 1.26.0 so `go test` matches `go 1.26` and vendored module requirements (was 1.25.0 with `GOTOOLCHAIN=local`)
+
 ### Security
 
 ## [1.11.10] - 3/29/26
