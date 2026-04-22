@@ -41,8 +41,12 @@ func TestGithubListWorkerCount(t *testing.T) {
 		if w := githubListWorkerCount(10); w != 10 {
 			t.Fatalf("want min(capped, extraPages)=10, got %d", w)
 		}
-		if w := githubListWorkerCount(800); w != maxGithubRepoListConcurrency {
-			t.Fatalf("want %d, got %d", maxGithubRepoListConcurrency, w)
+		// Capped to maxGithubRepoListConcurrency, but never more workers than pages.
+		if w := githubListWorkerCount(800); w != 800 {
+			t.Fatalf("want min(%d,800)=800, got %d", maxGithubRepoListConcurrency, w)
+		}
+		if w := githubListWorkerCount(maxGithubRepoListConcurrency + 100); w != maxGithubRepoListConcurrency {
+			t.Fatalf("want capped limit %d, got %d", maxGithubRepoListConcurrency, w)
 		}
 	})
 }
