@@ -568,6 +568,37 @@ func repoExistsLocally(repo scm.Repo) bool {
 	return true
 }
 
+// initialRepoSlug derives the pre-collision repoSlug for a target. It mirrors
+// the selection logic used inside CloneAllRepos so the dry-run preview and the
+// actual clone agree on HostPath computation via RepositoryProcessor.
+func initialRepoSlug(repo scm.Repo) string {
+	// We use this because we dont want spaces in the final directory, using the web address makes it more file friendly
+	// In the case of root level snippets we use the title which will have spaces in it, the url uses an ID so its not possible to use name from url
+	// With snippets that originate on repos, we use that repo name
+	var repoSlug string
+	if os.Getenv("GHORG_SCM_TYPE") == "sourcehut" {
+		// The URL handling in getAppNameFromURL makes strong presumptions that the URL will end in an
+		// extension like '.git', but this is not the case for sourcehut (and possibly other forges).
+		repoSlug = repo.Name
+	} else if repo.IsGitHubGist {
+		// Gist folder names are pre-computed in filterGists from the primary filename
+		// (without extension, lowercased, with collision suffix appended when needed).
+		repoSlug = repo.Name
+	} else if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
+		repoSlug = getAppNameFromURL(repo.GitLabSnippetInfo.URLOfRepo)
+	} else if repo.IsGitLabRootLevelSnippet {
+		repoSlug = repo.Name
+	} else {
+		repoSlug = getAppNameFromURL(repo.URL)
+	}
+
+	if !isPathSegmentSafe(repoSlug) {
+		log.Fatal("Unsafe path segment found in SCM output")
+	}
+
+	return repoSlug
+}
+
 func getAppNameFromURL(url string) string {
 	withGit := strings.Split(url, "/")
 	appName := withGit[len(withGit)-1]
@@ -678,12 +709,16 @@ func hasRepoNameCollisions(repos []scm.Repo) (map[string]bool, bool) {
 	return repoNameWithCollisions, hasCollisions
 }
 
-func printDryRun(repos []scm.Repo) {
+func printDryRun(gitter git.Gitter, repos []scm.Repo) {
 	for _, repo := range repos {
-		colorlog.PrintSubtleInfo(repo.URL + "\n")
+		colorlog.PrintSubtleInfo(repo.URL)
 	}
 	count := len(repos)
 	colorlog.PrintSuccess(fmt.Sprintf("%v repos to be cloned into: %s", count, outputDirAbsolutePath))
+
+	if shouldPreviewProtectLocal() {
+		_ = previewProtectLocal(gitter, repos)
+	}
 
 	if os.Getenv("GHORG_PRUNE") == "true" {
 
@@ -709,6 +744,68 @@ func printDryRun(repos []scm.Repo) {
 			colorlog.PrintSuccess(fmt.Sprintf("Local clones eligible for pruning: %d", eligibleForPrune))
 		}
 	}
+}
+
+// shouldPreviewProtectLocal reports whether the dry-run should inspect local
+// repositories for uncommitted changes or unpushed commits. This mirrors the
+// non-dry-run check in handleExistingRepository: protect-local only applies to
+// standard pull mode (backup and no-clean modes are already safe).
+func shouldPreviewProtectLocal() bool {
+	if os.Getenv("GHORG_PROTECT_LOCAL") != "true" {
+		return false
+	}
+	if os.Getenv("GHORG_BACKUP") == "true" || os.Getenv("GHORG_NO_CLEAN") == "true" {
+		return false
+	}
+	return true
+}
+
+// previewProtectLocal walks the clone targets, resolves each one's HostPath the
+// same way the real clone does (via RepositoryProcessor), and for any target
+// that already exists locally reports whether it would be skipped due to local
+// changes. Output matches the real-run "Skipping ..." line but uses
+// "Would skip ..." to make the dry-run semantics clear. Returns the number of
+// repos that would be skipped so callers (including tests) can inspect the
+// result without parsing stdout.
+func previewProtectLocal(gitter git.Gitter, repos []scm.Repo) int {
+	if len(repos) == 0 {
+		return 0
+	}
+
+	colorlog.PrintInfo("\nScanning for local changes that would be protected by --protect-local...")
+
+	repoNameWithCollisions, hasCollisions := hasRepoNameCollisions(repos)
+	processor := NewRepositoryProcessor(gitter)
+
+	protectedCount := 0
+	for i := range repos {
+		repo := repos[i]
+
+		repoSlug := initialRepoSlug(repo)
+		if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
+			repoSlug = repo.Path
+		}
+
+		finalRepoSlug := processor.handleNameCollisions(repo, repoNameWithCollisions, hasCollisions, repoSlug, i)
+		repo.HostPath = processor.buildHostPath(repo, finalRepoSlug)
+
+		if !repoExistsLocally(repo) {
+			continue
+		}
+
+		hasChanges, reason, err := processor.hasLocalChanges(&repo)
+		if err != nil {
+			colorlog.PrintInfo(fmt.Sprintf("Could not check for local changes on %s: %v", repo.Name, err))
+			continue
+		}
+		if hasChanges {
+			protectedCount++
+			colorlog.PrintSubtleInfo(fmt.Sprintf("Would skip %s: %s (--protect-local)", repo.URL, reason))
+		}
+	}
+
+	colorlog.PrintSuccess(fmt.Sprintf("Repos that would be skipped due to --protect-local: %d", protectedCount))
+	return protectedCount
 }
 
 func trimCollisionFilename(filename string) string {
@@ -793,7 +890,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	}
 
 	if os.Getenv("GHORG_DRY_RUN") == "true" {
-		printDryRun(cloneTargets)
+		printDryRun(git, cloneTargets)
 		return
 	}
 
@@ -815,29 +912,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	for i := range cloneTargets {
 		repo := cloneTargets[i]
 
-		// We use this because we dont want spaces in the final directory, using the web address makes it more file friendly
-		// In the case of root level snippets we use the title which will have spaces in it, the url uses an ID so its not possible to use name from url
-		// With snippets that originate on repos, we use that repo name
-		var repoSlug string
-		if os.Getenv("GHORG_SCM_TYPE") == "sourcehut" {
-			// The URL handling in getAppNameFromURL makes strong presumptions that the URL will end in an
-			// extension like '.git', but this is not the case for sourcehut (and possibly other forges).
-			repoSlug = repo.Name
-		} else if repo.IsGitHubGist {
-			// Gist folder names are pre-computed in filterGists from the primary filename
-			// (without extension, lowercased, with collision suffix appended when needed).
-			repoSlug = repo.Name
-		} else if repo.IsGitLabSnippet && !repo.IsGitLabRootLevelSnippet {
-			repoSlug = getAppNameFromURL(repo.GitLabSnippetInfo.URLOfRepo)
-		} else if repo.IsGitLabRootLevelSnippet {
-			repoSlug = repo.Name
-		} else {
-			repoSlug = getAppNameFromURL(repo.URL)
-		}
-
-		if !isPathSegmentSafe(repoSlug) {
-			log.Fatal("Unsafe path segment found in SCM output")
-		}
+		repoSlug := initialRepoSlug(repo)
 
 		limit.Execute(func() {
 			if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
