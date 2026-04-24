@@ -1205,3 +1205,173 @@ func TestGithubUserGistsValidation(t *testing.T) {
 		}
 	})
 }
+
+func TestShouldPreviewProtectLocal(t *testing.T) {
+	cases := []struct {
+		name          string
+		protectLocal  string
+		backup        string
+		noClean       string
+		expectPreview bool
+	}{
+		{name: "protect-local off", protectLocal: "false", expectPreview: false},
+		{name: "protect-local on, standard pull", protectLocal: "true", expectPreview: true},
+		{name: "protect-local on, backup mode", protectLocal: "true", backup: "true", expectPreview: false},
+		{name: "protect-local on, no-clean mode", protectLocal: "true", noClean: "true", expectPreview: false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(tt *testing.T) {
+			defer UnsetEnv("GHORG_")()
+			if tc.protectLocal != "" {
+				os.Setenv("GHORG_PROTECT_LOCAL", tc.protectLocal)
+			}
+			if tc.backup != "" {
+				os.Setenv("GHORG_BACKUP", tc.backup)
+			}
+			if tc.noClean != "" {
+				os.Setenv("GHORG_NO_CLEAN", tc.noClean)
+			}
+
+			if got := shouldPreviewProtectLocal(); got != tc.expectPreview {
+				tt.Errorf("shouldPreviewProtectLocal() = %v, want %v", got, tc.expectPreview)
+			}
+		})
+	}
+}
+
+// previewProtectLocalSetup creates a temp clone directory and optionally an
+// existing repo subdirectory within it, mirroring the on-disk state a real
+// dry-run would inspect. It returns the clone-dir absolute path plus a
+// cleanup func.
+func previewProtectLocalSetup(t *testing.T, createRepoDirs []string) (string, func()) {
+	t.Helper()
+	dir, err := os.MkdirTemp("", "ghorg_test_preview_protect_local")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range createRepoDirs {
+		if err := os.MkdirAll(filepath.Join(dir, name), 0o755); err != nil {
+			os.RemoveAll(dir)
+			t.Fatal(err)
+		}
+	}
+	return dir, func() { os.RemoveAll(dir) }
+}
+
+func TestPreviewProtectLocal_SkipsDirtyLocalRepo(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	os.Setenv("GHORG_DRY_RUN", "true")
+
+	dir, cleanup := previewProtectLocalSetup(t, []string{"test-repo"})
+	defer cleanup()
+	outputDirAbsolutePath = dir
+
+	mockGit := NewExtendedMockGit()
+	mockGit.shouldReturnDirtyStatus = true
+
+	repos := []scm.Repo{
+		{
+			Name:        "test-repo",
+			URL:         "git@github.com:org/test-repo.git",
+			CloneBranch: "main",
+		},
+	}
+
+	got := previewProtectLocal(mockGit, repos)
+	if got != 1 {
+		t.Errorf("previewProtectLocal returned %d, want 1 (dirty repo should be reported)", got)
+	}
+}
+
+func TestPreviewProtectLocal_SkipsUnpushedLocalRepo(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	os.Setenv("GHORG_DRY_RUN", "true")
+
+	dir, cleanup := previewProtectLocalSetup(t, []string{"test-repo"})
+	defer cleanup()
+	outputDirAbsolutePath = dir
+
+	mockGit := NewExtendedMockGit()
+	mockGit.shouldReturnUnpushedCommits = true
+
+	repos := []scm.Repo{
+		{
+			Name:        "test-repo",
+			URL:         "git@github.com:org/test-repo.git",
+			CloneBranch: "main",
+		},
+	}
+
+	got := previewProtectLocal(mockGit, repos)
+	if got != 1 {
+		t.Errorf("previewProtectLocal returned %d, want 1 (repo with unpushed commits should be reported)", got)
+	}
+}
+
+func TestPreviewProtectLocal_CleanLocalRepoNotReported(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	os.Setenv("GHORG_DRY_RUN", "true")
+
+	dir, cleanup := previewProtectLocalSetup(t, []string{"test-repo"})
+	defer cleanup()
+	outputDirAbsolutePath = dir
+
+	mockGit := NewExtendedMockGit()
+
+	repos := []scm.Repo{
+		{
+			Name:        "test-repo",
+			URL:         "git@github.com:org/test-repo.git",
+			CloneBranch: "main",
+		},
+	}
+
+	got := previewProtectLocal(mockGit, repos)
+	if got != 0 {
+		t.Errorf("previewProtectLocal returned %d, want 0 (clean repo should not be reported)", got)
+	}
+}
+
+func TestPreviewProtectLocal_NonexistentRepoNotReported(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	os.Setenv("GHORG_DRY_RUN", "true")
+
+	// No repo directory created on disk - simulates a fresh target that would be a new clone.
+	dir, cleanup := previewProtectLocalSetup(t, nil)
+	defer cleanup()
+	outputDirAbsolutePath = dir
+
+	mockGit := NewExtendedMockGit()
+	mockGit.shouldReturnDirtyStatus = true // Would report if the repo existed locally.
+
+	repos := []scm.Repo{
+		{
+			Name:        "test-repo",
+			URL:         "git@github.com:org/test-repo.git",
+			CloneBranch: "main",
+		},
+	}
+
+	got := previewProtectLocal(mockGit, repos)
+	if got != 0 {
+		t.Errorf("previewProtectLocal returned %d, want 0 (nonexistent local repo must not be inspected)", got)
+	}
+}
+
+func TestPreviewProtectLocal_EmptyRepoListReturnsZero(t *testing.T) {
+	defer UnsetEnv("GHORG_")()
+	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+
+	mockGit := NewExtendedMockGit()
+	if got := previewProtectLocal(mockGit, nil); got != 0 {
+		t.Errorf("previewProtectLocal with nil slice returned %d, want 0", got)
+	}
+	if got := previewProtectLocal(mockGit, []scm.Repo{}); got != 0 {
+		t.Errorf("previewProtectLocal with empty slice returned %d, want 0", got)
+	}
+}
