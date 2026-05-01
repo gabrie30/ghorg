@@ -270,6 +270,19 @@ type UserPermissions struct {
 
 var stringToTimeHookFunc = mapstructure.StringToTimeHookFunc("2006-01-02T15:04:05.000000+00:00")
 
+// attachClient wires the API client onto the Repository (and its Parent, if any)
+// so that methods invoked on the returned value do not panic with a nil client.
+// See https://github.com/ktrysmt/go-bitbucket/issues/347.
+func (r *Repository) attachClient(c *Client) {
+	if r == nil {
+		return
+	}
+	r.c = c
+	if r.Parent != nil {
+		r.Parent.attachClient(c)
+	}
+}
+
 func (r *Repository) Create(ro *RepositoryOptions) (*Repository, error) {
 	data, err := r.buildRepositoryBody(ro)
 	if err != nil {
@@ -281,7 +294,12 @@ func (r *Repository) Create(ro *RepositoryOptions) (*Repository, error) {
 		return nil, err
 	}
 
-	return decodeRepository(response)
+	repo, err := decodeRepository(response)
+	if err != nil {
+		return nil, err
+	}
+	repo.attachClient(r.c)
+	return repo, nil
 }
 
 func (r *Repository) Fork(fo *RepositoryForkOptions) (*Repository, error) {
@@ -295,7 +313,12 @@ func (r *Repository) Fork(fo *RepositoryForkOptions) (*Repository, error) {
 		return nil, err
 	}
 
-	return decodeRepository(response)
+	repo, err := decodeRepository(response)
+	if err != nil {
+		return nil, err
+	}
+	repo.attachClient(r.c)
+	return repo, nil
 }
 
 func (r *Repository) Get(ro *RepositoryOptions) (*Repository, error) {
@@ -305,7 +328,12 @@ func (r *Repository) Get(ro *RepositoryOptions) (*Repository, error) {
 		return nil, err
 	}
 
-	return decodeRepository(response)
+	repo, err := decodeRepository(response)
+	if err != nil {
+		return nil, err
+	}
+	repo.attachClient(r.c)
+	return repo, nil
 }
 
 func (r *Repository) buildContentsURL(ro *RepositoryFilesOptions) (string, error) {
@@ -601,7 +629,12 @@ func (r *Repository) Update(ro *RepositoryOptions) (*Repository, error) {
 	if err != nil {
 		return nil, err
 	}
-	return decodeRepository(response)
+	repo, err := decodeRepository(response)
+	if err != nil {
+		return nil, err
+	}
+	repo.attachClient(r.c)
+	return repo, nil
 }
 
 func (r *Repository) Delete(ro *RepositoryOptions) (interface{}, error) {
