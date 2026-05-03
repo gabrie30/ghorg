@@ -14,8 +14,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - `--protect-local --dry-run` now previews which existing local repos would be skipped due to uncommitted changes or unpushed commits (previously the dry-run output made no mention of protected repos, despite the documented behavior); thanks @mogsdad
 - `--dry-run` no longer double-spaces the repo URL list (each URL was ending with `\n\n` because `colorlog.PrintSubtleInfo` already appends a newline)
 - GitHub Actions use Go 1.26.0 so `go test` matches `go 1.26` and vendored module requirements (was 1.25.0 with `GOTOOLCHAIN=local`)
-
 ### Security
+- Updated to go-term-markdown fork with updated depedencies
 
 ## [1.11.10] - 3/29/26
 ### Added

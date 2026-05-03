@@ -2,11 +2,13 @@ package chroma
 
 import (
 	"fmt"
+	"strings"
 )
 
 var (
 	defaultOptions = &TokeniseOptions{
-		State: "root",
+		State:    "root",
+		EnsureLF: true,
 	}
 )
 
@@ -80,6 +82,10 @@ type TokeniseOptions struct {
 	State string
 	// Nested tokenisation.
 	Nested bool
+
+	// If true, all EOLs are converted into LF
+	// by replacing CRLF and CR
+	EnsureLF bool
 }
 
 // A Lexer for tokenising source code.
@@ -93,9 +99,11 @@ type Lexer interface {
 // Lexers is a slice of lexers sortable by name.
 type Lexers []Lexer
 
-func (l Lexers) Len() int           { return len(l) }
-func (l Lexers) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
-func (l Lexers) Less(i, j int) bool { return l[i].Config().Name < l[j].Config().Name }
+func (l Lexers) Len() int      { return len(l) }
+func (l Lexers) Swap(i, j int) { l[i], l[j] = l[j], l[i] }
+func (l Lexers) Less(i, j int) bool {
+	return strings.ToLower(l[i].Config().Name) < strings.ToLower(l[j].Config().Name)
+}
 
 // PrioritisedLexers is a slice of lexers sortable by priority.
 type PrioritisedLexers []Lexer

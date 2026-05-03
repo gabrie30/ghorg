@@ -4,7 +4,7 @@ import (
 	"embed"
 	"fmt"
 
-	gtm "github.com/MichaelMure/go-term-markdown"
+	gtm "github.com/Klaus-Tockloth/go-term-markdown"
 	"github.com/gabrie30/ghorg/colorlog"
 	"github.com/spf13/cobra"
 )

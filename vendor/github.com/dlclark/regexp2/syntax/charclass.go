@@ -37,6 +37,8 @@ var (
 	ecmaSpace = []rune{0x0009, 0x000e, 0x0020, 0x0021, 0x00a0, 0x00a1, 0x1680, 0x1681, 0x2000, 0x200b, 0x2028, 0x202a, 0x202f, 0x2030, 0x205f, 0x2060, 0x3000, 0x3001, 0xfeff, 0xff00}
 	ecmaWord  = []rune{0x0030, 0x003a, 0x0041, 0x005b, 0x005f, 0x0060, 0x0061, 0x007b}
 	ecmaDigit = []rune{0x0030, 0x003a}
+
+	re2Space = []rune{0x0009, 0x000b, 0x000c, 0x000e, 0x0020, 0x0021}
 )
 
 var (
@@ -56,6 +58,9 @@ var (
 	NotSpaceClass = getCharSetFromCategoryString(true, false, spaceCategoryText)
 	DigitClass    = getCharSetFromCategoryString(false, false, "Nd")
 	NotDigitClass = getCharSetFromCategoryString(false, true, "Nd")
+
+	RE2SpaceClass    = getCharSetFromOldString(re2Space, false)
+	NotRE2SpaceClass = getCharSetFromOldString(re2Space, true)
 )
 
 var unicodeCategories = func() map[string]*unicode.RangeTable {
@@ -401,12 +406,18 @@ func (c *CharSet) addChar(ch rune) {
 	c.addRange(ch, ch)
 }
 
-func (c *CharSet) addSpace(ecma, negate bool) {
+func (c *CharSet) addSpace(ecma, re2, negate bool) {
 	if ecma {
 		if negate {
 			c.addRanges(NotECMASpaceClass().ranges)
 		} else {
 			c.addRanges(ECMASpaceClass().ranges)
+		}
+	} else if re2 {
+		if negate {
+			c.addRanges(NotRE2SpaceClass().ranges)
+		} else {
+			c.addRanges(RE2SpaceClass().ranges)
 		}
 	} else {
 		c.addCategories(category{cat: spaceCategoryText, negate: negate})
@@ -484,6 +495,29 @@ func (c *CharSet) addRanges(ranges []singleRange) {
 	c.canonicalize()
 }
 
+// Merges everything but the new ranges into our own
+func (c *CharSet) addNegativeRanges(ranges []singleRange) {
+	if c.anything {
+		return
+	}
+
+	var hi rune
+
+	// convert incoming ranges into opposites, assume they are in order
+	for _, r := range ranges {
+		if hi < r.first {
+			c.ranges = append(c.ranges, singleRange{hi, r.first - 1})
+		}
+		hi = r.last + 1
+	}
+
+	if hi < utf8.MaxRune {
+		c.ranges = append(c.ranges, singleRange{hi, utf8.MaxRune})
+	}
+
+	c.canonicalize()
+}
+
 func isValidUnicodeCat(catName string) bool {
 	_, ok := unicodeCategories[catName]
 	return ok
@@ -513,6 +547,53 @@ func (c *CharSet) addSubtraction(sub *CharSet) {
 func (c *CharSet) addRange(chMin, chMax rune) {
 	c.ranges = append(c.ranges, singleRange{first: chMin, last: chMax})
 	c.canonicalize()
+}
+
+func (c *CharSet) addNamedASCII(name string, negate bool) bool {
+	var rs []singleRange
+
+	switch name {
+	case "alnum":
+		rs = []singleRange{singleRange{'0', '9'}, singleRange{'A', 'Z'}, singleRange{'a', 'z'}}
+	case "alpha":
+		rs = []singleRange{singleRange{'A', 'Z'}, singleRange{'a', 'z'}}
+	case "ascii":
+		rs = []singleRange{singleRange{0, 0x7f}}
+	case "blank":
+		rs = []singleRange{singleRange{'\t', '\t'}, singleRange{' ', ' '}}
+	case "cntrl":
+		rs = []singleRange{singleRange{0, 0x1f}, singleRange{0x7f, 0x7f}}
+	case "digit":
+		c.addDigit(false, negate, "")
+	case "graph":
+		rs = []singleRange{singleRange{'!', '~'}}
+	case "lower":
+		rs = []singleRange{singleRange{'a', 'z'}}
+	case "print":
+		rs = []singleRange{singleRange{' ', '~'}}
+	case "punct": //[!-/:-@[-`{-~]
+		rs = []singleRange{singleRange{'!', '/'}, singleRange{':', '@'}, singleRange{'[', '`'}, singleRange{'{', '~'}}
+	case "space":
+		c.addSpace(true, false, negate)
+	case "upper":
+		rs = []singleRange{singleRange{'A', 'Z'}}
+	case "word":
+		c.addWord(true, negate)
+	case "xdigit":
+		rs = []singleRange{singleRange{'0', '9'}, singleRange{'A', 'F'}, singleRange{'a', 'f'}}
+	default:
+		return false
+	}
+
+	if len(rs) > 0 {
+		if negate {
+			c.addNegativeRanges(rs)
+		} else {
+			c.addRanges(rs)
+		}
+	}
+
+	return true
 }
 
 type singleRangeSorter []singleRange
