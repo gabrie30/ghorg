@@ -56,6 +56,17 @@ func shouldAutoAdjustConcurrency() (int, bool, bool) {
 	return delaySeconds, true, true
 }
 
+// syncBoolFlagToEnv mirrors a CLI bool flag onto its corresponding ghorg env
+// var. It preserves the documented "CLI > config > default" precedence,
+// including explicit --flag=false overrides of a config-enabled flag.
+func syncBoolFlagToEnv(cmd *cobra.Command, flagName, envVar string) {
+	if !cmd.Flags().Changed(flagName) {
+		return
+	}
+	v, _ := cmd.Flags().GetBool(flagName)
+	os.Setenv(envVar, strconv.FormatBool(v))
+}
+
 var cloneCmd = &cobra.Command{
 	Use:   "clone [org/user]",
 	Short: "Clone user or org repos from GitHub, GitLab, Gitea or Bitbucket",
@@ -255,109 +266,32 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_GIT_FILTER", filter)
 	}
 
-	if cmd.Flags().Changed("preserve-scm-hostname") {
-		os.Setenv("GHORG_PRESERVE_SCM_HOSTNAME", "true")
-	}
-
-	if cmd.Flags().Changed("skip-archived") {
-		os.Setenv("GHORG_SKIP_ARCHIVED", "true")
-	}
-
-	if cmd.Flags().Changed("stats-enabled") {
-		os.Setenv("GHORG_STATS_ENABLED", "true")
-	}
-
-	if cmd.Flags().Changed("no-clean") {
-		os.Setenv("GHORG_NO_CLEAN", "true")
-	}
-
-	if cmd.Flags().Changed("prune") {
-		os.Setenv("GHORG_PRUNE", "true")
-	}
-
-	if cmd.Flags().Changed("prune-no-confirm") {
-		os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
-	}
-
-	if cmd.Flags().Changed("prune-untouched") {
-		os.Setenv("GHORG_PRUNE_UNTOUCHED", "true")
-	}
-
-	if cmd.Flags().Changed("prune-untouched-no-confirm") {
-		os.Setenv("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM", "true")
-	}
-
-	if cmd.Flags().Changed("fetch-all") {
-		os.Setenv("GHORG_FETCH_ALL", "true")
-	}
-
-	if cmd.Flags().Changed("fetch-prune") {
-		os.Setenv("GHORG_FETCH_PRUNE", "true")
-	}
-
-	if cmd.Flags().Changed("include-submodules") {
-		os.Setenv("GHORG_INCLUDE_SUBMODULES", "true")
-	}
-
-	if cmd.Flags().Changed("dry-run") {
-		os.Setenv("GHORG_DRY_RUN", "true")
-	}
-
-	if cmd.Flags().Changed("clone-wiki") {
-		os.Setenv("GHORG_CLONE_WIKI", "true")
-	}
-
-	if cmd.Flags().Changed("clone-snippets") {
-		os.Setenv("GHORG_CLONE_SNIPPETS", "true")
-	}
-
-	if cmd.Flags().Changed("github-user-gists") {
-		os.Setenv("GHORG_GITHUB_USER_GISTS", "true")
-	}
-
-	if cmd.Flags().Changed("insecure-gitlab-client") {
-		os.Setenv("GHORG_INSECURE_GITLAB_CLIENT", "true")
-	}
-
-	if cmd.Flags().Changed("insecure-gitea-client") {
-		os.Setenv("GHORG_INSECURE_GITEA_CLIENT", "true")
-	}
-
-	if cmd.Flags().Changed("insecure-bitbucket-client") {
-		os.Setenv("GHORG_INSECURE_BITBUCKET_CLIENT", "true")
-	}
-
-	if cmd.Flags().Changed("insecure-sourcehut-client") {
-		os.Setenv("GHORG_INSECURE_SOURCEHUT_CLIENT", "true")
-	}
-
-	if cmd.Flags().Changed("skip-forks") {
-		os.Setenv("GHORG_SKIP_FORKS", "true")
-	}
-
-	if cmd.Flags().Changed("quiet") {
-		os.Setenv("GHORG_QUIET", "true")
-	}
-
-	if cmd.Flags().Changed("no-token") {
-		os.Setenv("GHORG_NO_TOKEN", "true")
-	}
-
-	if cmd.Flags().Changed("no-dir-size") {
-		os.Setenv("GHORG_NO_DIR_SIZE", "true")
-	}
-
-	if cmd.Flags().Changed("preserve-dir") {
-		os.Setenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE", "true")
-	}
-
-	if cmd.Flags().Changed("backup") {
-		os.Setenv("GHORG_BACKUP", "true")
-	}
-
-	if cmd.Flags().Changed("protect-local") {
-		os.Setenv("GHORG_PROTECT_LOCAL", "true")
-	}
+	syncBoolFlagToEnv(cmd, "preserve-scm-hostname", "GHORG_PRESERVE_SCM_HOSTNAME")
+	syncBoolFlagToEnv(cmd, "skip-archived", "GHORG_SKIP_ARCHIVED")
+	syncBoolFlagToEnv(cmd, "stats-enabled", "GHORG_STATS_ENABLED")
+	syncBoolFlagToEnv(cmd, "no-clean", "GHORG_NO_CLEAN")
+	syncBoolFlagToEnv(cmd, "prune", "GHORG_PRUNE")
+	syncBoolFlagToEnv(cmd, "prune-no-confirm", "GHORG_PRUNE_NO_CONFIRM")
+	syncBoolFlagToEnv(cmd, "prune-untouched", "GHORG_PRUNE_UNTOUCHED")
+	syncBoolFlagToEnv(cmd, "prune-untouched-no-confirm", "GHORG_PRUNE_UNTOUCHED_NO_CONFIRM")
+	syncBoolFlagToEnv(cmd, "fetch-all", "GHORG_FETCH_ALL")
+	syncBoolFlagToEnv(cmd, "fetch-prune", "GHORG_FETCH_PRUNE")
+	syncBoolFlagToEnv(cmd, "include-submodules", "GHORG_INCLUDE_SUBMODULES")
+	syncBoolFlagToEnv(cmd, "dry-run", "GHORG_DRY_RUN")
+	syncBoolFlagToEnv(cmd, "clone-wiki", "GHORG_CLONE_WIKI")
+	syncBoolFlagToEnv(cmd, "clone-snippets", "GHORG_CLONE_SNIPPETS")
+	syncBoolFlagToEnv(cmd, "github-user-gists", "GHORG_GITHUB_USER_GISTS")
+	syncBoolFlagToEnv(cmd, "insecure-gitlab-client", "GHORG_INSECURE_GITLAB_CLIENT")
+	syncBoolFlagToEnv(cmd, "insecure-gitea-client", "GHORG_INSECURE_GITEA_CLIENT")
+	syncBoolFlagToEnv(cmd, "insecure-bitbucket-client", "GHORG_INSECURE_BITBUCKET_CLIENT")
+	syncBoolFlagToEnv(cmd, "insecure-sourcehut-client", "GHORG_INSECURE_SOURCEHUT_CLIENT")
+	syncBoolFlagToEnv(cmd, "skip-forks", "GHORG_SKIP_FORKS")
+	syncBoolFlagToEnv(cmd, "quiet", "GHORG_QUIET")
+	syncBoolFlagToEnv(cmd, "no-token", "GHORG_NO_TOKEN")
+	syncBoolFlagToEnv(cmd, "no-dir-size", "GHORG_NO_DIR_SIZE")
+	syncBoolFlagToEnv(cmd, "preserve-dir", "GHORG_PRESERVE_DIRECTORY_STRUCTURE")
+	syncBoolFlagToEnv(cmd, "backup", "GHORG_BACKUP")
+	syncBoolFlagToEnv(cmd, "protect-local", "GHORG_PROTECT_LOCAL")
 
 	if cmd.Flags().Changed("output-dir") {
 		d := cmd.Flag("output-dir").Value.String()

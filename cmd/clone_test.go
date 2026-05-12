@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gabrie30/ghorg/scm"
+	"github.com/spf13/cobra"
 )
 
 func TestShouldLowerRegularString(t *testing.T) {
@@ -1373,5 +1374,89 @@ func TestPreviewProtectLocal_EmptyRepoListReturnsZero(t *testing.T) {
 	}
 	if got := previewProtectLocal(mockGit, []scm.Repo{}); got != 0 {
 		t.Errorf("previewProtectLocal with empty slice returned %d, want 0", got)
+	}
+}
+
+// TestSyncBoolFlagToEnv covers the documented precedence "CLI > config > default"
+// for bool flags. The previous implementation hardcoded "true" whenever the user
+// passed the flag, which silently dropped explicit --flag=false overrides of a
+// config-enabled flag.
+func TestSyncBoolFlagToEnv(t *testing.T) {
+	const flagName = "no-clean"
+	const envVar = "GHORG_NO_CLEAN"
+
+	cases := []struct {
+		name      string
+		envBefore string // empty means env is unset
+		cliValue  string // empty means flag not passed
+		want      string // expected env value after sync; "<unset>" means env should be unset
+	}{
+		{
+			name:      "CLI=false overrides config=true",
+			envBefore: "true",
+			cliValue:  "false",
+			want:      "false",
+		},
+		{
+			name:      "CLI=true overrides config=false",
+			envBefore: "false",
+			cliValue:  "true",
+			want:      "true",
+		},
+		{
+			name:      "bare flag (no value) defaults to true and overrides config=false",
+			envBefore: "false",
+			cliValue:  "bare",
+			want:      "true",
+		},
+		{
+			name:      "flag not passed leaves config value intact",
+			envBefore: "true",
+			cliValue:  "",
+			want:      "true",
+		},
+		{
+			name:      "flag not passed and env unset leaves env unset",
+			envBefore: "",
+			cliValue:  "",
+			want:      "<unset>",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			defer UnsetEnv("GHORG_")()
+			if tc.envBefore != "" {
+				os.Setenv(envVar, tc.envBefore)
+			}
+
+			cmd := &cobra.Command{Use: "clone"}
+			cmd.Flags().Bool(flagName, false, "")
+
+			if tc.cliValue != "" {
+				var err error
+				if tc.cliValue == "bare" {
+					err = cmd.ParseFlags([]string{"--" + flagName})
+				} else {
+					err = cmd.ParseFlags([]string{"--" + flagName + "=" + tc.cliValue})
+				}
+				if err != nil {
+					t.Fatalf("ParseFlags failed: %v", err)
+				}
+			}
+
+			syncBoolFlagToEnv(cmd, flagName, envVar)
+
+			got, present := os.LookupEnv(envVar)
+			if tc.want == "<unset>" {
+				if present {
+					t.Fatalf("want %s unset, got %q", envVar, got)
+				}
+				return
+			}
+			if got != tc.want {
+				t.Fatalf("want %s=%q, got %q", envVar, tc.want, got)
+			}
+		})
 	}
 }
