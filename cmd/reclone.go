@@ -36,13 +36,8 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 		os.Setenv("GHORG_RECLONE_PATH", path)
 	}
 
-	if cmd.Flags().Changed("quiet") {
-		os.Setenv("GHORG_RECLONE_QUIET", "true")
-	}
-
-	if cmd.Flags().Changed("env-config-only") {
-		os.Setenv("GHORG_RECLONE_ENV_CONFIG_ONLY", "true")
-	}
+	syncBoolFlagToEnv(cmd, "quiet", "GHORG_RECLONE_QUIET")
+	syncBoolFlagToEnv(cmd, "env-config-only", "GHORG_RECLONE_ENV_CONFIG_ONLY")
 
 	path := configs.GhorgReCloneLocation()
 	yamlBytes, err := os.ReadFile(path)
