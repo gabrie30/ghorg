@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.11] - unreleased
+## [1.11.11] - 5/21/26
 ### Added
 - GHORG_GITHUB_REPO_LIST_CONCURRENCY to prevent github secondary ratelimiting
 - Automatic git clone retries (up to 3 retries with 1s, 2s, then 3s delay) on failure
