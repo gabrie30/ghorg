@@ -261,7 +261,7 @@ Ghorg provides several ways to narrow down which repositories get cloned. Filter
 - **Skip forked repos** — use `--skip-forks`.
 - **Filter by topic** — use `--topics` (or `GHORG_TOPICS`) to clone only repos tagged with a matching [topic](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/classifying-your-repository-with-topics). GitHub, GitLab, and Gitea only.
 
-### `--target-repos-path` — explicit list of repo names
+#### `--target-repos-path` — explicit list of repo names
 
 Maintain a file containing the exact **repository names** you want to clone (one per line) and point at it with `--target-repos-path` (or the `GHORG_TARGET_REPOS_PATH` env var). Only repos whose name appears in the file will be cloned. This is the right choice when you have a fixed, known set of repos to mirror — for example, a curated list driving a CI pipeline or a documented backup set.
 
@@ -270,7 +270,7 @@ Maintain a file containing the exact **repository names** you want to clone (one
 - Names listed in the file that don't exist on the org/user are reported in the clone summary so you can catch typos or repos that were renamed/removed.
 - When `--clone-wiki` is enabled, each listed name will also match its corresponding `.wiki` repo. GitLab snippets are matched against their parent repo name.
 
-### `ghorgonly` — substring allowlist file
+#### `ghorgonly (autodetected file)` — substring allowlist file
 
 Create `$HOME/.config/ghorg/ghorgonly` to clone **only** repos whose clone URL **contains** one of the listed substrings (one pattern per line). This is useful when you want a dynamic, pattern-based subset of a large organization — for example, "everything published under the `infra-` namespace" — without having to enumerate or maintain every repo name by hand.
 
@@ -280,7 +280,7 @@ Create `$HOME/.config/ghorg/ghorgonly` to clone **only** repos whose clone URL *
 
 **`ghorgonly` vs. `--target-repos-path`:** use `--target-repos-path` when you know the **exact set of repo names** you want and want missing-repo warnings; use `ghorgonly` when you want a **pattern-based subset** of the org's URLs and don't need an explicit list.
 
-### `ghorgignore` — denylist file
+#### `ghorgignore (autodetected file)` — denylist file
 
 Create `$HOME/.config/ghorg/ghorgignore` to permanently exclude specific repos from cloning. Each line is a substring matched against the repo's clone URL — if the URL contains the substring, the repo is skipped.
 
