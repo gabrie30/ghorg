@@ -255,11 +255,11 @@ Ghorg provides several optional ways to narrow down which repositories get clone
 
 ### Flag-based filters
 
-- **Match by regex** — use `--match-regex` to include, or `--exclude-match-regex` to exclude, repos whose names match a regex.
-- **Match by prefix** — use `--match-prefix` to include, or `--exclude-match-prefix` to exclude, repos whose names start with one or more prefixes.
-- **Skip archived repos** — use `--skip-archived` (not supported on Bitbucket).
-- **Skip forked repos** — use `--skip-forks`.
-- **Filter by topic** — use `--topics` (or `GHORG_TOPICS`) to clone only repos tagged with a matching [topic](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/classifying-your-repository-with-topics). GitHub, GitLab, and Gitea only.
+- **Match by regex**: use `--match-regex` to include, or `--exclude-match-regex` to exclude, repos whose names match a regex.
+- **Match by prefix**: use `--match-prefix` to include, or `--exclude-match-prefix` to exclude, repos whose names start with one or more prefixes.
+- **Skip archived repos**: use `--skip-archived` (not supported on Bitbucket).
+- **Skip forked repos**: use `--skip-forks`.
+- **Filter by topic**: use `--topics` (or `GHORG_TOPICS`) to clone only repos tagged with a matching [topic](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/classifying-your-repository-with-topics). GitHub, GitLab, and Gitea only.
 
 #### `--target-repos-path` - explicit list of repo names
 
