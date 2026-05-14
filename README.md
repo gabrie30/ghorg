@@ -270,22 +270,24 @@ Maintain a file containing the exact **repository names** you want to clone (one
 - Names listed in the file that don't exist on the org/user are reported in the clone summary so you can catch typos or repos that were renamed/removed.
 - When `--clone-wiki` is enabled, each listed name will also match its corresponding `.wiki` repo. GitLab snippets are matched against their parent repo name.
 
-#### `ghorgonly (autodetected file)` — substring allowlist file
+#### `ghorgonly` — auto-detected substring allowlist file
 
-Create `$HOME/.config/ghorg/ghorgonly` to clone **only** repos whose clone URL **contains** one of the listed substrings (one pattern per line). This is useful when you want a dynamic, pattern-based subset of a large organization — for example, "everything published under the `infra-` namespace" — without having to enumerate or maintain every repo name by hand.
+`ghorgonly` is a plain-text file you create yourself. If a file exists at `$HOME/.config/ghorg/ghorgonly`, ghorg will pick it up automatically on every clone, no flag required, and only clone repos whose clone URL **contains** one of the listed substrings (one pattern per line). This is useful when you want a dynamic, pattern-based subset of a large organization e.g. "everything published under the `infra-` namespace" without having to enumerate every repo name by hand.
 
 - Matching is a plain substring check against the **full clone URL**, so patterns like `infra-`, `internal/platform/`, or a full URL all work.
-- `ghorgonly` is auto-detected at the default path; use `--ghorgonly-path` (or `GHORG_ONLY_PATH`) to point at an alternative file.
+- If no file exists at the default path, this filter is skipped entirely.
+- To use a different location, or to maintain **several `ghorgonly` files for different clone scenarios** (e.g. one per team or per environment), pass `--ghorgonly-path` (or set `GHORG_ONLY_PATH`) to select the right file for that run.
 - `ghorgonly` is applied **after** `--target-repos-path` and **before** `ghorgignore`, so the three can be layered (e.g., target a known list, narrow further by substring, then drop a few specific repos).
 
 **`ghorgonly` vs. `--target-repos-path`:** use `--target-repos-path` when you know the **exact set of repo names** you want and want missing-repo warnings; use `ghorgonly` when you want a **pattern-based subset** of the org's URLs and don't need an explicit list.
 
-#### `ghorgignore (autodetected file)` — denylist file
+#### `ghorgignore` — auto-detected denylist file
 
-Create `$HOME/.config/ghorg/ghorgignore` to permanently exclude specific repos from cloning. Each line is a substring matched against the repo's clone URL — if the URL contains the substring, the repo is skipped.
+`ghorgignore` is a plain-text file you create yourself. If a file exists at `$HOME/.config/ghorg/ghorgignore`, ghorg will pick it up automatically on every clone, no flag required, and skip any repo whose clone URL **contains** a substring listed in the file (one pattern per line). This is the right tool for permanently excluding a small set of repos (legacy mirrors, vendor forks, repos you simply don't want on disk).
 
 - Make each entry as specific as possible to avoid unintentional matches. For example, prefer a full clone URL like `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git` over a short name fragment.
-- Use `--ghorgignore-path` (or `GHORG_IGNORE_PATH`) to point at an alternative file location, helpful if you maintain multiple ignore lists.
+- If no file exists at the default path, this filter is skipped entirely.
+- To use a different location, or to maintain **several `ghorgignore` files for different clone scenarios** (e.g. a stricter list for backups vs. a lighter list for day-to-day clones), pass `--ghorgignore-path` (or set `GHORG_IGNORE_PATH`) to select the right file for that run.
 
 ## Creating Backups
 
