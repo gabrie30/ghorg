@@ -3,6 +3,7 @@ package cmd
 import (
 	"embed"
 	"fmt"
+	"strings"
 
 	gtm "github.com/Klaus-Tockloth/go-term-markdown"
 	"github.com/gabrie30/ghorg/colorlog"
@@ -14,16 +15,29 @@ var (
 	examples embed.FS
 )
 
+// availableExamples lists the documentation topics available via the
+// `ghorg examples` command. Each entry corresponds to a markdown file in
+// cmd/examples-copy/ (mirrored from the top-level examples/ directory).
+var availableExamples = []string{
+	"github",
+	"gitlab",
+	"bitbucket",
+	"gitea",
+	"sourcehut",
+	"reclone-server",
+	"reclone-cron",
+}
+
 var examplesCmd = &cobra.Command{
-	Use:   "examples [github, gitlab, bitbucket, gitea]",
-	Short: "Documentation and examples for each SCM provider",
-	Long:  `Get documentation and examples for each SCM provider in the terminal`,
+	Use:   fmt.Sprintf("examples [%s]", strings.Join(availableExamples, ", ")),
+	Short: "Documentation and examples for ghorg features and SCM providers",
+	Long:  `Get documentation and examples for ghorg features and SCM providers in the terminal`,
 	Run:   examplesFunc,
 }
 
 func examplesFunc(cmd *cobra.Command, argz []string) {
 	if len(argz) == 0 {
-		colorlog.PrintErrorAndExit("Please additionally provide a SCM provider: github, gitlab, bitbucket, or gitea")
+		colorlog.PrintErrorAndExit("Please additionally provide a topic, one of: " + strings.Join(availableExamples, ", "))
 	}
 
 	// TODO: fix the examples-copy directory mess
@@ -37,7 +51,7 @@ func getFileContents(filepath string) []byte {
 
 	contents, err := examples.ReadFile(filepath)
 	if err != nil {
-		colorlog.PrintErrorAndExit("Only supported SCM providers are available for examples, please use one of the following: github, gitlab, bitbucket, or gitea")
+		colorlog.PrintErrorAndExit("Unknown examples topic, please use one of the following: " + strings.Join(availableExamples, ", "))
 	}
 
 	return contents
