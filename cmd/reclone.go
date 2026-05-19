@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"sort"
 	"strings"
 
 	"github.com/gabrie30/ghorg/colorlog"
@@ -57,7 +58,8 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 		colorlog.PrintInfo("**** Available reclone commands and optional descriptions ****")
 		colorlog.PrintInfo("**************************************************************")
 		fmt.Println("")
-		for key, value := range mapOfReClones {
+		for _, key := range sortedReCloneKeys(mapOfReClones) {
+			value := mapOfReClones[key]
 			colorlog.PrintInfo(fmt.Sprintf("- %s", key))
 			if value.Description != "" {
 				colorlog.PrintSubtleInfo(fmt.Sprintf("    description: %s", value.Description))
@@ -69,8 +71,8 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 	}
 
 	if len(argz) == 0 {
-		for rcIdentifier, reclone := range mapOfReClones {
-			runReClone(reclone, rcIdentifier)
+		for _, rcIdentifier := range sortedReCloneKeys(mapOfReClones) {
+			runReClone(mapOfReClones[rcIdentifier], rcIdentifier)
 		}
 	} else {
 		for _, rcIdentifier := range argz {
@@ -89,7 +91,7 @@ func printFinalOutput(argz []string, reCloneMap map[string]ReClone) {
 	fmt.Println("")
 	colorlog.PrintSuccess("Completed! The following reclones were ran successfully...")
 	if len(argz) == 0 {
-		for key := range reCloneMap {
+		for _, key := range sortedReCloneKeys(reCloneMap) {
 			colorlog.PrintSuccess(fmt.Sprintf("  * %v", key))
 		}
 	} else {
@@ -97,6 +99,19 @@ func printFinalOutput(argz []string, reCloneMap map[string]ReClone) {
 			colorlog.PrintSuccess(fmt.Sprintf("  * %v", arg))
 		}
 	}
+}
+
+// sortedReCloneKeys returns the keys of the given reclone map sorted
+// alphabetically, providing deterministic iteration order for both `--list`
+// output and the order in which reclones are executed when no arguments are
+// passed.
+func sortedReCloneKeys(reCloneMap map[string]ReClone) []string {
+	keys := make([]string, 0, len(reCloneMap))
+	for key := range reCloneMap {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 func sanitizeCmd(cmd string) string {

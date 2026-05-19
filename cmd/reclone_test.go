@@ -140,3 +140,50 @@ func Test_sanitizeCmd(t *testing.T) {
 		})
 	}
 }
+
+func Test_sortedReCloneKeys(t *testing.T) {
+	tests := []struct {
+		name string
+		in   map[string]ReClone
+		want []string
+	}{
+		{
+			name: "empty map",
+			in:   map[string]ReClone{},
+			want: []string{},
+		},
+		{
+			name: "single entry",
+			in: map[string]ReClone{
+				"only": {Cmd: "ghorg clone only"},
+			},
+			want: []string{"only"},
+		},
+		{
+			name: "alphabetical ordering",
+			in: map[string]ReClone{
+				"charlie": {Cmd: "ghorg clone charlie"},
+				"alpha":   {Cmd: "ghorg clone alpha"},
+				"bravo":   {Cmd: "ghorg clone bravo"},
+			},
+			want: []string{"alpha", "bravo", "charlie"},
+		},
+		{
+			name: "case sensitive sort puts uppercase before lowercase",
+			in: map[string]ReClone{
+				"banana": {Cmd: "ghorg clone banana"},
+				"Apple":  {Cmd: "ghorg clone Apple"},
+				"cherry": {Cmd: "ghorg clone cherry"},
+			},
+			want: []string{"Apple", "banana", "cherry"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := sortedReCloneKeys(tt.in)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("sortedReCloneKeys() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
