@@ -6,6 +6,7 @@ package gitea
 
 import (
 	"fmt"
+	"net/url"
 	"time"
 )
 
@@ -52,6 +53,20 @@ type PackageFile struct {
 // ListPackagesOptions options for listing packages
 type ListPackagesOptions struct {
 	ListOptions
+	// type, and q are only used for ListPackages, not ListPackageVersions
+	Type string
+	Q    string
+}
+
+func (opt ListPackagesOptions) getURLQuery() url.Values {
+	query := opt.ListOptions.getURLQuery()
+	if opt.Type != "" {
+		query.Set("type", opt.Type)
+	}
+	if opt.Q != "" {
+		query.Set("q", opt.Q)
+	}
+	return query
 }
 
 // ListPackages lists all the packages owned by a given owner (user, organisation)
@@ -72,7 +87,7 @@ func (c *Client) ListPackageVersions(owner, packageType, name string, opt ListPa
 	}
 	opt.setDefaults()
 	packages := make([]*Package, 0, opt.PageSize)
-	resp, err := c.getParsedResponse("GET", fmt.Sprintf("/packages/%s/%s/%s?%s", owner, packageType, name, opt.getURLQuery().Encode()), nil, nil, &packages)
+	resp, err := c.getParsedResponse("GET", fmt.Sprintf("/packages/%s/%s/%s?%s", owner, packageType, name, opt.ListOptions.getURLQuery().Encode()), nil, nil, &packages)
 	return packages, resp, err
 }
 

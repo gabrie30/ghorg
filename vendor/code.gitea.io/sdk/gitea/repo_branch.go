@@ -164,7 +164,8 @@ func (c *Client) RenameRepoBranch(user, repo, branch string, opt RenameRepoBranc
 }
 
 // UpdateRepoBranchRef updates the commit a branch points to.
-// This endpoint is not yet available in any released Gitea version.
+// Available on Gitea main/nightly; first released version not assigned yet.
+// Upstream: gitea/gitea#35951 (a440116a16c42956f21031bea8422ffbb003c732).
 func (c *Client) UpdateRepoBranchRef(user, repo, branch string, opt UpdateRepoBranchRefOption) (successful bool, resp *Response, err error) {
 	if err := escapeValidatePathSegments(&user, &repo); err != nil {
 		return false, nil, err
