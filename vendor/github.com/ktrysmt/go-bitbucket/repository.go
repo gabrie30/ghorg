@@ -337,9 +337,7 @@ func (r *Repository) Get(ro *RepositoryOptions) (*Repository, error) {
 }
 
 func (r *Repository) buildContentsURL(ro *RepositoryFilesOptions) (string, error) {
-	urlPath := "/repositories/%s/%s/src/%s/%s"
-
-	urlStr := r.c.requestUrl(urlPath, ro.Owner, ro.RepoSlug, ro.Ref, ro.Path)
+	urlStr := r.c.requestUrl("/repositories/%s/%s/src/%s/%s", ro.Owner, ro.RepoSlug, ro.Ref, ro.Path)
 	parsedUrl, err := url.Parse(urlStr)
 	if err != nil {
 		return "", err
@@ -382,8 +380,7 @@ func (r *Repository) ListFiles(ro *RepositoryFilesOptions) ([]RepositoryFile, er
 }
 
 func (r *Repository) GetFileBlob(ro *RepositoryBlobOptions) (*RepositoryBlob, error) {
-	urlPath := "/repositories/%s/%s/src/%s/%s"
-	urlStr := r.c.requestUrl(urlPath, ro.Owner, ro.RepoSlug, ro.Ref, ro.Path)
+	urlStr := r.c.requestUrl("/repositories/%s/%s/src/%s/%s", ro.Owner, ro.RepoSlug, ro.Ref, ro.Path)
 	response, err := r.c.executeRaw("GET", urlStr, "")
 	if err != nil {
 		return nil, err
@@ -418,9 +415,16 @@ func (r *Repository) WriteFileBlob(ro *RepositoryBlobWriteOptions) error {
 		if len(ro.Files) > 0 {
 			return fmt.Errorf("can't specify both files and filename")
 		}
+		// FilePath, when set, is the destination path inside the repository.
+		// FileName is the local file to read content from. When FilePath is
+		// empty, the file is uploaded at the repo root using its local name.
+		repoPath := ro.FilePath
+		if repoPath == "" {
+			repoPath = ro.FileName
+		}
 		ro.Files = []File{{
 			Path: ro.FileName,
-			Name: ro.FileName,
+			Name: repoPath,
 		}}
 	}
 
@@ -428,6 +432,40 @@ func (r *Repository) WriteFileBlob(ro *RepositoryBlobWriteOptions) error {
 
 	_, err := r.c.executeFileUpload("POST", urlStr, ro.Files, ro.FilesToDelete, m, ro.ctx)
 	return err
+}
+
+// WriteFileContent commits one or more files using their raw in-memory
+// content. This avoids the temporary-file dance required by WriteFileBlob and
+// uses the URL-encoded form variant of the source endpoint.
+//
+// See: https://developer.atlassian.com/cloud/bitbucket/rest/api-group-source/#api-repositories-workspace-repo-slug-src-post
+func (r *Repository) WriteFileContent(ro *RepositoryContentWriteOptions) error {
+	if len(ro.Files) == 0 && len(ro.FilesToDelete) == 0 {
+		return fmt.Errorf("at least one file or files_to_delete must be specified")
+	}
+
+	form := url.Values{}
+	for path, content := range ro.Files {
+		if path == "" {
+			return fmt.Errorf("file path must not be empty")
+		}
+		form.Set(path, content)
+	}
+	for _, p := range ro.FilesToDelete {
+		form.Add("files", p)
+	}
+	if ro.Author != "" {
+		form.Set("author", ro.Author)
+	}
+	if ro.Message != "" {
+		form.Set("message", ro.Message)
+	}
+	if ro.Branch != "" {
+		form.Set("branch", ro.Branch)
+	}
+
+	urlStr := r.c.requestUrl("/repositories/%s/%s/src", ro.Owner, ro.RepoSlug)
+	return r.c.executeFormURLEncoded("POST", urlStr, form, ro.ctx)
 }
 
 // ListRefs gets all refs in the Bitbucket repository and returns them as a RepositoryRefs.
@@ -592,6 +630,21 @@ func (r *Repository) ListTags(rbo *RepositoryTagOptions) (*RepositoryTags, error
 		return nil, err
 	}
 	return decodeRepositoryTags(response)
+}
+
+// DeleteTag https://developer.atlassian.com/cloud/bitbucket/rest/api-group-refs/#api-repositories-workspace-repo-slug-refs-tags-name-delete
+func (r *Repository) DeleteTag(rbo *RepositoryTagDeleteOptions) error {
+	repo := rbo.RepoSlug
+	if rbo.RepoUUID != "" {
+		repo = rbo.RepoUUID
+	}
+	tag := rbo.TagName
+	if rbo.TagUUID != "" {
+		tag = rbo.TagUUID
+	}
+	urlStr := r.c.requestUrl("/repositories/%s/%s/refs/tags/%s", rbo.Owner, repo, tag)
+	_, err := r.c.execute("DELETE", urlStr, "")
+	return err
 }
 
 func (r *Repository) CreateTag(rbo *RepositoryTagCreationOptions) (*RepositoryTag, error) {

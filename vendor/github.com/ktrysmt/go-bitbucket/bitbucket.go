@@ -233,6 +233,31 @@ func (ro *RepositoryBlobWriteOptions) WithContext(ctx context.Context) *Reposito
 	return ro
 }
 
+// RepositoryContentWriteOptions describes a commit that writes one or more
+// files to a repository using the URL-encoded form variant of the source
+// endpoint. Unlike RepositoryBlobWriteOptions, contents are passed inline so
+// no temporary file on disk is required.
+//
+// See: https://developer.atlassian.com/cloud/bitbucket/rest/api-group-source/#api-repositories-workspace-repo-slug-src-post
+type RepositoryContentWriteOptions struct {
+	Owner    string `json:"owner"`
+	RepoSlug string `json:"repo_slug"`
+	// Files maps the destination path inside the repository to the raw file
+	// content to upload.
+	Files map[string]string `json:"files"`
+	// FilesToDelete lists repo paths to remove in the same commit.
+	FilesToDelete []string `json:"files_to_delete"`
+	Author        string   `json:"author"`
+	Message       string   `json:"message"`
+	Branch        string   `json:"branch"`
+	ctx           context.Context
+}
+
+func (ro *RepositoryContentWriteOptions) WithContext(ctx context.Context) *RepositoryContentWriteOptions {
+	ro.ctx = ctx
+	return ro
+}
+
 // RepositoryRefOptions represents the options for describing a repository's refs (i.e.
 // tags and branches). The field BranchFlg is a boolean that is indicates whether a specific
 // RepositoryRefOptions instance is meant for Branch specific set of api methods.
@@ -272,6 +297,14 @@ type RepositoryBranchDeleteOptions struct {
 	RepoUUID string `json:"repo_uuid"`
 	RefName  string `json:"name"`
 	RefUUID  string `json:"ref_uuid"`
+}
+
+type RepositoryTagDeleteOptions struct {
+	Owner    string `json:"owner"`
+	RepoSlug string `json:"repo_slug"`
+	RepoUUID string `json:"repo_uuid"`
+	TagName  string `json:"name"`
+	TagUUID  string `json:"tag_uuid"`
 }
 
 type RepositoryBranchTarget struct {
