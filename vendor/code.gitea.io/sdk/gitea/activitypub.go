@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -44,13 +43,7 @@ func (c *Client) SendActivityPubInbox(userID int64, activity ActivityPub) (*Resp
 
 // GetActivityPubPersonResponse returns the raw ActivityPub Person response
 func (c *Client) GetActivityPubPersonResponse(userID int64) ([]byte, *Response, error) {
-	resp, err := c.doRequest("GET",
+	return c.getResponse("GET",
 		fmt.Sprintf("/activitypub/user-id/%d", userID),
 		jsonHeader, nil)
-	if err != nil {
-		return nil, resp, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-	data, err := io.ReadAll(resp.Body)
-	return data, resp, err
 }

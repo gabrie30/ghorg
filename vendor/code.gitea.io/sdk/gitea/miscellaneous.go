@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 )
 
 // GitignoreTemplateInfo represents a gitignore template
@@ -161,27 +160,18 @@ func (c *Client) RenderMarkdown(opt MarkdownOption) (string, *Response, error) {
 		return "", nil, err
 	}
 
-	resp, err := c.doRequest("POST", "/markdown", jsonHeader, bytes.NewReader(body))
-	if err != nil {
-		return "", resp, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	html, err := io.ReadAll(resp.Body)
+	html, resp, err := c.getResponse("POST", "/markdown", jsonHeader, bytes.NewReader(body))
 	return string(html), resp, err
 }
 
 // RenderMarkdownRaw renders raw markdown as HTML
 func (c *Client) RenderMarkdownRaw(markdown string) (string, *Response, error) {
-	resp, err := c.doRequest("POST", "/markdown/raw",
+	html, resp, err := c.getResponse("POST", "/markdown/raw",
 		map[string][]string{"Content-Type": {"text/plain"}},
 		bytes.NewReader([]byte(markdown)))
 	if err != nil {
 		return "", resp, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	html, err := io.ReadAll(resp.Body)
 	return string(html), resp, err
 }
 
@@ -192,13 +182,10 @@ func (c *Client) RenderMarkup(opt MarkupOption) (string, *Response, error) {
 		return "", nil, err
 	}
 
-	resp, err := c.doRequest("POST", "/markup", jsonHeader, bytes.NewReader(body))
+	html, resp, err := c.getResponse("POST", "/markup", jsonHeader, bytes.NewReader(body))
 	if err != nil {
 		return "", resp, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	html, err := io.ReadAll(resp.Body)
 	return string(html), resp, err
 }
 
@@ -211,24 +198,18 @@ func (c *Client) GetNodeInfo() (*NodeInfo, *Response, error) {
 
 // GetSigningKeyGPG gets the default GPG signing key
 func (c *Client) GetSigningKeyGPG() (string, *Response, error) {
-	resp, err := c.doRequest("GET", "/signing-key.gpg", nil, nil)
+	key, resp, err := c.getResponse("GET", "/signing-key.gpg", nil, nil)
 	if err != nil {
 		return "", resp, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	key, err := io.ReadAll(resp.Body)
 	return string(key), resp, err
 }
 
 // GetSigningKeySSH gets the default SSH signing key
 func (c *Client) GetSigningKeySSH() (string, *Response, error) {
-	resp, err := c.doRequest("GET", "/signing-key.pub", nil, nil)
+	key, resp, err := c.getResponse("GET", "/signing-key.pub", nil, nil)
 	if err != nil {
 		return "", resp, err
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	key, err := io.ReadAll(resp.Body)
 	return string(key), resp, err
 }
