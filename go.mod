@@ -3,7 +3,7 @@ module github.com/gabrie30/ghorg
 go 1.26
 
 require (
-	code.gitea.io/sdk/gitea v0.24.1
+	code.gitea.io/sdk/gitea v0.25.1
 	github.com/Klaus-Tockloth/go-term-markdown v0.0.0-20250129073703-91600624167c
 	github.com/bradleyfalzon/ghinstallation/v2 v2.18.0
 	github.com/briandowns/spinner v1.23.2
@@ -38,7 +38,7 @@ require (
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
-	github.com/hashicorp/go-version v1.8.0 // indirect
+	github.com/hashicorp/go-version v1.9.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kyokomi/emoji/v2 v2.2.13 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.0 // indirect

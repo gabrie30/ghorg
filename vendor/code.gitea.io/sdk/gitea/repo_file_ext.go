@@ -6,7 +6,6 @@ package gitea
 
 import (
 	"fmt"
-	"io"
 	"net/url"
 )
 
@@ -63,18 +62,7 @@ func (c *Client) GetEditorConfig(owner, repo, filepath string, ref ...string) ([
 		link.RawQuery = query.Encode()
 	}
 
-	resp, err := c.doRequest("GET", link.String(), nil, nil)
-	if err != nil {
-		return nil, resp, err
-	}
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil && err == nil {
-			err = closeErr
-		}
-	}()
-
-	data, err := io.ReadAll(resp.Body)
-	return data, resp, err
+	return c.getResponse("GET", link.String(), nil, nil)
 }
 
 // GetRawFileOrLFS gets a file or its LFS object from a repository
@@ -92,18 +80,7 @@ func (c *Client) GetRawFileOrLFS(owner, repo, filepath string, ref ...string) ([
 		link.RawQuery = query.Encode()
 	}
 
-	resp, err := c.doRequest("GET", link.String(), nil, nil)
-	if err != nil {
-		return nil, resp, err
-	}
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil && err == nil {
-			err = closeErr
-		}
-	}()
-
-	data, err := io.ReadAll(resp.Body)
-	return data, resp, err
+	return c.getResponse("GET", link.String(), nil, nil)
 }
 
 // GetRawFile gets a file from a repository
@@ -121,16 +98,5 @@ func (c *Client) GetRawFile(owner, repo, filepath string, ref ...string) ([]byte
 		link.RawQuery = query.Encode()
 	}
 
-	resp, err := c.doRequest("GET", link.String(), nil, nil)
-	if err != nil {
-		return nil, resp, err
-	}
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil && err == nil {
-			err = closeErr
-		}
-	}()
-
-	data, err := io.ReadAll(resp.Body)
-	return data, resp, err
+	return c.getResponse("GET", link.String(), nil, nil)
 }
