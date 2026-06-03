@@ -453,6 +453,23 @@ func (c *Client) executePaginated(method string, urlStr string, text string, pag
 	return result, nil
 }
 
+// executeFormURLEncoded posts an application/x-www-form-urlencoded body and
+// discards the response. It's intended for endpoints (notably the source
+// commit endpoint) that accept either multipart or URL-encoded payloads.
+func (c *Client) executeFormURLEncoded(method, urlStr string, form url.Values, ctx context.Context) error {
+	req, err := http.NewRequest(method, urlStr, strings.NewReader(form.Encode()))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if ctx != nil {
+		req.WithContext(ctx)
+	}
+	c.authenticateRequest(req)
+	_, err = c.doRequest(req, true)
+	return err
+}
+
 func (c *Client) executeFileUpload(method string, urlStr string, files []File, filesToDelete []string, params map[string]string, ctx context.Context) (interface{}, error) {
 	// Prepare a form that you will submit to that URL.
 	var b bytes.Buffer
@@ -618,7 +635,10 @@ func (c *Client) doRawRequest(req *http.Request, emptyResponse bool) (io.ReadClo
 	if unexpectedHttpStatusCode(resp.StatusCode) {
 		defer resp.Body.Close()
 
-		out := &UnexpectedResponseStatusError{Status: resp.Status}
+		out := &UnexpectedResponseStatusError{
+			Status:     resp.Status,
+			StatusCode: resp.StatusCode,
+		}
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
