@@ -76,7 +76,7 @@ If you don't know which to choose its likely going to be the x86_64 version for 
 ### Homebrew
 
 ```bash
-brew install gabrie30/utils/ghorg
+brew install ghorg
 ```
 
 ### Mise
