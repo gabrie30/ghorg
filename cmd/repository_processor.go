@@ -301,6 +301,14 @@ func (rp *RepositoryProcessor) handleExistingRepository(repo *scm.Repo, action *
 		success = rp.handleStandardPull(repo)
 	}
 
+	if success && os.Getenv("GHORG_FETCH_GIT_LFS") == "true" {
+		err = rp.git.LfsFetchAll(*repo)
+		if err != nil {
+			rp.addError(fmt.Sprintf("Problem trying to fetch Git LFS: %s Error: %v", repo.URL, err))
+			success = false
+		}
+	}
+
 	// Always reset origin to remove credentials, even if processing failed
 	err = rp.git.SetOrigin(*repo)
 	if err != nil {
@@ -387,6 +395,14 @@ func (rp *RepositoryProcessor) handleNewRepository(repo *scm.Repo, action *strin
 		// Report fetch error if it occurred
 		if fetchErr != nil {
 			rp.addError(fmt.Sprintf("Could not fetch remotes: %s Error: %v", repo.URL, fetchErr))
+			return false
+		}
+	}
+
+	if os.Getenv("GHORG_FETCH_GIT_LFS") == "true" {
+		err = rp.git.LfsFetchAll(*repo)
+		if err != nil {
+			rp.addError(fmt.Sprintf("Problem trying to fetch Git LFS: %s Error: %v", repo.URL, err))
 			return false
 		}
 	}

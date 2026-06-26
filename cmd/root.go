@@ -72,6 +72,7 @@ var (
 	insecureBitbucketClient      bool
 	insecureSourcehutClient      bool
 	fetchAll                     bool
+	fetchGitLfs                  bool
 	fetchPrune                   bool
 	ghorgReCloneQuiet            bool
 	ghorgReCloneList             bool
@@ -401,6 +402,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&prune, "prune", false, "GHORG_PRUNE - Remove local repositories that no longer exist remotely. When used with --skip-archived, also removes archived repos locally. Prompts before deletion unless combined with --prune-no-confirm")
 	cloneCmd.Flags().BoolVar(&pruneNoConfirm, "prune-no-confirm", false, "GHORG_PRUNE_NO_CONFIRM - Skip confirmation prompts when pruning repositories. Use with caution as this will delete directories without asking")
 	cloneCmd.Flags().BoolVar(&fetchAll, "fetch-all", false, "GHORG_FETCH_ALL - Fetch all remote branches for each repository using 'git fetch --all'. Useful for getting complete branch information")
+	cloneCmd.Flags().BoolVar(&fetchGitLfs, "fetch-git-lfs", false, "GHORG_FETCH_GIT_LFS - Fetch git LFS (large file storage) content for each repository using 'git lfs fetch --all'. Useful for backing up repositories that use Git LFS.")
 	cloneCmd.Flags().BoolVar(&fetchPrune, "fetch-prune", false, "GHORG_FETCH_PRUNE - Remove stale remote-tracking branches during fetch (adds --prune to git fetch). Only applies when --fetch-all is used. Note: This is different from --prune which removes local clone directories")
 	cloneCmd.Flags().BoolVar(&dryRun, "dry-run", false, "GHORG_DRY_RUN - Simulate the clone operation without actually cloning repositories. Shows what would be cloned for testing/verification")
 	cloneCmd.Flags().BoolVar(&insecureGitlabClient, "insecure-gitlab-client", false, "GHORG_INSECURE_GITLAB_CLIENT - Skip TLS certificate verification for self-hosted GitLab instances. Use only for internal/trusted instances")

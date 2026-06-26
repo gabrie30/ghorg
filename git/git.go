@@ -31,6 +31,7 @@ type Gitter interface {
 	FetchCloneBranch(scm.Repo) error
 	RepoCommitCount(scm.Repo) (int, error)
 	HasRemoteHeads(scm.Repo) (bool, error)
+	LfsFetchAll(scm.Repo) error
 }
 
 type GitClient struct{}
@@ -360,4 +361,19 @@ func (g GitClient) RepoCommitCount(repo scm.Repo) (int, error) {
 	}
 
 	return count, nil
+}
+
+func (g GitClient) LfsFetchAll(repo scm.Repo) error {
+	args := []string{"lfs", "fetch", "--all"}
+	cmd := exec.Command("git", args...)
+	cmd.Dir = repo.HostPath
+
+	if os.Getenv("GHORG_DEBUG") != "" {
+		err := printDebugCmd(cmd, repo)
+		if err != nil {
+			return err
+		}
+	}
+
+	return cmd.Run()
 }
