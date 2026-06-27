@@ -275,6 +275,7 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	syncBoolFlagToEnv(cmd, "prune-untouched", "GHORG_PRUNE_UNTOUCHED")
 	syncBoolFlagToEnv(cmd, "prune-untouched-no-confirm", "GHORG_PRUNE_UNTOUCHED_NO_CONFIRM")
 	syncBoolFlagToEnv(cmd, "fetch-all", "GHORG_FETCH_ALL")
+	syncBoolFlagToEnv(cmd, "fetch-git-lfs", "GHORG_FETCH_GIT_LFS")
 	syncBoolFlagToEnv(cmd, "fetch-prune", "GHORG_FETCH_PRUNE")
 	syncBoolFlagToEnv(cmd, "include-submodules", "GHORG_INCLUDE_SUBMODULES")
 	syncBoolFlagToEnv(cmd, "dry-run", "GHORG_DRY_RUN")
@@ -1432,6 +1433,9 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_FETCH_ALL") == "true" {
 		colorlog.PrintInfo("* Fetch All     : " + "true")
+	}
+	if os.Getenv("GHORG_FETCH_GIT_LFS") == "true" {
+		colorlog.PrintInfo("* Fetch Git LFS : " + "true")
 	}
 	if os.Getenv("GHORG_FETCH_PRUNE") == "true" {
 		colorlog.PrintInfo("* Fetch Prune   : " + "true")
