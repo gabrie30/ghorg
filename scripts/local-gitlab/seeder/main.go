@@ -44,11 +44,17 @@ type RootUser struct {
 	Repositories []Repository `json:"repositories"`
 }
 
+type SharedProject struct {
+	ProjectPath         string `json:"project_path"`
+	SharedWithGroupPath string `json:"shared_with_group_path"`
+}
+
 type SeedData struct {
-	Groups       []Group   `json:"groups"`
-	Users        []User    `json:"users"`
-	RootUser     RootUser  `json:"root_user"`
-	RootSnippets []Snippet `json:"root_snippets"`
+	Groups         []Group         `json:"groups"`
+	Users          []User          `json:"users"`
+	RootUser       RootUser        `json:"root_user"`
+	RootSnippets   []Snippet       `json:"root_snippets"`
+	SharedProjects []SharedProject `json:"shared_projects"`
 }
 
 type GitLabSeeder struct {
@@ -328,10 +334,52 @@ func (g *GitLabSeeder) createRootSnippet(snippet *Snippet) error {
 	return nil
 }
 
+func (g *GitLabSeeder) ShareProjects() error {
+	if len(g.seedData.SharedProjects) == 0 {
+		return nil
+	}
+
+	log.Println("Sharing projects with groups...")
+
+	for _, shared := range g.seedData.SharedProjects {
+		if err := g.shareProject(&shared); err != nil {
+			return fmt.Errorf("failed to share project %s with group %s: %w", shared.ProjectPath, shared.SharedWithGroupPath, err)
+		}
+	}
+	return nil
+}
+
+func (g *GitLabSeeder) shareProject(shared *SharedProject) error {
+	log.Printf("Sharing project %s with group %s", shared.ProjectPath, shared.SharedWithGroupPath)
+
+	// Resolve the target group by its full path to get its ID
+	group, _, err := g.client.Groups.GetGroup(shared.SharedWithGroupPath, &gitlab.GetGroupOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to get group: %w", err)
+	}
+
+	shareOptions := &gitlab.ShareWithGroupOptions{
+		GroupID:     &group.ID,
+		GroupAccess: gitlab.Ptr(gitlab.DeveloperPermissions),
+	}
+
+	// The project is identified by its full path (namespace/project)
+	if _, err := g.client.Projects.ShareProjectWithGroup(shared.ProjectPath, shareOptions); err != nil {
+		return fmt.Errorf("failed to share project: %w", err)
+	}
+
+	log.Printf("Shared project %s with group %s", shared.ProjectPath, shared.SharedWithGroupPath)
+	return nil
+}
+
 func (g *GitLabSeeder) SeedAll() error {
 	log.Println("Starting GitLab seeding process...")
 
 	if err := g.CreateGroups(); err != nil {
+		return err
+	}
+
+	if err := g.ShareProjects(); err != nil {
 		return err
 	}
 

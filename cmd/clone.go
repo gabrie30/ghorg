@@ -283,6 +283,7 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	syncBoolFlagToEnv(cmd, "clone-snippets", "GHORG_CLONE_SNIPPETS")
 	syncBoolFlagToEnv(cmd, "github-user-gists", "GHORG_GITHUB_USER_GISTS")
 	syncBoolFlagToEnv(cmd, "insecure-gitlab-client", "GHORG_INSECURE_GITLAB_CLIENT")
+	syncBoolFlagToEnv(cmd, "gitlab-include-shared-projects", "GHORG_GITLAB_INCLUDE_SHARED_PROJECTS")
 	syncBoolFlagToEnv(cmd, "insecure-gitea-client", "GHORG_INSECURE_GITEA_CLIENT")
 	syncBoolFlagToEnv(cmd, "insecure-bitbucket-client", "GHORG_INSECURE_BITBUCKET_CLIENT")
 	syncBoolFlagToEnv(cmd, "insecure-sourcehut-client", "GHORG_INSECURE_SOURCEHUT_CLIENT")
@@ -1408,6 +1409,9 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX") != "" {
 		colorlog.PrintInfo("* GL Grp Exclude: " + os.Getenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX"))
+	}
+	if os.Getenv("GHORG_GITLAB_INCLUDE_SHARED_PROJECTS") == "false" {
+		colorlog.PrintInfo("* GL Shared Proj: skipped")
 	}
 	if os.Getenv("GHORG_INCLUDE_SUBMODULES") == "true" {
 		colorlog.PrintInfo("* Submodules    : " + os.Getenv("GHORG_INCLUDE_SUBMODULES"))

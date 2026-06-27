@@ -3,6 +3,7 @@ package scm
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"sync"
 
@@ -107,6 +108,7 @@ func (c Gitlab) fetchGroupReposParallel(targetGroup string, firstPageProjects []
 				Page:    int64(pageNum),
 			},
 			IncludeSubGroups: gitlab.Ptr(true),
+			WithShared:       gitlab.Ptr(os.Getenv("GHORG_GITLAB_INCLUDE_SHARED_PROJECTS") != "false"),
 		}
 
 			ps, _, err := c.Groups.ListGroupProjects(targetGroup, opt)

@@ -20,6 +20,7 @@ type TestScenario struct {
 	SetupCommands         []string `json:"setup_commands,omitempty"`
 	VerifyCommands        []string `json:"verify_commands,omitempty"`
 	ExpectedStructure     []string `json:"expected_structure"`
+	UnexpectedStructure   []string `json:"unexpected_structure,omitempty"`
 	Disabled              bool     `json:"disabled,omitempty"`
 	SkipTokenVerification bool     `json:"skip_token_verification,omitempty"`
 }
@@ -145,6 +146,11 @@ func (tr *TestRunner) runTest(scenario *TestScenario) error {
 		return fmt.Errorf("structure verification failed: %w", err)
 	}
 
+	// Verify paths that must NOT exist (e.g. shared projects that were skipped)
+	if err := tr.verifyUnexpectedStructure(scenario.UnexpectedStructure); err != nil {
+		return fmt.Errorf("unexpected structure verification failed: %w", err)
+	}
+
 	// Verify no tokens in git remotes by default (unless explicitly skipped)
 	if len(scenario.ExpectedStructure) > 0 && !scenario.SkipTokenVerification {
 		if err := tr.verifyNoTokensInRemotes(scenario.ExpectedStructure, tr.context.Token); err != nil {
@@ -218,6 +224,28 @@ func (tr *TestRunner) verifyExpectedStructure(expectedPaths []string) error {
 		}
 
 		log.Printf("✓ Found: %s", expectedPath)
+	}
+
+	return nil
+}
+
+func (tr *TestRunner) verifyUnexpectedStructure(unexpectedPaths []string) error {
+	if len(unexpectedPaths) == 0 {
+		return nil
+	}
+
+	log.Printf("Verifying unexpected structure (%d paths should not exist)...", len(unexpectedPaths))
+
+	for _, unexpectedPath := range unexpectedPaths {
+		fullPath := filepath.Join(tr.context.GhorgDir, unexpectedPath)
+
+		if _, err := os.Stat(fullPath); err == nil {
+			return fmt.Errorf("path exists but should not: %s", unexpectedPath)
+		} else if !os.IsNotExist(err) {
+			return fmt.Errorf("failed to check path %s: %w", unexpectedPath, err)
+		}
+
+		log.Printf("✓ Absent (as expected): %s", unexpectedPath)
 	}
 
 	return nil

@@ -6,11 +6,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.11.12] - unreleased
 ### Added
 - GHORG_FETCH_GIT_LFS to run git lfs fetch --all on every repo which will correctly fetch all LFS objects from the upstream repository; thanks @dotboris
+- GHORG_GITLAB_INCLUDE_SHARED_PROJECTS (--gitlab-include-shared-projects), GitLab only, defaults to true; set to false to skip projects that are only shared with a group rather than owned by it
 ### Changed
 - `ghorg reclone --list` now returns a sorted list
 ### Deprecated
 ### Removed
 ### Fixed
+- GitLab `all-groups` clones no longer clone a project twice when it is shared across multiple groups (previously the duplicate caused a clone/pull race when preserving the directory structure); projects are now deduplicated by clone URL
 ### Security
 
 ## [1.11.11] - 5/12/26
