@@ -243,6 +243,15 @@ GHORG_EXIT_CODE_ON_CLONE_ISSUES: 1
 # flag (--no-token)
 GHORG_NO_TOKEN: false
 
+# Source your token from a command instead of storing it in cleartext.
+# The command is run through your shell (sh -c on unix, cmd /C on windows) and its
+# stdout (trimmed of surrounding whitespace) is used as the token for the active
+# GHORG_SCM_TYPE. Useful with external secrets managers (e.g. mise, pass, a keyring CLI).
+# An explicitly set token (GHORG_<SCM>_TOKEN, --token, etc.) always takes precedence,
+# so the command only runs when no token is already set.
+# e.g. GHORG_TOKEN_CMD: mise get GITLAB_TOKEN
+GHORG_TOKEN_CMD:
+
 # Skips the calculation of the output directory size at the end of a clone operation.
 # This can save time, especially when cloning a large number of repositories.
 # This is enabled by default

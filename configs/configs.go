@@ -232,8 +232,86 @@ func GetTokenFromFile(path string) string {
 	return cleaned.String()
 }
 
+// runTokenCmd executes GHORG_TOKEN_CMD, if set, and assigns its stdout to the
+// token env var for the active scm. This lets users source tokens from an
+// external secrets manager (e.g. mise, pass, a keyring CLI) instead of storing
+// them in cleartext in conf.yaml. An explicitly set token always takes
+// precedence, so the command is only run when no token is already present.
+func runTokenCmd() {
+	command := os.Getenv("GHORG_TOKEN_CMD")
+	if command == "" {
+		return
+	}
+
+	scmType := os.Getenv("GHORG_SCM_TYPE")
+
+	// Skip running the command when a token is already set for the active scm.
+	switch scmType {
+	case "github":
+		if !isZero(os.Getenv("GHORG_GITHUB_TOKEN")) {
+			return
+		}
+	case "gitlab":
+		if !isZero(os.Getenv("GHORG_GITLAB_TOKEN")) {
+			return
+		}
+	case "gitea":
+		if !isZero(os.Getenv("GHORG_GITEA_TOKEN")) {
+			return
+		}
+	case "sourcehut":
+		if !isZero(os.Getenv("GHORG_SOURCEHUT_TOKEN")) {
+			return
+		}
+	case "bitbucket":
+		if !isZero(os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")) || !isZero(os.Getenv("GHORG_BITBUCKET_OAUTH_TOKEN")) || !isZero(os.Getenv("GHORG_BITBUCKET_API_TOKEN")) {
+			return
+		}
+	default:
+		return
+	}
+
+	var out []byte
+	var err error
+	if runtime.GOOS == "windows" {
+		out, err = exec.Command("cmd", "/C", command).Output()
+	} else {
+		out, err = exec.Command("sh", "-c", command).Output()
+	}
+	if err != nil {
+		log.Fatalf("Error running GHORG_TOKEN_CMD (%q): %v", command, err)
+	}
+
+	token := strings.TrimSpace(string(out))
+	if token == "" {
+		log.Fatalf("GHORG_TOKEN_CMD (%q) produced no output", command)
+	}
+
+	switch scmType {
+	case "github":
+		os.Setenv("GHORG_GITHUB_TOKEN", token)
+	case "gitlab":
+		os.Setenv("GHORG_GITLAB_TOKEN", token)
+	case "gitea":
+		os.Setenv("GHORG_GITEA_TOKEN", token)
+	case "sourcehut":
+		os.Setenv("GHORG_SOURCEHUT_TOKEN", token)
+	case "bitbucket":
+		// Mirror the keychain fallback's credential selection: app password when
+		// a username is set, API token when an API email is set, else oauth.
+		if !isZero(os.Getenv("GHORG_BITBUCKET_USERNAME")) {
+			os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", token)
+		} else if !isZero(os.Getenv("GHORG_BITBUCKET_API_EMAIL")) {
+			os.Setenv("GHORG_BITBUCKET_API_TOKEN", token)
+		} else {
+			os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", token)
+		}
+	}
+}
+
 // GetOrSetToken will set token based on scm
 func GetOrSetToken() {
+	runTokenCmd()
 	switch os.Getenv("GHORG_SCM_TYPE") {
 	case "github":
 		getOrSetGitHubToken()

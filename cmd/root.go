@@ -336,6 +336,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_CRON_TIMER_MINUTES")
 	getOrSetDefaults("GHORG_RECLONE_SERVER_PORT")
 	// Optionally set
+	getOrSetDefaults("GHORG_TOKEN_CMD")
 	getOrSetDefaults("GHORG_TARGET_REPOS_PATH")
 	getOrSetDefaults("GHORG_CLONE_DEPTH")
 	getOrSetDefaults("GHORG_GITHUB_TOKEN")
