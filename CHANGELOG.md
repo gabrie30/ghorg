@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- GitLab `all-groups` clones no longer clone a project twice when it is shared across multiple groups (previously the duplicate caused a clone/pull race when preserving the directory structure); projects are now deduplicated by clone URL
 ### Security
 
 ## [1.11.11] - 5/12/26

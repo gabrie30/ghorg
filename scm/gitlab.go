@@ -111,6 +111,12 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 
 	}
 
+	// A project shared with another group is returned both by the group that owns
+	// it and by every group it is shared with. In all-groups mode that means the
+	// same project is collected multiple times, which would clone it twice to the
+	// same destination. Dedupe by clone URL so each project is only cloned once.
+	repoData = dedupeReposByCloneURL(repoData)
+
 	snippets, err := c.GetSnippets(repoData, targetOrg)
 	if err != nil {
 		spinningSpinner.Stop()
@@ -119,6 +125,22 @@ func (c Gitlab) GetOrgRepos(targetOrg string) ([]Repo, error) {
 	repoData = append(repoData, snippets...)
 
 	return repoData, nil
+}
+
+// dedupeReposByCloneURL returns repos with duplicate clone URLs removed,
+// preserving the order of first occurrence. This guards against cloning the
+// same project more than once when it is shared across multiple groups.
+func dedupeReposByCloneURL(repos []Repo) []Repo {
+	seen := make(map[string]struct{}, len(repos))
+	deduped := make([]Repo, 0, len(repos))
+	for _, r := range repos {
+		if _, ok := seen[r.CloneURL]; ok {
+			continue
+		}
+		seen[r.CloneURL] = struct{}{}
+		deduped = append(deduped, r)
+	}
+	return deduped
 }
 
 // GetTopLevelGroups all top level org groups with parallel pagination
