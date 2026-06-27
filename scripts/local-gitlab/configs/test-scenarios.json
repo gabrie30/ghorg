@@ -719,6 +719,28 @@
             ]
         },
         {
+            "name": "gitlab-include-shared-projects-default",
+            "description": "Test that projects shared with a group are cloned by default (with_shared)",
+            "command": "ghorg clone local-gitlab-shared-target-group --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --output-dir=gitlab-shared-projects-default-test",
+            "run_twice": false,
+            "expected_structure": [
+                "gitlab-shared-projects-default-test/target-owned-repo",
+                "gitlab-shared-projects-default-test/shared-owner-repo"
+            ]
+        },
+        {
+            "name": "gitlab-skip-shared-projects",
+            "description": "Test that --gitlab-include-shared-projects=false skips projects only shared with the group",
+            "command": "ghorg clone local-gitlab-shared-target-group --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --gitlab-include-shared-projects=false --output-dir=gitlab-skip-shared-projects-test",
+            "run_twice": false,
+            "expected_structure": [
+                "gitlab-skip-shared-projects-test/target-owned-repo"
+            ],
+            "unexpected_structure": [
+                "gitlab-skip-shared-projects-test/shared-owner-repo"
+            ]
+        },
+        {
             "_comment": "COMMENTED OUT TEST FROM ORIGINAL SCRIPT - TODO FIXME",
             "name": "root-level-snippets-test-disabled",
             "description": "Test root level snippets (DISABLED - was commented in original)",

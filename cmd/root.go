@@ -68,6 +68,7 @@ var (
 	cloneSnippets                bool
 	preserveDir                  bool
 	insecureGitlabClient         bool
+	gitlabIncludeSharedProjects  bool
 	insecureGiteaClient          bool
 	insecureBitbucketClient      bool
 	insecureSourcehutClient      bool
@@ -199,6 +200,8 @@ func getOrSetDefaults(envVar string) {
 			os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_GITLAB_CLIENT":
 			os.Setenv(envVar, "false")
+		case "GHORG_GITLAB_INCLUDE_SHARED_PROJECTS":
+			os.Setenv(envVar, "true")
 		case "GHORG_INSECURE_GITEA_CLIENT":
 			os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_BITBUCKET_CLIENT":
@@ -357,6 +360,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_EXCLUDE_MATCH_PREFIX")
 	getOrSetDefaults("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX")
 	getOrSetDefaults("GHORG_GITLAB_GROUP_MATCH_REGEX")
+	getOrSetDefaults("GHORG_GITLAB_INCLUDE_SHARED_PROJECTS")
 	getOrSetDefaults("GHORG_IGNORE_PATH")
 	getOrSetDefaults("GHORG_RECLONE_PATH")
 	getOrSetDefaults("GHORG_QUIET")
@@ -435,6 +439,7 @@ func init() {
 	cloneCmd.Flags().StringVarP(&excludeMatchRegex, "exclude-match-regex", "", "", "GHORG_EXCLUDE_MATCH_REGEX - Exclude repositories whose names match the provided regular expression")
 	cloneCmd.Flags().StringVarP(&gitlabGroupExcludeMatchRegex, "gitlab-group-exclude-match-regex", "", "", "GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX - GitLab only: Exclude groups/subgroups matching the regex pattern")
 	cloneCmd.Flags().StringVarP(&gitlabGroupMatchRegex, "gitlab-group-match-regex", "", "", "GHORG_GITLAB_GROUP_MATCH_REGEX - GitLab only: Only clone from groups/subgroups matching the regex pattern")
+	cloneCmd.Flags().BoolVar(&gitlabIncludeSharedProjects, "gitlab-include-shared-projects", true, "GHORG_GITLAB_INCLUDE_SHARED_PROJECTS - GitLab only: Include projects shared with the group, not just those owned by it. Set to false to skip shared projects (default: true)")
 	cloneCmd.Flags().StringVarP(&ghorgIgnorePath, "ghorgignore-path", "", "", "GHORG_IGNORE_PATH - Custom path to ghorgignore file (similar to .gitignore but for repos). Default: $HOME/.config/ghorg/ghorgignore")
 	cloneCmd.Flags().StringVarP(&ghorgOnlyPath, "ghorgonly-path", "", "", "GHORG_ONLY_PATH - Custom path to ghorgonly file (whitelist of repos to clone). Default: $HOME/.config/ghorg/ghorgonly")
 	cloneCmd.Flags().StringVarP(&exitCodeOnCloneInfos, "exit-code-on-clone-infos", "", "", "GHORG_EXIT_CODE_ON_CLONE_INFOS - Exit code when informational messages occur during cloning (non-critical issues). Useful for CI/CD pipelines (default: 0)")

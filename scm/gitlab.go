@@ -361,6 +361,7 @@ func (c Gitlab) GetGroupRepos(targetGroup string) ([]Repo, error) {
 			Page:    1,
 		},
 		IncludeSubGroups: gitlab.Ptr(true),
+		WithShared:       gitlab.Ptr(os.Getenv("GHORG_GITLAB_INCLUDE_SHARED_PROJECTS") != "false"),
 	}
 
 	// Fetch first page to discover total number of pages

@@ -81,7 +81,7 @@ brew install ghorg
 
 ### Mise
 
-If you are an enthusiast user of [Mise](https://github.com/jdx/mise), the polyglot tool versions manager, you can use such command to install the latest version of `ghorg` on Linux/MacOS/Windows:
+If you use [Mise](https://github.com/jdx/mise), you can install the latest version of `ghorg` on Linux/MacOS/Windows:
 
 ```bash
 mise use -g ghorg@latest

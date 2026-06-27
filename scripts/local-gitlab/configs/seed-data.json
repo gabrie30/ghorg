@@ -196,6 +196,34 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "local-gitlab-shared-owner-group",
+            "path": "local-gitlab-shared-owner-group",
+            "description": "Owns a project that is shared into another group (shared projects test)",
+            "repositories": [
+                {
+                    "name": "shared-owner-repo",
+                    "initialize_with_readme": true
+                }
+            ]
+        },
+        {
+            "name": "local-gitlab-shared-target-group",
+            "path": "local-gitlab-shared-target-group",
+            "description": "Target group that has a project shared with it (shared projects test)",
+            "repositories": [
+                {
+                    "name": "target-owned-repo",
+                    "initialize_with_readme": true
+                }
+            ]
+        }
+    ],
+    "shared_projects": [
+        {
+            "project_path": "local-gitlab-shared-owner-group/shared-owner-repo",
+            "shared_with_group_path": "local-gitlab-shared-target-group"
         }
     ],
     "users": [

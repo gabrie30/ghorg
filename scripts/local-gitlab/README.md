@@ -248,9 +248,19 @@ Defines the GitLab resources to create during seeding:
   ],
   "users": [...],
   "root_user": {...},
-  "root_snippets": [...]
+  "root_snippets": [...],
+  "shared_projects": [
+    {
+      "project_path": "owner-group/owned-repo",
+      "shared_with_group_path": "target-group"
+    }
+  ]
 }
 ```
+
+`shared_projects` shares an existing project (created under `groups`) with another
+group after all groups are created. This mirrors GitLab's "share a project with a
+group" feature and is used to exercise the `--gitlab-include-shared-projects` flag.
 
 ### Test Scenarios Configuration (`configs/test-scenarios.json`)
 
@@ -269,11 +279,18 @@ Defines the integration test scenarios:
       "expected_structure": [
         "test-output/group1/repo1",
         "test-output/group2/repo2"
+      ],
+      "unexpected_structure": [
+        "test-output/group1/repo-that-should-not-be-cloned"
       ]
     }
   ]
 }
 ```
+
+`unexpected_structure` is optional and lists paths that must **not** exist after the
+command runs (e.g. a shared project that was skipped via
+`--gitlab-include-shared-projects=false`).
 
 ## Adding New Seed Data
 
