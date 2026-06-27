@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.11.12] - unreleased
 ### Added
+- GHORG_FETCH_GIT_LFS to run git lfs fetch --all on every repo which will correctly fetch all LFS objects from the upstream repository; thanks @dotboris
 ### Changed
 - `ghorg reclone --list` now returns a sorted list
 ### Deprecated

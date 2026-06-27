@@ -188,6 +188,12 @@ GHORG_CLONE_WIKI: false
 # flag (--fetch-all)
 GHORG_FETCH_ALL: false
 
+# Fetches Git LFS (large file storage) content for each repo by running git lfs fetch --all.
+# Useful for backing up repositories that use Git LFS. Requires git-lfs to be installed.
+#
+# flag (--fetch-git-lfs)
+GHORG_FETCH_GIT_LFS: false
+
 # Remove stale remote-tracking branches during fetch by adding --prune to git fetch.
 # Only applies when --fetch-all is used. Removes local references to branches that no longer exist on remote.
 #

@@ -400,9 +400,24 @@ func (rp *RepositoryProcessor) handleNewRepository(repo *scm.Repo, action *strin
 	}
 
 	if os.Getenv("GHORG_FETCH_GIT_LFS") == "true" {
-		err = rp.git.LfsFetchAll(*repo)
+		// Temporarily restore credentials so LFS can authenticate against the LFS endpoint for private repos
+		err = rp.git.SetOriginWithCredentials(*repo)
 		if err != nil {
-			rp.addError(fmt.Sprintf("Problem trying to fetch Git LFS: %s Error: %v", repo.URL, err))
+			rp.addError(fmt.Sprintf("Problem trying to set remote with credentials: %s Error: %v", repo.URL, err))
+			return false
+		}
+
+		lfsErr := rp.git.LfsFetchAll(*repo)
+
+		// Always strip credentials again for security, even if the LFS fetch failed
+		err = rp.git.SetOrigin(*repo)
+		if err != nil {
+			rp.addError(fmt.Sprintf("Problem trying to reset remote after fetching Git LFS: %s Error: %v", repo.URL, err))
+			return false
+		}
+
+		if lfsErr != nil {
+			rp.addError(fmt.Sprintf("Problem trying to fetch Git LFS: %s Error: %v", repo.URL, lfsErr))
 			return false
 		}
 	}
