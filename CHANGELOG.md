@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.11.12] - 6/27/26
 ### Added
 - GHORG_FETCH_GIT_LFS to run git lfs fetch --all on every repo which will correctly fetch all LFS objects from the upstream repository; thanks @dotboris
-- GHORG_GITLAB_INCLUDE_SHARED_PROJECTS (--gitlab-include-shared-projects), GitLab only, defaults to true; set to false to skip projects that are only shared with a group rather than owned by it
+- GHORG_GITLAB_INCLUDE_SHARED_PROJECTS (--gitlab-include-shared-projects), GitLab only, defaults to true; set to false to skip projects that are only shared with a group rather than owned by it; thanks @agncr
 - GHORG_TOKEN_CMD to populate token from password managers; thanks @batagy
 ### Changed
 - `ghorg reclone --list` now returns a sorted list
