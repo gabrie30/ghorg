@@ -49,7 +49,7 @@ jobs:
           echo "Tag docker_latest_tag=${{ env.docker_latest_tag }}"
           echo "Tag docker_tag=${{ env.docker_tag }}"
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           platforms: linux/arm64,linux/amd64,linux/arm/v7
           push: true
