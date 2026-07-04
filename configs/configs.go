@@ -21,28 +21,28 @@ import (
 
 var (
 	// ErrNoGitHubToken error message when token is not found
-	ErrNoGitHubToken = errors.New("Could not find a valid github token. GHORG_GITHUB_TOKEN or (--token, -t) flag must be set. Create a personal access token, then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'GitHub Setup' in README.md")
+	ErrNoGitHubToken = errors.New("could not find a valid github token. GHORG_GITHUB_TOKEN or (--token, -t) flag must be set. Create a personal access token, then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'GitHub Setup' in README.md")
 
 	// ErrNoGitLabToken error message when token is not found
-	ErrNoGitLabToken = errors.New("Could not find a valid gitlab token. GHORG_GITLAB_TOKEN or (--token, -t) flag must be set. Create a token from gitlab then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'GitLab Setup' in README.md")
+	ErrNoGitLabToken = errors.New("could not find a valid gitlab token. GHORG_GITLAB_TOKEN or (--token, -t) flag must be set. Create a token from gitlab then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'GitLab Setup' in README.md")
 
 	// ErrNoGiteaToken error message when token is not found
-	ErrNoGiteaToken = errors.New("Could not find a valid gitea token. GHORG_GITEA_TOKEN or (--token, -t) flag must be set. Create a token from gitea then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'Gitea Setup' in README.md")
+	ErrNoGiteaToken = errors.New("could not find a valid gitea token. GHORG_GITEA_TOKEN or (--token, -t) flag must be set. Create a token from gitea then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'Gitea Setup' in README.md")
 
 	// ErrNoSourcehutToken error message when token is not found
-	ErrNoSourcehutToken = errors.New("Could not find a valid sourcehut token. GHORG_SOURCEHUT_TOKEN or (--token, -t) flag must be set. Create a token from sourcehut then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'Sourcehut Setup' in README.md")
+	ErrNoSourcehutToken = errors.New("could not find a valid sourcehut token. GHORG_SOURCEHUT_TOKEN or (--token, -t) flag must be set. Create a token from sourcehut then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'Sourcehut Setup' in README.md")
 
 	// ErrNoBitbucketUsername error message when no username found
-	ErrNoBitbucketUsername = errors.New("Could not find bitbucket username. GHORG_BITBUCKET_USERNAME or (--bitbucket-username) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
+	ErrNoBitbucketUsername = errors.New("could not find bitbucket username. GHORG_BITBUCKET_USERNAME or (--bitbucket-username) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
 
 	// ErrNoBitbucketAppPassword error message when no app password found
-	ErrNoBitbucketAppPassword = errors.New("Could not find a valid bitbucket app password. GHORG_BITBUCKET_APP_PASSWORD or (--token, -t) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
+	ErrNoBitbucketAppPassword = errors.New("could not find a valid bitbucket app password. GHORG_BITBUCKET_APP_PASSWORD or (--token, -t) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
 
 	// ErrNoBitbucketAPIToken error message when no API token found
-	ErrNoBitbucketAPIToken = errors.New("Could not find a valid bitbucket API token. GHORG_BITBUCKET_API_TOKEN or (--token, -t) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
+	ErrNoBitbucketAPIToken = errors.New("could not find a valid bitbucket API token. GHORG_BITBUCKET_API_TOKEN or (--token, -t) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
 
 	// ErrNoBitbucketAPIEmail error message when no email found for API token auth
-	ErrNoBitbucketAPIEmail = errors.New("When using GHORG_BITBUCKET_API_TOKEN, you must also set GHORG_BITBUCKET_API_EMAIL or GHORG_BITBUCKET_USERNAME (your Atlassian account email), see 'BitBucket Setup' in README.md")
+	ErrNoBitbucketAPIEmail = errors.New("when using GHORG_BITBUCKET_API_TOKEN, you must also set GHORG_BITBUCKET_API_EMAIL or GHORG_BITBUCKET_USERNAME (your Atlassian account email), see 'BitBucket Setup' in README.md")
 
 	// ErrIncorrectScmType indicates an unsupported scm type being used
 	ErrIncorrectScmType = errors.New("GHORG_SCM_TYPE or --scm must be one of " + strings.Join(scm.SupportedClients(), ", "))
@@ -163,11 +163,7 @@ func GhorgConfDir() string {
 
 // XConfigHomeSet checks for XDG_CONFIG_HOME env set
 func XConfigHomeSet() bool {
-	if os.Getenv("XDG_CONFIG_HOME") != "" {
-		return true
-	}
-
-	return false
+	return os.Getenv("XDG_CONFIG_HOME") != ""
 }
 
 func DefaultConfFile() string {
@@ -289,22 +285,22 @@ func runTokenCmd() {
 
 	switch scmType {
 	case "github":
-		os.Setenv("GHORG_GITHUB_TOKEN", token)
+		_ = os.Setenv("GHORG_GITHUB_TOKEN", token)
 	case "gitlab":
-		os.Setenv("GHORG_GITLAB_TOKEN", token)
+		_ = os.Setenv("GHORG_GITLAB_TOKEN", token)
 	case "gitea":
-		os.Setenv("GHORG_GITEA_TOKEN", token)
+		_ = os.Setenv("GHORG_GITEA_TOKEN", token)
 	case "sourcehut":
-		os.Setenv("GHORG_SOURCEHUT_TOKEN", token)
+		_ = os.Setenv("GHORG_SOURCEHUT_TOKEN", token)
 	case "bitbucket":
 		// Mirror the keychain fallback's credential selection: app password when
 		// a username is set, API token when an API email is set, else oauth.
 		if !isZero(os.Getenv("GHORG_BITBUCKET_USERNAME")) {
-			os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", token)
+			_ = os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", token)
 		} else if !isZero(os.Getenv("GHORG_BITBUCKET_API_EMAIL")) {
-			os.Setenv("GHORG_BITBUCKET_API_TOKEN", token)
+			_ = os.Setenv("GHORG_BITBUCKET_API_TOKEN", token)
 		} else {
-			os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", token)
+			_ = os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", token)
 		}
 	}
 }
@@ -329,7 +325,7 @@ func GetOrSetToken() {
 func getOrSetGitHubToken() {
 	var token = os.Getenv("GHORG_GITHUB_TOKEN")
 	if IsFilePath(token) {
-		os.Setenv("GHORG_GITHUB_TOKEN", GetTokenFromFile(token))
+		_ = os.Setenv("GHORG_GITHUB_TOKEN", GetTokenFromFile(token))
 	}
 
 	if isZero(token) {
@@ -341,7 +337,7 @@ func getOrSetGitHubToken() {
 
 		token = strings.TrimSuffix(string(out), "\n")
 
-		os.Setenv("GHORG_GITHUB_TOKEN", token)
+		_ = os.Setenv("GHORG_GITHUB_TOKEN", token)
 	}
 }
 
@@ -349,7 +345,7 @@ func getOrSetGitLabToken() {
 	token := os.Getenv("GHORG_GITLAB_TOKEN")
 
 	if IsFilePath(token) {
-		os.Setenv("GHORG_GITLAB_TOKEN", GetTokenFromFile(token))
+		_ = os.Setenv("GHORG_GITLAB_TOKEN", GetTokenFromFile(token))
 	}
 
 	if isZero(token) {
@@ -361,7 +357,7 @@ func getOrSetGitLabToken() {
 
 		token = strings.TrimSuffix(string(out), "\n")
 
-		os.Setenv("GHORG_GITLAB_TOKEN", token)
+		_ = os.Setenv("GHORG_GITLAB_TOKEN", token)
 	}
 }
 
@@ -369,13 +365,13 @@ func getOrSetBitBucketToken() {
 	// Check if API token is set from file path
 	apiToken := os.Getenv("GHORG_BITBUCKET_API_TOKEN")
 	if apiToken != "" && IsFilePath(apiToken) {
-		os.Setenv("GHORG_BITBUCKET_API_TOKEN", GetTokenFromFile(apiToken))
+		_ = os.Setenv("GHORG_BITBUCKET_API_TOKEN", GetTokenFromFile(apiToken))
 	}
 
 	// Check if app password is set from file path
 	appPassword := os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
 	if appPassword != "" && IsFilePath(appPassword) {
-		os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", GetTokenFromFile(appPassword))
+		_ = os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", GetTokenFromFile(appPassword))
 	}
 
 	var token string
@@ -389,12 +385,12 @@ func getOrSetBitBucketToken() {
 		token = strings.TrimSuffix(string(out), "\n")
 
 		if !isZero(os.Getenv("GHORG_BITBUCKET_USERNAME")) {
-			os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", token)
+			_ = os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", token)
 		} else if !isZero(os.Getenv("GHORG_BITBUCKET_API_EMAIL")) {
 			// If API email is set, assume API token auth
-			os.Setenv("GHORG_BITBUCKET_API_TOKEN", token)
+			_ = os.Setenv("GHORG_BITBUCKET_API_TOKEN", token)
 		} else {
-			os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", token)
+			_ = os.Setenv("GHORG_BITBUCKET_OAUTH_TOKEN", token)
 		}
 	}
 }
@@ -403,14 +399,14 @@ func getOrSetGiteaToken() {
 	token := os.Getenv("GHORG_GITEA_TOKEN")
 
 	if IsFilePath(token) {
-		os.Setenv("GHORG_GITEA_TOKEN", GetTokenFromFile(token))
+		_ = os.Setenv("GHORG_GITEA_TOKEN", GetTokenFromFile(token))
 	}
 
 	if isZero(token) {
 		if runtime.GOOS == "windows" {
 			return
 		}
-		os.Setenv("GHORG_GITEA_TOKEN", token)
+		_ = os.Setenv("GHORG_GITEA_TOKEN", token)
 	}
 }
 
@@ -418,14 +414,14 @@ func getOrSetSourcehutToken() {
 	token := os.Getenv("GHORG_SOURCEHUT_TOKEN")
 
 	if IsFilePath(token) {
-		os.Setenv("GHORG_SOURCEHUT_TOKEN", GetTokenFromFile(token))
+		_ = os.Setenv("GHORG_SOURCEHUT_TOKEN", GetTokenFromFile(token))
 	}
 
 	if isZero(token) {
 		if runtime.GOOS == "windows" {
 			return
 		}
-		os.Setenv("GHORG_SOURCEHUT_TOKEN", token)
+		_ = os.Setenv("GHORG_SOURCEHUT_TOKEN", token)
 	}
 }
 

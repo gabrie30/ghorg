@@ -23,7 +23,7 @@ var recloneCronCmd = &cobra.Command{
 	Long:  `Read the documentation and examples in the Readme under Reclone Server heading`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if cmd.Flags().Changed("minutes") {
-			os.Setenv("GHORG_CRON_TIMER_MINUTES", cmd.Flag("minutes").Value.String())
+			_ = os.Setenv("GHORG_CRON_TIMER_MINUTES", cmd.Flag("minutes").Value.String())
 		}
 
 		startReCloneCron()

@@ -63,7 +63,7 @@ func TestSourcehutStripsTildePrefix(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 
 	usernameWithTilde := "~gabrie30"
-	os.Setenv("GHORG_SCM_TYPE", "sourcehut")
+	_ = os.Setenv("GHORG_SCM_TYPE", "sourcehut")
 	defer setOutputDirName([]string{""})
 	setOutputDirName([]string{usernameWithTilde})
 
@@ -77,7 +77,7 @@ func TestSourcehutWithoutTildePrefix(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 
 	usernameWithoutTilde := "gabrie30"
-	os.Setenv("GHORG_SCM_TYPE", "sourcehut")
+	_ = os.Setenv("GHORG_SCM_TYPE", "sourcehut")
 	defer setOutputDirName([]string{""})
 	setOutputDirName([]string{usernameWithoutTilde})
 
@@ -91,7 +91,7 @@ func TestSourcehutStripsTildePrefixUppercase(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 
 	usernameWithTilde := "~Gabrie30"
-	os.Setenv("GHORG_SCM_TYPE", "sourcehut")
+	_ = os.Setenv("GHORG_SCM_TYPE", "sourcehut")
 	defer setOutputDirName([]string{""})
 	setOutputDirName([]string{usernameWithTilde})
 
@@ -106,7 +106,7 @@ func TestNonSourcehutPreservesTilde(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
 
 	usernameWithTilde := "~user123"
-	os.Setenv("GHORG_SCM_TYPE", "github")
+	_ = os.Setenv("GHORG_SCM_TYPE", "github")
 	defer setOutputDirName([]string{""})
 	setOutputDirName([]string{usernameWithTilde})
 
@@ -211,9 +211,9 @@ func TestInitialClone(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
-	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
-	os.Setenv("GHORG_CONCURRENCY", "1")
+	defer func() { _ = os.RemoveAll(dir) }()
+	_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	_ = os.Setenv("GHORG_CONCURRENCY", "1")
 	var testRepos = []scm.Repo{
 		{
 			Name: "testRepoOne",
@@ -239,21 +239,21 @@ func TestCloneEmptyRepo(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
-	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
 	setOuputDirAbsolutePath()
 
-	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+	_ = os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
 
 	// simulate a previous clone of empty git repository
 	repoErr := os.Mkdir(outputDirAbsolutePath+"/"+"testRepoEmpty", 0o700)
 	if repoErr != nil {
 		log.Fatal(repoErr)
 	}
-	defer os.RemoveAll(outputDirAbsolutePath + "/" + "testRepoEmpty")
+	defer func() { _ = os.RemoveAll(outputDirAbsolutePath + "/" + "testRepoEmpty") }()
 
-	os.Setenv("GHORG_CONCURRENCY", "1")
+	_ = os.Setenv("GHORG_CONCURRENCY", "1")
 	var testRepos = []scm.Repo{
 		{
 			Name:        "testRepoEmpty",
@@ -283,11 +283,11 @@ func TestMatchPrefix(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
-	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
-	os.Setenv("GHORG_CONCURRENCY", "1")
-	os.Setenv("GHORG_MATCH_PREFIX", "test")
-	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+	defer func() { _ = os.RemoveAll(dir) }()
+	_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	_ = os.Setenv("GHORG_CONCURRENCY", "1")
+	_ = os.Setenv("GHORG_MATCH_PREFIX", "test")
+	_ = os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
 
 	var testRepos = []scm.Repo{
 		{
@@ -323,11 +323,11 @@ func TestExcludeMatchPrefix(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
-	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
-	os.Setenv("GHORG_CONCURRENCY", "1")
-	os.Setenv("GHORG_EXCLUDE_MATCH_PREFIX", "test")
-	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+	defer func() { _ = os.RemoveAll(dir) }()
+	_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	_ = os.Setenv("GHORG_CONCURRENCY", "1")
+	_ = os.Setenv("GHORG_EXCLUDE_MATCH_PREFIX", "test")
+	_ = os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
 
 	var testRepos = []scm.Repo{
 		{
@@ -363,11 +363,11 @@ func TestMatchRegex(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
-	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
-	os.Setenv("GHORG_CONCURRENCY", "1")
-	os.Setenv("GHORG_MATCH_REGEX", "^test-")
-	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+	defer func() { _ = os.RemoveAll(dir) }()
+	_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	_ = os.Setenv("GHORG_CONCURRENCY", "1")
+	_ = os.Setenv("GHORG_MATCH_REGEX", "^test-")
+	_ = os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
 
 	var testRepos = []scm.Repo{
 		{
@@ -404,12 +404,12 @@ func TestExcludeMatchRegex(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
-	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
-	os.Setenv("GHORG_CONCURRENCY", "1")
-	os.Setenv("GHORG_OUTPUT_DIR", testDescriptor)
-	os.Setenv("GHORG_EXCLUDE_MATCH_REGEX", "^test-")
-	os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+	defer func() { _ = os.RemoveAll(dir) }()
+	_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	_ = os.Setenv("GHORG_CONCURRENCY", "1")
+	_ = os.Setenv("GHORG_OUTPUT_DIR", testDescriptor)
+	_ = os.Setenv("GHORG_EXCLUDE_MATCH_REGEX", "^test-")
+	_ = os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
 
 	var testRepos = []scm.Repo{
 		{
@@ -456,7 +456,7 @@ func UnsetEnv(prefix string) (restore func()) {
 		parts := strings.SplitN(e, "=", 2)
 		before[parts[0]] = parts[1]
 
-		os.Unsetenv(parts[0])
+		_ = os.Unsetenv(parts[0])
 	}
 
 	return func() {
@@ -474,13 +474,13 @@ func UnsetEnv(prefix string) (restore func()) {
 			v, ok := before[parts[0]]
 			if !ok {
 				// This is a newly added envar with prefix, zap it
-				os.Unsetenv(parts[0])
+				_ = os.Unsetenv(parts[0])
 				continue
 			}
 
 			if parts[1] != v {
 				// If the envar value has changed, set it back
-				os.Setenv(parts[0], v)
+				_ = os.Setenv(parts[0], v)
 			}
 		}
 
@@ -488,7 +488,7 @@ func UnsetEnv(prefix string) (restore func()) {
 		for k, v := range before {
 			if _, ok := after[k]; !ok {
 				// k is not present in after, so we set it.
-				os.Setenv(k, v)
+				_ = os.Setenv(k, v)
 			}
 		}
 	}
@@ -530,9 +530,9 @@ func Test_filterWithGhorgignore(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Failed to create temp file: %v", err)
 			}
-			defer os.Remove(tmpfile.Name())
+			defer func() { _ = os.Remove(tmpfile.Name()) }()
 
-			os.Setenv("GHORG_IGNORE_PATH", tmpfile.Name())
+			_ = os.Setenv("GHORG_IGNORE_PATH", tmpfile.Name())
 
 			got := filterByGhorgignore(tt.cloneTargets)
 			if !reflect.DeepEqual(got, tt.expectedResult) {
@@ -593,9 +593,9 @@ func Test_filterDownReposIfTargetReposPathEnabled(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Failed to create temp file: %v", err)
 			}
-			defer os.Remove(tmpfile.Name())
+			defer func() { _ = os.Remove(tmpfile.Name()) }()
 
-			os.Setenv("GHORG_TARGET_REPOS_PATH", tmpfile.Name())
+			_ = os.Setenv("GHORG_TARGET_REPOS_PATH", tmpfile.Name())
 
 			got := filterByTargetReposPath(tt.cloneTargets)
 			if !reflect.DeepEqual(got, tt.expectedResult) {
@@ -610,7 +610,7 @@ func TestRelativePathRepositories(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
-	defer os.RemoveAll(testing)
+	defer func() { _ = os.RemoveAll(testing) }()
 
 	outputDirAbsolutePath = testing
 
@@ -638,7 +638,7 @@ func TestRelativePathRepositoriesNoGitDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
-	defer os.RemoveAll(testing)
+	defer func() { _ = os.RemoveAll(testing) }()
 
 	outputDirAbsolutePath = testing
 
@@ -662,7 +662,7 @@ func TestRelativePathRepositoriesWithGitSubmodule(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
-	defer os.RemoveAll(testing)
+	defer func() { _ = os.RemoveAll(testing) }()
 
 	outputDirAbsolutePath = testing
 
@@ -698,7 +698,7 @@ func TestRelativePathRepositoriesDeeplyNested(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create directory: %v", err)
 	}
-	defer os.RemoveAll(testing)
+	defer func() { _ = os.RemoveAll(testing) }()
 
 	outputDirAbsolutePath = testing
 
@@ -723,7 +723,7 @@ func TestRelativePathRepositoriesDeeplyNested(t *testing.T) {
 }
 
 func TestPruneRepos(t *testing.T) {
-	os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
+	_ = os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
 
 	cloneTargets := []scm.Repo{{Path: "/repository"}}
 
@@ -731,7 +731,7 @@ func TestPruneRepos(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create directory: %v", err)
 	}
-	defer os.RemoveAll(testing)
+	defer func() { _ = os.RemoveAll(testing) }()
 
 	outputDirAbsolutePath = testing
 
@@ -822,10 +822,10 @@ func TestCloneAllRepos_Timing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
-	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
-	os.Setenv("GHORG_CONCURRENCY", "1")
+	_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	_ = os.Setenv("GHORG_CONCURRENCY", "1")
 
 	var testRepos = []scm.Repo{
 		{
@@ -878,10 +878,10 @@ func TestCloneAllRepos_TimingWithDelay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
-	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
-	os.Setenv("GHORG_CONCURRENCY", "1")
+	_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	_ = os.Setenv("GHORG_CONCURRENCY", "1")
 
 	var testRepos = []scm.Repo{
 		{
@@ -918,9 +918,9 @@ func TestWriteGhorgStats_WithTiming(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
-	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
 
 	// Create some test data
 	date := "2023-12-01 15:04:05"
@@ -989,10 +989,10 @@ func TestCommandTiming_IncludesFullDuration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
-	os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
-	os.Setenv("GHORG_CONCURRENCY", "1")
+	_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", dir)
+	_ = os.Setenv("GHORG_CONCURRENCY", "1")
 
 	var testRepos = []scm.Repo{
 		{
@@ -1088,12 +1088,12 @@ func TestPrintCloneStatsMessage_WithTiming(t *testing.T) {
 			expectedText:    "completed in 25s",
 		},
 		{
-			name:           "Stats with protected repos",
-			cloneCount:     3,
-			pulledCount:    2,
-			protectedCount: 2,
+			name:            "Stats with protected repos",
+			cloneCount:      3,
+			pulledCount:     2,
+			protectedCount:  2,
 			durationSeconds: 30,
-			expectedText:   "protected: 2",
+			expectedText:    "protected: 2",
 		},
 	}
 
@@ -1125,7 +1125,7 @@ func TestPrintFinishedWithDirSize_NoTiming(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -1168,9 +1168,9 @@ func TestGithubUserGistsValidation(t *testing.T) {
 	t.Run("GHORG_GITHUB_USER_GISTS requires github scm type", func(tt *testing.T) {
 		defer UnsetEnv("GHORG_")()
 
-		os.Setenv("GHORG_GITHUB_USER_GISTS", "true")
-		os.Setenv("GHORG_SCM_TYPE", "gitlab")
-		os.Setenv("GHORG_CLONE_TYPE", "user")
+		_ = os.Setenv("GHORG_GITHUB_USER_GISTS", "true")
+		_ = os.Setenv("GHORG_SCM_TYPE", "gitlab")
+		_ = os.Setenv("GHORG_CLONE_TYPE", "user")
 
 		// Verify the condition that setupRepoClone checks
 		if os.Getenv("GHORG_GITHUB_USER_GISTS") == "true" && os.Getenv("GHORG_SCM_TYPE") != "github" {
@@ -1184,9 +1184,9 @@ func TestGithubUserGistsValidation(t *testing.T) {
 	t.Run("GHORG_GITHUB_USER_GISTS requires user clone type", func(tt *testing.T) {
 		defer UnsetEnv("GHORG_")()
 
-		os.Setenv("GHORG_GITHUB_USER_GISTS", "true")
-		os.Setenv("GHORG_SCM_TYPE", "github")
-		os.Setenv("GHORG_CLONE_TYPE", "org")
+		_ = os.Setenv("GHORG_GITHUB_USER_GISTS", "true")
+		_ = os.Setenv("GHORG_SCM_TYPE", "github")
+		_ = os.Setenv("GHORG_CLONE_TYPE", "org")
 
 		// Verify the condition that setupRepoClone checks
 		if os.Getenv("GHORG_GITHUB_USER_GISTS") == "true" && os.Getenv("GHORG_CLONE_TYPE") != "user" {
@@ -1200,9 +1200,9 @@ func TestGithubUserGistsValidation(t *testing.T) {
 	t.Run("GHORG_GITHUB_USER_GISTS with valid github user combination", func(tt *testing.T) {
 		defer UnsetEnv("GHORG_")()
 
-		os.Setenv("GHORG_GITHUB_USER_GISTS", "true")
-		os.Setenv("GHORG_SCM_TYPE", "github")
-		os.Setenv("GHORG_CLONE_TYPE", "user")
+		_ = os.Setenv("GHORG_GITHUB_USER_GISTS", "true")
+		_ = os.Setenv("GHORG_SCM_TYPE", "github")
+		_ = os.Setenv("GHORG_CLONE_TYPE", "user")
 
 		// Verify the valid combination passes the check
 		if os.Getenv("GHORG_GITHUB_USER_GISTS") != "true" || os.Getenv("GHORG_SCM_TYPE") != "github" || os.Getenv("GHORG_CLONE_TYPE") != "user" {
@@ -1229,13 +1229,13 @@ func TestShouldPreviewProtectLocal(t *testing.T) {
 		t.Run(tc.name, func(tt *testing.T) {
 			defer UnsetEnv("GHORG_")()
 			if tc.protectLocal != "" {
-				os.Setenv("GHORG_PROTECT_LOCAL", tc.protectLocal)
+				_ = os.Setenv("GHORG_PROTECT_LOCAL", tc.protectLocal)
 			}
 			if tc.backup != "" {
-				os.Setenv("GHORG_BACKUP", tc.backup)
+				_ = os.Setenv("GHORG_BACKUP", tc.backup)
 			}
 			if tc.noClean != "" {
-				os.Setenv("GHORG_NO_CLEAN", tc.noClean)
+				_ = os.Setenv("GHORG_NO_CLEAN", tc.noClean)
 			}
 
 			if got := shouldPreviewProtectLocal(); got != tc.expectPreview {
@@ -1257,17 +1257,17 @@ func previewProtectLocalSetup(t *testing.T, createRepoDirs []string) (string, fu
 	}
 	for _, name := range createRepoDirs {
 		if err := os.MkdirAll(filepath.Join(dir, name), 0o755); err != nil {
-			os.RemoveAll(dir)
+			_ = os.RemoveAll(dir)
 			t.Fatal(err)
 		}
 	}
-	return dir, func() { os.RemoveAll(dir) }
+	return dir, func() { _ = os.RemoveAll(dir) }
 }
 
 func TestPreviewProtectLocal_SkipsDirtyLocalRepo(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_PROTECT_LOCAL", "true")
-	os.Setenv("GHORG_DRY_RUN", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	_ = os.Setenv("GHORG_DRY_RUN", "true")
 
 	dir, cleanup := previewProtectLocalSetup(t, []string{"test-repo"})
 	defer cleanup()
@@ -1292,8 +1292,8 @@ func TestPreviewProtectLocal_SkipsDirtyLocalRepo(t *testing.T) {
 
 func TestPreviewProtectLocal_SkipsUnpushedLocalRepo(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_PROTECT_LOCAL", "true")
-	os.Setenv("GHORG_DRY_RUN", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	_ = os.Setenv("GHORG_DRY_RUN", "true")
 
 	dir, cleanup := previewProtectLocalSetup(t, []string{"test-repo"})
 	defer cleanup()
@@ -1318,8 +1318,8 @@ func TestPreviewProtectLocal_SkipsUnpushedLocalRepo(t *testing.T) {
 
 func TestPreviewProtectLocal_CleanLocalRepoNotReported(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_PROTECT_LOCAL", "true")
-	os.Setenv("GHORG_DRY_RUN", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	_ = os.Setenv("GHORG_DRY_RUN", "true")
 
 	dir, cleanup := previewProtectLocalSetup(t, []string{"test-repo"})
 	defer cleanup()
@@ -1343,8 +1343,8 @@ func TestPreviewProtectLocal_CleanLocalRepoNotReported(t *testing.T) {
 
 func TestPreviewProtectLocal_NonexistentRepoNotReported(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_PROTECT_LOCAL", "true")
-	os.Setenv("GHORG_DRY_RUN", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	_ = os.Setenv("GHORG_DRY_RUN", "true")
 
 	// No repo directory created on disk - simulates a fresh target that would be a new clone.
 	dir, cleanup := previewProtectLocalSetup(t, nil)
@@ -1370,7 +1370,7 @@ func TestPreviewProtectLocal_NonexistentRepoNotReported(t *testing.T) {
 
 func TestPreviewProtectLocal_EmptyRepoListReturnsZero(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
 
 	mockGit := NewExtendedMockGit()
 	if got := previewProtectLocal(mockGit, nil); got != 0 {
@@ -1431,7 +1431,7 @@ func TestSyncBoolFlagToEnv(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			defer UnsetEnv("GHORG_")()
 			if tc.envBefore != "" {
-				os.Setenv(envVar, tc.envBefore)
+				_ = os.Setenv(envVar, tc.envBefore)
 			}
 
 			cmd := &cobra.Command{Use: "clone"}

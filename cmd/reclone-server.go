@@ -20,7 +20,7 @@ var recloneServerCmd = &cobra.Command{
 	Long:  `Read the documentation and examples in the Readme under Reclone Cron heading`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if cmd.Flags().Changed("port") {
-			os.Setenv("GHORG_RECLONE_SERVER_PORT", cmd.Flag("port").Value.String())
+			_ = os.Setenv("GHORG_RECLONE_SERVER_PORT", cmd.Flag("port").Value.String())
 		}
 
 		startReCloneServer()
@@ -89,7 +89,7 @@ func startReCloneServer() {
 				http.Error(w, "Unable to open file", http.StatusInternalServerError)
 				return
 			}
-			defer file.Close()
+			defer func() { _ = file.Close() }()
 
 			reader := csv.NewReader(file)
 			records, err := reader.ReadAll()
@@ -115,7 +115,7 @@ func startReCloneServer() {
 			}
 
 			w.Header().Set("Content-Type", "application/json")
-			w.Write(jsonBytes)
+			_, _ = w.Write(jsonBytes)
 			return
 		}
 

@@ -6,7 +6,7 @@ import (
 )
 
 func TestMatchingTopicsWithNoEnvTopics(t *testing.T) {
-	os.Setenv("GHORG_TOPICS", "")
+	_ = os.Setenv("GHORG_TOPICS", "")
 
 	t.Run("When repo topics are empty", func(tt *testing.T) {
 		rpTopics := []string{}
@@ -30,7 +30,7 @@ func TestMatchingTopicsWithNoEnvTopics(t *testing.T) {
 }
 
 func TestMatchingTopicsWithSingleEnvTopic(t *testing.T) {
-	os.Setenv("GHORG_TOPICS", "myTopic")
+	_ = os.Setenv("GHORG_TOPICS", "myTopic")
 
 	t.Run("When repo topic is empty", func(tt *testing.T) {
 		rpTopics := []string{}
@@ -62,11 +62,11 @@ func TestMatchingTopicsWithSingleEnvTopic(t *testing.T) {
 		}
 	})
 
-	os.Setenv("GHORG_TOPICS", "")
+	_ = os.Setenv("GHORG_TOPICS", "")
 }
 
 func TestMatchingTopicsWithMultipleEnvTopics(t *testing.T) {
-	os.Setenv("GHORG_TOPICS", "myTopic,3rdTopic")
+	_ = os.Setenv("GHORG_TOPICS", "myTopic,3rdTopic")
 
 	t.Run("When repo topic is empty", func(tt *testing.T) {
 		rpTopics := []string{}
@@ -108,7 +108,7 @@ func TestMatchingTopicsWithMultipleEnvTopics(t *testing.T) {
 		}
 	})
 
-	os.Setenv("GHORG_TOPICS", "")
+	_ = os.Setenv("GHORG_TOPICS", "")
 }
 
 func TestReplaceSSHHostname(t *testing.T) {

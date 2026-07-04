@@ -13,7 +13,7 @@ func TestGetTokenFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	tests := []struct {
 		name        string
@@ -117,7 +117,7 @@ func TestRunTokenCmd(t *testing.T) {
 	}
 	clearEnvs := func() {
 		for _, e := range tokenEnvs {
-			os.Unsetenv(e)
+			_ = os.Unsetenv(e)
 		}
 	}
 
@@ -176,7 +176,7 @@ func TestRunTokenCmd(t *testing.T) {
 			clearEnvs()
 			defer clearEnvs()
 			for k, v := range tt.setup {
-				os.Setenv(k, v)
+				_ = os.Setenv(k, v)
 			}
 
 			runTokenCmd()
@@ -190,7 +190,7 @@ func TestRunTokenCmd(t *testing.T) {
 	t.Run("noop_when_cmd_unset", func(t *testing.T) {
 		clearEnvs()
 		defer clearEnvs()
-		os.Setenv("GHORG_SCM_TYPE", "github")
+		_ = os.Setenv("GHORG_SCM_TYPE", "github")
 
 		runTokenCmd()
 

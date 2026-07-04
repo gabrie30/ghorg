@@ -64,7 +64,7 @@ func syncBoolFlagToEnv(cmd *cobra.Command, flagName, envVar string) {
 		return
 	}
 	v, _ := cmd.Flags().GetBool(flagName)
-	os.Setenv(envVar, strconv.FormatBool(v))
+	_ = os.Setenv(envVar, strconv.FormatBool(v))
 }
 
 var cloneCmd = &cobra.Command{
@@ -122,148 +122,148 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 
 	if cmd.Flags().Changed("path") {
 		absolutePath := configs.EnsureTrailingSlashOnFilePath((cmd.Flag("path").Value.String()))
-		os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", absolutePath)
+		_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", absolutePath)
 	}
 
 	if cmd.Flags().Changed("protocol") {
 		protocol := cmd.Flag("protocol").Value.String()
-		os.Setenv("GHORG_CLONE_PROTOCOL", protocol)
+		_ = os.Setenv("GHORG_CLONE_PROTOCOL", protocol)
 	}
 
 	if cmd.Flags().Changed("branch") {
-		os.Setenv("GHORG_BRANCH", cmd.Flag("branch").Value.String())
+		_ = os.Setenv("GHORG_BRANCH", cmd.Flag("branch").Value.String())
 	}
 
 	if cmd.Flags().Changed("github-token-from-github-app") {
-		os.Setenv("GHORG_GITHUB_TOKEN_FROM_GITHUB_APP", cmd.Flag("github-token-from-github-app").Value.String())
+		_ = os.Setenv("GHORG_GITHUB_TOKEN_FROM_GITHUB_APP", cmd.Flag("github-token-from-github-app").Value.String())
 	}
 
 	if cmd.Flags().Changed("github-app-pem-path") {
-		os.Setenv("GHORG_GITHUB_APP_PEM_PATH", cmd.Flag("github-app-pem-path").Value.String())
+		_ = os.Setenv("GHORG_GITHUB_APP_PEM_PATH", cmd.Flag("github-app-pem-path").Value.String())
 	}
 
 	if cmd.Flags().Changed("github-app-installation-id") {
-		os.Setenv("GHORG_GITHUB_APP_INSTALLATION_ID", cmd.Flag("github-app-installation-id").Value.String())
+		_ = os.Setenv("GHORG_GITHUB_APP_INSTALLATION_ID", cmd.Flag("github-app-installation-id").Value.String())
 	}
 
 	if cmd.Flags().Changed("github-filter-language") {
-		os.Setenv("GHORG_GITHUB_FILTER_LANGUAGE", cmd.Flag("github-filter-language").Value.String())
+		_ = os.Setenv("GHORG_GITHUB_FILTER_LANGUAGE", cmd.Flag("github-filter-language").Value.String())
 	}
 
 	if cmd.Flags().Changed("github-repo-list-concurrency") {
-		os.Setenv("GHORG_GITHUB_REPO_LIST_CONCURRENCY", cmd.Flag("github-repo-list-concurrency").Value.String())
+		_ = os.Setenv("GHORG_GITHUB_REPO_LIST_CONCURRENCY", cmd.Flag("github-repo-list-concurrency").Value.String())
 	}
 
 	if cmd.Flags().Changed("github-app-id") {
-		os.Setenv("GHORG_GITHUB_APP_ID", cmd.Flag("github-app-id").Value.String())
+		_ = os.Setenv("GHORG_GITHUB_APP_ID", cmd.Flag("github-app-id").Value.String())
 	}
 
 	if cmd.Flags().Changed("bitbucket-username") {
-		os.Setenv("GHORG_BITBUCKET_USERNAME", cmd.Flag("bitbucket-username").Value.String())
+		_ = os.Setenv("GHORG_BITBUCKET_USERNAME", cmd.Flag("bitbucket-username").Value.String())
 	}
 
 	if cmd.Flags().Changed("bitbucket-api-email") {
-		os.Setenv("GHORG_BITBUCKET_API_EMAIL", cmd.Flag("bitbucket-api-email").Value.String())
+		_ = os.Setenv("GHORG_BITBUCKET_API_EMAIL", cmd.Flag("bitbucket-api-email").Value.String())
 	}
 
 	if cmd.Flags().Changed("clone-type") {
 		cloneType := strings.ToLower(cmd.Flag("clone-type").Value.String())
-		os.Setenv("GHORG_CLONE_TYPE", cloneType)
+		_ = os.Setenv("GHORG_CLONE_TYPE", cloneType)
 	}
 
 	if cmd.Flags().Changed("scm") {
 		scmType := strings.ToLower(cmd.Flag("scm").Value.String())
-		os.Setenv("GHORG_SCM_TYPE", scmType)
+		_ = os.Setenv("GHORG_SCM_TYPE", scmType)
 	}
 
 	if cmd.Flags().Changed("github-user-option") {
 		opt := cmd.Flag("github-user-option").Value.String()
-		os.Setenv("GHORG_GITHUB_USER_OPTION", opt)
+		_ = os.Setenv("GHORG_GITHUB_USER_OPTION", opt)
 	}
 
 	if cmd.Flags().Changed("base-url") {
 		url := cmd.Flag("base-url").Value.String()
-		os.Setenv("GHORG_SCM_BASE_URL", url)
+		_ = os.Setenv("GHORG_SCM_BASE_URL", url)
 	}
 
 	if cmd.Flags().Changed("concurrency") {
 		f := cmd.Flag("concurrency").Value.String()
-		os.Setenv("GHORG_CONCURRENCY", f)
+		_ = os.Setenv("GHORG_CONCURRENCY", f)
 	}
 
 	if cmd.Flags().Changed("clone-delay-seconds") {
 		f := cmd.Flag("clone-delay-seconds").Value.String()
-		os.Setenv("GHORG_CLONE_DELAY_SECONDS", f)
+		_ = os.Setenv("GHORG_CLONE_DELAY_SECONDS", f)
 	}
 
 	if cmd.Flags().Changed("clone-depth") {
 		f := cmd.Flag("clone-depth").Value.String()
-		os.Setenv("GHORG_CLONE_DEPTH", f)
+		_ = os.Setenv("GHORG_CLONE_DEPTH", f)
 	}
 
 	if cmd.Flags().Changed("exit-code-on-clone-infos") {
 		f := cmd.Flag("exit-code-on-clone-infos").Value.String()
-		os.Setenv("GHORG_EXIT_CODE_ON_CLONE_INFOS", f)
+		_ = os.Setenv("GHORG_EXIT_CODE_ON_CLONE_INFOS", f)
 	}
 
 	if cmd.Flags().Changed("exit-code-on-clone-issues") {
 		f := cmd.Flag("exit-code-on-clone-issues").Value.String()
-		os.Setenv("GHORG_EXIT_CODE_ON_CLONE_ISSUES", f)
+		_ = os.Setenv("GHORG_EXIT_CODE_ON_CLONE_ISSUES", f)
 	}
 
 	if cmd.Flags().Changed("topics") {
 		topics := cmd.Flag("topics").Value.String()
-		os.Setenv("GHORG_TOPICS", topics)
+		_ = os.Setenv("GHORG_TOPICS", topics)
 	}
 
 	if cmd.Flags().Changed("match-prefix") {
 		prefix := cmd.Flag("match-prefix").Value.String()
-		os.Setenv("GHORG_MATCH_PREFIX", prefix)
+		_ = os.Setenv("GHORG_MATCH_PREFIX", prefix)
 	}
 
 	if cmd.Flags().Changed("exclude-match-prefix") {
 		prefix := cmd.Flag("exclude-match-prefix").Value.String()
-		os.Setenv("GHORG_EXCLUDE_MATCH_PREFIX", prefix)
+		_ = os.Setenv("GHORG_EXCLUDE_MATCH_PREFIX", prefix)
 	}
 
 	if cmd.Flags().Changed("gitlab-group-exclude-match-regex") {
 		prefix := cmd.Flag("gitlab-group-exclude-match-regex").Value.String()
-		os.Setenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX", prefix)
+		_ = os.Setenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX", prefix)
 	}
 
 	if cmd.Flags().Changed("gitlab-group-match-regex") {
 		regex := cmd.Flag("gitlab-group-match-regex").Value.String()
-		os.Setenv("GHORG_GITLAB_GROUP_MATCH_REGEX", regex)
+		_ = os.Setenv("GHORG_GITLAB_GROUP_MATCH_REGEX", regex)
 	}
 
 	if cmd.Flags().Changed("match-regex") {
 		regex := cmd.Flag("match-regex").Value.String()
-		os.Setenv("GHORG_MATCH_REGEX", regex)
+		_ = os.Setenv("GHORG_MATCH_REGEX", regex)
 	}
 
 	if cmd.Flags().Changed("exclude-match-regex") {
 		regex := cmd.Flag("exclude-match-regex").Value.String()
-		os.Setenv("GHORG_EXCLUDE_MATCH_REGEX", regex)
+		_ = os.Setenv("GHORG_EXCLUDE_MATCH_REGEX", regex)
 	}
 
 	if cmd.Flags().Changed("ghorgignore-path") {
 		path := cmd.Flag("ghorgignore-path").Value.String()
-		os.Setenv("GHORG_IGNORE_PATH", path)
+		_ = os.Setenv("GHORG_IGNORE_PATH", path)
 	}
 
 	if cmd.Flags().Changed("ghorgonly-path") {
 		path := cmd.Flag("ghorgonly-path").Value.String()
-		os.Setenv("GHORG_ONLY_PATH", path)
+		_ = os.Setenv("GHORG_ONLY_PATH", path)
 	}
 
 	if cmd.Flags().Changed("target-repos-path") {
 		path := cmd.Flag("target-repos-path").Value.String()
-		os.Setenv("GHORG_TARGET_REPOS_PATH", path)
+		_ = os.Setenv("GHORG_TARGET_REPOS_PATH", path)
 	}
 
 	if cmd.Flags().Changed("git-filter") {
 		filter := cmd.Flag("git-filter").Value.String()
-		os.Setenv("GHORG_GIT_FILTER", filter)
+		_ = os.Setenv("GHORG_GIT_FILTER", filter)
 	}
 
 	syncBoolFlagToEnv(cmd, "preserve-scm-hostname", "GHORG_PRESERVE_SCM_HOSTNAME")
@@ -297,11 +297,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 
 	if cmd.Flags().Changed("output-dir") {
 		d := cmd.Flag("output-dir").Value.String()
-		os.Setenv("GHORG_OUTPUT_DIR", d)
+		_ = os.Setenv("GHORG_OUTPUT_DIR", d)
 	}
 
 	if cmd.Flags().Changed("ssh-hostname") {
-		os.Setenv("GHORG_SSH_HOSTNAME", cmd.Flag("ssh-hostname").Value.String())
+		_ = os.Setenv("GHORG_SSH_HOSTNAME", cmd.Flag("ssh-hostname").Value.String())
 	}
 
 	if len(argz) < 1 {
@@ -321,9 +321,9 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 			token = configs.GetTokenFromFile(token)
 		}
 		if os.Getenv("GHORG_SCM_TYPE") == "github" {
-			os.Setenv("GHORG_GITHUB_TOKEN", token)
+			_ = os.Setenv("GHORG_GITHUB_TOKEN", token)
 		} else if os.Getenv("GHORG_SCM_TYPE") == "gitlab" {
-			os.Setenv("GHORG_GITLAB_TOKEN", token)
+			_ = os.Setenv("GHORG_GITLAB_TOKEN", token)
 		} else if os.Getenv("GHORG_SCM_TYPE") == "bitbucket" {
 			// Auto-detect token type based on configuration:
 			// 1. If GHORG_BITBUCKET_API_EMAIL is set, treat as API token
@@ -332,21 +332,21 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 			// 4. Otherwise, treat as API token (new default for Bitbucket Cloud)
 			if os.Getenv("GHORG_BITBUCKET_API_EMAIL") != "" {
 				// API email explicitly set - use API token auth
-				os.Setenv("GHORG_BITBUCKET_API_TOKEN", cmd.Flag("token").Value.String())
+				_ = os.Setenv("GHORG_BITBUCKET_API_TOKEN", cmd.Flag("token").Value.String())
 			} else if cmd.Flags().Changed("bitbucket-username") {
 				// Username provided via flag - use app password (legacy)
-				os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
+				_ = os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
 			} else if os.Getenv("GHORG_BITBUCKET_USERNAME") != "" && os.Getenv("GHORG_BITBUCKET_API_TOKEN") == "" {
 				// Username set in config but no API token - assume app password for backward compat
-				os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
+				_ = os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", cmd.Flag("token").Value.String())
 			} else {
 				// Default to API token for new Bitbucket Cloud authentication
-				os.Setenv("GHORG_BITBUCKET_API_TOKEN", cmd.Flag("token").Value.String())
+				_ = os.Setenv("GHORG_BITBUCKET_API_TOKEN", cmd.Flag("token").Value.String())
 			}
 		} else if os.Getenv("GHORG_SCM_TYPE") == "gitea" {
-			os.Setenv("GHORG_GITEA_TOKEN", token)
+			_ = os.Setenv("GHORG_GITEA_TOKEN", token)
 		} else if os.Getenv("GHORG_SCM_TYPE") == "sourcehut" {
-			os.Setenv("GHORG_SOURCEHUT_TOKEN", token)
+			_ = os.Setenv("GHORG_SOURCEHUT_TOKEN", token)
 		}
 	}
 	err := configs.VerifyTokenSet()
@@ -371,8 +371,8 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 
 	// Auto-adjust concurrency for clone delay before setup (silently)
 	if _, _, shouldAdjust := shouldAutoAdjustConcurrency(); shouldAdjust {
-		os.Setenv("GHORG_CONCURRENCY", "1")
-		os.Setenv("GHORG_CONCURRENCY_AUTO_ADJUSTED", "true")
+		_ = os.Setenv("GHORG_CONCURRENCY", "1")
+		_ = os.Setenv("GHORG_CONCURRENCY_AUTO_ADJUSTED", "true")
 	}
 
 	setupRepoClone()
@@ -563,7 +563,7 @@ func readTargetReposFile() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var lines []string
 	scanner := bufio.NewScanner(file)
@@ -580,7 +580,7 @@ func readGhorgIgnore() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var lines []string
 	scanner := bufio.NewScanner(file)
@@ -597,7 +597,7 @@ func readGhorgOnly() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var lines []string
 	scanner := bufio.NewScanner(file)
@@ -822,7 +822,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			colorlog.PrintInfo(fmt.Sprintf("GHORG_CLONE_DELAY_SECONDS is set to %d seconds. Automatically setting GHORG_CONCURRENCY to 1 for predictable rate limiting.", delaySeconds))
 		}
 		// Clear the tracking variable
-		os.Unsetenv("GHORG_CONCURRENCY_AUTO_ADJUSTED")
+		_ = os.Unsetenv("GHORG_CONCURRENCY_AUTO_ADJUSTED")
 	}
 
 	if os.Getenv("GHORG_DRY_RUN") == "true" {
@@ -850,7 +850,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 		repoSlug := initialRepoSlug(repo)
 
-		limit.Execute(func() {
+		_, _ = limit.Execute(func() {
 			if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
 				repoSlug = repo.Path
 			}
@@ -860,7 +860,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 
 	}
 
-	limit.WaitAndClose()
+	_ = limit.WaitAndClose()
 
 	// Calculate total duration from command start (including SCM API calls) and set it on the processor
 	totalDuration := time.Since(commandStartTime)
@@ -878,7 +878,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			for _, repoPath := range untouchedReposToPrune {
 				colorlog.PrintInfo(fmt.Sprintf("- %s", repoPath))
 			}
-			fmt.Scanln()
+			_, _ = fmt.Scanln()
 		}
 
 		for _, repoPath := range untouchedReposToPrune {
@@ -933,7 +933,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	// This needs to be called after printFinishedWithDirSize()
 	if os.Getenv("GHORG_STATS_ENABLED") == "true" {
 		date := time.Now().Format("2006-01-02 15:04:05")
-		writeGhorgStats(date, allReposToCloneCount, stats.CloneCount, stats.PulledCount, cloneInfosCount, cloneErrorsCount, stats.UpdateRemoteCount, stats.NewCommits, pruneCount, stats.TotalDurationSeconds, hasCollisions)
+		_ = writeGhorgStats(date, allReposToCloneCount, stats.CloneCount, stats.PulledCount, cloneInfosCount, cloneErrorsCount, stats.UpdateRemoteCount, stats.NewCommits, pruneCount, stats.TotalDurationSeconds, hasCollisions)
 	}
 
 	if os.Getenv("GHORG_DONT_EXIT_UNDER_TEST") != "true" {
@@ -957,8 +957,6 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 			}
 			os.Exit(exitCode)
 		}
-	} else {
-		cloneErrorsCount = 0
 	}
 
 }
@@ -1032,7 +1030,7 @@ func writeGhorgStats(date string, allReposToCloneCount, cloneCount, pulledCount,
 			return err
 		}
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	data := fmt.Sprintf("%v,%v,%v,%v,%v,%v,%v,%v,%.2f,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
 		date,
@@ -1067,7 +1065,7 @@ func readFirstLine(filePath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	scanner := bufio.NewScanner(file)
 	if scanner.Scan() {
@@ -1557,5 +1555,5 @@ func filterByGhorgignore(cloneTargets []scm.Repo) []scm.Repo {
 }
 
 func isPathSegmentSafe(seg string) bool {
-	return strings.IndexByte(seg, '/') < 0 && strings.IndexRune(seg, filepath.Separator) < 0
+	return strings.IndexByte(seg, '/') < 0 && !strings.ContainsRune(seg, filepath.Separator)
 }

@@ -130,9 +130,9 @@ func updateAbsolutePathToCloneToWithHostname() {
 		// Retrieve the hostname from the environment variable
 		hostname := getHostname()
 		absolutePath := os.Getenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO")
-		os.Setenv("GHORG_ORIGINAL_ABSOLUTE_PATH_TO_CLONE_TO", absolutePath)
+		_ = os.Setenv("GHORG_ORIGINAL_ABSOLUTE_PATH_TO_CLONE_TO", absolutePath)
 		absolutePath = filepath.Join(absolutePath, hostname)
-		os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", configs.EnsureTrailingSlashOnFilePath(absolutePath))
+		_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", configs.EnsureTrailingSlashOnFilePath(absolutePath))
 	}
 }
 
@@ -140,17 +140,17 @@ func updateAbsolutePathToCloneToWithHostname() {
 func getOrSetDefaults(envVar string) {
 	if envVar == "GHORG_COLOR" {
 		if color == "enabled" {
-			os.Setenv("GHORG_COLOR", "enabled")
+			_ = os.Setenv("GHORG_COLOR", "enabled")
 			return
 		}
 
 		if color == "disabled" {
-			os.Setenv("GHORG_COLOR", "disabled")
+			_ = os.Setenv("GHORG_COLOR", "disabled")
 			return
 		}
 
 		if viper.GetString(envVar) == "enabled" {
-			os.Setenv("GHORG_COLOR", "enabled")
+			_ = os.Setenv("GHORG_COLOR", "enabled")
 			return
 		}
 	}
@@ -159,101 +159,102 @@ func getOrSetDefaults(envVar string) {
 	if viper.GetString(envVar) == "" {
 		switch envVar {
 		case "GHORG_ABSOLUTE_PATH_TO_CLONE_TO":
-			os.Setenv(envVar, configs.GetAbsolutePathToCloneTo())
+			_ = os.Setenv(envVar, configs.GetAbsolutePathToCloneTo())
 		case "GHORG_IGNORE_PATH":
-			os.Setenv(envVar, configs.GhorgIgnoreLocation())
+			_ = os.Setenv(envVar, configs.GhorgIgnoreLocation())
 		case "GHORG_RECLONE_PATH":
-			os.Setenv(envVar, configs.GhorgReCloneLocation())
+			_ = os.Setenv(envVar, configs.GhorgReCloneLocation())
 		case "GHORG_CLONE_PROTOCOL":
-			os.Setenv(envVar, "https")
+			_ = os.Setenv(envVar, "https")
 		case "GHORG_CLONE_TYPE":
-			os.Setenv(envVar, "org")
+			_ = os.Setenv(envVar, "org")
 		case "GHORG_SCM_TYPE":
-			os.Setenv(envVar, "github")
+			_ = os.Setenv(envVar, "github")
 		case "GHORG_SKIP_ARCHIVED":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_INCLUDE_SUBMODULES":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_SKIP_FORKS":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_CLONE_WIKI":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_CLONE_SNIPPETS":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_NO_CLEAN":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_CRON_TIMER_MINUTES":
-			os.Setenv(envVar, "60")
+			_ = os.Setenv(envVar, "60")
 		case "GHORG_RECLONE_SERVER_PORT":
-			os.Setenv(envVar, ":8080")
+			_ = os.Setenv(envVar, ":8080")
 		case "GHORG_FETCH_ALL":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_DRY_RUN":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_PRUNE":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_PRUNE_NO_CONFIRM":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_PRUNE_UNTOUCHED":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_PRUNE_UNTOUCHED_NO_CONFIRM":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_GITLAB_CLIENT":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_GITLAB_INCLUDE_SHARED_PROJECTS":
-			os.Setenv(envVar, "true")
+			_ = os.Setenv(envVar, "true")
 		case "GHORG_INSECURE_GITEA_CLIENT":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_BITBUCKET_CLIENT":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_SOURCEHUT_CLIENT":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_GITHUB_USER_OPTION":
-			os.Setenv(envVar, "owner")
+			_ = os.Setenv(envVar, "owner")
 		case "GHORG_BACKUP":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_PRESERVE_SCM_HOSTNAME":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_NO_TOKEN":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_NO_DIR_SIZE":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_RECLONE_ENV_CONFIG_ONLY":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_RECLONE_QUIET":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_COLOR":
-			os.Setenv(envVar, "disabled")
+			_ = os.Setenv(envVar, "disabled")
 		case "GHORG_PRESERVE_DIRECTORY_STRUCTURE":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_CONCURRENCY":
-			os.Setenv(envVar, "25")
+			_ = os.Setenv(envVar, "25")
 		case "GHORG_CLONE_DELAY_SECONDS":
-			os.Setenv(envVar, "0")
+			_ = os.Setenv(envVar, "0")
 		case "GHORG_QUIET":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_STATS_ENABLED":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_EXIT_CODE_ON_CLONE_INFOS":
-			os.Setenv(envVar, "0")
+			_ = os.Setenv(envVar, "0")
 		case "GHORG_EXIT_CODE_ON_CLONE_ISSUES":
-			os.Setenv(envVar, "1")
+			_ = os.Setenv(envVar, "1")
 		case "GHORG_GITHUB_TOKEN_FROM_GITHUB_APP":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_GITHUB_USER_GISTS":
-			os.Setenv(envVar, "false")
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_SSH_HOSTNAME":
-			os.Setenv(envVar, "")
+			_ = os.Setenv(envVar, "")
 		}
 	} else {
 		s := viper.GetString(envVar)
 		// envs that need a trailing slash
-		if envVar == "GHORG_SCM_BASE_URL" {
-			os.Setenv(envVar, configs.EnsureTrailingSlashOnURL(s))
-		} else if envVar == "GHORG_ABSOLUTE_PATH_TO_CLONE_TO" {
-			os.Setenv(envVar, configs.EnsureTrailingSlashOnFilePath(s))
-		} else {
-			os.Setenv(envVar, s)
+		switch envVar {
+		case "GHORG_SCM_BASE_URL":
+			_ = os.Setenv(envVar, configs.EnsureTrailingSlashOnURL(s))
+		case "GHORG_ABSOLUTE_PATH_TO_CLONE_TO":
+			_ = os.Setenv(envVar, configs.EnsureTrailingSlashOnFilePath(s))
+		default:
+			_ = os.Setenv(envVar, s)
 		}
 	}
 
@@ -268,24 +269,24 @@ func InitConfig() {
 
 	if config != "" {
 		viper.SetConfigFile(config)
-		os.Setenv("GHORG_CONFIG", config)
+		_ = os.Setenv("GHORG_CONFIG", config)
 	} else if os.Getenv("GHORG_CONFIG") != "" {
 		// TODO maybe check if config is valid etc ...
 		viper.SetConfigFile(os.Getenv("GHORG_CONFIG"))
 	} else if _, err := os.Stat(localConfig); !errors.Is(err, os.ErrNotExist) {
 		viper.SetConfigFile(localConfig)
-		os.Setenv("GHORG_CONFIG", localConfig)
+		_ = os.Setenv("GHORG_CONFIG", localConfig)
 	} else {
 		config = configs.DefaultConfFile()
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath(configs.GhorgConfDir())
 		viper.SetConfigName("conf")
-		os.Setenv("GHORG_CONFIG", configs.DefaultConfFile())
+		_ = os.Setenv("GHORG_CONFIG", configs.DefaultConfFile())
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			os.Setenv("GHORG_CONFIG", "none")
+			_ = os.Setenv("GHORG_CONFIG", "none")
 		} else {
 			colorlog.PrintError(fmt.Sprintf("Something unexpected happened reading configuration file: %s, err: %s", os.Getenv("GHORG_CONFIG"), err))
 			os.Exit(1)
@@ -296,7 +297,7 @@ func InitConfig() {
 		fmt.Println("-------- Setting Default ENV values ---------")
 		if os.Getenv("GHORG_CONCURRENCY_DEBUG") == "" {
 			fmt.Println("Setting concurrency to 1, this can be overwritten by setting GHORG_CONCURRENCY_DEBUG; however when using concurrency with GHORG_DEBUG, not all debugging output will be printed in serial order.")
-			os.Setenv("GHORG_CONCURRENCY", "1")
+			_ = os.Setenv("GHORG_CONCURRENCY", "1")
 		}
 	}
 

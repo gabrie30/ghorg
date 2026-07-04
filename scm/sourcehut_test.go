@@ -36,7 +36,7 @@ func TestSourcehutGetUserRepos(t *testing.T) {
 		}
 
 		// Return mock GraphQL response (note: API returns usernames with ~ prefix)
-		fmt.Fprint(w, `{
+		_, _ = fmt.Fprint(w, `{
 			"data": {
 				"repositories": {
 					"results": [
@@ -94,7 +94,7 @@ func TestSourcehutGetUserRepos(t *testing.T) {
 	})
 
 	t.Run("Should use HTTPS protocol by default", func(tt *testing.T) {
-		os.Setenv("GHORG_CLONE_PROTOCOL", "")
+		_ = os.Setenv("GHORG_CLONE_PROTOCOL", "")
 		repos, err := client.GetUserRepos("testuser")
 		if err != nil {
 			tt.Fatal(err)
@@ -113,7 +113,7 @@ func TestSourcehutGetUserRepos(t *testing.T) {
 	})
 
 	t.Run("Should use SSH protocol when specified", func(tt *testing.T) {
-		os.Setenv("GHORG_CLONE_PROTOCOL", "ssh")
+		_ = os.Setenv("GHORG_CLONE_PROTOCOL", "ssh")
 		repos, err := client.GetUserRepos("testuser")
 		if err != nil {
 			tt.Fatal(err)
@@ -125,11 +125,11 @@ func TestSourcehutGetUserRepos(t *testing.T) {
 				tt.Errorf("Expected SSH URL (git@...), got: %v", repo.CloneURL)
 			}
 		}
-		os.Setenv("GHORG_CLONE_PROTOCOL", "")
+		_ = os.Setenv("GHORG_CLONE_PROTOCOL", "")
 	})
 
 	t.Run("Should respect custom branch setting", func(tt *testing.T) {
-		os.Setenv("GHORG_BRANCH", "custom-branch")
+		_ = os.Setenv("GHORG_BRANCH", "custom-branch")
 		repos, err := client.GetUserRepos("testuser")
 		if err != nil {
 			tt.Fatal(err)
@@ -140,7 +140,7 @@ func TestSourcehutGetUserRepos(t *testing.T) {
 				tt.Errorf("Expected clone branch 'custom-branch', got: %v", repo.CloneBranch)
 			}
 		}
-		os.Setenv("GHORG_BRANCH", "")
+		_ = os.Setenv("GHORG_BRANCH", "")
 	})
 }
 
@@ -149,7 +149,7 @@ func TestSourcehutGetOrgRepos(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `{
+		_, _ = fmt.Fprint(w, `{
 			"data": {
 				"repositories": {
 					"results": [
@@ -198,7 +198,7 @@ func TestSourcehutPagination(t *testing.T) {
 		callCount++
 		if callCount == 1 {
 			// First page with cursor
-			fmt.Fprint(w, `{
+			_, _ = fmt.Fprint(w, `{
 				"data": {
 					"repositories": {
 						"results": [
@@ -216,7 +216,7 @@ func TestSourcehutPagination(t *testing.T) {
 			}`)
 		} else {
 			// Second page without cursor (last page)
-			fmt.Fprint(w, `{
+			_, _ = fmt.Fprint(w, `{
 				"data": {
 					"repositories": {
 						"results": [
@@ -261,7 +261,7 @@ func TestSourcehutErrorHandling(t *testing.T) {
 
 	t.Run("Should handle GraphQL errors", func(tt *testing.T) {
 		mux.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, `{
+			_, _ = fmt.Fprint(w, `{
 				"errors": [
 					{"message": "Authentication failed"}
 				]
@@ -277,9 +277,9 @@ func TestSourcehutErrorHandling(t *testing.T) {
 
 func TestSourcehutNewClient(t *testing.T) {
 	t.Run("Should use default base URL when not specified", func(tt *testing.T) {
-		os.Setenv("GHORG_SCM_BASE_URL", "")
-		os.Setenv("GHORG_SOURCEHUT_TOKEN", "test-token")
-		os.Setenv("GHORG_INSECURE_SOURCEHUT_CLIENT", "false")
+		_ = os.Setenv("GHORG_SCM_BASE_URL", "")
+		_ = os.Setenv("GHORG_SOURCEHUT_TOKEN", "test-token")
+		_ = os.Setenv("GHORG_INSECURE_SOURCEHUT_CLIENT", "false")
 
 		client, err := Sourcehut{}.NewClient()
 		if err != nil {
@@ -293,8 +293,8 @@ func TestSourcehutNewClient(t *testing.T) {
 	})
 
 	t.Run("Should use custom base URL when specified", func(tt *testing.T) {
-		os.Setenv("GHORG_SCM_BASE_URL", "https://git.custom.com")
-		os.Setenv("GHORG_SOURCEHUT_TOKEN", "test-token")
+		_ = os.Setenv("GHORG_SCM_BASE_URL", "https://git.custom.com")
+		_ = os.Setenv("GHORG_SOURCEHUT_TOKEN", "test-token")
 
 		client, err := Sourcehut{}.NewClient()
 		if err != nil {
@@ -306,7 +306,7 @@ func TestSourcehutNewClient(t *testing.T) {
 			tt.Errorf("Expected base URL 'https://git.custom.com', got: %v", sourcehutClient.BaseURL)
 		}
 
-		os.Setenv("GHORG_SCM_BASE_URL", "")
+		_ = os.Setenv("GHORG_SCM_BASE_URL", "")
 	})
 }
 
@@ -349,7 +349,7 @@ func TestSourcehutUsernameHandling(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `{
+		_, _ = fmt.Fprint(w, `{
 			"data": {
 				"repositories": {
 					"results": [
@@ -416,4 +416,3 @@ func TestSourcehutUsernameHandling(t *testing.T) {
 		}
 	})
 }
-

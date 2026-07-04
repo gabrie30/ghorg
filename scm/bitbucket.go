@@ -36,7 +36,7 @@ type Bitbucket struct {
 	apiToken    string
 }
 
-func (_ Bitbucket) GetType() string {
+func (Bitbucket) GetType() string {
 	return "bitbucket"
 }
 
@@ -74,7 +74,7 @@ func (c Bitbucket) GetUserRepos(targetUser string) ([]Repo, error) {
 }
 
 // NewClient create new bitbucket scm client
-func (_ Bitbucket) NewClient() (Client, error) {
+func (Bitbucket) NewClient() (Client, error) {
 	user := os.Getenv("GHORG_BITBUCKET_USERNAME")
 	password := os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
 	oAuth := os.Getenv("GHORG_BITBUCKET_OAUTH_TOKEN")
@@ -191,7 +191,7 @@ func (c Bitbucket) getServerProjectRepos(projectKey string) ([]Repo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to make API request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -233,7 +233,7 @@ func (c Bitbucket) getServerUserRepos(username string) ([]Repo, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -312,9 +312,6 @@ func (c Bitbucket) filterServerRepos(repos []ServerRepository) []Repo {
 					r.CloneURL = c.addCredentialsToURL(href)
 					cloneData = append(cloneData, r)
 					// Added HTTPS clone URL
-				} else {
-					// Log unmatched protocols for debugging
-					// Skipping incompatible clone link
 				}
 			}
 		}

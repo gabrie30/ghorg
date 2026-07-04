@@ -55,7 +55,7 @@ func (c Bitbucket) fetchServerProjectReposParallel(projectKey string, firstPageR
 				resultChan <- pageResult{err: err, page: pageNum}
 				return
 			}
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 
 			if resp.StatusCode != http.StatusOK {
 				body, _ := io.ReadAll(resp.Body)
@@ -150,7 +150,7 @@ func (c Bitbucket) fetchServerUserReposParallel(username string, firstPageRepos 
 				resultChan <- pageResult{err: err, page: pageNum}
 				return
 			}
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 
 			if resp.StatusCode != http.StatusOK {
 				body, _ := io.ReadAll(resp.Body)

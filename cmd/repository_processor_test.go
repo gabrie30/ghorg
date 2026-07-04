@@ -119,7 +119,7 @@ func TestRepositoryProcessor_ProcessRepository_NewRepository(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -157,7 +157,7 @@ func TestRepositoryProcessor_ProcessRepository_ExistingRepository(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -210,7 +210,7 @@ func TestRepositoryProcessor_ProcessRepository_CloneError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -248,7 +248,7 @@ func TestRepositoryProcessor_ProcessRepository_WikiHandling(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -278,14 +278,14 @@ func TestRepositoryProcessor_ProcessRepository_WikiHandling(t *testing.T) {
 
 func TestRepositoryProcessor_ProcessRepository_BackupMode(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_BACKUP", "true")
+	_ = os.Setenv("GHORG_BACKUP", "true")
 
 	// Set up temporary directory with existing repo
 	dir, err := os.MkdirTemp("", "ghorg_test_backup_mode")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -317,14 +317,14 @@ func TestRepositoryProcessor_ProcessRepository_BackupMode(t *testing.T) {
 
 func TestRepositoryProcessor_ProcessRepository_NoCleanMode(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_NO_CLEAN", "true")
+	_ = os.Setenv("GHORG_NO_CLEAN", "true")
 
 	// Set up temporary directory with existing repo
 	dir, err := os.MkdirTemp("", "ghorg_test_no_clean_mode")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -357,15 +357,15 @@ func TestRepositoryProcessor_ProcessRepository_NoCleanMode(t *testing.T) {
 
 func TestRepositoryProcessor_ProcessRepository_NoCleanModeWithFetchAllDisabled(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_NO_CLEAN", "true")
-	os.Setenv("GHORG_FETCH_ALL", "false")
+	_ = os.Setenv("GHORG_NO_CLEAN", "true")
+	_ = os.Setenv("GHORG_FETCH_ALL", "false")
 
 	// Set up temporary directory with existing repo
 	dir, err := os.MkdirTemp("", "ghorg_test_no_clean_fetch_all_disabled")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -402,15 +402,15 @@ func TestRepositoryProcessor_ProcessRepository_NoCleanModeWithFetchAllDisabled(t
 
 func TestRepositoryProcessor_ProcessRepository_NoCleanModeWithFetchAllEnabled(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_NO_CLEAN", "true")
-	os.Setenv("GHORG_FETCH_ALL", "true")
+	_ = os.Setenv("GHORG_NO_CLEAN", "true")
+	_ = os.Setenv("GHORG_FETCH_ALL", "true")
 
 	// Set up temporary directory with existing repo
 	dir, err := os.MkdirTemp("", "ghorg_test_no_clean_fetch_all_enabled")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -452,7 +452,7 @@ func TestRepositoryProcessor_ProcessRepository_NameCollisions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -492,7 +492,7 @@ func TestRepositoryProcessor_ProcessRepository_CrossPlatformPaths(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -547,7 +547,7 @@ func TestRepositoryProcessor_ProcessRepository_GitLabSnippets(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -635,7 +635,7 @@ func TestRepositoryProcessor_ThreadSafety(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -755,14 +755,14 @@ func TestCloneStats_NewStruct(t *testing.T) {
 
 func TestRepositoryProcessor_ProtectLocal_SkipsDirtyRepo(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
 
 	// Set up temporary directory with existing repo
 	dir, err := os.MkdirTemp("", "ghorg_test_protect_local_dirty")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -805,14 +805,14 @@ func TestRepositoryProcessor_ProtectLocal_SkipsDirtyRepo(t *testing.T) {
 
 func TestRepositoryProcessor_ProtectLocal_SkipsUnpushedCommits(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
 
 	// Set up temporary directory with existing repo
 	dir, err := os.MkdirTemp("", "ghorg_test_protect_local_unpushed")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -850,14 +850,14 @@ func TestRepositoryProcessor_ProtectLocal_SkipsUnpushedCommits(t *testing.T) {
 
 func TestRepositoryProcessor_ProtectLocal_AllowsCleanRepo(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
 
 	// Set up temporary directory with existing repo
 	dir, err := os.MkdirTemp("", "ghorg_test_protect_local_clean")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -895,15 +895,15 @@ func TestRepositoryProcessor_ProtectLocal_AllowsCleanRepo(t *testing.T) {
 
 func TestRepositoryProcessor_ProtectLocal_BypassedInBackupMode(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_PROTECT_LOCAL", "true")
-	os.Setenv("GHORG_BACKUP", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	_ = os.Setenv("GHORG_BACKUP", "true")
 
 	// Set up temporary directory with existing repo
 	dir, err := os.MkdirTemp("", "ghorg_test_protect_local_backup")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -941,15 +941,15 @@ func TestRepositoryProcessor_ProtectLocal_BypassedInBackupMode(t *testing.T) {
 
 func TestRepositoryProcessor_ProtectLocal_BypassedInNoCleanMode(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_PROTECT_LOCAL", "true")
-	os.Setenv("GHORG_NO_CLEAN", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	_ = os.Setenv("GHORG_NO_CLEAN", "true")
 
 	// Set up temporary directory with existing repo
 	dir, err := os.MkdirTemp("", "ghorg_test_protect_local_no_clean")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -994,7 +994,7 @@ func TestRepositoryProcessor_ProtectLocal_DisabledByDefault(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -1032,14 +1032,14 @@ func TestRepositoryProcessor_ProtectLocal_DisabledByDefault(t *testing.T) {
 
 func TestRepositoryProcessor_ProtectLocal_NewRepoNotAffected(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
 
 	// Set up temporary directory (no existing repo)
 	dir, err := os.MkdirTemp("", "ghorg_test_protect_local_new_repo")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -1144,14 +1144,14 @@ func TestRepositoryProcessor_AddProtected(t *testing.T) {
 
 func TestRepositoryProcessor_ProtectLocal_RestoresBranchWhenDifferent(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
 
 	// Set up temporary directory with existing repo
 	dir, err := os.MkdirTemp("", "ghorg_test_restore_branch")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -1193,14 +1193,14 @@ func TestRepositoryProcessor_ProtectLocal_RestoresBranchWhenDifferent(t *testing
 
 func TestRepositoryProcessor_ProtectLocal_NoRestoreWhenOnDefaultBranch(t *testing.T) {
 	defer UnsetEnv("GHORG_")()
-	os.Setenv("GHORG_PROTECT_LOCAL", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
 
 	// Set up temporary directory with existing repo
 	dir, err := os.MkdirTemp("", "ghorg_test_no_restore_default")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 
@@ -1246,7 +1246,7 @@ func TestRepositoryProcessor_ProtectLocal_NoRestoreWhenDisabled(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	outputDirAbsolutePath = dir
 

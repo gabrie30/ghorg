@@ -175,7 +175,7 @@ func (rp *RepositoryProcessor) shouldPruneUntouched(repo *scm.Repo) bool {
 	}
 
 	// Fetch and check branches
-	rp.git.FetchCloneBranch(*repo)
+	_ = rp.git.FetchCloneBranch(*repo)
 
 	branches, err := rp.git.Branch(*repo)
 	if err != nil {
@@ -512,7 +512,7 @@ func (rp *RepositoryProcessor) handleStandardPull(repo *scm.Repo) bool {
 	// Checkout branch
 	err := rp.git.Checkout(*repo)
 	if err != nil {
-		rp.git.FetchCloneBranch(*repo)
+		_ = rp.git.FetchCloneBranch(*repo)
 
 		// Retry checkout
 		errRetry := rp.git.Checkout(*repo)

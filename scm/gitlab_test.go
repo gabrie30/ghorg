@@ -64,8 +64,8 @@ func TestFilterGitlabGroupByMatchRegex(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			os.Setenv("GHORG_GITLAB_GROUP_MATCH_REGEX", tc.regex)
-			defer os.Unsetenv("GHORG_GITLAB_GROUP_MATCH_REGEX")
+			_ = os.Setenv("GHORG_GITLAB_GROUP_MATCH_REGEX", tc.regex)
+			defer func() { _ = os.Unsetenv("GHORG_GITLAB_GROUP_MATCH_REGEX") }()
 
 			result := filterGitlabGroupByMatchRegex(tc.groups)
 			if len(result) == 0 && len(tc.expectedGroups) == 0 {
@@ -120,8 +120,8 @@ func TestFilterGitlabGroupByExcludeMatchRegex(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			os.Setenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX", tc.regex)
-			defer os.Unsetenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX")
+			_ = os.Setenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX", tc.regex)
+			defer func() { _ = os.Unsetenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX") }()
 
 			result := filterGitlabGroupByExcludeMatchRegex(tc.groups)
 			if len(result) == 0 && len(tc.expectedGroups) == 0 {
@@ -148,14 +148,14 @@ func TestFilterGitlabGroupMatchAndExcludeCombined(t *testing.T) {
 		groups := []string{"subgroup-a", "subgroup-b", "subgroup-c", "other-group"}
 
 		// First apply match: include only subgroup-* groups
-		os.Setenv("GHORG_GITLAB_GROUP_MATCH_REGEX", "^subgroup-")
-		defer os.Unsetenv("GHORG_GITLAB_GROUP_MATCH_REGEX")
+		_ = os.Setenv("GHORG_GITLAB_GROUP_MATCH_REGEX", "^subgroup-")
+		defer func() { _ = os.Unsetenv("GHORG_GITLAB_GROUP_MATCH_REGEX") }()
 
 		matched := filterGitlabGroupByMatchRegex(groups)
 
 		// Then apply exclude: remove subgroup-c from the result
-		os.Setenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX", "^subgroup-c$")
-		defer os.Unsetenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX")
+		_ = os.Setenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX", "^subgroup-c$")
+		defer func() { _ = os.Unsetenv("GHORG_GITLAB_GROUP_EXCLUDE_MATCH_REGEX") }()
 
 		result := filterGitlabGroupByExcludeMatchRegex(matched)
 
@@ -184,8 +184,8 @@ func TestFilterGitlabGroupMatchRegexWithAlternation(t *testing.T) {
 		}
 
 		// Include only 3 specific subgroups
-		os.Setenv("GHORG_GITLAB_GROUP_MATCH_REGEX", "^(subgroup-2|subgroup-5|subgroup-8)$")
-		defer os.Unsetenv("GHORG_GITLAB_GROUP_MATCH_REGEX")
+		_ = os.Setenv("GHORG_GITLAB_GROUP_MATCH_REGEX", "^(subgroup-2|subgroup-5|subgroup-8)$")
+		defer func() { _ = os.Unsetenv("GHORG_GITLAB_GROUP_MATCH_REGEX") }()
 
 		result := filterGitlabGroupByMatchRegex(groups)
 

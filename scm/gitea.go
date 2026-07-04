@@ -26,7 +26,7 @@ type Gitea struct {
 	perPage int
 }
 
-func (_ Gitea) GetType() string {
+func (Gitea) GetType() string {
 	return "gitea"
 }
 
@@ -85,7 +85,7 @@ func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
 }
 
 // NewClient create new gitea scm client
-func (_ Gitea) NewClient() (Client, error) {
+func (Gitea) NewClient() (Client, error) {
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
 	token := os.Getenv("GHORG_GITEA_TOKEN")
 
@@ -137,7 +137,7 @@ func (_ Gitea) NewClient() (Client, error) {
 	return client, nil
 }
 
-func (_ Gitea) addTokenToCloneURL(url string, token string) string {
+func (Gitea) addTokenToCloneURL(url string, token string) string {
 	isHTTP := strings.HasPrefix(url, "http://")
 
 	if isHTTP {

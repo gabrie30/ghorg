@@ -16,7 +16,7 @@ func PrintInfo(msg any) {
 
 	switch os.Getenv("GHORG_COLOR") {
 	case "enabled":
-		color.New(color.FgYellow).Println(msg)
+		_, _ = color.New(color.FgYellow).Println(msg)
 	default:
 		fmt.Println(msg)
 	}
@@ -26,7 +26,7 @@ func PrintInfo(msg any) {
 func PrintSuccess(msg any) {
 	switch os.Getenv("GHORG_COLOR") {
 	case "enabled":
-		color.New(color.FgGreen).Println(msg)
+		_, _ = color.New(color.FgGreen).Println(msg)
 	default:
 		fmt.Println(msg)
 	}
@@ -36,7 +36,7 @@ func PrintSuccess(msg any) {
 func PrintError(msg any) {
 	switch os.Getenv("GHORG_COLOR") {
 	case "enabled":
-		color.New(color.FgRed).Println(msg)
+		_, _ = color.New(color.FgRed).Println(msg)
 	default:
 		fmt.Println(msg)
 	}
@@ -46,7 +46,7 @@ func PrintError(msg any) {
 func PrintErrorAndExit(msg any) {
 	switch os.Getenv("GHORG_COLOR") {
 	case "enabled":
-		color.New(color.FgRed).Println(msg)
+		_, _ = color.New(color.FgRed).Println(msg)
 	default:
 		fmt.Println(msg)
 	}
@@ -62,7 +62,7 @@ func PrintSubtleInfo(msg any) {
 
 	switch os.Getenv("GHORG_COLOR") {
 	case "enabled":
-		color.New(color.FgHiMagenta).Println(msg)
+		_, _ = color.New(color.FgHiMagenta).Println(msg)
 	default:
 		fmt.Println(msg)
 	}

@@ -7,8 +7,8 @@ import (
 
 func TestInsertAppPasswordCredentialsIntoURL(t *testing.T) {
 	// Set environment variables for the test
-	os.Setenv("GHORG_BITBUCKET_USERNAME", "ghorg")
-	os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", "testpassword")
+	_ = os.Setenv("GHORG_BITBUCKET_USERNAME", "ghorg")
+	_ = os.Setenv("GHORG_BITBUCKET_APP_PASSWORD", "testpassword")
 
 	// Define a test URL
 	testURL := "https://ghorg@bitbucket.org/foobar/testrepo.git"
