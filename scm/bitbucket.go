@@ -139,6 +139,7 @@ func (Bitbucket) NewClient() (Client, error) {
 		useAPIToken = true
 	} else {
 		// Legacy App Password authentication
+		colorlog.PrintError("WARNING: Bitbucket Cloud App Passwords are deprecated and will be permanently disabled on July 28, 2026. Migrate to API Tokens by setting GHORG_BITBUCKET_API_TOKEN and GHORG_BITBUCKET_API_EMAIL. See https://support.atlassian.com/bitbucket-cloud/docs/create-an-api-token/")
 		var err error
 		c, err = bitbucket.NewBasicAuth(user, password)
 		if err != nil {
