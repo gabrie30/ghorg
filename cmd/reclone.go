@@ -181,6 +181,9 @@ func splitCommandArgs(cmd string) []string {
 func runReClone(rc ReClone, rcIdentifier string) {
 	// make sure command starts with ghorg clone
 	splitCommand := splitCommandArgs(rc.Cmd)
+	if len(splitCommand) < 3 {
+		colorlog.PrintErrorAndExit(fmt.Sprintf("ERROR: The cmd for %v in your reclone.yaml must be a ghorg clone command, e.g. 'ghorg clone <org>'", rcIdentifier))
+	}
 	ghorg, clone, remainingCommand := splitCommand[0], splitCommand[1], splitCommand[1:]
 
 	if ghorg != "ghorg" || clone != "clone" {

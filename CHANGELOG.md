@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- Bug with reclone index out of range when cmd not in reclone.conf; thanks @chirag127
 ### Security
 
 ## [1.11.12] - 6/27/26
