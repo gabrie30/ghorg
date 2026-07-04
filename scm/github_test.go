@@ -59,7 +59,7 @@ func TestGetOrgRepos(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/orgs/testorg/repos", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `[
+		_, _ = fmt.Fprint(w, `[
 			{"id":1, "clone_url": "https://example.com", "name": "foobar1", "archived": false, "fork": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
 			{"id":2, "clone_url": "https://example.com", "name": "foobar2", "archived": false, "fork": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
 			{"id":3, "clone_url": "https://example.com", "name": "foobar3", "archived": false, "fork": false, "topics": ["a","b","c"], "ssh_url": "git://example.com"},
@@ -90,7 +90,7 @@ func TestGetOrgRepos(t *testing.T) {
 	})
 
 	t.Run("Should skip archived repos when env is set", func(tt *testing.T) {
-		os.Setenv("GHORG_SKIP_ARCHIVED", "true")
+		_ = os.Setenv("GHORG_SKIP_ARCHIVED", "true")
 		resp, err := github.GetOrgRepos("testorg")
 
 		if err != nil {
@@ -101,12 +101,12 @@ func TestGetOrgRepos(t *testing.T) {
 		if want != got {
 			tt.Errorf("Expected %v repo, got: %v", want, got)
 		}
-		os.Setenv("GHORG_SKIP_ARCHIVED", "")
+		_ = os.Setenv("GHORG_SKIP_ARCHIVED", "")
 
 	})
 
 	t.Run("Should skip forked repos when env is set", func(tt *testing.T) {
-		os.Setenv("GHORG_SKIP_FORKS", "true")
+		_ = os.Setenv("GHORG_SKIP_FORKS", "true")
 		resp, err := github.GetOrgRepos("testorg")
 
 		if err != nil {
@@ -117,12 +117,12 @@ func TestGetOrgRepos(t *testing.T) {
 		if want != got {
 			tt.Errorf("Expected %v repo, got: %v", want, got)
 		}
-		os.Setenv("GHORG_SKIP_FORKS", "")
+		_ = os.Setenv("GHORG_SKIP_FORKS", "")
 
 	})
 
 	t.Run("Find all repos with specific topic set", func(tt *testing.T) {
-		os.Setenv("GHORG_TOPICS", "test-topic")
+		_ = os.Setenv("GHORG_TOPICS", "test-topic")
 		resp, err := github.GetOrgRepos("testorg")
 
 		if err != nil {
@@ -133,7 +133,7 @@ func TestGetOrgRepos(t *testing.T) {
 		if want != got {
 			tt.Errorf("Expected %v repo, got: %v", want, got)
 		}
-		os.Setenv("GHORG_TOPICS", "")
+		_ = os.Setenv("GHORG_TOPICS", "")
 	})
 }
 
@@ -145,7 +145,7 @@ func TestGetUserGists(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/users/testuser/gists", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `[
+		_, _ = fmt.Fprint(w, `[
 			{"id":"abc123", "git_pull_url": "https://gist.github.com/abc123.git", "public": true, "files": {"foobar.md": {"filename": "foobar.md"}}},
 			{"id":"def456", "git_pull_url": "https://gist.github.com/def456.git", "public": true, "files": {"script.sh": {"filename": "script.sh"}}},
 			{"id":"ghi789", "git_pull_url": "https://gist.github.com/ghi789.git", "public": false, "files": {"README.txt": {"filename": "README.txt"}}}
@@ -153,8 +153,8 @@ func TestGetUserGists(t *testing.T) {
 	})
 
 	t.Run("Should return all gists with HTTPS protocol", func(tt *testing.T) {
-		os.Setenv("GHORG_CLONE_PROTOCOL", "https")
-		os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
+		_ = os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+		_ = os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
 
 		resp, err := github.GetUserGists("testuser")
 
@@ -174,13 +174,13 @@ func TestGetUserGists(t *testing.T) {
 			}
 		}
 
-		os.Unsetenv("GHORG_CLONE_PROTOCOL")
-		os.Unsetenv("GHORG_GITHUB_TOKEN")
+		_ = os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		_ = os.Unsetenv("GHORG_GITHUB_TOKEN")
 	})
 
 	t.Run("Should use filename without extension as folder name", func(tt *testing.T) {
-		os.Setenv("GHORG_CLONE_PROTOCOL", "https")
-		os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
+		_ = os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+		_ = os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
 
 		resp, err := github.GetUserGists("testuser")
 		if err != nil {
@@ -204,13 +204,13 @@ func TestGetUserGists(t *testing.T) {
 			}
 		}
 
-		os.Unsetenv("GHORG_CLONE_PROTOCOL")
-		os.Unsetenv("GHORG_GITHUB_TOKEN")
+		_ = os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		_ = os.Unsetenv("GHORG_GITHUB_TOKEN")
 	})
 
 	t.Run("Should set correct clone branch for gists", func(tt *testing.T) {
-		os.Setenv("GHORG_CLONE_PROTOCOL", "https")
-		os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
+		_ = os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+		_ = os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
 
 		resp, err := github.GetUserGists("testuser")
 
@@ -225,14 +225,14 @@ func TestGetUserGists(t *testing.T) {
 			}
 		}
 
-		os.Unsetenv("GHORG_CLONE_PROTOCOL")
-		os.Unsetenv("GHORG_GITHUB_TOKEN")
+		_ = os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		_ = os.Unsetenv("GHORG_GITHUB_TOKEN")
 	})
 
 	t.Run("Should respect GHORG_BRANCH for gists", func(tt *testing.T) {
-		os.Setenv("GHORG_CLONE_PROTOCOL", "https")
-		os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
-		os.Setenv("GHORG_BRANCH", "main")
+		_ = os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+		_ = os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
+		_ = os.Setenv("GHORG_BRANCH", "main")
 
 		resp, err := github.GetUserGists("testuser")
 
@@ -246,9 +246,9 @@ func TestGetUserGists(t *testing.T) {
 			}
 		}
 
-		os.Unsetenv("GHORG_CLONE_PROTOCOL")
-		os.Unsetenv("GHORG_GITHUB_TOKEN")
-		os.Unsetenv("GHORG_BRANCH")
+		_ = os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		_ = os.Unsetenv("GHORG_GITHUB_TOKEN")
+		_ = os.Unsetenv("GHORG_BRANCH")
 	})
 }
 
@@ -304,18 +304,18 @@ func TestFilterGistsCollisions(t *testing.T) {
 
 	// Two gists share the same derived folder name ("foobar")
 	mux.HandleFunc("/users/collisionuser/gists", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `[
+		_, _ = fmt.Fprint(w, `[
 			{"id":"aaa111", "git_pull_url": "https://gist.github.com/aaa111.git", "files": {"foobar.md": {"filename": "foobar.md"}}},
 			{"id":"bbb222", "git_pull_url": "https://gist.github.com/bbb222.git", "files": {"foobar.sh": {"filename": "foobar.sh"}}},
 			{"id":"ccc333", "git_pull_url": "https://gist.github.com/ccc333.git", "files": {"unique.py": {"filename": "unique.py"}}}
 		]`)
 	})
 
-	os.Setenv("GHORG_CLONE_PROTOCOL", "https")
-	os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
+	_ = os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+	_ = os.Setenv("GHORG_GITHUB_TOKEN", "testtoken")
 	defer func() {
-		os.Unsetenv("GHORG_CLONE_PROTOCOL")
-		os.Unsetenv("GHORG_GITHUB_TOKEN")
+		_ = os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		_ = os.Unsetenv("GHORG_GITHUB_TOKEN")
 	}()
 
 	resp, err := gh.GetUserGists("collisionuser")
@@ -376,7 +376,7 @@ func TestGetOrgRepos_MultiPageRespectsListConcurrency(t *testing.T) {
 			}
 			w.Header().Set("Link", fmt.Sprintf(`<https://example.invalid/repos?page=2&per_page=%s>; rel="next", <https://example.invalid/repos?page=4&per_page=%s>; rel="last"`, per, per))
 		}
-		fmt.Fprintf(w, `[{"id":%s,"name":"repo-p%s","clone_url":"https://github.com/o/r%s.git","ssh_url":"git@github.com:o/r%s.git","archived":false,"fork":false,"topics":[],"default_branch":"main"}]`, page, page, page, page)
+		_, _ = fmt.Fprintf(w, `[{"id":%s,"name":"repo-p%s","clone_url":"https://github.com/o/r%s.git","ssh_url":"git@github.com:o/r%s.git","archived":false,"fork":false,"topics":[],"default_branch":"main"}]`, page, page, page, page)
 	})
 
 	apiHandler := http.NewServeMux()
@@ -395,13 +395,13 @@ func TestGetOrgRepos_MultiPageRespectsListConcurrency(t *testing.T) {
 
 	gh := Github{Client: client}
 
-	os.Setenv("GHORG_GITHUB_REPO_LIST_CONCURRENCY", "2")
-	os.Setenv("GHORG_CLONE_PROTOCOL", "https")
-	os.Setenv("GHORG_GITHUB_TOKEN", "tok")
+	_ = os.Setenv("GHORG_GITHUB_REPO_LIST_CONCURRENCY", "2")
+	_ = os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+	_ = os.Setenv("GHORG_GITHUB_TOKEN", "tok")
 	defer func() {
-		os.Unsetenv("GHORG_GITHUB_REPO_LIST_CONCURRENCY")
-		os.Unsetenv("GHORG_CLONE_PROTOCOL")
-		os.Unsetenv("GHORG_GITHUB_TOKEN")
+		_ = os.Unsetenv("GHORG_GITHUB_REPO_LIST_CONCURRENCY")
+		_ = os.Unsetenv("GHORG_CLONE_PROTOCOL")
+		_ = os.Unsetenv("GHORG_GITHUB_TOKEN")
 	}()
 
 	resp, err := gh.GetOrgRepos("conctest")

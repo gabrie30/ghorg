@@ -13,9 +13,8 @@ import (
 	"github.com/ktrysmt/go-bitbucket"
 )
 
-var (
-	_ Client = Bitbucket{}
-)
+// compile-time assertion that Bitbucket implements the Client interface
+var _ Client = Bitbucket{}
 
 func init() {
 	registerClient(Bitbucket{})
@@ -36,7 +35,7 @@ type Bitbucket struct {
 	apiToken    string
 }
 
-func (_ Bitbucket) GetType() string {
+func (Bitbucket) GetType() string {
 	return "bitbucket"
 }
 
@@ -74,7 +73,7 @@ func (c Bitbucket) GetUserRepos(targetUser string) ([]Repo, error) {
 }
 
 // NewClient create new bitbucket scm client
-func (_ Bitbucket) NewClient() (Client, error) {
+func (Bitbucket) NewClient() (Client, error) {
 	user := os.Getenv("GHORG_BITBUCKET_USERNAME")
 	password := os.Getenv("GHORG_BITBUCKET_APP_PASSWORD")
 	oAuth := os.Getenv("GHORG_BITBUCKET_OAUTH_TOKEN")
@@ -140,6 +139,7 @@ func (_ Bitbucket) NewClient() (Client, error) {
 		useAPIToken = true
 	} else {
 		// Legacy App Password authentication
+		colorlog.PrintError("WARNING: Bitbucket Cloud App Passwords are deprecated and will be permanently disabled on July 28, 2026. Migrate to API Tokens by setting GHORG_BITBUCKET_API_TOKEN and GHORG_BITBUCKET_API_EMAIL. See https://support.atlassian.com/bitbucket-cloud/docs/create-an-api-token/")
 		var err error
 		c, err = bitbucket.NewBasicAuth(user, password)
 		if err != nil {
@@ -191,7 +191,7 @@ func (c Bitbucket) getServerProjectRepos(projectKey string) ([]Repo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to make API request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -233,7 +233,7 @@ func (c Bitbucket) getServerUserRepos(username string) ([]Repo, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -312,9 +312,6 @@ func (c Bitbucket) filterServerRepos(repos []ServerRepository) []Repo {
 					r.CloneURL = c.addCredentialsToURL(href)
 					cloneData = append(cloneData, r)
 					// Added HTTPS clone URL
-				} else {
-					// Log unmatched protocols for debugging
-					// Skipping incompatible clone link
 				}
 			}
 		}

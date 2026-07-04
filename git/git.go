@@ -74,13 +74,14 @@ func (g GitClient) HasRemoteHeads(repo scm.Repo) (bool, error) {
 	}
 
 	exitCode := exitError.ExitCode()
-	if exitCode == 0 {
+	switch exitCode {
+	case 0:
 		// ls-remote did successfully list the remote heads
 		return true, nil
-	} else if exitCode == 2 {
+	case 2:
 		// repository is empty
 		return false, nil
-	} else {
+	default:
 		// another exit code, simply return err
 		return false, err
 	}

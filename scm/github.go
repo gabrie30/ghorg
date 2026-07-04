@@ -16,10 +16,12 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// compile-time assertion that Github implements the Client interface
+var _ Client = Github{}
+
 var (
-	_             Client = Github{}
-	reposPerPage         = 100
-	tokenUsername        = ""
+	reposPerPage  = 100
+	tokenUsername = ""
 )
 
 func init() {
@@ -33,7 +35,7 @@ type Github struct {
 	perPage int
 }
 
-func (_ Github) GetType() string {
+func (Github) GetType() string {
 	return "github"
 }
 
@@ -122,7 +124,7 @@ func (c Github) GetUserRepos(targetUser string) ([]Repo, error) {
 }
 
 // NewClient create new github scm client
-func (_ Github) NewClient() (Client, error) {
+func (Github) NewClient() (Client, error) {
 	ctx := context.Background()
 	var tc *http.Client
 
@@ -165,7 +167,7 @@ func (_ Github) NewClient() (Client, error) {
 		if err != nil {
 			return nil, err
 		}
-		os.Setenv("GHORG_GITHUB_TOKEN", token)
+		_ = os.Setenv("GHORG_GITHUB_TOKEN", token)
 	}
 
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
@@ -183,7 +185,7 @@ func (_ Github) NewClient() (Client, error) {
 	return client, nil
 }
 
-func (_ Github) addTokenToHTTPSCloneURL(url string, token string) string {
+func (Github) addTokenToHTTPSCloneURL(url string, token string) string {
 	splitURL := strings.Split(url, "https://")
 	return "https://" + tokenUsername + ":" + token + "@" + splitURL[1]
 }

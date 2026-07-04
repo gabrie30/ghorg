@@ -1,5 +1,6 @@
 GOFILES := $(shell find . -name "*.go" -type f ! -path "./vendor/*" ! -path "*/bindata.go")
 GOFMT ?= gofmt -s
+GOLANGCI_LINT_VERSION ?= v2.12.2
 
 .PHONY: install
 install:
@@ -14,6 +15,14 @@ homebrew:
 .PHONY: fmt
 fmt:
 		$(GOFMT) -w $(GOFILES)
+
+.PHONY: lint-install
+lint-install:
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
+
+.PHONY: lint
+lint:
+		golangci-lint run ./...
 
 .PHONY: release
 release:

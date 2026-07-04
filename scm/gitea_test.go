@@ -38,14 +38,14 @@ func setupGiteaTest() (client Gitea, mux *http.ServeMux, serverURL string, teard
 	mux.HandleFunc("/api/v1/version", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{"version": "1.18.0"})
+		_ = json.NewEncoder(w).Encode(map[string]string{"version": "1.18.0"})
 	})
 
 	// Mock the settings endpoint
 	mux.HandleFunc("/api/v1/settings/api", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]any{
+		_ = json.NewEncoder(w).Encode(map[string]any{
 			"max_response_items": 50,
 		})
 	})
@@ -78,12 +78,12 @@ func TestGitea_GetOrgRepos_SinglePage(t *testing.T) {
 
 	mux.HandleFunc("/api/v1/orgs/test-org/repos", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(repos)
+		_ = json.NewEncoder(w).Encode(repos)
 	})
 
 	// Set required environment variables
-	os.Setenv("GHORG_CLONE_PROTOCOL", "https")
-	defer os.Unsetenv("GHORG_CLONE_PROTOCOL")
+	_ = os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+	defer func() { _ = os.Unsetenv("GHORG_CLONE_PROTOCOL") }()
 
 	result, err := client.GetOrgRepos("test-org")
 	if err != nil {
@@ -143,12 +143,12 @@ func TestGitea_GetOrgRepos_MultiplePage_PaginationBugRegression(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(repos)
+		_ = json.NewEncoder(w).Encode(repos)
 	})
 
 	// Set required environment variables
-	os.Setenv("GHORG_CLONE_PROTOCOL", "https")
-	defer os.Unsetenv("GHORG_CLONE_PROTOCOL")
+	_ = os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+	defer func() { _ = os.Unsetenv("GHORG_CLONE_PROTOCOL") }()
 
 	result, err := client.GetOrgRepos("test-org")
 	if err != nil {
@@ -191,7 +191,7 @@ func TestGitea_GetOrgRepos_ExactPageBoundary(t *testing.T) {
 	mux.HandleFunc("/api/v1/orgs/test-org/repos", func(w http.ResponseWriter, r *http.Request) {
 		page := 1
 		if pageParam := r.URL.Query().Get("page"); pageParam != "" {
-			fmt.Sscanf(pageParam, "%d", &page)
+			_, _ = fmt.Sscanf(pageParam, "%d", &page)
 		}
 
 		startIdx := (page - 1) * client.perPage
@@ -212,11 +212,11 @@ func TestGitea_GetOrgRepos_ExactPageBoundary(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(repos)
+		_ = json.NewEncoder(w).Encode(repos)
 	})
 
-	os.Setenv("GHORG_CLONE_PROTOCOL", "https")
-	defer os.Unsetenv("GHORG_CLONE_PROTOCOL")
+	_ = os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+	defer func() { _ = os.Unsetenv("GHORG_CLONE_PROTOCOL") }()
 
 	result, err := client.GetOrgRepos("test-org")
 	if err != nil {
@@ -240,7 +240,7 @@ func TestGitea_GetUserRepos_PaginationBugRegression(t *testing.T) {
 	mux.HandleFunc("/api/v1/users/test-user/repos", func(w http.ResponseWriter, r *http.Request) {
 		page := 1
 		if pageParam := r.URL.Query().Get("page"); pageParam != "" {
-			fmt.Sscanf(pageParam, "%d", &page)
+			_, _ = fmt.Sscanf(pageParam, "%d", &page)
 		}
 
 		startIdx := (page - 1) * client.perPage
@@ -261,11 +261,11 @@ func TestGitea_GetUserRepos_PaginationBugRegression(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(repos)
+		_ = json.NewEncoder(w).Encode(repos)
 	})
 
-	os.Setenv("GHORG_CLONE_PROTOCOL", "https")
-	defer os.Unsetenv("GHORG_CLONE_PROTOCOL")
+	_ = os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+	defer func() { _ = os.Unsetenv("GHORG_CLONE_PROTOCOL") }()
 
 	result, err := client.GetUserRepos("test-user")
 	if err != nil {
@@ -283,11 +283,11 @@ func TestGitea_GetOrgRepos_EmptyResponse(t *testing.T) {
 
 	mux.HandleFunc("/api/v1/orgs/empty-org/repos", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode([]*gitea.Repository{})
+		_ = json.NewEncoder(w).Encode([]*gitea.Repository{})
 	})
 
-	os.Setenv("GHORG_CLONE_PROTOCOL", "https")
-	defer os.Unsetenv("GHORG_CLONE_PROTOCOL")
+	_ = os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+	defer func() { _ = os.Unsetenv("GHORG_CLONE_PROTOCOL") }()
 
 	result, err := client.GetOrgRepos("empty-org")
 	if err != nil {
@@ -305,7 +305,7 @@ func TestGitea_GetOrgRepos_NotFound(t *testing.T) {
 
 	mux.HandleFunc("/api/v1/orgs/nonexistent-org/repos", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("404 Not Found"))
+		_, _ = w.Write([]byte("404 Not Found"))
 	})
 
 	_, err := client.GetOrgRepos("nonexistent-org")
@@ -329,7 +329,7 @@ func BenchmarkGitea_GetOrgRepos_LargePagination(b *testing.B) {
 	mux.HandleFunc("/api/v1/orgs/large-org/repos", func(w http.ResponseWriter, r *http.Request) {
 		page := 1
 		if pageParam := r.URL.Query().Get("page"); pageParam != "" {
-			fmt.Sscanf(pageParam, "%d", &page)
+			_, _ = fmt.Sscanf(pageParam, "%d", &page)
 		}
 
 		startIdx := (page - 1) * client.perPage
@@ -344,11 +344,11 @@ func BenchmarkGitea_GetOrgRepos_LargePagination(b *testing.B) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(repos)
+		_ = json.NewEncoder(w).Encode(repos)
 	})
 
-	os.Setenv("GHORG_CLONE_PROTOCOL", "https")
-	defer os.Unsetenv("GHORG_CLONE_PROTOCOL")
+	_ = os.Setenv("GHORG_CLONE_PROTOCOL", "https")
+	defer func() { _ = os.Unsetenv("GHORG_CLONE_PROTOCOL") }()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

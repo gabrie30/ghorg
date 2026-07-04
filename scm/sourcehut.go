@@ -15,9 +15,8 @@ import (
 	"github.com/gabrie30/ghorg/colorlog"
 )
 
-var (
-	_ Client = Sourcehut{}
-)
+// compile-time assertion that Sourcehut implements the Client interface
+var _ Client = Sourcehut{}
 
 func init() {
 	registerClient(Sourcehut{})
@@ -31,7 +30,7 @@ type Sourcehut struct {
 
 type sourcehutCursor string
 
-func (_ Sourcehut) GetType() string {
+func (Sourcehut) GetType() string {
 	return "sourcehut"
 }
 
@@ -87,7 +86,7 @@ func (c Sourcehut) GetUserRepos(targetUsername string) ([]Repo, error) {
 }
 
 // NewClient create new sourcehut scm client
-func (_ Sourcehut) NewClient() (Client, error) {
+func (Sourcehut) NewClient() (Client, error) {
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
 	token := os.Getenv("GHORG_SOURCEHUT_TOKEN")
 
@@ -176,7 +175,7 @@ func (c Sourcehut) queryRepositoriesPage(cursor sourcehutCursor, apiUsername str
 	if err != nil {
 		return nil, "", err
 	}
-	defer rs.Body.Close()
+	defer func() { _ = rs.Body.Close() }()
 
 	if rs.StatusCode != 200 {
 		body, _ := io.ReadAll(io.LimitReader(rs.Body, 200))

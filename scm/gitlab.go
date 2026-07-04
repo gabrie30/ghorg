@@ -14,11 +14,13 @@ import (
 )
 
 var (
-	_Client         = Gitlab{}
 	perPage         = 100
 	gitLabAllGroups = false
 	gitLabAllUsers  = false
 )
+
+// compile-time assertion that Gitlab implements the Client interface
+var _ Client = Gitlab{}
 
 func init() {
 	registerClient(Gitlab{})
@@ -29,27 +31,20 @@ type Gitlab struct {
 	*gitlab.Client
 }
 
-func (_ Gitlab) GetType() string {
+func (Gitlab) GetType() string {
 	return "gitlab"
 }
 
-func (_ Gitlab) rootLevelSnippet(url string) bool {
+func (Gitlab) rootLevelSnippet(url string) bool {
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
 	if baseURL != "" {
 		customSnippetPattern := regexp.MustCompile(`^` + baseURL + `/-/snippets/\d+$`)
-		if customSnippetPattern.MatchString(url) {
-			return true
-		}
-		return false
-	} else {
-		// cloud instances
-		// Check if the URL follows the pattern of a root level snippet
-		rootLevelSnippetPattern := regexp.MustCompile(`^https://gitlab\.com/-/snippets/\d+$`)
-		if rootLevelSnippetPattern.MatchString(url) {
-			return true
-		}
-		return false
+		return customSnippetPattern.MatchString(url)
 	}
+	// cloud instances
+	// Check if the URL follows the pattern of a root level snippet
+	rootLevelSnippetPattern := regexp.MustCompile(`^https://gitlab\.com/-/snippets/\d+$`)
+	return rootLevelSnippetPattern.MatchString(url)
 }
 
 // GetOrgRepos fetches repo data from a specific group
@@ -155,7 +150,7 @@ func (c Gitlab) GetTopLevelGroups() ([]string, error) {
 	}
 
 	// Fetch first page to discover total number of pages
-	groups, resp, err := c.Client.Groups.ListGroups(opt)
+	groups, resp, err := c.Groups.ListGroups(opt)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +206,7 @@ func (c Gitlab) createRepoSnippetCloneURL(cloneTargetURL string, snippetID strin
 func (c Gitlab) createRootLevelSnippetCloneURL(snippetWebURL string) string {
 	// Web URL example, http://gitlab.example.com/-/snippets/1
 	// Both http and ssh clone urls do not have the /-/ in them so just remove it first and add the .git extention
-	cloneURL := strings.Replace(snippetWebURL, "/-/", "/", -1) + ".git"
+	cloneURL := strings.ReplaceAll(snippetWebURL, "/-/", "/") + ".git"
 	if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 		return c.addTokenToCloneURL(cloneURL, os.Getenv("GHORG_GITLAB_TOKEN"))
 	}
@@ -333,10 +328,6 @@ func (c Gitlab) GetSnippets(cloneData []Repo, target string) ([]Repo, error) {
 				repoSnippets := c.getRepoSnippets(repo)
 				allSnippetsToClone = append(allSnippetsToClone, repoSnippets...)
 			}
-		}
-
-		if os.Getenv("GHORG_CLONE_TYPE") == "user" && os.Getenv("GHORG_SCM_BASE_URL") == "" {
-
 		}
 
 	}
@@ -482,7 +473,7 @@ func (c Gitlab) GetUserRepos(targetUsername string) ([]Repo, error) {
 }
 
 // NewClient create new gitlab scm client
-func (_ Gitlab) NewClient() (Client, error) {
+func (Gitlab) NewClient() (Client, error) {
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
 	token := os.Getenv("GHORG_GITLAB_TOKEN")
 
@@ -515,7 +506,7 @@ func (_ Gitlab) NewClient() (Client, error) {
 	return Gitlab{c}, err
 }
 
-func (_ Gitlab) addTokenToCloneURL(url string, token string) string {
+func (Gitlab) addTokenToCloneURL(url string, token string) string {
 	// allows for http and https for local testing
 	splitURL := strings.Split(url, "://")
 	return splitURL[0] + "://oauth2:" + token + "@" + splitURL[1]
@@ -605,7 +596,7 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 			repoData = append(repoData, r)
 		}
 
-		if p.WikiEnabled && os.Getenv("GHORG_CLONE_WIKI") == "true" {
+		if p.WikiAccessLevel != gitlab.DisabledAccessControl && os.Getenv("GHORG_CLONE_WIKI") == "true" {
 			wiki := Repo{}
 			// wiki needs name for gitlab name collisions
 			wiki.Name = p.Name

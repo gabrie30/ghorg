@@ -59,8 +59,8 @@ func TestRepositoryFilter_FilterByRegexMatch(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			os.Setenv("GHORG_MATCH_REGEX", tc.regex)
-			defer os.Unsetenv("GHORG_MATCH_REGEX")
+			_ = os.Setenv("GHORG_MATCH_REGEX", tc.regex)
+			defer func() { _ = os.Unsetenv("GHORG_MATCH_REGEX") }()
 
 			result := filter.FilterByRegexMatch(tc.repos)
 			if !reflect.DeepEqual(result, tc.expectedRepos) {
@@ -113,8 +113,8 @@ func TestRepositoryFilter_FilterByExcludeRegexMatch(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			os.Setenv("GHORG_EXCLUDE_MATCH_REGEX", tc.regex)
-			defer os.Unsetenv("GHORG_EXCLUDE_MATCH_REGEX")
+			_ = os.Setenv("GHORG_EXCLUDE_MATCH_REGEX", tc.regex)
+			defer func() { _ = os.Unsetenv("GHORG_EXCLUDE_MATCH_REGEX") }()
 
 			result := filter.FilterByExcludeRegexMatch(tc.repos)
 			if !reflect.DeepEqual(result, tc.expectedRepos) {
@@ -171,8 +171,8 @@ func TestRepositoryFilter_FilterByMatchPrefix(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			os.Setenv("GHORG_MATCH_PREFIX", tc.prefix)
-			defer os.Unsetenv("GHORG_MATCH_PREFIX")
+			_ = os.Setenv("GHORG_MATCH_PREFIX", tc.prefix)
+			defer func() { _ = os.Unsetenv("GHORG_MATCH_PREFIX") }()
 
 			result := filter.FilterByMatchPrefix(tc.repos)
 			if !reflect.DeepEqual(result, tc.expectedRepos) {
@@ -227,8 +227,8 @@ func TestRepositoryFilter_FilterByExcludeMatchPrefix(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			os.Setenv("GHORG_EXCLUDE_MATCH_PREFIX", tc.prefix)
-			defer os.Unsetenv("GHORG_EXCLUDE_MATCH_PREFIX")
+			_ = os.Setenv("GHORG_EXCLUDE_MATCH_PREFIX", tc.prefix)
+			defer func() { _ = os.Unsetenv("GHORG_EXCLUDE_MATCH_PREFIX") }()
 
 			result := filter.FilterByExcludeMatchPrefix(tc.repos)
 			if !reflect.DeepEqual(result, tc.expectedRepos) {
@@ -279,10 +279,10 @@ func TestRepositoryFilter_FilterByGhorgignore(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Failed to create temp file: %v", err)
 			}
-			defer os.Remove(tmpfile.Name())
+			defer func() { _ = os.Remove(tmpfile.Name()) }()
 
-			os.Setenv("GHORG_IGNORE_PATH", tmpfile.Name())
-			defer os.Unsetenv("GHORG_IGNORE_PATH")
+			_ = os.Setenv("GHORG_IGNORE_PATH", tmpfile.Name())
+			defer func() { _ = os.Unsetenv("GHORG_IGNORE_PATH") }()
 
 			result := filter.FilterByGhorgignore(tc.repos)
 			if !reflect.DeepEqual(result, tc.expectedRepos) {
@@ -296,9 +296,9 @@ func TestRepositoryFilter_FilterByGhorgonly(t *testing.T) {
 	filter := NewRepositoryFilter()
 
 	testCases := []struct {
-		name        string
-		onlyContent string
-		repos       []scm.Repo
+		name          string
+		onlyContent   string
+		repos         []scm.Repo
 		expectedRepos []scm.Repo
 	}{
 		{
@@ -345,10 +345,10 @@ func TestRepositoryFilter_FilterByGhorgonly(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Failed to create temp file: %v", err)
 			}
-			defer os.Remove(tmpfile.Name())
+			defer func() { _ = os.Remove(tmpfile.Name()) }()
 
-			os.Setenv("GHORG_ONLY_PATH", tmpfile.Name())
-			defer os.Unsetenv("GHORG_ONLY_PATH")
+			_ = os.Setenv("GHORG_ONLY_PATH", tmpfile.Name())
+			defer func() { _ = os.Unsetenv("GHORG_ONLY_PATH") }()
 
 			result := filter.FilterByGhorgonly(tc.repos)
 			if !reflect.DeepEqual(result, tc.expectedRepos) {
@@ -400,10 +400,10 @@ func TestRepositoryFilter_FilterByTargetReposPath(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Failed to create temp file: %v", err)
 			}
-			defer os.Remove(tmpfile.Name())
+			defer func() { _ = os.Remove(tmpfile.Name()) }()
 
-			os.Setenv("GHORG_TARGET_REPOS_PATH", tmpfile.Name())
-			defer os.Unsetenv("GHORG_TARGET_REPOS_PATH")
+			_ = os.Setenv("GHORG_TARGET_REPOS_PATH", tmpfile.Name())
+			defer func() { _ = os.Unsetenv("GHORG_TARGET_REPOS_PATH") }()
 
 			result := filter.FilterByTargetReposPath(tc.repos)
 			if !reflect.DeepEqual(result, tc.expectedRepos) {
@@ -426,18 +426,18 @@ func TestRepositoryFilter_ApplyAllFilters(t *testing.T) {
 	}
 
 	// Set up regex filter to match test- prefix
-	os.Setenv("GHORG_MATCH_REGEX", "^test-")
+	_ = os.Setenv("GHORG_MATCH_REGEX", "^test-")
 
 	// Set up ghorgignore
 	tmpfile, err := createTempFileWithContent("ignored")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer os.Remove(tmpfile.Name())
-	os.Setenv("GHORG_IGNORE_PATH", tmpfile.Name())
+	defer func() { _ = os.Remove(tmpfile.Name()) }()
+	_ = os.Setenv("GHORG_IGNORE_PATH", tmpfile.Name())
 
 	// Ensure no ghorgonly file is used by pointing to non-existent file
-	os.Setenv("GHORG_ONLY_PATH", "/tmp/nonexistent-ghorgonly-file-for-test")
+	_ = os.Setenv("GHORG_ONLY_PATH", "/tmp/nonexistent-ghorgonly-file-for-test")
 
 	result := filter.ApplyAllFilters(repos)
 
@@ -454,8 +454,8 @@ func TestRepositoryFilter_ApplyAllFilters(t *testing.T) {
 // Benchmark tests for performance validation
 func BenchmarkRepositoryFilter_FilterByRegexMatch(b *testing.B) {
 	filter := NewRepositoryFilter()
-	os.Setenv("GHORG_MATCH_REGEX", "^test-")
-	defer os.Unsetenv("GHORG_MATCH_REGEX")
+	_ = os.Setenv("GHORG_MATCH_REGEX", "^test-")
+	defer func() { _ = os.Unsetenv("GHORG_MATCH_REGEX") }()
 
 	// Create 1000 test repos
 	repos := make([]scm.Repo, 1000)
@@ -475,8 +475,8 @@ func BenchmarkRepositoryFilter_FilterByRegexMatch(b *testing.B) {
 
 func BenchmarkRepositoryFilter_FilterByPrefix(b *testing.B) {
 	filter := NewRepositoryFilter()
-	os.Setenv("GHORG_MATCH_PREFIX", "test,lib,core")
-	defer os.Unsetenv("GHORG_MATCH_PREFIX")
+	_ = os.Setenv("GHORG_MATCH_PREFIX", "test,lib,core")
+	defer func() { _ = os.Unsetenv("GHORG_MATCH_PREFIX") }()
 
 	// Create 1000 test repos
 	repos := make([]scm.Repo, 1000)

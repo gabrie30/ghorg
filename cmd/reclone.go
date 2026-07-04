@@ -34,7 +34,7 @@ func reCloneFunc(cmd *cobra.Command, argz []string) {
 
 	if cmd.Flags().Changed("reclone-path") {
 		path := cmd.Flag("reclone-path").Value.String()
-		os.Setenv("GHORG_RECLONE_PATH", path)
+		_ = os.Setenv("GHORG_RECLONE_PATH", path)
 	}
 
 	syncBoolFlagToEnv(cmd, "quiet", "GHORG_RECLONE_QUIET")
@@ -205,11 +205,11 @@ func runReClone(rc ReClone, rcIdentifier string) {
 	ghorgClone := exec.Command("ghorg", remainingCommand...)
 
 	if os.Getenv("GHORG_CONFIG") == "none" {
-		os.Setenv("GHORG_CONFIG", "")
+		_ = os.Setenv("GHORG_CONFIG", "")
 	}
 
-	os.Setenv("GHORG_RECLONE_RUNNING", "true")
-	defer os.Setenv("GHORG_RECLONE_RUNNING", "false")
+	_ = os.Setenv("GHORG_RECLONE_RUNNING", "true")
+	defer func() { _ = os.Setenv("GHORG_RECLONE_RUNNING", "false") }()
 
 	if os.Getenv("GHORG_RECLONE_ENV_CONFIG_ONLY") == "false" {
 		// have to unset all ghorg envs because root command will set them on initialization of ghorg cmd
@@ -223,7 +223,7 @@ func runReClone(rc ReClone, rcIdentifier string) {
 				continue
 			}
 			if ghorgEnv {
-				os.Unsetenv(env)
+				_ = os.Unsetenv(env)
 			}
 		}
 	}

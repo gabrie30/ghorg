@@ -1,13 +1,10 @@
 package scm
 
 import (
-	"context"
-	"fmt"
 	"os"
 	"strconv"
 	"sync"
 
-	"github.com/gabrie30/ghorg/colorlog"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
@@ -38,16 +35,16 @@ func (c Gitlab) fetchTopLevelGroupsParallel(firstPageGroups []*gitlab.Group, tot
 		go func(pageNum int) {
 			defer wg.Done()
 
-		opt := &gitlab.ListGroupsOptions{
-			ListOptions: gitlab.ListOptions{
-				PerPage: int64(perPage),
-				Page:    int64(pageNum),
-			},
-			TopLevelOnly: &[]bool{true}[0],
-			AllAvailable: &[]bool{true}[0],
-		}
+			opt := &gitlab.ListGroupsOptions{
+				ListOptions: gitlab.ListOptions{
+					PerPage: int64(perPage),
+					Page:    int64(pageNum),
+				},
+				TopLevelOnly: &[]bool{true}[0],
+				AllAvailable: &[]bool{true}[0],
+			}
 
-			groups, _, err := c.Client.Groups.ListGroups(opt)
+			groups, _, err := c.Groups.ListGroups(opt)
 			resultChan <- pageResult{groups: groups, err: err, page: pageNum}
 		}(page)
 	}
@@ -102,14 +99,14 @@ func (c Gitlab) fetchGroupReposParallel(targetGroup string, firstPageProjects []
 		go func(pageNum int) {
 			defer wg.Done()
 
-		opt := &gitlab.ListGroupProjectsOptions{
-			ListOptions: gitlab.ListOptions{
-				PerPage: int64(perPage),
-				Page:    int64(pageNum),
-			},
-			IncludeSubGroups: gitlab.Ptr(true),
-			WithShared:       gitlab.Ptr(os.Getenv("GHORG_GITLAB_INCLUDE_SHARED_PROJECTS") != "false"),
-		}
+			opt := &gitlab.ListGroupProjectsOptions{
+				ListOptions: gitlab.ListOptions{
+					PerPage: int64(perPage),
+					Page:    int64(pageNum),
+				},
+				IncludeSubGroups: gitlab.Ptr(true),
+				WithShared:       gitlab.Ptr(os.Getenv("GHORG_GITLAB_INCLUDE_SHARED_PROJECTS") != "false"),
+			}
 
 			ps, _, err := c.Groups.ListGroupProjects(targetGroup, opt)
 			resultChan <- pageResult{projects: ps, err: err, page: pageNum}
@@ -139,189 +136,4 @@ func (c Gitlab) fetchGroupReposParallel(targetGroup string, firstPageProjects []
 	}
 
 	return repoData, nil
-}
-
-// fetchUserProjectsParallel fetches remaining pages of user projects concurrently
-func (c Gitlab) fetchUserProjectsParallel(targetUser string, firstPageProjects []*gitlab.Project, totalPages int) ([]Repo, error) {
-	// Create slice to hold all repos
-	repoData := make([]Repo, 0, len(firstPageProjects)*totalPages)
-
-	// Filter first page
-	repoData = append(repoData, c.filter(targetUser, firstPageProjects)...)
-
-	// Channel to collect results from parallel fetches
-	type pageResult struct {
-		projects []*gitlab.Project
-		err      error
-		page     int
-	}
-	resultChan := make(chan pageResult, totalPages-1)
-
-	// WaitGroup to track goroutines
-	var wg sync.WaitGroup
-
-	// Fetch pages 2 through totalPages in parallel
-	for page := 2; page <= totalPages; page++ {
-		wg.Add(1)
-		go func(pageNum int) {
-			defer wg.Done()
-
-		projectOpts := &gitlab.ListProjectsOptions{
-			ListOptions: gitlab.ListOptions{
-				PerPage: int64(perPage),
-				Page:    int64(pageNum),
-			},
-		}
-
-			projects, _, err := c.Projects.ListProjects(projectOpts, gitlab.WithContext(context.Background()))
-			resultChan <- pageResult{projects: projects, err: err, page: pageNum}
-		}(page)
-	}
-
-	// Close channel when all goroutines complete
-	go func() {
-		wg.Wait()
-		close(resultChan)
-	}()
-
-	// Collect results, organized by page number for consistent ordering
-	pageResults := make(map[int][]*gitlab.Project, totalPages-1)
-	for result := range resultChan {
-		if result.err != nil {
-			return nil, result.err
-		}
-		pageResults[result.page] = result.projects
-	}
-
-	// Append results in page order to maintain consistency
-	for page := 2; page <= totalPages; page++ {
-		if projects, ok := pageResults[page]; ok {
-			repoData = append(repoData, c.filter(targetUser, projects)...)
-		}
-	}
-
-	return repoData, nil
-}
-
-// fetchRepoSnippetsParallel fetches remaining pages of repository snippets concurrently
-func (c Gitlab) fetchRepoSnippetsParallel(repoID string, firstPageSnippets []*gitlab.Snippet, totalPages int) []*gitlab.Snippet {
-	// Create slice to hold all snippets
-	allSnippets := make([]*gitlab.Snippet, 0, len(firstPageSnippets)*totalPages)
-	allSnippets = append(allSnippets, firstPageSnippets...)
-
-	// Channel to collect results from parallel fetches
-	type pageResult struct {
-		snippets []*gitlab.Snippet
-		err      error
-		page     int
-	}
-	resultChan := make(chan pageResult, totalPages-1)
-
-	// WaitGroup to track goroutines
-	var wg sync.WaitGroup
-
-	// Fetch pages 2 through totalPages in parallel
-	for page := 2; page <= totalPages; page++ {
-		wg.Add(1)
-		go func(pageNum int) {
-			defer wg.Done()
-
-		opt := &gitlab.ListProjectSnippetsOptions{
-			ListOptions: gitlab.ListOptions{
-				PerPage: int64(perPage),
-				Page:    int64(pageNum),
-			},
-		}
-
-			snippets, _, err := c.ProjectSnippets.ListSnippets(repoID, opt)
-			resultChan <- pageResult{snippets: snippets, err: err, page: pageNum}
-		}(page)
-	}
-
-	// Close channel when all goroutines complete
-	go func() {
-		wg.Wait()
-		close(resultChan)
-	}()
-
-	// Collect results, organized by page number for consistent ordering
-	pageResults := make(map[int][]*gitlab.Snippet, totalPages-1)
-	for result := range resultChan {
-		if result.err != nil {
-			// For snippets, we log errors but continue
-			colorlog.PrintError(fmt.Sprintf("Error fetching snippet page %d: %v", result.page, result.err))
-			continue
-		}
-		pageResults[result.page] = result.snippets
-	}
-
-	// Append results in page order to maintain consistency
-	for page := 2; page <= totalPages; page++ {
-		if snippets, ok := pageResults[page]; ok {
-			allSnippets = append(allSnippets, snippets...)
-		}
-	}
-
-	return allSnippets
-}
-
-// fetchAllSnippetsParallel fetches remaining pages of all snippets concurrently
-func (c Gitlab) fetchAllSnippetsParallel(firstPageSnippets []*gitlab.Snippet, totalPages int) []*gitlab.Snippet {
-	// Create slice to hold all snippets
-	allSnippets := make([]*gitlab.Snippet, 0, len(firstPageSnippets)*totalPages)
-	allSnippets = append(allSnippets, firstPageSnippets...)
-
-	// Channel to collect results from parallel fetches
-	type pageResult struct {
-		snippets []*gitlab.Snippet
-		err      error
-		page     int
-	}
-	resultChan := make(chan pageResult, totalPages-1)
-
-	// WaitGroup to track goroutines
-	var wg sync.WaitGroup
-
-	// Fetch pages 2 through totalPages in parallel
-	for page := 2; page <= totalPages; page++ {
-		wg.Add(1)
-		go func(pageNum int) {
-			defer wg.Done()
-
-		opt := &gitlab.ListAllSnippetsOptions{
-			ListOptions: gitlab.ListOptions{
-				PerPage: int64(perPage),
-				Page:    int64(pageNum),
-			},
-		}
-
-			snippets, _, err := c.Snippets.ListAllSnippets(opt)
-			resultChan <- pageResult{snippets: snippets, err: err, page: pageNum}
-		}(page)
-	}
-
-	// Close channel when all goroutines complete
-	go func() {
-		wg.Wait()
-		close(resultChan)
-	}()
-
-	// Collect results, organized by page number for consistent ordering
-	pageResults := make(map[int][]*gitlab.Snippet, totalPages-1)
-	for result := range resultChan {
-		if result.err != nil {
-			colorlog.PrintError(fmt.Sprintf("Error fetching all snippets page %d: %v", result.page, result.err))
-			continue
-		}
-		pageResults[result.page] = result.snippets
-	}
-
-	// Append results in page order to maintain consistency
-	for page := 2; page <= totalPages; page++ {
-		if snippets, ok := pageResults[page]; ok {
-			allSnippets = append(allSnippets, snippets...)
-		}
-	}
-
-	return allSnippets
 }
