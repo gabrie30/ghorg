@@ -81,6 +81,16 @@ func Test_splitCommandArgs(t *testing.T) {
 			cmd:  `ghorg clone my-org --match-regex 'say "hello"'`,
 			want: []string{"ghorg", "clone", "my-org", "--match-regex", `say "hello"`},
 		},
+		{
+			name: "empty command returns empty slice",
+			cmd:  "",
+			want: nil,
+		},
+		{
+			name: "single word command returns single element",
+			cmd:  "ghorg",
+			want: []string{"ghorg"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
