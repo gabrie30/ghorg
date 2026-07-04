@@ -16,10 +16,12 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// compile-time assertion that Github implements the Client interface
+var _ Client = Github{}
+
 var (
-	_             Client = Github{}
-	reposPerPage         = 100
-	tokenUsername        = ""
+	reposPerPage  = 100
+	tokenUsername = ""
 )
 
 func init() {

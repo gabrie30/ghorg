@@ -11,9 +11,8 @@ import (
 	"github.com/gabrie30/ghorg/colorlog"
 )
 
-var (
-	_ Client = Gitea{}
-)
+// compile-time assertion that Gitea implements the Client interface
+var _ Client = Gitea{}
 
 func init() {
 	registerClient(Gitea{})

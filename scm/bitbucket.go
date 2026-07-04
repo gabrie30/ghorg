@@ -13,9 +13,8 @@ import (
 	"github.com/ktrysmt/go-bitbucket"
 )
 
-var (
-	_ Client = Bitbucket{}
-)
+// compile-time assertion that Bitbucket implements the Client interface
+var _ Client = Bitbucket{}
 
 func init() {
 	registerClient(Bitbucket{})

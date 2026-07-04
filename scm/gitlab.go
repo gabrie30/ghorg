@@ -19,6 +19,9 @@ var (
 	gitLabAllUsers  = false
 )
 
+// compile-time assertion that Gitlab implements the Client interface
+var _ Client = Gitlab{}
+
 func init() {
 	registerClient(Gitlab{})
 }

@@ -15,9 +15,8 @@ import (
 	"github.com/gabrie30/ghorg/colorlog"
 )
 
-var (
-	_ Client = Sourcehut{}
-)
+// compile-time assertion that Sourcehut implements the Client interface
+var _ Client = Sourcehut{}
 
 func init() {
 	registerClient(Sourcehut{})
