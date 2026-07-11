@@ -18,6 +18,15 @@ gitlab-examples:
   cmd: "ghorg clone gitlab-examples --scm=gitlab --preserve-dir --token=XXXXXXX"
   post_exec_script: "/path/to/notify.sh"
 
+# Example using token_cmd to source a per-entry token from a secrets manager
+# (e.g. 1Password, mise, pass, a keyring CLI) instead of storing it in cleartext.
+# token_cmd overrides any global GHORG_TOKEN_CMD in conf.yaml for this entry only,
+# which is handy when reclone entries span multiple providers/accounts that each
+# need a different token. The command's stdout is used as the token.
+gitlab-secrets-manager:
+  cmd: "ghorg clone gitlab-examples --scm=gitlab --preserve-dir"
+  token_cmd: "op item get gitlab --fields token"
+
 # Examples from README.md; update with your github cloud token
 kubernetes:
   cmd: "ghorg clone kubernetes --token=XXXXXXX"
