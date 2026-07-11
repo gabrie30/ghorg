@@ -24,6 +24,7 @@ type ReClone struct {
 	Cmd            string `yaml:"cmd"`
 	Description    string `yaml:"description"`
 	PostExecScript string `yaml:"post_exec_script"` // optional
+	TokenCmd       string `yaml:"token_cmd"`        // optional
 }
 
 func isQuietReClone() bool {
@@ -178,6 +179,30 @@ func splitCommandArgs(cmd string) []string {
 	return args
 }
 
+// reCloneChildEnv returns the environment to run the spawned ghorg clone
+// process with. When a reclone entry sets its own token_cmd, it overrides any
+// global GHORG_TOKEN_CMD (from conf.yaml) so each entry can source a
+// provider-specific token from a secrets manager. Any pre-existing
+// GHORG_TOKEN_CMD is stripped first because, on unix, exec resolves the first
+// occurrence of a duplicated key, so appending alone would not override it.
+// Returning nil lets the child inherit the current process environment
+// unchanged, preserving the existing global behavior.
+func reCloneChildEnv(baseEnv []string, rc ReClone) []string {
+	if rc.TokenCmd == "" {
+		return nil
+	}
+
+	env := make([]string, 0, len(baseEnv)+1)
+	for _, e := range baseEnv {
+		if strings.HasPrefix(e, "GHORG_TOKEN_CMD=") {
+			continue
+		}
+		env = append(env, e)
+	}
+
+	return append(env, "GHORG_TOKEN_CMD="+rc.TokenCmd)
+}
+
 func runReClone(rc ReClone, rcIdentifier string) {
 	// make sure command starts with ghorg clone
 	splitCommand := splitCommandArgs(rc.Cmd)
@@ -227,6 +252,11 @@ func runReClone(rc ReClone, rcIdentifier string) {
 			}
 		}
 	}
+
+	// Apply a per-entry token_cmd, if set, so this clone sources its token from
+	// the entry's own command rather than a single global GHORG_TOKEN_CMD. Done
+	// after the env-unset loop above so it survives when env-config-only is false.
+	ghorgClone.Env = reCloneChildEnv(os.Environ(), rc)
 
 	// Connect ghorgClone's stdout and stderr to the current process's stdout and stderr
 	if !isQuietReClone() {

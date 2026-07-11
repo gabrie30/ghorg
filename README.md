@@ -318,6 +318,7 @@ Each reclone entry can have:
 - `cmd`: The ghorg clone command to execute (required)
 - `description`: A description of what the command does (optional)
 - `post_exec_script`: Path to a script that will be called after the clone command finishes (optional). The script will always be called, regardless of success or failure, and receives two arguments: the status (`success` or `fail`) and the name of the reclone entry. This allows you to implement custom notifications, monitoring, or other automation (optional)
+- `token_cmd`: A command whose stdout is used as the token for this entry (optional). This lets you source a token from a secrets manager (e.g. 1Password, mise, pass, a keyring CLI) instead of storing it in cleartext. It overrides any global `GHORG_TOKEN_CMD` set in `conf.yaml` for this entry only, which is useful when your reclone entries span multiple providers/accounts that each require a different token. An explicit `--token` in the entry's `cmd` still takes precedence over `token_cmd`.
 
 Example `reclone.yaml` entry:
 
@@ -325,6 +326,11 @@ Example `reclone.yaml` entry:
 gitlab-examples:
   cmd: "ghorg clone gitlab-examples --scm=gitlab --token=XXXXXXX"
   post_exec_script: "/path/to/notify.sh"
+
+# Sources the token from a secrets manager instead of cleartext
+gitlab-secrets-manager:
+  cmd: "ghorg clone gitlab-examples --scm=gitlab"
+  token_cmd: "op item get gitlab --fields token"
 ```
 
 Example script for `post_exec_script` (e.g. `/path/to/notify.sh`):

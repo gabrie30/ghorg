@@ -151,6 +151,42 @@ func Test_sanitizeCmd(t *testing.T) {
 	}
 }
 
+func Test_reCloneChildEnv(t *testing.T) {
+	tests := []struct {
+		name    string
+		baseEnv []string
+		rc      ReClone
+		want    []string
+	}{
+		{
+			name:    "no token_cmd inherits env unchanged (nil)",
+			baseEnv: []string{"GHORG_SCM_TYPE=github", "PATH=/bin"},
+			rc:      ReClone{Cmd: "ghorg clone foo"},
+			want:    nil,
+		},
+		{
+			name:    "token_cmd is appended when none present",
+			baseEnv: []string{"GHORG_SCM_TYPE=gitlab", "PATH=/bin"},
+			rc:      ReClone{Cmd: "ghorg clone foo --scm=gitlab", TokenCmd: "echo gl-token"},
+			want:    []string{"GHORG_SCM_TYPE=gitlab", "PATH=/bin", "GHORG_TOKEN_CMD=echo gl-token"},
+		},
+		{
+			name:    "token_cmd overrides a pre-existing global GHORG_TOKEN_CMD",
+			baseEnv: []string{"GHORG_TOKEN_CMD=echo global", "GHORG_SCM_TYPE=gitlab", "PATH=/bin"},
+			rc:      ReClone{Cmd: "ghorg clone foo --scm=gitlab", TokenCmd: "echo entry"},
+			want:    []string{"GHORG_SCM_TYPE=gitlab", "PATH=/bin", "GHORG_TOKEN_CMD=echo entry"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := reCloneChildEnv(tt.baseEnv, tt.rc)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("reCloneChildEnv() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func Test_sortedReCloneKeys(t *testing.T) {
 	tests := []struct {
 		name string
