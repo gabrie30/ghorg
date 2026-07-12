@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.13] - unreleased
+## [1.11.13] - 7/21/26
 ### Added
 - Optional `token_cmd` to the reclone.yaml configuration
 ### Changed
@@ -12,6 +12,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - Bug with reclone index out of range when cmd not in reclone.conf; thanks @chirag127
 ### Security
+- Bump golang.org/x/crypto from 0.51.0 to 0.52.0 (#684)
+- Bump golang.org/x/crypto from 0.45.0 to 0.52.0 in /scripts/local-gitea/seeder (#683)
+- Bump actions/upload-pages-artifact from 3 to 5 (#670)
+- Bump github/codeql-action from 2 to 4 (#669)
+- Bump actions/setup-go from 4 to 6 (#668)
+- Bump actions/deploy-pages from 4 to 5 (#667)
+- Bump actions/checkout from 2 to 7 (#666)
+- Bump actions/configure-pages from 2 to 6 (#665)
+- Bump docker/login-action from 3 to 4 (#664)
+- Bump docker/setup-buildx-action from 2 to 4 (#663)
+- Bump goreleaser/goreleaser-action from 4 to 7 (#662)
+- Bump docker/build-push-action from 5 to 7 (#661)
+- Bump golang.org/x/image from 0.39.0 to 0.41.0 (#660)
+- Bump golang.org/x/net from 0.38.0 to 0.55.0 in /scripts/local-bitbucket/seeder (#659)
+- Bump github.com/bradleyfalzon/ghinstallation/v2 from 2.18.0 to 2.19.0 (#658)
 
 ## [1.11.12] - 6/27/26
 ### Added
