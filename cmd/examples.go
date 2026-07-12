@@ -23,6 +23,7 @@ var availableExamples = []string{
 	"gitlab",
 	"bitbucket",
 	"gitea",
+	"codeberg",
 	"sourcehut",
 	"reclone-server",
 	"reclone-cron",

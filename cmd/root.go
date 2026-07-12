@@ -70,6 +70,7 @@ var (
 	insecureGitlabClient         bool
 	gitlabIncludeSharedProjects  bool
 	insecureGiteaClient          bool
+	insecureCodebergClient       bool
 	insecureBitbucketClient      bool
 	insecureSourcehutClient      bool
 	fetchAll                     bool
@@ -204,6 +205,8 @@ func getOrSetDefaults(envVar string) {
 			_ = os.Setenv(envVar, "true")
 		case "GHORG_INSECURE_GITEA_CLIENT":
 			_ = os.Setenv(envVar, "false")
+		case "GHORG_INSECURE_CODEBERG_CLIENT":
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_BITBUCKET_CLIENT":
 			_ = os.Setenv(envVar, "false")
 		case "GHORG_INSECURE_SOURCEHUT_CLIENT":
@@ -323,6 +326,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_CLONE_SNIPPETS")
 	getOrSetDefaults("GHORG_INSECURE_GITLAB_CLIENT")
 	getOrSetDefaults("GHORG_INSECURE_GITEA_CLIENT")
+	getOrSetDefaults("GHORG_INSECURE_CODEBERG_CLIENT")
 	getOrSetDefaults("GHORG_INSECURE_BITBUCKET_CLIENT")
 	getOrSetDefaults("GHORG_INSECURE_SOURCEHUT_CLIENT")
 	getOrSetDefaults("GHORG_BACKUP")
@@ -368,6 +372,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_QUIET")
 	getOrSetDefaults("GHORG_GIT_FILTER")
 	getOrSetDefaults("GHORG_GITEA_TOKEN")
+	getOrSetDefaults("GHORG_CODEBERG_TOKEN")
 	getOrSetDefaults("GHORG_SOURCEHUT_TOKEN")
 	getOrSetDefaults("GHORG_INSECURE_GITEA_CLIENT")
 	getOrSetDefaults("GHORG_SSH_HOSTNAME")
@@ -398,10 +403,10 @@ func init() {
 	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "GHORG_CLONE_PROTOCOL - Protocol to use for cloning: 'ssh' or 'https'. SSH requires proper SSH keys configured. (default: https)")
 	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "GHORG_ABSOLUTE_PATH_TO_CLONE_TO - Absolute path where all repos will be cloned. Directory will be created if it doesn't exist. Must start with / (default: $HOME/ghorg)")
 	cloneCmd.Flags().StringVarP(&branch, "branch", "b", "", "GHORG_BRANCH - Git branch to checkout after cloning each repository. Useful for cloning specific branches across all repos. (default: master)")
-	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "GHORG_GITHUB_TOKEN/GHORG_GITLAB_TOKEN/GHORG_GITEA_TOKEN/GHORG_BITBUCKET_APP_PASSWORD/GHORG_BITBUCKET_API_TOKEN/GHORG_BITBUCKET_OAUTH_TOKEN/GHORG_SOURCEHUT_TOKEN - Personal access token or API token for authentication with your SCM provider. Required for private repos")
+	cloneCmd.Flags().StringVarP(&token, "token", "t", "", "GHORG_GITHUB_TOKEN/GHORG_GITLAB_TOKEN/GHORG_GITEA_TOKEN/GHORG_CODEBERG_TOKEN/GHORG_BITBUCKET_APP_PASSWORD/GHORG_BITBUCKET_API_TOKEN/GHORG_BITBUCKET_OAUTH_TOKEN/GHORG_SOURCEHUT_TOKEN - Personal access token or API token for authentication with your SCM provider. Required for private repos")
 	cloneCmd.Flags().StringVarP(&bitbucketUsername, "bitbucket-username", "", "", "GHORG_BITBUCKET_USERNAME - Bitbucket only: Username for legacy app password authentication. Required when using app passwords")
 	cloneCmd.Flags().StringVarP(&bitbucketAPIEmail, "bitbucket-api-email", "", "", "GHORG_BITBUCKET_API_EMAIL - Bitbucket only: Email address for modern API token authentication. Use this instead of username for API tokens")
-	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "", "GHORG_SCM_TYPE - Source code management platform to clone from: github, gitlab, gitea, bitbucket, or sourcehut (default: github)")
+	cloneCmd.Flags().StringVarP(&scmType, "scm", "s", "", "GHORG_SCM_TYPE - Source code management platform to clone from: github, gitlab, gitea, codeberg, bitbucket, or sourcehut (default: github)")
 	cloneCmd.Flags().StringVarP(&cloneType, "clone-type", "c", "", "GHORG_CLONE_TYPE - Target type to clone: 'org' for organization/group or 'user' for individual user repositories (default: org)")
 	cloneCmd.Flags().BoolVar(&skipArchived, "skip-archived", false, "GHORG_SKIP_ARCHIVED - Skip archived/read-only repositories during cloning. Supported on GitHub, GitLab, and Gitea")
 	cloneCmd.Flags().BoolVar(&noClean, "no-clean", false, "GHORG_NO_CLEAN - Only clone new repositories without running 'git clean' on existing ones. Use this to preserve local changes in already-cloned repos")
@@ -413,6 +418,7 @@ func init() {
 	cloneCmd.Flags().BoolVar(&dryRun, "dry-run", false, "GHORG_DRY_RUN - Simulate the clone operation without actually cloning repositories. Shows what would be cloned for testing/verification")
 	cloneCmd.Flags().BoolVar(&insecureGitlabClient, "insecure-gitlab-client", false, "GHORG_INSECURE_GITLAB_CLIENT - Skip TLS certificate verification for self-hosted GitLab instances. Use only for internal/trusted instances")
 	cloneCmd.Flags().BoolVar(&insecureGiteaClient, "insecure-gitea-client", false, "GHORG_INSECURE_GITEA_CLIENT - Allow connections to Gitea instances using HTTP instead of HTTPS. Required for non-SSL Gitea servers")
+	cloneCmd.Flags().BoolVar(&insecureCodebergClient, "insecure-codeberg-client", false, "GHORG_INSECURE_CODEBERG_CLIENT - Allow connections to self-hosted Forgejo instances using HTTP instead of HTTPS when using --scm=codeberg. Required for non-SSL servers")
 	cloneCmd.Flags().BoolVar(&insecureBitbucketClient, "insecure-bitbucket-client", false, "GHORG_INSECURE_BITBUCKET_CLIENT - Allow connections to Bitbucket Server instances using HTTP. Required for non-SSL Bitbucket servers")
 	cloneCmd.Flags().BoolVar(&insecureSourcehutClient, "insecure-sourcehut-client", false, "GHORG_INSECURE_SOURCEHUT_CLIENT - Allow connections to Sourcehut instances using HTTP. Required for non-SSL Sourcehut servers")
 	cloneCmd.Flags().BoolVar(&cloneWiki, "clone-wiki", false, "GHORG_CLONE_WIKI - Additionally clone wiki pages associated with each repository if they exist")

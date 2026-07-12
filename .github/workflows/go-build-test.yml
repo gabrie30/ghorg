@@ -44,6 +44,11 @@ jobs:
           SOURCEHUT_TOKEN: ${{ secrets.GHORG_SOURCEHUT_TOKEN }}
           SOURCEHUT_TEST_USER: ${{ secrets.GHORG_SOURCEHUT_TEST_USER }}
           SOURCEHUT_TEST_REPO: ${{ secrets.GHORG_SOURCEHUT_TEST_REPO }}
+      - name: Run Codeberg Cloud Integration Tests
+        run: scripts/codeberg_cloud_integration_tests.sh
+        env:
+          CODEBERG_TOKEN: ${{ secrets.GHORG_CODEBERG_TOKEN }}
+          CODEBERG_TEST_ORG: ${{ secrets.GHORG_CODEBERG_TEST_ORG }}
   build_and_test_windows:
     environment: actions
     name: Build and Test Windows
@@ -97,3 +102,8 @@ jobs:
           SOURCEHUT_TOKEN: ${{ secrets.GHORG_SOURCEHUT_TOKEN }}
           SOURCEHUT_TEST_USER: ${{ secrets.GHORG_SOURCEHUT_TEST_USER }}
           SOURCEHUT_TEST_REPO: ${{ secrets.GHORG_SOURCEHUT_TEST_REPO }}
+      - name: Run Codeberg Cloud Integration Tests Linux
+        run: scripts/codeberg_cloud_integration_tests.sh
+        env:
+          CODEBERG_TOKEN: ${{ secrets.GHORG_CODEBERG_TOKEN }}
+          CODEBERG_TEST_ORG: ${{ secrets.GHORG_CODEBERG_TEST_ORG }}

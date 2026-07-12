@@ -32,6 +32,9 @@ var (
 	// ErrNoSourcehutToken error message when token is not found
 	ErrNoSourcehutToken = errors.New("could not find a valid sourcehut token. GHORG_SOURCEHUT_TOKEN or (--token, -t) flag must be set. Create a token from sourcehut then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'Sourcehut Setup' in README.md")
 
+	// ErrNoCodebergToken error message when token is not found
+	ErrNoCodebergToken = errors.New("could not find a valid codeberg token. GHORG_CODEBERG_TOKEN or (--token, -t) flag must be set. Create a token from codeberg then set it in your $HOME/.config/ghorg/conf.yaml or use the (--token, -t) flag, see 'Codeberg Setup' in README.md")
+
 	// ErrNoBitbucketUsername error message when no username found
 	ErrNoBitbucketUsername = errors.New("could not find bitbucket username. GHORG_BITBUCKET_USERNAME or (--bitbucket-username) must be set to clone repos from bitbucket, see 'BitBucket Setup' in README.md")
 
@@ -317,6 +320,8 @@ func GetOrSetToken() {
 		getOrSetBitBucketToken()
 	case "gitea":
 		getOrSetGiteaToken()
+	case "codeberg":
+		getOrSetCodebergToken()
 	case "sourcehut":
 		getOrSetSourcehutToken()
 	}
@@ -410,6 +415,21 @@ func getOrSetGiteaToken() {
 	}
 }
 
+func getOrSetCodebergToken() {
+	token := os.Getenv("GHORG_CODEBERG_TOKEN")
+
+	if IsFilePath(token) {
+		_ = os.Setenv("GHORG_CODEBERG_TOKEN", GetTokenFromFile(token))
+	}
+
+	if isZero(token) {
+		if runtime.GOOS == "windows" {
+			return
+		}
+		_ = os.Setenv("GHORG_CODEBERG_TOKEN", token)
+	}
+}
+
 func getOrSetSourcehutToken() {
 	token := os.Getenv("GHORG_SOURCEHUT_TOKEN")
 
@@ -447,6 +467,10 @@ func VerifyTokenSet() error {
 
 	if scmProvider == "gitea" && os.Getenv("GHORG_GITEA_TOKEN") == "" {
 		return ErrNoGiteaToken
+	}
+
+	if scmProvider == "codeberg" && os.Getenv("GHORG_CODEBERG_TOKEN") == "" {
+		return ErrNoCodebergToken
 	}
 
 	if scmProvider == "sourcehut" && os.Getenv("GHORG_SOURCEHUT_TOKEN") == "" {
@@ -489,6 +513,8 @@ func GetCloudScmTypeHostnames() string {
 		return "gitlab.com"
 	case "gitea":
 		return "gitea.com"
+	case "codeberg":
+		return "codeberg.org"
 	case "bitbucket":
 		return "bitbucket.com"
 	case "sourcehut":

@@ -370,6 +370,23 @@ GHORG_GITEA_TOKEN:
 # flag (--insecure-gitea-client)
 GHORG_INSECURE_GITEA_CLIENT: false
 
+# +-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+# |C|O|D|E|B|E|R|G| |S|P|E|C|I|F|I|C|
+# +-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+
+# Codeberg (https://codeberg.org) runs Forgejo, which is API-compatible with
+# Gitea, so ghorg reuses its Gitea backend and defaults the base URL to
+# https://codeberg.org (no GHORG_SCM_BASE_URL required).
+
+# Add your Codeberg token
+# Settings -> Applications -> Generate Token (scopes: read:organization, read:repository)
+# flag (--token, -t) eg: --token=XXXXXXX or --token=~/path/to/file/containing/token
+GHORG_CODEBERG_TOKEN:
+
+# Must be present if using a self-hosted Forgejo instance served over http
+# flag (--insecure-codeberg-client)
+GHORG_INSECURE_CODEBERG_CLIENT: false
+
 # +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
 # |B|I|T|B|U|C|K|E|T| |S|P|E|C|I|F|I|C|
 # +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
