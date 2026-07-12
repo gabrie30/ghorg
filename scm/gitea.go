@@ -23,6 +23,13 @@ type Gitea struct {
 	*gitea.Client
 	// perPage contain the pagination item limit
 	perPage int
+	// token used to authenticate api calls and clone urls
+	token string
+	// insecure permits connecting to instances served over http
+	insecure bool
+	// insecureFlag is the cli flag users must set to permit http connections,
+	// used in error messages (e.g. --insecure-gitea-client)
+	insecureFlag string
 }
 
 func (Gitea) GetType() string {
@@ -86,21 +93,31 @@ func (c Gitea) GetUserRepos(targetUsername string) ([]Repo, error) {
 // NewClient create new gitea scm client
 func (Gitea) NewClient() (Client, error) {
 	baseURL := os.Getenv("GHORG_SCM_BASE_URL")
-	token := os.Getenv("GHORG_GITEA_TOKEN")
-
 	if baseURL == "" {
 		baseURL = "https://gitea.com"
 	}
 
+	token := os.Getenv("GHORG_GITEA_TOKEN")
+	insecure := os.Getenv("GHORG_INSECURE_GITEA_CLIENT") == "true"
+
+	return newGiteaClient(baseURL, token, insecure, "--insecure-gitea-client")
+}
+
+// newGiteaClient builds a Gitea-backed scm client for the given base URL and
+// token. It is shared by the gitea and codeberg scms, since Codeberg runs
+// Forgejo which is API-compatible with Gitea. insecure permits connecting to
+// instances served over http; insecureFlag is the cli flag referenced in error
+// messages when an http instance is used without it.
+func newGiteaClient(baseURL string, token string, insecure bool, insecureFlag string) (Client, error) {
 	isHTTP := strings.HasPrefix(baseURL, "http://")
 
-	if isHTTP && (os.Getenv("GHORG_INSECURE_GITEA_CLIENT") != "true") {
-		colorlog.PrintErrorAndExit("You are attempting clone from an insecure Gitea instance. You must set the (--insecure-gitea-client) flag to proceed.")
+	if isHTTP && !insecure {
+		colorlog.PrintErrorAndExit("You are attempting clone from an insecure instance. You must set the (" + insecureFlag + ") flag to proceed.")
 	}
 
 	var err error
 	var c *gitea.Client
-	if os.Getenv("GHORG_INSECURE_GITEA_CLIENT") == "true" {
+	if insecure {
 		defaultTransport := http.DefaultTransport.(*http.Transport)
 		// Create new Transport that ignores self-signed SSL
 		customTransport := &http.Transport{
@@ -112,8 +129,8 @@ func (Gitea) NewClient() (Client, error) {
 			TLSHandshakeTimeout:   defaultTransport.TLSHandshakeTimeout,
 			TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
 		}
-		client := &http.Client{Transport: customTransport}
-		c, err = gitea.NewClient(baseURL, gitea.SetToken(token), gitea.SetHTTPClient(client))
+		httpClient := &http.Client{Transport: customTransport}
+		c, err = gitea.NewClient(baseURL, gitea.SetToken(token), gitea.SetHTTPClient(httpClient))
 		if err != nil {
 			return nil, err
 		}
@@ -124,7 +141,7 @@ func (Gitea) NewClient() (Client, error) {
 			return nil, err
 		}
 	}
-	client := Gitea{Client: c}
+	client := Gitea{Client: c, token: token, insecure: insecure, insecureFlag: insecureFlag}
 
 	//set small limit so gitea most likely will have a bigger one
 	client.perPage = 10
@@ -136,15 +153,15 @@ func (Gitea) NewClient() (Client, error) {
 	return client, nil
 }
 
-func (Gitea) addTokenToCloneURL(url string, token string) string {
+func (c Gitea) addTokenToCloneURL(url string, token string) string {
 	isHTTP := strings.HasPrefix(url, "http://")
 
 	if isHTTP {
-		if os.Getenv("GHORG_INSECURE_GITEA_CLIENT") == "true" {
+		if c.insecure {
 			splitURL := strings.Split(url, "http://")
 			return "http://" + token + "@" + splitURL[1]
 		}
-		colorlog.PrintErrorAndExit("You are attempting clone from an insecure Gitea instance. You must set the (--insecure-gitea-client) flag to proceed.")
+		colorlog.PrintErrorAndExit("You are attempting clone from an insecure instance. You must set the (" + c.insecureFlag + ") flag to proceed.")
 	}
 
 	splitURL := strings.Split(url, "https://")
@@ -193,7 +210,7 @@ func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 		if os.Getenv("GHORG_CLONE_PROTOCOL") == "https" {
 			cloneURL := rp.CloneURL
 			if rp.Private || rp.Internal {
-				cloneURL = c.addTokenToCloneURL(cloneURL, os.Getenv("GHORG_GITEA_TOKEN"))
+				cloneURL = c.addTokenToCloneURL(cloneURL, c.token)
 			}
 			r.CloneURL = cloneURL
 			r.URL = cloneURL
@@ -209,7 +226,13 @@ func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 			wiki.IsWiki = true
 			wiki.CloneURL = strings.Replace(r.CloneURL, ".git", ".wiki.git", 1)
 			wiki.URL = strings.Replace(r.URL, ".git", ".wiki.git", 1)
-			wiki.CloneBranch = "master"
+			// Modern Gitea/Forgejo (e.g. Codeberg) wikis follow the repo's
+			// default branch rather than always using master
+			wikiBranch := rp.DefaultBranch
+			if wikiBranch == "" {
+				wikiBranch = "master"
+			}
+			wiki.CloneBranch = wikiBranch
 			wiki.Path = fmt.Sprintf("%s%s", r.Name, ".wiki")
 			repoData = append(repoData, wiki)
 		}

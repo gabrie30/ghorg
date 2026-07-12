@@ -285,6 +285,7 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	syncBoolFlagToEnv(cmd, "insecure-gitlab-client", "GHORG_INSECURE_GITLAB_CLIENT")
 	syncBoolFlagToEnv(cmd, "gitlab-include-shared-projects", "GHORG_GITLAB_INCLUDE_SHARED_PROJECTS")
 	syncBoolFlagToEnv(cmd, "insecure-gitea-client", "GHORG_INSECURE_GITEA_CLIENT")
+	syncBoolFlagToEnv(cmd, "insecure-codeberg-client", "GHORG_INSECURE_CODEBERG_CLIENT")
 	syncBoolFlagToEnv(cmd, "insecure-bitbucket-client", "GHORG_INSECURE_BITBUCKET_CLIENT")
 	syncBoolFlagToEnv(cmd, "insecure-sourcehut-client", "GHORG_INSECURE_SOURCEHUT_CLIENT")
 	syncBoolFlagToEnv(cmd, "skip-forks", "GHORG_SKIP_FORKS")
@@ -345,6 +346,8 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 			}
 		} else if os.Getenv("GHORG_SCM_TYPE") == "gitea" {
 			_ = os.Setenv("GHORG_GITEA_TOKEN", token)
+		} else if os.Getenv("GHORG_SCM_TYPE") == "codeberg" {
+			_ = os.Setenv("GHORG_CODEBERG_TOKEN", token)
 		} else if os.Getenv("GHORG_SCM_TYPE") == "sourcehut" {
 			_ = os.Setenv("GHORG_SOURCEHUT_TOKEN", token)
 		}

@@ -31,6 +31,8 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
   - [Install](https://github.com/gabrie30/ghorg#installation) | [Setup](https://github.com/gabrie30/ghorg#bitbucket-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/bitbucket.md)
 - Gitea (Self Hosted Only)
   - [Install](https://github.com/gabrie30/ghorg#installation) | [Setup](https://github.com/gabrie30/ghorg#gitea-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/gitea.md)
+- Codeberg (Cloud & Self Hosted Forgejo)
+  - [Install](https://github.com/gabrie30/ghorg#installation) | [Setup](https://github.com/gabrie30/ghorg#codeberg-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/codeberg.md)
 - Sourcehut (Limited Features)
   - [Install](https://github.com/gabrie30/ghorg#installation) | [Setup](https://github.com/gabrie30/ghorg#sourcehut-setup)  | [Examples](https://github.com/gabrie30/ghorg/blob/master/examples/sourcehut.md)
 
@@ -147,6 +149,15 @@ Note: ghorg will respect the `XDG_CONFIG_HOME` [environment variable](https://wi
 1. Update `GHORG_GITEA_TOKEN` in your `ghorg/conf.yaml` or use the (--token, -t) flag or place it in a file and add the path to `GHORG_GITEA_TOKEN`.
 1. Update `GHORG_SCM_TYPE` to `gitea` in your `ghorg/conf.yaml` or via cli flags
 1. See [examples/gitea.md](https://github.com/gabrie30/ghorg/blob/master/examples/gitea.md) on how to run
+
+### Codeberg Setup
+
+[Codeberg](https://codeberg.org) runs [Forgejo](https://forgejo.org), which is API-compatible with Gitea, so ghorg reuses its Gitea backend and defaults the base URL to `https://codeberg.org` (no `--base-url` required). Self-hosted Forgejo instances are also supported by setting `--base-url`; instances served over http additionally require `--insecure-codeberg-client`.
+
+1. Create an [Access Token](https://codeberg.org/user/settings/applications) (Settings -> Applications -> Generate Token) with at least the `read:organization` and `read:repository` scopes
+1. Update `GHORG_CODEBERG_TOKEN` in your `ghorg/conf.yaml` or use the (--token, -t) flag or place it in a file and add the path to `GHORG_CODEBERG_TOKEN`.
+1. Update `GHORG_SCM_TYPE` to `codeberg` in your `ghorg/conf.yaml` or via cli flags
+1. See [examples/codeberg.md](https://github.com/gabrie30/ghorg/blob/master/examples/codeberg.md) on how to run
 
 ### Sourcehut Setup
 
