@@ -25,6 +25,7 @@ var availableExamples = []string{
 	"gitea",
 	"codeberg",
 	"sourcehut",
+	"features",
 	"reclone-server",
 	"reclone-cron",
 }
