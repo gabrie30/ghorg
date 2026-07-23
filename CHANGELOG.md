@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.11.15] - unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.11.14] - 7/22
 ### Added
 - Codeberg support via a first-class `--scm=codeberg` provider (reuses the Gitea backend, defaults the base URL to https://codeberg.org, and authenticates with `GHORG_CODEBERG_TOKEN`); self-hosted Forgejo instances are supported via `--base-url`, including http instances with `--insecure-codeberg-client`; resolves #678
