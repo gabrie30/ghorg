@@ -163,6 +163,8 @@ func getOrSetDefaults(envVar string) {
 			_ = os.Setenv(envVar, configs.GetAbsolutePathToCloneTo())
 		case "GHORG_IGNORE_PATH":
 			_ = os.Setenv(envVar, configs.GhorgIgnoreLocation())
+		case "GHORG_ONLY_PATH":
+			_ = os.Setenv(envVar, configs.GhorgOnlyLocation())
 		case "GHORG_RECLONE_PATH":
 			_ = os.Setenv(envVar, configs.GhorgReCloneLocation())
 		case "GHORG_CLONE_PROTOCOL":
@@ -188,6 +190,12 @@ func getOrSetDefaults(envVar string) {
 		case "GHORG_RECLONE_SERVER_PORT":
 			_ = os.Setenv(envVar, ":8080")
 		case "GHORG_FETCH_ALL":
+			_ = os.Setenv(envVar, "false")
+		case "GHORG_FETCH_GIT_LFS":
+			_ = os.Setenv(envVar, "false")
+		case "GHORG_FETCH_PRUNE":
+			_ = os.Setenv(envVar, "false")
+		case "GHORG_PROTECT_LOCAL":
 			_ = os.Setenv(envVar, "false")
 		case "GHORG_DRY_RUN":
 			_ = os.Setenv(envVar, "false")
@@ -316,6 +324,9 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_NO_TOKEN")
 	getOrSetDefaults("GHORG_NO_DIR_SIZE")
 	getOrSetDefaults("GHORG_FETCH_ALL")
+	getOrSetDefaults("GHORG_FETCH_GIT_LFS")
+	getOrSetDefaults("GHORG_FETCH_PRUNE")
+	getOrSetDefaults("GHORG_PROTECT_LOCAL")
 	getOrSetDefaults("GHORG_PRUNE")
 	getOrSetDefaults("GHORG_PRUNE_NO_CONFIRM")
 	getOrSetDefaults("GHORG_PRUNE_UNTOUCHED")
@@ -368,6 +379,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_GITLAB_GROUP_MATCH_REGEX")
 	getOrSetDefaults("GHORG_GITLAB_INCLUDE_SHARED_PROJECTS")
 	getOrSetDefaults("GHORG_IGNORE_PATH")
+	getOrSetDefaults("GHORG_ONLY_PATH")
 	getOrSetDefaults("GHORG_RECLONE_PATH")
 	getOrSetDefaults("GHORG_QUIET")
 	getOrSetDefaults("GHORG_GIT_FILTER")

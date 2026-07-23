@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.14] - unreleased
+## [1.11.14] - 7/22
 ### Added
 - Codeberg support via a first-class `--scm=codeberg` provider (reuses the Gitea backend, defaults the base URL to https://codeberg.org, and authenticates with `GHORG_CODEBERG_TOKEN`); self-hosted Forgejo instances are supported via `--base-url`, including http instances with `--insecure-codeberg-client`; resolves #678
 ### Changed
@@ -11,9 +11,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 ### Fixed
 - Gitea/Codeberg wiki clones now use the repo's default branch instead of a hardcoded `master`, fixing pulls of existing wiki clones on instances where wikis live on `main` (e.g. Codeberg)
+- `GHORG_PROTECT_LOCAL`, `GHORG_FETCH_GIT_LFS`, `GHORG_FETCH_PRUNE`, and `GHORG_ONLY_PATH` were ignored when set in the configuration file (the CLI flags worked); thanks @xashr
 ### Security
 
-## [1.11.13] - 7/21/26
+## [1.11.13] - 7/11/26
 ### Added
 - Optional `token_cmd` to the reclone.yaml configuration; thanks @jmd-au
 ### Changed
