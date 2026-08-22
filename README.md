@@ -487,6 +487,10 @@ go install github.com/gabrie30/csvToJson@latest && \
 csvToJson _ghorg_stats.csv
 ```
 
+## Profiling Clones
+
+ghorg can profile its own clone runs with pprof (`--pprof`) and runtime execution tracing (`--trace`). See [examples/profiling.md](https://github.com/gabrie30/ghorg/blob/master/examples/profiling.md) for full documentation, or read it in your terminal with `ghorg examples profiling`.
+
 ## Windows support
 
 Windows is supported when built with golang or as a [prebuilt binary](https://github.com/gabrie30/ghorg/releases/latest) however, the readme and other documentation is not geared towards Windows users.

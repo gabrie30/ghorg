@@ -85,6 +85,8 @@ var (
 	quietMode                    bool
 	noDirSize                    bool
 	ghorgStatsEnabled            bool
+	ghorgPprofEnabled            bool
+	ghorgTraceEnabled            bool
 	ghorgPreserveScmHostname     bool
 	ghorgPruneUntouched          bool
 	ghorgPruneUntouchedNoConfirm bool
@@ -245,6 +247,10 @@ func getOrSetDefaults(envVar string) {
 			_ = os.Setenv(envVar, "false")
 		case "GHORG_STATS_ENABLED":
 			_ = os.Setenv(envVar, "false")
+		case "GHORG_PPROF":
+			_ = os.Setenv(envVar, "false")
+		case "GHORG_TRACE":
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_EXIT_CODE_ON_CLONE_INFOS":
 			_ = os.Setenv(envVar, "0")
 		case "GHORG_EXIT_CODE_ON_CLONE_ISSUES":
@@ -349,6 +355,8 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_INFOS")
 	getOrSetDefaults("GHORG_EXIT_CODE_ON_CLONE_ISSUES")
 	getOrSetDefaults("GHORG_STATS_ENABLED")
+	getOrSetDefaults("GHORG_PPROF")
+	getOrSetDefaults("GHORG_TRACE")
 	getOrSetDefaults("GHORG_CRON_TIMER_MINUTES")
 	getOrSetDefaults("GHORG_RECLONE_SERVER_PORT")
 	// Optionally set
@@ -443,6 +451,8 @@ func init() {
 	cloneCmd.Flags().BoolVar(&quietMode, "quiet", false, "GHORG_QUIET - Reduce output to only critical messages. Useful for scripting or when you don't want verbose logging")
 	cloneCmd.Flags().BoolVar(&includeSubmodules, "include-submodules", false, "GHORG_INCLUDE_SUBMODULES - Initialize and update git submodules for all repositories. Applies to both clone and pull operations")
 	cloneCmd.Flags().BoolVar(&ghorgStatsEnabled, "stats-enabled", false, "GHORG_STATS_ENABLED - Generate a CSV file (_ghorg_stats.csv) with statistics about each clone (commits, size, etc). Useful for tracking repository metrics over time")
+	cloneCmd.Flags().BoolVar(&ghorgPprofEnabled, "pprof", false, "GHORG_PPROF - Enable pprof profiling of the clone. Writes CPU (ghorg-cpu.pprof), heap (ghorg-heap.pprof), goroutine (ghorg-goroutine.pprof), block (ghorg-block.pprof) and mutex (ghorg-mutex.pprof) profiles to the current working directory, analyze with 'go tool pprof'")
+	cloneCmd.Flags().BoolVar(&ghorgTraceEnabled, "trace", false, "GHORG_TRACE - Enable runtime execution tracing of the clone. Writes a trace (ghorg-trace.out) to the current working directory, analyze with 'go tool trace'. Trace files can get large on big clones")
 	cloneCmd.Flags().BoolVar(&ghorgPreserveScmHostname, "preserve-scm-hostname", false, "GHORG_PRESERVE_SCM_HOSTNAME - Organize clones into subdirectories by SCM hostname (e.g., github.com/kubernetes, gitlab.com/myorg). Useful when cloning from multiple SCM providers")
 	cloneCmd.Flags().BoolVar(&ghorgPruneUntouched, "prune-untouched", false, "GHORG_PRUNE_UNTOUCHED - Remove local repositories without uncommitted changes. See sample-conf.yaml for details. Prompts before deletion unless using --prune-untouched-no-confirm")
 	cloneCmd.Flags().BoolVar(&ghorgPruneUntouchedNoConfirm, "prune-untouched-no-confirm", false, "GHORG_PRUNE_UNTOUCHED_NO_CONFIRM - Skip confirmation when pruning untouched repositories. Use with caution")

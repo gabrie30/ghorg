@@ -265,6 +265,20 @@ GHORG_NO_DIR_SIZE: false
 # flag (--stats-enabled)
 GHORG_STATS_ENABLED: false
 
+# Enables pprof profiling of the clone command
+# Writes a CPU profile (ghorg-cpu.pprof), a heap profile (ghorg-heap.pprof), a goroutine profile (ghorg-goroutine.pprof), a block profile (ghorg-block.pprof) and a mutex profile (ghorg-mutex.pprof) to the directory the command is run from
+# The heap, goroutine, block and mutex profiles are snapshots taken when the clone finishes
+# Profiles can be analyzed with e.g. go tool pprof ghorg-cpu.pprof
+# flag (--pprof)
+GHORG_PPROF: false
+
+# Enables runtime execution tracing of the clone command
+# Writes a trace (ghorg-trace.out) to the directory the command is run from
+# The trace can be analyzed with go tool trace ghorg-trace.out
+# NOTE: trace files can get large on big clones
+# flag (--trace)
+GHORG_TRACE: false
+
 # Specifies the location of your ghorg conf.yaml, allowing you to have many configuration files, or none at all
 # default: ghorg looks in $HOME/.config/ghorg/conf.yaml, if not set in that location nor as a commandline flag, ghorg will use all default values
 # NOTE: this cannot be set in the configuration file. Its supported through CLI flag and ENV var only.
