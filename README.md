@@ -487,6 +487,19 @@ go install github.com/gabrie30/csvToJson@latest && \
 csvToJson _ghorg_stats.csv
 ```
 
+## Profiling Clones
+
+To profile the performance of a clone, set `--pprof` on the clone command or `GHORG_PPROF=true`. When enabled, ghorg writes a CPU profile (`ghorg-cpu.pprof`), a heap profile (`ghorg-heap.pprof`) and a goroutine profile (`ghorg-goroutine.pprof`) to the directory the command was run from. The heap and goroutine profiles are snapshots taken when the clone finishes. The profiles can be analyzed with standard Go tooling.
+
+```bash
+ghorg clone my-org --pprof
+
+# analyze the profiles
+go tool pprof ghorg-cpu.pprof
+go tool pprof ghorg-heap.pprof
+go tool pprof ghorg-goroutine.pprof
+```
+
 ## Windows support
 
 Windows is supported when built with golang or as a [prebuilt binary](https://github.com/gabrie30/ghorg/releases/latest) however, the readme and other documentation is not geared towards Windows users.

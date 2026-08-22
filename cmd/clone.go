@@ -295,6 +295,10 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	syncBoolFlagToEnv(cmd, "preserve-dir", "GHORG_PRESERVE_DIRECTORY_STRUCTURE")
 	syncBoolFlagToEnv(cmd, "backup", "GHORG_BACKUP")
 	syncBoolFlagToEnv(cmd, "protect-local", "GHORG_PROTECT_LOCAL")
+	syncBoolFlagToEnv(cmd, "pprof", "GHORG_PPROF")
+
+	startProfiling()
+	defer stopProfiling()
 
 	if cmd.Flags().Changed("output-dir") {
 		d := cmd.Flag("output-dir").Value.String()
@@ -938,6 +942,10 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 		date := time.Now().Format("2006-01-02 15:04:05")
 		_ = writeGhorgStats(date, allReposToCloneCount, stats.CloneCount, stats.PulledCount, cloneInfosCount, cloneErrorsCount, stats.UpdateRemoteCount, stats.NewCommits, pruneCount, stats.TotalDurationSeconds, hasCollisions)
 	}
+
+	// Flush pprof profiles here because the os.Exit calls below skip the
+	// deferred stopProfiling in cloneFunc
+	stopProfiling()
 
 	if os.Getenv("GHORG_DONT_EXIT_UNDER_TEST") != "true" {
 		if os.Getenv("GHORG_EXIT_CODE_ON_CLONE_INFOS") != "0" && cloneInfosCount > 0 {
