@@ -81,7 +81,8 @@ func writeSnapshotProfile(profileName, fileName string) {
 		colorlog.PrintError(fmt.Sprintf("Could not create %s profile file %s: %v", profileName, fileName, err))
 		return
 	}
-defer func() { _ = f.Close() }()
+
+	defer func() { _ = f.Close() }()
 
 	if err := pprof.Lookup(profileName).WriteTo(f, 0); err != nil {
 		colorlog.PrintError(fmt.Sprintf("Could not write %s profile: %v", profileName, err))
