@@ -28,6 +28,7 @@ var availableExamples = []string{
 	"features",
 	"reclone-server",
 	"reclone-cron",
+	"profiling",
 }
 
 var examplesCmd = &cobra.Command{

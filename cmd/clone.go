@@ -296,6 +296,7 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	syncBoolFlagToEnv(cmd, "backup", "GHORG_BACKUP")
 	syncBoolFlagToEnv(cmd, "protect-local", "GHORG_PROTECT_LOCAL")
 	syncBoolFlagToEnv(cmd, "pprof", "GHORG_PPROF")
+	syncBoolFlagToEnv(cmd, "trace", "GHORG_TRACE")
 
 	startProfiling()
 	defer stopProfiling()
@@ -314,7 +315,7 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 			argz = append(argz, "")
 		} else {
 			colorlog.PrintError("You must provide an org or user to clone")
-			os.Exit(1)
+			exitWithProfiles(1)
 		}
 	}
 
@@ -359,13 +360,13 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	err := configs.VerifyTokenSet()
 	if err != nil {
 		colorlog.PrintError(err)
-		os.Exit(1)
+		exitWithProfiles(1)
 	}
 
 	err = configs.VerifyConfigsSetCorrectly()
 	if err != nil {
 		colorlog.PrintError(err)
-		os.Exit(1)
+		exitWithProfiles(1)
 	}
 
 	if os.Getenv("GHORG_PRESERVE_SCM_HOSTNAME") == "true" {
@@ -405,12 +406,12 @@ func setupRepoClone() {
 		if err != nil {
 			colorlog.PrintError("Encountered an error fetching gists, aborting")
 			fmt.Println(err)
-			os.Exit(1)
+			exitWithProfiles(1)
 		}
 
 		if len(gistTargets) == 0 {
 			colorlog.PrintInfo("No gists found for github user: " + targetCloneSource + ", please verify you have sufficient permissions, double check spelling and try again.")
-			os.Exit(0)
+			exitWithProfiles(0)
 		}
 
 		// Clone gists into a ghorg-gists subdirectory within the user's clone directory
@@ -431,18 +432,18 @@ func setupRepoClone() {
 		cloneTargets, err = getAllUserCloneUrls()
 	} else {
 		colorlog.PrintError("GHORG_CLONE_TYPE not set or unsupported")
-		os.Exit(1)
+		exitWithProfiles(1)
 	}
 
 	if err != nil {
 		colorlog.PrintError("Encountered an error, aborting")
 		fmt.Println(err)
-		os.Exit(1)
+		exitWithProfiles(1)
 	}
 
 	if len(cloneTargets) == 0 {
 		colorlog.PrintInfo("No repos found for " + os.Getenv("GHORG_SCM_TYPE") + " " + os.Getenv("GHORG_CLONE_TYPE") + ": " + targetCloneSource + ", please verify you have sufficient permissions to clone target repos, double check spelling and try again.")
-		os.Exit(0)
+		exitWithProfiles(0)
 	}
 	g := git.NewGit()
 	CloneAllRepos(g, cloneTargets)
@@ -462,7 +463,7 @@ func getAllUserGistCloneUrls() ([]scm.Repo, error) {
 	client, err := scm.GetClient("github")
 	if err != nil {
 		colorlog.PrintError(err)
-		os.Exit(1)
+		exitWithProfiles(1)
 	}
 
 	githubClient, ok := client.(scm.Github)
@@ -479,12 +480,12 @@ func getCloneUrls(isOrg bool) ([]scm.Repo, error) {
 	scmType := strings.ToLower(os.Getenv("GHORG_SCM_TYPE"))
 	if len(scmType) == 0 {
 		colorlog.PrintError("GHORG_SCM_TYPE not set")
-		os.Exit(1)
+		exitWithProfiles(1)
 	}
 	client, err := scm.GetClient(scmType)
 	if err != nil {
 		colorlog.PrintError(err)
-		os.Exit(1)
+		exitWithProfiles(1)
 	}
 
 	if isOrg {

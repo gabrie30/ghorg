@@ -489,16 +489,7 @@ csvToJson _ghorg_stats.csv
 
 ## Profiling Clones
 
-To profile the performance of a clone, set `--pprof` on the clone command or `GHORG_PPROF=true`. When enabled, ghorg writes a CPU profile (`ghorg-cpu.pprof`), a heap profile (`ghorg-heap.pprof`) and a goroutine profile (`ghorg-goroutine.pprof`) to the directory the command was run from. The heap and goroutine profiles are snapshots taken when the clone finishes. The profiles can be analyzed with standard Go tooling.
-
-```bash
-ghorg clone my-org --pprof
-
-# analyze the profiles
-go tool pprof ghorg-cpu.pprof
-go tool pprof ghorg-heap.pprof
-go tool pprof ghorg-goroutine.pprof
-```
+ghorg can profile its own clone runs with pprof (`--pprof`) and runtime execution tracing (`--trace`). See [examples/profiling.md](https://github.com/gabrie30/ghorg/blob/master/examples/profiling.md) for full documentation, or read it in your terminal with `ghorg examples profiling`.
 
 ## Windows support
 

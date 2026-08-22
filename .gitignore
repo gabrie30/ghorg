@@ -4,6 +4,7 @@ debug
 .DS_Store
 coverage.out
 *.pprof
+ghorg-trace.out
 
 dist/
 
