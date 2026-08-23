@@ -48,6 +48,11 @@ if [[ ! -f "${TEST_RUNNER_BINARY}" ]] || [[ "${TEST_RUNNER_DIR}/main.go" -nt "${
     cd -
 fi
 
+# Install the repo filter hook fixture used by the repo-filter-hook-test scenario
+mkdir -p "${LOCAL_GITEA_GHORG_DIR}"
+cp "${SCRIPT_DIR}/configs/repo-filter-hook.sh" "${LOCAL_GITEA_GHORG_DIR}/repo-filter-hook.sh"
+chmod +x "${LOCAL_GITEA_GHORG_DIR}/repo-filter-hook.sh"
+
 # Install ghorg binary for testing if not in CI
 if [[ "${CI:-}" != "true" ]] && [[ "${GITHUB_ACTIONS:-}" != "true" ]]; then
     echo "Installing ghorg binary for testing..."

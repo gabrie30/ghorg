@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [1.11.15] - unreleased
 ### Added
 - GHORG_TRACE and GHORG_PPROF for profiling
+- GHORG_REPO_FILTER_HOOK to allow users to run custom filters or mutate any repo data
 ### Changed
 ### Deprecated
 ### Removed
