@@ -57,6 +57,9 @@ func (rf *RepositoryFilter) ApplyAllFilters(cloneTargets []scm.Repo) []scm.Repo 
 	// Apply ghorgignore filter
 	cloneTargets = rf.FilterByGhorgignore(cloneTargets)
 
+	// Apply repo filter hook last so it has the final word on what gets cloned
+	cloneTargets = rf.FilterByHook(cloneTargets)
+
 	return cloneTargets
 }
 

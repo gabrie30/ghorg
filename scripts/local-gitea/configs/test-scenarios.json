@@ -131,6 +131,20 @@
                 "local-gitea-second-page/repo-060",
                 "local-gitea-second-page/repo-065"
             ]
+        },
+        {
+            "name": "repo-filter-hook-test",
+            "description": "Test --repo-filter-hook filters repos via an external script",
+            "command": "ghorg clone local-gitea-org1 --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-filter-hook --repo-filter-hook={{.GhorgDir}}/repo-filter-hook.sh --insecure-gitea-client",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitea-filter-hook/baz0",
+                "local-gitea-filter-hook/baz1"
+            ],
+            "verify_commands": [
+                "test ! -d {{.GhorgDir}}/local-gitea-filter-hook/baz2",
+                "test ! -d {{.GhorgDir}}/local-gitea-filter-hook/baz3"
+            ]
         }
     ]
 }

@@ -38,6 +38,12 @@ Easily overlooked flags that work across all SCM providers. Commands below omit 
 
 1. A `ghorgignore` file at `$HOME/.config/ghorg/ghorgignore` is picked up automatically and skips any repo whose clone URL contains one of its lines; `ghorgonly` is the allowlist equivalent. See [selective cloning](https://github.com/gabrie30/ghorg#selective-repository-cloning)
 
+1. `--repo-filter-hook` runs your own executable as the final filter stage. ghorg pipes the repo list as a JSON array to the executable's stdin and clones whatever JSON array it writes to stdout. The hook can drop repos and modify fields like `clone_branch`. See [hooks](hooks) for example scripts.
+
+    ```
+    ghorg clone <org> --repo-filter-hook=/path/to/filter.sh --dry-run --token=XXXXXX
+    ```
+
 ## Speed and Large Clones
 
 1. `--clone-depth=1` makes shallow clones, and `--git-filter=blob:none` skips binary blobs, both dramatically cut clone time and disk usage

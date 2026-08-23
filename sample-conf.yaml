@@ -116,6 +116,15 @@ GHORG_CLONE_DEPTH:
 # flag (--target-repos-path)
 GHORG_TARGET_REPOS_PATH:
 
+# Path to an executable that can filter or modify the list of repos before cloning
+# ghorg writes the repo list as a JSON array to the executable's stdin and reads
+# the JSON array the executable writes to stdout, then continues with that list
+# Runs after all built-in filters (match regex, prefixes, target repos, ghorgonly, ghorgignore)
+# The executable may remove repos and may also modify repo fields such as clone_branch
+# If the executable exits non-zero or writes invalid JSON the run is aborted
+# flag (--repo-filter-hook) eg: --repo-filter-hook=/path/to/filter.sh
+GHORG_REPO_FILTER_HOOK:
+
 # A comma separated list of topics to filter by, currently github/gitlab/gitea only
 # flag (--topics) eg: --topics=frontend
 # If any topics exist here, ghorg will only clone repos that match at least one of these topics

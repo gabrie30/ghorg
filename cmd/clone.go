@@ -100,6 +100,9 @@ COMMON USAGE:
   # Clone only specific repos from a file
   $ ghorg clone my-org --target-repos-path=/path/to/repos.txt --token=YOUR_TOKEN
 
+  # Clone with custom repo filter hook
+  $ ghorg clone my-org --repo-filter-hook=/path/to/filter.sh --token=YOUR_TOKEN
+
 MORE EXAMPLES:
   For complete examples of how to clone repos from each SCM provider, run:
   $ ghorg examples github
@@ -259,6 +262,11 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	if cmd.Flags().Changed("target-repos-path") {
 		path := cmd.Flag("target-repos-path").Value.String()
 		_ = os.Setenv("GHORG_TARGET_REPOS_PATH", path)
+	}
+
+	if cmd.Flags().Changed("repo-filter-hook") {
+		hook := cmd.Flag("repo-filter-hook").Value.String()
+		_ = os.Setenv("GHORG_REPO_FILTER_HOOK", hook)
 	}
 
 	if cmd.Flags().Changed("git-filter") {
@@ -1401,6 +1409,9 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_TARGET_REPOS_PATH") != "" {
 		colorlog.PrintInfo("* Target Repos  : " + os.Getenv("GHORG_TARGET_REPOS_PATH"))
+	}
+	if os.Getenv("GHORG_REPO_FILTER_HOOK") != "" {
+		colorlog.PrintInfo("* Filter Hook   : " + os.Getenv("GHORG_REPO_FILTER_HOOK"))
 	}
 	if os.Getenv("GHORG_MATCH_REGEX") != "" {
 		colorlog.PrintInfo("* Regex Match   : " + os.Getenv("GHORG_MATCH_REGEX"))

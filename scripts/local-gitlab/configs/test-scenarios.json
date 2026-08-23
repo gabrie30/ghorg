@@ -802,6 +802,20 @@
                 "gitlab.example.com/local-gitlab-latest-all-users-snippets/testuser1-repo",
                 "gitlab.example.com/local-gitlab-latest-all-users-snippets/testuser1-repo.snippets"
             ]
+        },
+        {
+            "name": "repo-filter-hook-test",
+            "description": "Test --repo-filter-hook filters repos via an external script",
+            "command": "ghorg clone local-gitlab-group1 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --output-dir=local-gitlab-filter-hook --repo-filter-hook={{.GhorgDir}}/repo-filter-hook.sh",
+            "run_twice": true,
+            "expected_structure": [
+                "local-gitlab-filter-hook/baz0",
+                "local-gitlab-filter-hook/baz1"
+            ],
+            "verify_commands": [
+                "test ! -d {{.GhorgDir}}/local-gitlab-filter-hook/baz2",
+                "test ! -d {{.GhorgDir}}/local-gitlab-filter-hook/baz3"
+            ]
         }
     ]
 }

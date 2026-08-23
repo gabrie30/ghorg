@@ -262,7 +262,7 @@ $ ghorg ls someorg | xargs -I %s mv %s bar/
 
 ## Selective Repository Cloning
 
-Ghorg provides several optional ways to narrow down which repositories get cloned. Filters are applied in this order: **flag-based filters → `--target-repos-path` → `ghorgonly` → `ghorgignore`**. They can work in combination for a fine-grained control.
+Ghorg provides several optional ways to narrow down which repositories get cloned. Filters are applied in this order: **flag-based filters → `--target-repos-path` → `ghorgonly` → `ghorgignore` → `--repo-filter-hook`**. They can work in combination for a fine-grained control.
 
 ### Flag-based filters
 
@@ -299,6 +299,29 @@ Maintain a file containing the exact **repository names** you want to clone (one
 - Make each entry as specific as possible to avoid unintentional matches. For example, prefer a full clone URL like `https://github.com/gabrie30/ghorg.git` or `git@github.com:gabrie30/ghorg.git` over a short name fragment.
 - If no file exists at the default path, this filter is skipped entirely.
 - To use a different location, or to maintain **several `ghorgignore` files for different clone scenarios** (e.g. a stricter list for backups vs. a lighter list for day-to-day clones), pass `--ghorgignore-path` (or set `GHORG_IGNORE_PATH`) to select the right file for that run.
+
+#### `--repo-filter-hook` - custom filtering with your own executable
+
+When the built-in filters can't express your logic, point `--repo-filter-hook` (or the `GHORG_REPO_FILTER_HOOK` env var) at any executable. After ghorg fetches the repo list and applies all built-in filters, it writes the remaining repos as a JSON array to your executable's stdin, then uses the JSON array your executable writes to stdout as the final clone list. This makes any custom filtering possible: filter by team ownership, repo size, last activity, an allowlist from an internal API, anything you can script.
+
+- The hook runs **last**, after all built-in filters, so it always has the final word on what gets cloned.
+- The hook may also **modify** repo fields, for example changing `clone_branch` per repo.
+- Returning an empty array `[]` is valid and means clone nothing.
+- The hook inherits ghorg's environment, so it can read `GHORG_SCM_TYPE`, `GHORG_CLONE_TYPE`, and any other `GHORG_` values for context. This includes any credentials ghorg was given, such as `GHORG_GITHUB_TOKEN`, which is by design since the user owns the executable.
+- Write progress or diagnostics to stderr; it is streamed through to ghorg's output.
+- ghorg **aborts the run** if the hook is missing, exits non-zero, or writes invalid JSON, so a broken hook never results in cloning an unfiltered list.
+- A hook path without a path separator, for example `--repo-filter-hook=filter.sh`, is resolved via `PATH` rather than the current directory, so use `./filter.sh` or an absolute path for a local script.
+
+Each repo object has these fields: `id`, `name`, `host_path`, `path`, `url`, `clone_url`, `clone_branch`, `is_wiki`, `is_gitlab_snippet`, `is_gitlab_root_level_snippet`, `is_github_gist`, `gitlab_snippet_info`, and `commits`.
+
+Example with `jq`, keeping only repos whose name starts with `frontend-`:
+
+```sh
+#!/bin/sh
+jq '[.[] | select(.name | startswith("frontend-"))]'
+```
+
+See [examples/hooks](examples/hooks) for complete bash and python examples.
 
 ## Creating Backups
 
