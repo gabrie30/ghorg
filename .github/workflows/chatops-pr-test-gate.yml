@@ -1,0 +1,216 @@
+# ChatOps gate for running secret-dependent cloud integration tests on forked PRs.
+# Fork PRs cannot access repository secrets, so a maintainer with write/admin access
+# reviews the PR and comments "/ok-to-test" to run the full suite against the PR head.
+#
+# Safety notes:
+#   - The commenter's permission is verified before anything is checked out.
+#   - The PR head SHA is resolved at authorization time and pinned, so commits
+#     pushed after the approval comment are NOT picked up by this run.
+#   - issue_comment runs attach to the default branch, so results are reported
+#     back to the PR as commit statuses on the pinned SHA.
+name: ChatOps PR Test Gate
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: write
+
+jobs:
+  authorize:
+    # Only run for comments on PRs that contain "/ok-to-test"
+    if: |
+      github.event.issue.pull_request != null &&
+      contains(github.event.comment.body, '/ok-to-test')
+    runs-on: ubuntu-latest
+    outputs:
+      head_sha: ${{ steps.pr.outputs.head_sha }}
+    steps:
+      - name: Verify commenter has write or admin access
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const actor = context.actor;
+
+            const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner,
+              repo,
+              username: actor,
+            });
+
+            if (!['admin', 'write'].includes(permission.permission)) {
+              core.setFailed(`User ${actor} does not have permission to trigger tests.`);
+              return;
+            }
+            console.log(`User ${actor} is authorized to trigger tests.`);
+
+      - name: Pin PR head SHA and set pending status
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: context.issue.number,
+            });
+
+            core.setOutput('head_sha', pr.head.sha);
+            console.log(`Pinned PR #${context.issue.number} head to ${pr.head.sha}`);
+
+            await github.rest.repos.createCommitStatus({
+              owner,
+              repo,
+              sha: pr.head.sha,
+              state: 'pending',
+              context: 'chatops-pr-test-gate',
+              description: `Tests triggered by ${context.actor}`,
+              target_url: `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`,
+            });
+
+            await github.rest.reactions.createForIssueComment({
+              owner,
+              repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket',
+            });
+
+  build_and_test:
+    name: Build and Test (fork PR)
+    needs: authorize
+    environment: actions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.26.0
+        uses: actions/setup-go@v7
+        with:
+          go-version: 1.26.0
+        id: go
+      - name: Check out pinned PR head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.authorize.outputs.head_sha }}
+      - name: Test
+        run: go test -v ./...
+      - name: Build
+        run: go build -v -o ghorg .
+      - name: Run GitHub Cloud Integration Tests
+        run: scripts/github_cloud_integration_tests.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHORG_GITHUB_TOKEN }}
+      - name: Run Bitbucket Cloud Integration Tests
+        run: scripts/bitbucket_cloud_integration_tests.sh
+        env:
+          # New API Token authentication (recommended)
+          BITBUCKET_API_TOKEN: ${{ secrets.GHORG_BITBUCKET_API_TOKEN }}
+          BITBUCKET_API_EMAIL: ${{ secrets.GHORG_BITBUCKET_API_EMAIL }}
+          # Legacy App Password authentication (for backward compatibility testing)
+          BITBUCKET_TOKEN: ${{ secrets.GHORG_BITBUCKET_APP_PASSWORD }}
+          BITBUCKET_USERNAME: ${{ secrets.GHORG_BITBUCKET_USERNAME }}
+      - name: Run GitLab Cloud Integration Tests
+        run: scripts/gitlab_cloud_integration_tests.sh
+        env:
+          GITLAB_TOKEN: ${{ secrets.GHORG_GITLAB_TOKEN }}
+      - name: Run Sourcehut Cloud Integration Tests
+        run: scripts/sourcehut_cloud_integration_tests.sh
+        env:
+          SOURCEHUT_TOKEN: ${{ secrets.GHORG_SOURCEHUT_TOKEN }}
+          SOURCEHUT_TEST_USER: ${{ secrets.GHORG_SOURCEHUT_TEST_USER }}
+          SOURCEHUT_TEST_REPO: ${{ secrets.GHORG_SOURCEHUT_TEST_REPO }}
+      - name: Run Codeberg Cloud Integration Tests
+        run: scripts/codeberg_cloud_integration_tests.sh
+        env:
+          CODEBERG_TOKEN: ${{ secrets.GHORG_CODEBERG_TOKEN }}
+          CODEBERG_TEST_ORG: ${{ secrets.GHORG_CODEBERG_TEST_ORG }}
+
+  build_and_test_windows:
+    name: Build and Test Windows (fork PR)
+    needs: authorize
+    environment: actions
+    runs-on: windows-latest
+    steps:
+      - name: Set up Go 1.26.0
+        uses: actions/setup-go@v7
+        with:
+          go-version: 1.26.0
+        id: go
+      - name: Check out pinned PR head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.authorize.outputs.head_sha }}
+      - name: Set configuration file
+        run: |
+          mkdir C:\Users\runneradmin\.config\ghorg
+          copy sample-conf.yaml C:\Users\runneradmin\.config\ghorg\conf.yaml
+      - name: Build
+        run: env GOOS=windows GOARCH=386 go build -v -o ghorg.exe .
+      - name: Test
+        run: go test -v ./...
+      - name: Run GitHub Integration Tests
+        run: scripts/windows_github_integration_tests.bat
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHORG_GITHUB_TOKEN }}
+      - name: Run Bitbucket Integration Tests
+        run: scripts/bitbucket_cloud_integration_tests.sh
+        env:
+          # New API Token authentication (recommended)
+          BITBUCKET_API_TOKEN: ${{ secrets.GHORG_BITBUCKET_API_TOKEN }}
+          BITBUCKET_API_EMAIL: ${{ secrets.GHORG_BITBUCKET_API_EMAIL }}
+          # Legacy App Password authentication (for backward compatibility testing)
+          BITBUCKET_TOKEN: ${{ secrets.GHORG_BITBUCKET_APP_PASSWORD }}
+          BITBUCKET_USERNAME: ${{ secrets.GHORG_BITBUCKET_USERNAME }}
+      - name: Run GitLab Cloud Integration Tests Linux
+        run: scripts/gitlab_cloud_integration_tests.sh
+        env:
+          GITLAB_TOKEN: ${{ secrets.GHORG_GITLAB_TOKEN }}
+      - name: Run GitLab Cloud Integration Tests Windows
+        run: scripts/windows_gitlab_integration_tests.bat
+        env:
+          GITLAB_TOKEN: ${{ secrets.GHORG_GITLAB_TOKEN }}
+      - name: Run Sourcehut Cloud Integration Tests Linux
+        run: scripts/sourcehut_cloud_integration_tests.sh
+        env:
+          SOURCEHUT_TOKEN: ${{ secrets.GHORG_SOURCEHUT_TOKEN }}
+          SOURCEHUT_TEST_USER: ${{ secrets.GHORG_SOURCEHUT_TEST_USER }}
+          SOURCEHUT_TEST_REPO: ${{ secrets.GHORG_SOURCEHUT_TEST_REPO }}
+      - name: Run Sourcehut Cloud Integration Tests Windows
+        run: scripts/windows_sourcehut_integration_tests.bat
+        env:
+          SOURCEHUT_TOKEN: ${{ secrets.GHORG_SOURCEHUT_TOKEN }}
+          SOURCEHUT_TEST_USER: ${{ secrets.GHORG_SOURCEHUT_TEST_USER }}
+          SOURCEHUT_TEST_REPO: ${{ secrets.GHORG_SOURCEHUT_TEST_REPO }}
+      - name: Run Codeberg Cloud Integration Tests Linux
+        run: scripts/codeberg_cloud_integration_tests.sh
+        env:
+          CODEBERG_TOKEN: ${{ secrets.GHORG_CODEBERG_TOKEN }}
+          CODEBERG_TEST_ORG: ${{ secrets.GHORG_CODEBERG_TEST_ORG }}
+
+  report_status:
+    name: Report result to PR
+    needs: [authorize, build_and_test, build_and_test_windows]
+    if: always() && needs.authorize.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set final commit status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const success = '${{ needs.build_and_test.result }}' === 'success' &&
+                            '${{ needs.build_and_test_windows.result }}' === 'success';
+
+            await github.rest.repos.createCommitStatus({
+              owner,
+              repo,
+              sha: '${{ needs.authorize.outputs.head_sha }}',
+              state: success ? 'success' : 'failure',
+              context: 'chatops-pr-test-gate',
+              description: success ? 'All tests passed' : 'Tests failed',
+              target_url: `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`,
+            });
