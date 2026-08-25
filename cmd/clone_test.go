@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -13,6 +14,22 @@ import (
 	"github.com/gabrie30/ghorg/scm"
 	"github.com/spf13/cobra"
 )
+
+func setUpGitRepository(t *testing.T, path string, bare bool) {
+	t.Helper()
+	if err := os.MkdirAll(path, 0o755); err != nil {
+		t.Fatalf("Failed to create a directory under %s: %v", path, err)
+	}
+	arguments := []string{"init"}
+	if bare {
+		arguments = append(arguments, "--bare")
+	}
+	gitCommand := exec.Command("git", arguments...)
+	gitCommand.Dir = path
+	if output, err := gitCommand.CombinedOutput(); err != nil {
+		t.Fatalf("Failed to set up a Git repository in %s: %v\n%s", path, err, output)
+	}
+}
 
 func TestShouldLowerRegularString(t *testing.T) {
 
@@ -614,10 +631,7 @@ func TestRelativePathRepositories(t *testing.T) {
 
 	outputDirAbsolutePath = testing
 
-	repository := filepath.Join(testing, "repository", ".git")
-	if err := os.MkdirAll(repository, 0o755); err != nil {
-		t.Fatalf("Failed to create directory: %v", err)
-	}
+	setUpGitRepository(t, filepath.Join(testing, "repository"), false)
 
 	files, err := getRelativePathRepositories(testing)
 	if err != nil {
@@ -666,12 +680,9 @@ func TestRelativePathRepositoriesWithGitSubmodule(t *testing.T) {
 
 	outputDirAbsolutePath = testing
 
-	repository := filepath.Join(testing, "repository", ".git")
-	submodule := filepath.Join(testing, "repository", "submodule", ".git")
+	setUpGitRepository(t, filepath.Join(testing, "repository"), false)
 
-	if err := os.MkdirAll(repository, 0o755); err != nil {
-		t.Fatalf("Failed to create directory: %v", err)
-	}
+	submodule := filepath.Join(testing, "repository", "submodule", ".git")
 	if err := os.MkdirAll(filepath.Dir(submodule), 0o755); err != nil {
 		t.Fatalf("Failed to create directory: %v", err)
 	}
@@ -702,10 +713,7 @@ func TestRelativePathRepositoriesDeeplyNested(t *testing.T) {
 
 	outputDirAbsolutePath = testing
 
-	repository := filepath.Join(testing, "deeply", "nested", "repository", ".git")
-	if err := os.MkdirAll(repository, 0o755); err != nil {
-		t.Fatalf("Failed to create repository: %v", err)
-	}
+	setUpGitRepository(t, filepath.Join(testing, "deeply", "nested", "repository"), false)
 
 	files, err := getRelativePathRepositories(testing)
 	if err != nil {
@@ -725,7 +733,7 @@ func TestRelativePathRepositoriesDeeplyNested(t *testing.T) {
 func TestPruneRepos(t *testing.T) {
 	_ = os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
 
-	cloneTargets := []scm.Repo{{Path: "/repository"}}
+	cloneTargets := []scm.Repo{{Path: "/repository"}, {Path: "/repository-bare"}}
 
 	testing, err := os.MkdirTemp("", "testing")
 	if err != nil {
@@ -735,24 +743,30 @@ func TestPruneRepos(t *testing.T) {
 
 	outputDirAbsolutePath = testing
 
-	repository := filepath.Join(testing, "repository", ".git")
-	if err := os.MkdirAll(repository, 0o755); err != nil {
-		t.Fatalf("Failed to create repository: %v", err)
-	}
+	repository := filepath.Join(testing, "repository")
+	setUpGitRepository(t, repository, false)
+	repositoryBare := filepath.Join(testing, "repository-bare")
+	setUpGitRepository(t, repositoryBare, true)
 
-	prunable := filepath.Join(testing, "prunnable", ".git")
-	if err := os.MkdirAll(prunable, 0o755); err != nil {
-		t.Fatalf("Failed to create directory: %v", err)
-	}
+	prunable := filepath.Join(testing, "prunnable")
+	setUpGitRepository(t, prunable, false)
+	prunableBare := filepath.Join(testing, "prunnable-bare")
+	setUpGitRepository(t, prunableBare, true)
 
 	pruneRepos(cloneTargets)
 
 	if _, err := os.Stat(repository); os.IsNotExist(err) {
 		t.Errorf("Expected '%s' to exist, but it was deleted", repository)
 	}
+	if _, err := os.Stat(repositoryBare); os.IsNotExist(err) {
+		t.Errorf("Expected '%s' to exist, but it was deleted", repositoryBare)
+	}
 
 	if _, err := os.Stat(prunable); !os.IsNotExist(err) {
 		t.Errorf("Expected '%s' to be deleted, but it exists", prunable)
+	}
+	if _, err := os.Stat(prunableBare); !os.IsNotExist(err) {
+		t.Errorf("Expected '%s' to be deleted, but it exists", prunableBare)
 	}
 }
 
