@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -787,8 +788,15 @@ func getCloneableInventory(allRepos []scm.Repo) (int, int, int, int, int) {
 }
 
 func isGitRepository(path string) bool {
-	stat, err := os.Stat(filepath.Join(path, ".git"))
-	return err == nil && stat.IsDir()
+	// For standard clones, look for a .git subdirectory.
+	if stat, err := os.Stat(filepath.Join(path, ".git")); err == nil && stat.IsDir() {
+		return true
+	}
+
+	// For bare/mirror clones, use Git itself to check that exact path.
+	cmd := exec.Command("git", "--git-dir="+path, "rev-parse", "--is-bare-repository")
+	output, err := cmd.Output()
+	return err == nil && strings.TrimSpace(string(output)) == "true"
 }
 
 func getRelativePathRepositories(root string) ([]string, error) {
