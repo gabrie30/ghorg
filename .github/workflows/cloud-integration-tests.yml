@@ -12,6 +12,9 @@ on:
     branches-ignore: [master]
 jobs:
   cloud_integration_tests:
+    # GitHub withholds repository secrets from Dependabot-triggered runs, so the
+    # scripts would fail with empty tokens. Run Dependabot PRs via /ok-to-test.
+    if: github.actor != 'dependabot[bot]'
     environment: actions
     name: Cloud Integration Tests
     runs-on: ${{ matrix.os }}
@@ -57,6 +60,7 @@ jobs:
           CODEBERG_TOKEN: ${{ secrets.GHORG_CODEBERG_TOKEN }}
           CODEBERG_TEST_ORG: ${{ secrets.GHORG_CODEBERG_TEST_ORG }}
   cloud_integration_tests_windows:
+    if: github.actor != 'dependabot[bot]'
     environment: actions
     name: Cloud Integration Tests Windows
     runs-on: windows-latest
