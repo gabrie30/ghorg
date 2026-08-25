@@ -5,6 +5,10 @@
 # chatops-pr-test-gate.yml (/ok-to-test comment, fork PRs).
 name: Go
 on: pull_request
+# Cancel in-progress runs for older commits when a new commit is pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build_and_test:
     name: Build and Test

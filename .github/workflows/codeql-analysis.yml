@@ -20,6 +20,11 @@ on:
   schedule:
     - cron: '42 4 * * 4'
 
+# Cancel in-progress runs for older commits when a new commit is pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
     name: Analyze

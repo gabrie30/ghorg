@@ -14,6 +14,11 @@ on:
   issue_comment:
     types: [created]
 
+# One gated run per PR at a time; a repeat /ok-to-test cancels the older run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 # Permissions are scoped per job. The test jobs run untrusted fork code, so
 # they get a read-only token. Write scopes live only in the trusted jobs.
 permissions: {}
