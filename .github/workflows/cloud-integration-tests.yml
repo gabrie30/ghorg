@@ -10,6 +10,10 @@ name: Cloud Integration Tests
 on:
   push:
     branches-ignore: [master]
+# Cancel in-progress runs for older commits when a new commit is pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   cloud_integration_tests:
     # GitHub withholds repository secrets from Dependabot-triggered runs, so the

@@ -14,6 +14,11 @@ on:
   issue_comment:
     types: [created]
 
+# One gated run per PR at a time; a repeat /ok-to-test cancels the older run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 # Permissions are scoped per job. The test jobs run untrusted fork code, so
 # they get a read-only token. Write scopes live only in the trusted jobs.
 permissions: {}
@@ -26,8 +31,10 @@ jobs:
       contains(github.event.comment.body, '/ok-to-test')
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: read
-      issues: write # react to the /ok-to-test comment
+      # write on both scopes to react to the /ok-to-test comment; GitHub
+      # authorizes comment writes on PRs under pull-requests, not issues
+      pull-requests: write
+      issues: write
       statuses: write
     outputs:
       head_sha: ${{ steps.pr.outputs.head_sha }}
@@ -77,12 +84,17 @@ jobs:
               target_url: `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`,
             });
 
-            await github.rest.reactions.createForIssueComment({
-              owner,
-              repo,
-              comment_id: context.payload.comment.id,
-              content: 'rocket',
-            });
+            // Cosmetic only; never fail the gate if the reaction can't be added
+            try {
+              await github.rest.reactions.createForIssueComment({
+                owner,
+                repo,
+                comment_id: context.payload.comment.id,
+                content: 'rocket',
+              });
+            } catch (error) {
+              core.warning(`Could not add reaction to comment: ${error.message}`);
+            }
 
   build_and_test:
     name: Build and Test (fork PR)

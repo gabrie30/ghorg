@@ -3,6 +3,11 @@ name: Check Examples Copy Folder Content
 on:
   pull_request:
 
+# Cancel in-progress runs for older commits when a new commit is pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check-folders:
     runs-on: ubuntu-latest
