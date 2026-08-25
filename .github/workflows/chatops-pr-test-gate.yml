@@ -14,10 +14,9 @@ on:
   issue_comment:
     types: [created]
 
-permissions:
-  contents: read
-  pull-requests: read
-  statuses: write
+# Permissions are scoped per job. The test jobs run untrusted fork code, so
+# they get a read-only token. Write scopes live only in the trusted jobs.
+permissions: {}
 
 jobs:
   authorize:
@@ -26,11 +25,15 @@ jobs:
       github.event.issue.pull_request != null &&
       contains(github.event.comment.body, '/ok-to-test')
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      issues: write # react to the /ok-to-test comment
+      statuses: write
     outputs:
       head_sha: ${{ steps.pr.outputs.head_sha }}
     steps:
       - name: Verify commenter has write or admin access
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -50,7 +53,7 @@ jobs:
 
       - name: Pin PR head SHA and set pending status
         id: pr
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -86,6 +89,8 @@ jobs:
     needs: authorize
     environment: actions
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Set up Go 1.26.0
         uses: actions/setup-go@v7
@@ -96,6 +101,8 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ needs.authorize.outputs.head_sha }}
+          # Don't leave the GITHUB_TOKEN in .git/config where the fork's code could read it
+          persist-credentials: false
       - name: Test
         run: go test -v ./...
       - name: Build
@@ -134,6 +141,8 @@ jobs:
     needs: authorize
     environment: actions
     runs-on: windows-latest
+    permissions:
+      contents: read
     steps:
       - name: Set up Go 1.26.0
         uses: actions/setup-go@v7
@@ -144,6 +153,8 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ needs.authorize.outputs.head_sha }}
+          # Don't leave the GITHUB_TOKEN in .git/config where the fork's code could read it
+          persist-credentials: false
       - name: Set configuration file
         run: |
           mkdir C:\Users\runneradmin\.config\ghorg
@@ -196,9 +207,11 @@ jobs:
     needs: [authorize, build_and_test, build_and_test_windows]
     if: always() && needs.authorize.result == 'success'
     runs-on: ubuntu-latest
+    permissions:
+      statuses: write
     steps:
       - name: Set final commit status
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const { owner, repo } = context.repo;
