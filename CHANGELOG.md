@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.15] - unreleased
+## [1.11.15] - 8/25/26
 ### Added
 - GHORG_TRACE and GHORG_PPROF for profiling
 - GHORG_REPO_FILTER_HOOK to allow users to run custom filters or mutate any repo data
@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Bare repositories being skipped during pruning; thanks @psghahremani
 ### Security
 
-## [1.11.14] - 7/22
+## [1.11.14] - 7/22/26
 ### Added
 - Codeberg support via a first-class `--scm=codeberg` provider (reuses the Gitea backend, defaults the base URL to https://codeberg.org, and authenticates with `GHORG_CODEBERG_TOKEN`); self-hosted Forgejo instances are supported via `--base-url`, including http instances with `--insecure-codeberg-client`; resolves #678
 ### Changed
