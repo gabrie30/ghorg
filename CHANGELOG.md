@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.11.16] - unreleased
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.11.15] - 8/25/26
 ### Added
 - GHORG_TRACE and GHORG_PPROF for profiling
