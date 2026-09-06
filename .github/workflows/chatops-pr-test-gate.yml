@@ -40,7 +40,7 @@ jobs:
       head_sha: ${{ steps.pr.outputs.head_sha }}
     steps:
       - name: Verify commenter has write or admin access
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -60,7 +60,7 @@ jobs:
 
       - name: Pin PR head SHA and set pending status
         id: pr
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -223,7 +223,7 @@ jobs:
       statuses: write
     steps:
       - name: Set final commit status
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const { owner, repo } = context.repo;
