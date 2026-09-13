@@ -91,7 +91,7 @@ mise use -g ghorg@latest
 
 ### Golang
 
-Ensure $HOME/go/bin is in your path
+Ensure `$HOME/go/bin` is in your path
 
 ```bash
 go install github.com/gabrie30/ghorg@latest
