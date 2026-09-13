@@ -54,8 +54,8 @@ There are a installation methods available, please choose the one that suits you
 - [Homebrew](#homebrew)
 - [Mise](#mise)
 - [Golang](#golang)
+- [Scoop](#scoop)
 - [Docker](#docker)
-- [Windows Support](#windows-support)
 
 For each installation method, optionally create a ghorg configuration file. See the [configuration](#configuration) section for more details.
 
@@ -100,6 +100,15 @@ go install github.com/gabrie30/ghorg@latest
 # older go versions can run
 go get github.com/gabrie30/ghorg
 ```
+
+### Scoop
+
+Windows users can also install ghorg using [scoop](https://scoop.sh/#/)
+
+  ```
+  scoop bucket add main
+  scoop install ghorg
+  ```
 
 ## Configuration
 
@@ -513,17 +522,6 @@ csvToJson _ghorg_stats.csv
 ## Profiling Clones
 
 ghorg can profile its own clone runs with pprof (`--pprof`) and runtime execution tracing (`--trace`). See [examples/profiling.md](https://github.com/gabrie30/ghorg/blob/master/examples/profiling.md) for full documentation, or read it in your terminal with `ghorg examples profiling`.
-
-## Windows support
-
-Windows is supported when built with golang or as a [prebuilt binary](https://github.com/gabrie30/ghorg/releases/latest) however, the readme and other documentation is not geared towards Windows users.
-
-Alternatively, Windows users can also install ghorg using [scoop](https://scoop.sh/#/)
-
-  ```
-  scoop bucket add main
-  scoop install ghorg
-  ```
 
 ## Troubleshooting
 
