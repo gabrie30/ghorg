@@ -811,6 +811,8 @@ func getRelativePathRepositories(root string) ([]string, error) {
 				return err
 			}
 			relativePaths = append(relativePaths, rel)
+			// Prune whole clones, not repositories nested within their contents.
+			return filepath.SkipDir
 		}
 		return nil
 	})
