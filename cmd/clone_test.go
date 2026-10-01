@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -15,7 +16,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func setUpGitRepository(t *testing.T, path string, bare bool) {
+func setUpGitRepository(t testing.TB, path string, bare bool) {
 	t.Helper()
 	if err := os.MkdirAll(path, 0o755); err != nil {
 		t.Fatalf("Failed to create a directory under %s: %v", path, err)
@@ -727,6 +728,61 @@ func TestRelativePathRepositoriesDeeplyNested(t *testing.T) {
 	expected := filepath.Join("deeply", "nested", "repository")
 	if len(files) > 0 && files[0] != expected {
 		t.Errorf("Expected '%s', got '%s'", expected, files[0])
+	}
+}
+
+func TestRelativePathRepositoriesSkipsRepositoryContents(t *testing.T) {
+	for _, bare := range []bool{false, true} {
+		t.Run("bare="+strconv.FormatBool(bare), func(t *testing.T) {
+			root := t.TempDir()
+			previousOutputDir := outputDirAbsolutePath
+			outputDirAbsolutePath = root
+			t.Cleanup(func() { outputDirAbsolutePath = previousOutputDir })
+
+			parent := filepath.Join("group", "subgroup", "a-parent")
+			sibling := filepath.Join("group", "subgroup", "z-sibling")
+			setUpGitRepository(t, filepath.Join(root, parent), bare)
+			setUpGitRepository(t, filepath.Join(root, parent, "nested"), false)
+			setUpGitRepository(t, filepath.Join(root, sibling), bare)
+
+			got, err := getRelativePathRepositories(root)
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := []string{parent, sibling}
+			if !reflect.DeepEqual(got, want) {
+				t.Fatalf("getRelativePathRepositories() = %v, want %v", got, want)
+			}
+		})
+	}
+}
+
+func BenchmarkRelativePathRepositories(b *testing.B) {
+	for _, directories := range []int{0, 1000} {
+		b.Run(strconv.Itoa(directories)+"-directories", func(b *testing.B) {
+			root := b.TempDir()
+			previousOutputDir := outputDirAbsolutePath
+			outputDirAbsolutePath = root
+			b.Cleanup(func() { outputDirAbsolutePath = previousOutputDir })
+			repository := filepath.Join(root, "repository")
+			setUpGitRepository(b, repository, false)
+			for i := 0; i < directories; i++ {
+				if err := os.MkdirAll(filepath.Join(repository, "contents", strconv.Itoa(i)), 0o755); err != nil {
+					b.Fatal(err)
+				}
+			}
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				got, err := getRelativePathRepositories(root)
+				if err != nil {
+					b.Fatal(err)
+				}
+				if len(got) != 1 || got[0] != "repository" {
+					b.Fatalf("unexpected repositories: %v", got)
+				}
+			}
+		})
 	}
 }
 
