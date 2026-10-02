@@ -63,6 +63,7 @@ var (
 	backup                       bool
 	noClean                      bool
 	dryRun                       bool
+	includeSCMData               bool
 	prune                        bool
 	pruneNoConfirm               bool
 	cloneWiki                    bool
@@ -202,6 +203,8 @@ func getOrSetDefaults(envVar string) {
 			_ = os.Setenv(envVar, "false")
 		case "GHORG_DRY_RUN":
 			_ = os.Setenv(envVar, "false")
+		case "GHORG_INCLUDE_SCM_DATA":
+			_ = os.Setenv(envVar, "false")
 		case "GHORG_PRUNE":
 			_ = os.Setenv(envVar, "false")
 		case "GHORG_PRUNE_NO_CONFIRM":
@@ -339,6 +342,7 @@ func InitConfig() {
 	getOrSetDefaults("GHORG_PRUNE_UNTOUCHED")
 	getOrSetDefaults("GHORG_PRUNE_UNTOUCHED_NO_CONFIRM")
 	getOrSetDefaults("GHORG_DRY_RUN")
+	getOrSetDefaults("GHORG_INCLUDE_SCM_DATA")
 	getOrSetDefaults("GHORG_GITHUB_USER_OPTION")
 	getOrSetDefaults("GHORG_CLONE_WIKI")
 	getOrSetDefaults("GHORG_CLONE_SNIPPETS")
@@ -423,6 +427,7 @@ func init() {
 
 	cloneCmd.Flags().StringVar(&targetReposPath, "target-repos-path", "", "GHORG_TARGET_REPOS_PATH - Path to a file containing a list of specific repository names to clone (one per line). Useful for cloning a subset of repos from an org/user")
 	cloneCmd.Flags().StringVar(&repoFilterHook, "repo-filter-hook", "", "GHORG_REPO_FILTER_HOOK - Path to an executable that receives the repo list as a JSON array on stdin and writes the filtered or modified JSON array to stdout. Runs after all built-in filters. Any custom filtering is possible")
+	cloneCmd.Flags().BoolVar(&includeSCMData, "include-scm-data", false, "GHORG_INCLUDE_SCM_DATA - Include the object each SCM provider's API returned for a repo as scm_data in the JSON passed to --repo-filter-hook, so the hook can filter on any field. Not supported on Bitbucket Cloud")
 	cloneCmd.Flags().StringVar(&protocol, "protocol", "", "GHORG_CLONE_PROTOCOL - Protocol to use for cloning: 'ssh' or 'https'. SSH requires proper SSH keys configured. (default: https)")
 	cloneCmd.Flags().StringVarP(&path, "path", "p", "", "GHORG_ABSOLUTE_PATH_TO_CLONE_TO - Absolute path where all repos will be cloned. Directory will be created if it doesn't exist. Must start with / (default: $HOME/ghorg)")
 	cloneCmd.Flags().StringVarP(&branch, "branch", "b", "", "GHORG_BRANCH - Git branch to checkout after cloning each repository. Useful for cloning specific branches across all repos. (default: master)")

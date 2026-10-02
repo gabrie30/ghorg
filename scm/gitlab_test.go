@@ -1,9 +1,84 @@
 package scm
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
+
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
+
+func TestGitlabFilter_SCMData(t *testing.T) {
+	enableSCMData(t)
+	t.Setenv("GHORG_CLONE_WIKI", "true")
+
+	projects := []*gitlab.Project{{
+		ID:                7,
+		Name:              "repo1",
+		PathWithNamespace: "group/repo1",
+		SSHURLToRepo:      "git@gitlab.com:group/repo1.git",
+		HTTPURLToRepo:     "https://gitlab.com/group/repo1.git",
+		Archived:          true,
+		RunnersToken:      "secret-runners-token",
+		WikiAccessLevel:   gitlab.EnabledAccessControl,
+	}}
+
+	repos := Gitlab{}.filter("group", projects)
+	if len(repos) != 2 {
+		t.Fatalf("Expected repo and wiki, got %d entries", len(repos))
+	}
+
+	for _, r := range repos {
+		if strings.Contains(string(r.SCMData), "secret-runners-token") {
+			t.Errorf("Expected runners_token to be blanked in scm data for %q, got %s", r.Path, r.SCMData)
+		}
+		data := scmDataMap(t, r)
+		if data["path_with_namespace"] != "group/repo1" || data["archived"] != true {
+			t.Errorf("Expected the GitLab project object for %q, got %s", r.Path, r.SCMData)
+		}
+	}
+
+	if projects[0].RunnersToken != "secret-runners-token" {
+		t.Errorf("Expected the project returned by the API to be left unchanged")
+	}
+}
+
+func TestGitlabGetSnippets_SCMData(t *testing.T) {
+	mux := http.NewServeMux()
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	mux.HandleFunc("/api/v4/projects/7/snippets", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprint(w, `[{"id": 9, "title": "My Snippet", "project_id": 7, "visibility": "private", "web_url": "https://gitlab.com/group/repo1/-/snippets/9"}]`)
+	})
+
+	client, err := gitlab.NewClient("token", gitlab.WithBaseURL(server.URL))
+	if err != nil {
+		t.Fatalf("failed to create gitlab client: %v", err)
+	}
+
+	enableSCMData(t)
+	t.Setenv("GHORG_CLONE_SNIPPETS", "true")
+	t.Setenv("GHORG_CLONE_TYPE", "org")
+	t.Setenv("GHORG_SCM_BASE_URL", "")
+
+	cloneData := []Repo{{ID: "7", Name: "repo1", Path: "/repo1", CloneURL: "https://gitlab.com/group/repo1.git", URL: "https://gitlab.com/group/repo1.git"}}
+	snippets, err := Gitlab{Client: client}.GetSnippets(cloneData, "group")
+	if err != nil {
+		t.Fatalf("GetSnippets failed: %v", err)
+	}
+	if len(snippets) != 1 {
+		t.Fatalf("Expected 1 snippet, got %d", len(snippets))
+	}
+
+	data := scmDataMap(t, snippets[0])
+	if data["id"] != float64(9) || data["visibility"] != "private" {
+		t.Errorf("Expected the GitLab snippet object, got %s", snippets[0].SCMData)
+	}
+}
 
 func TestFilterGitlabGroupByMatchRegex(t *testing.T) {
 	testCases := []struct {

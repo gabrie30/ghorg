@@ -163,6 +163,19 @@ type ServerRepository struct {
 	Project struct {
 		Key string `json:"key"`
 	} `json:"project"`
+	// scmData is the repo object as returned by the API, see UnmarshalJSON
+	scmData json.RawMessage
+}
+
+// UnmarshalJSON keeps the full repo object for Repo.SCMData since ServerRepository only decodes the fields ghorg uses
+func (r *ServerRepository) UnmarshalJSON(data []byte) error {
+	type serverRepository ServerRepository
+	if err := json.Unmarshal(data, (*serverRepository)(r)); err != nil {
+		return err
+	}
+	// scmData returns a copy, which is required since the decoder may reuse data after this returns
+	r.scmData = scmData(json.RawMessage(data))
+	return nil
 }
 
 type ServerProjectResponse struct {
@@ -283,9 +296,10 @@ func (c Bitbucket) filterServerRepos(repos []ServerRepository) []Repo {
 				}
 
 				r := Repo{
-					Name: repo.Name,
-					Path: fmt.Sprintf("%s/%s", repo.Project.Key, repo.Slug),
-					URL:  href,
+					Name:    repo.Name,
+					Path:    fmt.Sprintf("%s/%s", repo.Project.Key, repo.Slug),
+					URL:     href,
+					SCMData: repo.scmData,
 				}
 
 				// Set clone branch to default (master/main)
@@ -347,6 +361,10 @@ func (c Bitbucket) filter(resp []bitbucket.Repository) (repoData []Repo, err err
 				colorlog.PrintError("WARNING: Filtering by topics is not supported for Bitbucket SCM")
 			}
 
+			// Note: SCMData is intentionally not set for Bitbucket Cloud. go-bitbucket decodes repos into a struct
+			// without JSON tags that drops fields like size, so marshaling it would give hooks Go style keys
+			// (Full_name, Is_private) that do not match the Bitbucket API. Hooks would come to depend on those keys
+			// and they would break if ghorg later switched to its own HTTP calls, so it is left nil.
 			r := Repo{}
 			r.Name = a.Name
 			r.Path = a.Full_name

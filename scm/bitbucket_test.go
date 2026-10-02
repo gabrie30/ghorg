@@ -1,9 +1,66 @@
 package scm
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
+
+	"github.com/ktrysmt/go-bitbucket"
 )
+
+func TestFilterServerRepos_SCMData(t *testing.T) {
+	t.Setenv("GHORG_CLONE_PROTOCOL", "ssh")
+
+	// scmId, public, and state are not parsed by ghorg but should still reach the hook
+	body := `{"values":[{"slug":"repo1","id":1,"name":"repo1","scmId":"git","state":"AVAILABLE","public":true,"project":{"key":"PROJ"},"links":{"clone":[{"href":"ssh://git@bitbucket.example.com:7999/proj/repo1.git","name":"ssh"}]}}],"size":1,"isLastPage":true,"start":0}`
+
+	t.Run("Should not include scm data by default", func(tt *testing.T) {
+		var response ServerProjectResponse
+		if err := json.Unmarshal([]byte(body), &response); err != nil {
+			tt.Fatal(err)
+		}
+		repos := Bitbucket{}.filterServerRepos(response.Values)
+		if len(repos) != 1 || repos[0].SCMData != nil {
+			tt.Errorf("Expected 1 repo without scm data, got %+v", repos)
+		}
+	})
+
+	t.Run("Should include the raw repo object when enabled", func(tt *testing.T) {
+		enableSCMData(tt)
+		var response ServerProjectResponse
+		if err := json.Unmarshal([]byte(body), &response); err != nil {
+			tt.Fatal(err)
+		}
+		repos := Bitbucket{}.filterServerRepos(response.Values)
+		if len(repos) != 1 {
+			tt.Fatalf("Expected 1 repo, got %d", len(repos))
+		}
+		data := scmDataMap(tt, repos[0])
+		if data["scmId"] != "git" || data["public"] != true || data["state"] != "AVAILABLE" {
+			tt.Errorf("Expected the Bitbucket Server repo object, got %s", repos[0].SCMData)
+		}
+	})
+}
+
+// Bitbucket Cloud intentionally has no scm data, see the note in Bitbucket.filter
+func TestFilterCloudRepos_NoSCMData(t *testing.T) {
+	enableSCMData(t)
+	t.Setenv("GHORG_CLONE_PROTOCOL", "ssh")
+
+	repos, err := Bitbucket{}.filter([]bitbucket.Repository{{
+		Name:      "repo1",
+		Full_name: "workspace/repo1",
+		Links: map[string]any{"clone": []any{
+			map[string]any{"href": "git@bitbucket.org:workspace/repo1.git", "name": "ssh"},
+		}},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(repos) != 1 || repos[0].SCMData != nil {
+		t.Errorf("Expected 1 repo without scm data, got %+v", repos)
+	}
+}
 
 func TestInsertAppPasswordCredentialsIntoURL(t *testing.T) {
 	// Set environment variables for the test

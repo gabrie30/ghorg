@@ -235,6 +235,7 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 
 		r.Name = *ghRepo.Name
 		r.Path = r.Name
+		r.SCMData = scmData(ghRepo)
 
 		if os.Getenv("GHORG_BRANCH") == "" {
 			defaultBranch := ghRepo.GetDefaultBranch()
@@ -263,6 +264,7 @@ func (c Github) filter(allRepos []*github.Repository) []Repo {
 			wiki.URL = strings.Replace(r.URL, ".git", ".wiki.git", 1)
 			wiki.CloneBranch = "master"
 			wiki.Path = fmt.Sprintf("%s%s", r.Name, ".wiki")
+			wiki.SCMData = r.SCMData
 			repoData = append(repoData, wiki)
 		}
 	}
@@ -362,6 +364,7 @@ func (c Github) filterGists(allGists []*github.Gist) []Repo {
 		r.Name = folderName
 		r.Path = folderName
 		r.IsGitHubGist = true
+		r.SCMData = scmData(gist)
 		if os.Getenv("GHORG_BRANCH") != "" {
 			r.CloneBranch = os.Getenv("GHORG_BRANCH")
 		} else {

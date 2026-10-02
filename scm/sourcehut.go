@@ -228,6 +228,7 @@ func (c Sourcehut) filter(rps []repository, apiUsername string, localUsername st
 		// Use localUsername (without ~) for local paths to avoid shell expansion issues
 		r.Path = path.Join(localUsername, rp.Name)
 		r.Name = rp.Name
+		r.SCMData = rp.scmData
 
 		// Build the repo path WITH ~ for clone URLs (git needs this)
 		repoPathWithTilde := path.Join(rp.Owner.CanonicalName, rp.Name)
@@ -289,4 +290,18 @@ type repository struct {
 		Name   string `json:"name"`
 		Target string `json:"target"`
 	} `json:"HEAD"`
+	// scmData is the repo object as returned by the API, see UnmarshalJSON
+	scmData json.RawMessage
+}
+
+// UnmarshalJSON keeps the repo object for Repo.SCMData exactly as returned by the GraphQL query.
+// Marshaling the struct instead would add empty values for fields the query does not request.
+func (r *repository) UnmarshalJSON(data []byte) error {
+	type plainRepository repository
+	if err := json.Unmarshal(data, (*plainRepository)(r)); err != nil {
+		return err
+	}
+	// scmData returns a copy, which is required since the decoder may reuse data after this returns
+	r.scmData = scmData(json.RawMessage(data))
+	return nil
 }

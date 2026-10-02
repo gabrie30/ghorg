@@ -137,6 +137,69 @@ func TestGetOrgRepos(t *testing.T) {
 	})
 }
 
+func TestGetOrgRepos_SCMData(t *testing.T) {
+	client, mux, _, teardown := setup()
+	defer teardown()
+
+	github := Github{Client: client}
+
+	mux.HandleFunc("/orgs/scmdataorg/repos", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprint(w, `[
+			{"id":1, "name": "repo1", "size": 3, "archived": false, "has_wiki": true, "clone_url": "https://example.com/repo1.git", "ssh_url": "git@example.com:scmdataorg/repo1.git"}
+			]`)
+	})
+
+	t.Run("Should not include scm data by default", func(tt *testing.T) {
+		resp, err := github.GetOrgRepos("scmdataorg")
+		if err != nil {
+			tt.Fatal(err)
+		}
+		if resp[0].SCMData != nil {
+			tt.Errorf("Expected no scm data, got %s", resp[0].SCMData)
+		}
+	})
+
+	t.Run("Should include the repo object for repos and their wikis when enabled", func(tt *testing.T) {
+		enableSCMData(tt)
+		tt.Setenv("GHORG_CLONE_WIKI", "true")
+
+		resp, err := github.GetOrgRepos("scmdataorg")
+		if err != nil {
+			tt.Fatal(err)
+		}
+		if len(resp) != 2 {
+			tt.Fatalf("Expected repo and wiki, got %d entries", len(resp))
+		}
+
+		for _, r := range resp {
+			data := scmDataMap(tt, r)
+			if data["name"] != "repo1" || data["size"] != float64(3) || data["archived"] != false {
+				tt.Errorf("Expected the GitHub repo object for %q, got %s", r.Path, r.SCMData)
+			}
+		}
+	})
+}
+
+func TestFilterGists_SCMData(t *testing.T) {
+	enableSCMData(t)
+
+	gists := []*ghpkg.Gist{{
+		ID:          ghpkg.Ptr("abc123"),
+		Description: ghpkg.Ptr("my gist"),
+		GitPullURL:  ghpkg.Ptr("https://gist.github.com/abc123.git"),
+	}}
+
+	repos := Github{}.filterGists(gists)
+	if len(repos) != 1 {
+		t.Fatalf("Expected 1 gist, got %d", len(repos))
+	}
+
+	data := scmDataMap(t, repos[0])
+	if data["id"] != "abc123" || data["description"] != "my gist" {
+		t.Errorf("Expected the GitHub gist object, got %s", repos[0].SCMData)
+	}
+}
+
 func TestGetUserGists(t *testing.T) {
 	client, mux, _, teardown := setup()
 
