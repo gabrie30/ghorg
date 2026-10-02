@@ -7,6 +7,13 @@ remove repos and can also modify repo fields such as clone_branch.
 
 Usage:
     ghorg clone my-org --repo-filter-hook=/path/to/filter-repos.py
+
+To see every field available to this script, run ghorg with GHORG_DEBUG=true.
+ghorg prints the JSON it passes to the script just before running it. Add
+--include-scm-data to also get each repo's SCM provider API data as scm_data.
+Warning: GHORG_DEBUG also prints your API token to stdout. It can appear
+inside each clone_url when cloning over HTTPS, so keep the output private.
+    GHORG_DEBUG=true ghorg clone my-org --repo-filter-hook=/path/to/filter-repos.py --dry-run
 """
 
 import json
