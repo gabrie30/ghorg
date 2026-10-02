@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -27,6 +28,29 @@ func skipOnWindows(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("repo filter hook script tests require a POSIX shell")
 	}
+}
+
+// captureStdout returns everything fn writes to os.Stdout.
+func captureStdout(t *testing.T, fn func()) string {
+	t.Helper()
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("failed to create pipe: %v", err)
+	}
+	stdout := os.Stdout
+	os.Stdout = w
+	defer func() { os.Stdout = stdout }()
+
+	// Read while fn runs so a large write can't fill the pipe and block
+	captured := make(chan string)
+	go func() {
+		data, _ := io.ReadAll(r)
+		captured <- string(data)
+	}()
+
+	fn()
+	_ = w.Close()
+	return <-captured
 }
 
 func TestRunRepoFilterHook_IdentityHookReturnsAllRepos(t *testing.T) {
@@ -153,6 +177,45 @@ tee "$(dirname "$0")/input.json"
 	expected := []scm.Repo{{Name: "repo1"}}
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("expected scm_data to be dropped after the hook, got %+v", result)
+	}
+}
+
+func TestRunRepoFilterHook_DebugPrintsHookInput(t *testing.T) {
+	skipOnWindows(t)
+	hook := writeHookScript(t, "#!/bin/sh\ncat\n")
+	t.Setenv("GHORG_DEBUG", "true")
+
+	repos := []scm.Repo{{Name: "repo1", CloneBranch: "main", SCMData: json.RawMessage(`{"archived":true}`)}}
+
+	output := captureStdout(t, func() {
+		if _, err := runRepoFilterHook(hook, repos); err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+
+	// Every repo field, including scm_data, as the indented form of the JSON the hook receives
+	expected, err := json.MarshalIndent(repos, "", "  ")
+	if err != nil {
+		t.Fatalf("failed to marshal expected output: %v", err)
+	}
+	if !strings.Contains(output, string(expected)) {
+		t.Errorf("expected debug output to contain\n%s\ngot\n%s", expected, output)
+	}
+}
+
+func TestRunRepoFilterHook_NoDebugPrintsNoHookInput(t *testing.T) {
+	skipOnWindows(t)
+	hook := writeHookScript(t, "#!/bin/sh\ncat\n")
+	t.Setenv("GHORG_DEBUG", "")
+
+	output := captureStdout(t, func() {
+		if _, err := runRepoFilterHook(hook, []scm.Repo{{Name: "repo1"}}); err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+
+	if output != "" {
+		t.Errorf("expected no output without GHORG_DEBUG, got %s", output)
 	}
 }
 

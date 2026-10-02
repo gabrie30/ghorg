@@ -314,6 +314,7 @@ When the built-in filters can't express your logic, point `--repo-filter-hook` (
 - Returning an empty array `[]` is valid and means clone nothing.
 - The hook inherits ghorg's environment, so it can read `GHORG_SCM_TYPE`, `GHORG_CLONE_TYPE`, and any other `GHORG_` values for context. This includes any credentials ghorg was given, such as `GHORG_GITHUB_TOKEN`, which is by design since the user owns the executable.
 - Write progress or diagnostics to stderr; it is streamed through to ghorg's output.
+- Set `GHORG_DEBUG=true` to print the repos passed to the hook as indented JSON just before it runs. The fields and values are the same as what the hook reads on stdin.
 - ghorg **aborts the run** if the hook is missing, exits non-zero, or writes invalid JSON, so a broken hook never results in cloning an unfiltered list.
 - A hook path without a path separator, for example `--repo-filter-hook=filter.sh`, is resolved via `PATH` rather than the current directory, so use `./filter.sh` or an absolute path for a local script.
 

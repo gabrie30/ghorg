@@ -50,6 +50,13 @@ func runRepoFilterHook(hookPath string, repos []scm.Repo) ([]scm.Repo, error) {
 		return nil, fmt.Errorf("could not marshal repos to JSON: %w", err)
 	}
 
+	if os.Getenv("GHORG_DEBUG") != "" {
+		var indented bytes.Buffer
+		// input came from json.Marshal so it is always valid JSON and Indent can't fail
+		_ = json.Indent(&indented, input, "", "  ")
+		fmt.Printf("Debug: Repos passed to GHORG_REPO_FILTER_HOOK on stdin:\n%s\n", indented.String())
+	}
+
 	cmd := exec.Command(hookPath)
 	cmd.Stdin = bytes.NewReader(input)
 	cmd.Stderr = os.Stderr
