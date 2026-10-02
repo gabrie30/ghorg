@@ -125,6 +125,12 @@ GHORG_TARGET_REPOS_PATH:
 # flag (--repo-filter-hook) eg: --repo-filter-hook=/path/to/filter.sh
 GHORG_REPO_FILTER_HOOK:
 
+# Include the object each SCM provider's API returned for a repo as scm_data in the JSON passed to GHORG_REPO_FILTER_HOOK
+# Lets the hook filter on any field the provider returns, such as size or visibility. Field names and units are not normalized across providers
+# Has no effect unless GHORG_REPO_FILTER_HOOK is set. Not supported on Bitbucket Cloud
+# flag (--include-scm-data)
+GHORG_INCLUDE_SCM_DATA: false
+
 # A comma separated list of topics to filter by, currently github/gitlab/gitea only
 # flag (--topics) eg: --topics=frontend
 # If any topics exist here, ghorg will only clone repos that match at least one of these topics

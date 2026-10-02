@@ -1,5 +1,13 @@
 package scm
 
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+
+	"github.com/gabrie30/ghorg/colorlog"
+)
+
 // Repo represents an SCM repo, should probably be renamed to "cloneable" since we clone wikis and snippets with this
 type Repo struct {
 	// The ID of the repo that is assigned via the SCM provider. This is used for example with gitlab snippets on cloud gropus where we need to know the repo id to look up all he snippets it has.
@@ -27,6 +35,25 @@ type Repo struct {
 	// GitLabSnippetInfo provides additional information when the thing we are cloning is a gitlab snippet
 	GitLabSnippetInfo GitLabSnippet `json:"gitlab_snippet_info"`
 	Commits           RepoCommits   `json:"commits"`
+	// SCMData is the object returned by the SCM provider's API for this repo, gist, or snippet, so a GHORG_REPO_FILTER_HOOK can filter on any field the provider returns. It is not normalized, field names and units match each provider's API. Wikis carry their parent repo's data.
+	// Only set when GHORG_INCLUDE_SCM_DATA is true and a GHORG_REPO_FILTER_HOOK is set. Never set for Bitbucket Cloud, see the note in Bitbucket.filter.
+	SCMData json.RawMessage `json:"scm_data,omitempty"`
+}
+
+// scmData returns v, an object from the SCM provider's API, as JSON for Repo.SCMData. It returns nil unless the user
+// asked for it with GHORG_INCLUDE_SCM_DATA, and since only the repo filter hook reads it, unless a hook is set too.
+func scmData(v any) json.RawMessage {
+	if os.Getenv("GHORG_INCLUDE_SCM_DATA") != "true" || os.Getenv("GHORG_REPO_FILTER_HOOK") == "" {
+		return nil
+	}
+
+	data, err := json.Marshal(v)
+	if err != nil {
+		colorlog.PrintError(fmt.Sprintf("Could not include scm data, error: %v", err))
+		return nil
+	}
+
+	return data
 }
 
 type RepoCommits struct {

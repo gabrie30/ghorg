@@ -3,6 +3,7 @@ package scm
 import (
 	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -87,6 +88,7 @@ func TestRepoJSONRoundTrip(t *testing.T) {
 			Title: "snippet title",
 		},
 		Commits: RepoCommits{CountPrePull: 3},
+		SCMData: json.RawMessage(`{"archived":true}`),
 	}
 
 	data, err := json.Marshal(original)
@@ -102,4 +104,81 @@ func TestRepoJSONRoundTrip(t *testing.T) {
 	if !reflect.DeepEqual(original, decoded) {
 		t.Errorf("round trip mismatch:\noriginal: %+v\ndecoded:  %+v", original, decoded)
 	}
+}
+
+func TestRepoJSONSCMData(t *testing.T) {
+	data, err := json.Marshal(Repo{Name: "ghorg", SCMData: json.RawMessage(`{"archived":true}`)})
+	if err != nil {
+		t.Fatalf("marshal failed: %v", err)
+	}
+
+	var asMap map[string]interface{}
+	if err := json.Unmarshal(data, &asMap); err != nil {
+		t.Fatalf("unmarshal to map failed: %v", err)
+	}
+
+	scmData, ok := asMap["scm_data"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected scm_data to be a JSON object in %s", data)
+	}
+	if scmData["archived"] != true {
+		t.Errorf("expected scm_data to pass the SCM object through unchanged, got %s", data)
+	}
+
+	// scm_data is omitted entirely when it was not requested
+	data, err = json.Marshal(Repo{Name: "ghorg"})
+	if err != nil {
+		t.Fatalf("marshal failed: %v", err)
+	}
+	if strings.Contains(string(data), "scm_data") {
+		t.Errorf("expected no scm_data key when unset, got %s", data)
+	}
+}
+
+// enableSCMData turns on scm_data, which needs both GHORG_INCLUDE_SCM_DATA and a repo filter hook
+func enableSCMData(t *testing.T) {
+	t.Helper()
+	t.Setenv("GHORG_INCLUDE_SCM_DATA", "true")
+	t.Setenv("GHORG_REPO_FILTER_HOOK", "/path/to/hook")
+}
+
+// scmDataMap decodes a repo's scm_data so tests can assert on individual fields
+func scmDataMap(t *testing.T, r Repo) map[string]interface{} {
+	t.Helper()
+	var data map[string]interface{}
+	if err := json.Unmarshal(r.SCMData, &data); err != nil {
+		t.Fatalf("scm_data for %q is not a JSON object: %v, got %s", r.Name, err, r.SCMData)
+	}
+	return data
+}
+
+func TestSCMData(t *testing.T) {
+	type apiRepo struct {
+		Name     string `json:"name"`
+		Archived bool   `json:"archived"`
+	}
+	repo := apiRepo{Name: "ghorg", Archived: true}
+
+	t.Run("nil when the flag is not set", func(tt *testing.T) {
+		tt.Setenv("GHORG_INCLUDE_SCM_DATA", "")
+		tt.Setenv("GHORG_REPO_FILTER_HOOK", "/path/to/hook")
+		if got := scmData(repo); got != nil {
+			tt.Errorf("expected nil, got %s", got)
+		}
+	})
+
+	t.Run("nil when no repo filter hook is set", func(tt *testing.T) {
+		tt.Setenv("GHORG_INCLUDE_SCM_DATA", "true")
+		tt.Setenv("GHORG_REPO_FILTER_HOOK", "")
+		if got := scmData(repo); got != nil {
+			tt.Errorf("expected nil, got %s", got)
+		}
+	})
+
+	t.Run("JSON of the SCM object when the flag and a hook are set", func(tt *testing.T) {
+		enableSCMData(tt)
+		if got := string(scmData(repo)); got != `{"name":"ghorg","archived":true}` {
+			tt.Errorf("unexpected scm_data: %s", got)
+		}
+	})
 }

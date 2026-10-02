@@ -103,6 +103,39 @@ func TestGitea_GetOrgRepos_SinglePage(t *testing.T) {
 	}
 }
 
+func TestGitea_GetOrgRepos_SCMData(t *testing.T) {
+	client, mux, _, teardown := setupGiteaTest()
+	defer teardown()
+
+	repo := mockGiteaRepository(1, "repo1")
+	repo.Size = 5
+	repo.HasWiki = true
+
+	mux.HandleFunc("/api/v1/orgs/test-org/repos", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]*gitea.Repository{repo})
+	})
+
+	enableSCMData(t)
+	t.Setenv("GHORG_CLONE_PROTOCOL", "https")
+	t.Setenv("GHORG_CLONE_WIKI", "true")
+
+	result, err := client.GetOrgRepos("test-org")
+	if err != nil {
+		t.Fatalf("GetOrgRepos failed: %v", err)
+	}
+	if len(result) != 2 {
+		t.Fatalf("Expected repo and wiki, got %d entries", len(result))
+	}
+
+	for _, r := range result {
+		data := scmDataMap(t, r)
+		if data["full_name"] != "test-org/repo1" || data["size"] != float64(5) {
+			t.Errorf("Expected the Gitea repo object for %q, got %s", r.Path, r.SCMData)
+		}
+	}
+}
+
 func TestGitea_GetOrgRepos_MultiplePage_PaginationBugRegression(t *testing.T) {
 	client, mux, _, teardown := setupGiteaTest()
 	defer teardown()

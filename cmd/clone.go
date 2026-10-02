@@ -288,6 +288,7 @@ func cloneFunc(cmd *cobra.Command, argz []string) {
 	syncBoolFlagToEnv(cmd, "fetch-prune", "GHORG_FETCH_PRUNE")
 	syncBoolFlagToEnv(cmd, "include-submodules", "GHORG_INCLUDE_SUBMODULES")
 	syncBoolFlagToEnv(cmd, "dry-run", "GHORG_DRY_RUN")
+	syncBoolFlagToEnv(cmd, "include-scm-data", "GHORG_INCLUDE_SCM_DATA")
 	syncBoolFlagToEnv(cmd, "clone-wiki", "GHORG_CLONE_WIKI")
 	syncBoolFlagToEnv(cmd, "clone-snippets", "GHORG_CLONE_SNIPPETS")
 	syncBoolFlagToEnv(cmd, "github-user-gists", "GHORG_GITHUB_USER_GISTS")
@@ -1422,6 +1423,9 @@ func PrintConfigs() {
 	}
 	if os.Getenv("GHORG_REPO_FILTER_HOOK") != "" {
 		colorlog.PrintInfo("* Filter Hook   : " + os.Getenv("GHORG_REPO_FILTER_HOOK"))
+		if os.Getenv("GHORG_INCLUDE_SCM_DATA") == "true" {
+			colorlog.PrintInfo("* SCM Data      : true")
+		}
 	}
 	if os.Getenv("GHORG_MATCH_REGEX") != "" {
 		colorlog.PrintInfo("* Regex Match   : " + os.Getenv("GHORG_MATCH_REGEX"))

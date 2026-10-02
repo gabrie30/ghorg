@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/gabrie30/ghorg/scm"
@@ -125,6 +127,32 @@ func TestFilterByHook_SkippedWhenEnvUnset(t *testing.T) {
 	result := filter.FilterByHook(repos)
 	if !reflect.DeepEqual(result, repos) {
 		t.Errorf("expected repos unchanged when hook unset, got %+v", result)
+	}
+}
+
+func TestFilterByHook_PassesSCMDataThenDropsIt(t *testing.T) {
+	skipOnWindows(t)
+	// Identity hook that also saves its input so the test can see what the hook received
+	hook := writeHookScript(t, `#!/bin/sh
+tee "$(dirname "$0")/input.json"
+`)
+	t.Setenv("GHORG_REPO_FILTER_HOOK", hook)
+
+	repos := []scm.Repo{{Name: "repo1", SCMData: json.RawMessage(`{"archived":true}`)}}
+
+	result := NewRepositoryFilter().FilterByHook(repos)
+
+	input, err := os.ReadFile(filepath.Join(filepath.Dir(hook), "input.json"))
+	if err != nil {
+		t.Fatalf("failed to read hook input: %v", err)
+	}
+	if !strings.Contains(string(input), `"scm_data":{"archived":true}`) {
+		t.Errorf("expected hook to receive scm_data, got %s", input)
+	}
+
+	expected := []scm.Repo{{Name: "repo1"}}
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("expected scm_data to be dropped after the hook, got %+v", result)
 	}
 }
 

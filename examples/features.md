@@ -44,6 +44,12 @@ Easily overlooked flags that work across all SCM providers. Commands below omit 
     ghorg clone <org> --repo-filter-hook=/path/to/filter.sh --dry-run --token=XXXXXX
     ```
 
+1. `--include-scm-data` adds the SCM provider's full API object for each repo as `scm_data` in the JSON passed to `--repo-filter-hook`, so the hook can filter on any field the provider returns, such as size or visibility. Not supported on Bitbucket Cloud.
+
+    ```
+    ghorg clone <org> --repo-filter-hook=/path/to/filter.sh --include-scm-data --dry-run --token=XXXXXX
+    ```
+
 ## Speed and Large Clones
 
 1. `--clone-depth=1` makes shallow clones, and `--git-filter=blob:none` skips binary blobs, both dramatically cut clone time and disk usage

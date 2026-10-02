@@ -342,6 +342,7 @@ func (c Gitlab) GetSnippets(cloneData []Repo, target string) ([]Repo, error) {
 		s.Name = snippetTitle
 		s.GitLabSnippetInfo.ID = snippetID
 		s.URL = snippet.WebURL
+		s.SCMData = scmData(snippet)
 		// If the snippet is not made on any repo its a root level snippet, this works for cloud
 		if c.rootLevelSnippet(snippet.WebURL) {
 			s.IsGitLabRootLevelSnippet = true
@@ -558,6 +559,11 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 		r.Name = p.Name
 		r.ID = strconv.FormatInt(int64(p.ID), 10)
 
+		// Blank the runner registration token on a copy so it is not handed to a hook that may log its input
+		project := *p
+		project.RunnersToken = ""
+		r.SCMData = scmData(project)
+
 		if os.Getenv("GHORG_BRANCH") == "" {
 			defaultBranch := p.DefaultBranch
 			if defaultBranch == "" {
@@ -605,6 +611,7 @@ func (c Gitlab) filter(group string, ps []*gitlab.Project) []Repo {
 			wiki.URL = strings.Replace(r.URL, ".git", ".wiki.git", 1)
 			wiki.CloneBranch = "master"
 			wiki.Path = fmt.Sprintf("%s%s", path, ".wiki")
+			wiki.SCMData = r.SCMData
 			repoData = append(repoData, wiki)
 		}
 	}

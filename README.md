@@ -317,13 +317,31 @@ When the built-in filters can't express your logic, point `--repo-filter-hook` (
 - ghorg **aborts the run** if the hook is missing, exits non-zero, or writes invalid JSON, so a broken hook never results in cloning an unfiltered list.
 - A hook path without a path separator, for example `--repo-filter-hook=filter.sh`, is resolved via `PATH` rather than the current directory, so use `./filter.sh` or an absolute path for a local script.
 
-Each repo object has these fields: `id`, `name`, `host_path`, `path`, `url`, `clone_url`, `clone_branch`, `is_wiki`, `is_gitlab_snippet`, `is_gitlab_root_level_snippet`, `is_github_gist`, `gitlab_snippet_info`, and `commits`.
+Each repo object has these fields: `id`, `name`, `host_path`, `path`, `url`, `clone_url`, `clone_branch`, `is_wiki`, `is_gitlab_snippet`, `is_gitlab_root_level_snippet`, `is_github_gist`, `gitlab_snippet_info`, `commits`, and `scm_data` when `--include-scm-data` is set.
 
 Example with `jq`, keeping only repos whose name starts with `frontend-`:
 
 ```sh
 #!/bin/sh
 jq '[.[] | select(.name | startswith("frontend-"))]'
+```
+
+##### `--include-scm-data` - filter on anything the SCM provider returns
+
+Set `--include-scm-data` (or `GHORG_INCLUDE_SCM_DATA=true`) alongside `--repo-filter-hook` to add a `scm_data` field to each repo object. It holds the object the SCM provider's API returned for that repo, so your hook can filter on any field the provider exposes, such as size, visibility, last push date, or license. It is off by default because it makes the JSON passed to the hook much larger, around 5 KB per GitHub repo.
+
+- `scm_data` is passed through as the provider returns it and is not normalized, so field names and units differ between providers. For example `size` is in KiB on GitHub and Gitea. Check your provider's API docs for the fields available.
+- Wikis carry their parent repo's `scm_data`, so a hook can skip the wikis of repos it skips. GitHub gists and GitLab snippets carry their own object.
+- GitLab's `runners_token` is blanked before it is passed to the hook.
+- Sourcehut only includes the fields ghorg requests in its GraphQL query: `id`, `name`, `visibility`, `owner`, and `HEAD`.
+- Bitbucket Cloud is not supported and never includes `scm_data`.
+- `scm_data` is dropped after the hook runs, so changes the hook makes to it have no effect.
+
+Example with `jq` on GitHub, skipping archived repos and repos larger than 1 GB:
+
+```sh
+#!/bin/sh
+jq '[.[] | select(.scm_data.archived != true and .scm_data.size < 1048576)]'
 ```
 
 See [examples/hooks](examples/hooks) for complete bash and python examples.

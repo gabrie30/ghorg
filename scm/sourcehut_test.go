@@ -144,6 +144,49 @@ func TestSourcehutGetUserRepos(t *testing.T) {
 	})
 }
 
+func TestSourcehutGetUserRepos_SCMData(t *testing.T) {
+	client, mux, _, teardown := setupSourcehut()
+	defer teardown()
+
+	mux.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprint(w, `{
+			"data": {
+				"repositories": {
+					"results": [
+						{
+							"id": 1,
+							"name": "repo1",
+							"visibility": "PUBLIC",
+							"owner": {"canonicalName": "~testuser"},
+							"HEAD": {"name": "refs/heads/main"}
+						}
+					],
+					"cursor": ""
+				}
+			}
+		}`)
+	})
+
+	enableSCMData(t)
+
+	repos, err := client.GetUserRepos("testuser")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(repos) != 1 {
+		t.Fatalf("Expected 1 repo, got %d", len(repos))
+	}
+
+	data := scmDataMap(t, repos[0])
+	if data["visibility"] != "PUBLIC" || data["name"] != "repo1" {
+		t.Errorf("Expected the Sourcehut repo object, got %s", repos[0].SCMData)
+	}
+	// Only fields returned by the GraphQL query should be present, not empty fields from ghorg's struct
+	if _, ok := data["description"]; ok {
+		t.Errorf("Expected scm data to only contain queried fields, got %s", repos[0].SCMData)
+	}
+}
+
 func TestSourcehutGetOrgRepos(t *testing.T) {
 	client, mux, _, teardown := setupSourcehut()
 	defer teardown()

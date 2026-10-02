@@ -30,6 +30,11 @@ func (rf *RepositoryFilter) FilterByHook(repos []scm.Repo) []scm.Repo {
 
 	colorlog.PrintInfo(fmt.Sprintf("Repo filter hook returned %v of %v repos", len(filtered), len(repos)))
 
+	// scm_data is only for the hook, drop it so it is not held in memory for the rest of the clone
+	for i := range filtered {
+		filtered[i].SCMData = nil
+	}
+
 	return filtered
 }
 

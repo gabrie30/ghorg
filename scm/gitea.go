@@ -196,6 +196,7 @@ func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 		r := Repo{}
 		r.Path = rp.FullName
 		r.Name = rp.Name
+		r.SCMData = scmData(rp)
 
 		if os.Getenv("GHORG_BRANCH") == "" {
 			defaultBranch := rp.DefaultBranch
@@ -234,6 +235,7 @@ func (c Gitea) filter(rps []*gitea.Repository) (repoData []Repo, err error) {
 			}
 			wiki.CloneBranch = wikiBranch
 			wiki.Path = fmt.Sprintf("%s%s", r.Name, ".wiki")
+			wiki.SCMData = r.SCMData
 			repoData = append(repoData, wiki)
 		}
 	}
