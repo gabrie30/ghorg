@@ -32,3 +32,71 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GHORG_GITHUB_TOKEN }}
+
+  # After a successful release, open the next patch version on master by adding an
+  # unreleased CHANGELOG.md entry and bumping ghorgVersion in cmd/version.go.
+  # Each update is skipped if the file is already at or past the next version.
+  prepare-next-version:
+    needs: goreleaser
+    if: github.ref_type == 'tag'
+    environment: actions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      -
+        name: Checkout master
+        uses: actions/checkout@v7
+        with:
+          ref: master
+          # master is protected, so push with the admin PAT rather than GITHUB_TOKEN
+          token: ${{ secrets.GHORG_GITHUB_TOKEN }}
+      -
+        name: Bump CHANGELOG.md and cmd/version.go
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "::notice::$RELEASE_TAG is not a vMAJOR.MINOR.PATCH tag, skipping"
+            exit 0
+          fi
+          next="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((BASH_REMATCH[3] + 1))"
+          echo "Released $RELEASE_TAG, preparing $next"
+
+          # True when version $1 sorts before version $2
+          is_older() {
+            [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]
+          }
+
+          latest_entry=$(grep -m1 -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | tr -d '#[] ')
+          if [ -z "$latest_entry" ]; then
+            echo "::error::Could not find a version entry in CHANGELOG.md"
+            exit 1
+          elif is_older "$latest_entry" "$next"; then
+            awk -v entry="## [$next] - unreleased\n### Added\n### Changed\n### Deprecated\n### Removed\n### Fixed\n### Security\n" \
+              '!done && /^## \[/ { print entry; done = 1 } { print }' CHANGELOG.md > CHANGELOG.md.tmp
+            mv CHANGELOG.md.tmp CHANGELOG.md
+          else
+            echo "CHANGELOG.md latest entry is $latest_entry, skipping"
+          fi
+
+          current_version=$(sed -nE 's/^const ghorgVersion = "v([^"]+)"$/\1/p' cmd/version.go)
+          if [ -z "$current_version" ]; then
+            echo "::error::Could not find ghorgVersion in cmd/version.go"
+            exit 1
+          elif is_older "$current_version" "$next"; then
+            sed -i -E "s/^const ghorgVersion = \"v[^\"]+\"$/const ghorgVersion = \"v$next\"/" cmd/version.go
+          else
+            echo "cmd/version.go is v$current_version, skipping"
+          fi
+
+          if git diff --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+
+          git diff
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Prepare v$next"
+          git push origin HEAD:master
