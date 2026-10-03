@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.16] - unreleased
+## [1.11.16] - 10/3/26
 ### Added
 - GHORG_INCLUDE_SCM_DATA to pass each repo's SCM API data to GHORG_REPO_FILTER_HOOK as scm_data
 - GHORG_DEBUG now prints the repos passed to GHORG_REPO_FILTER_HOOK as indented JSON before the hook runs
