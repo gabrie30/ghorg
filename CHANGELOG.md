@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- Skip scanning repository content on prune; thanks @rsclarke
 ### Security
 
 ## [1.11.15] - 8/25/26
