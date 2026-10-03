@@ -13,6 +13,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - Skip scanning repository content on prune; thanks @rsclarke
 ### Security
+- Bump github/codeql-action from 4.37.3 to 4.37.9 in the github-actions group (#699)
+- Bump actions/github-script from 8 to 9 (#700)
+- Bump golang.org/x/oauth2 from 0.36.0 to 0.37.0 in the go-dependencies group (#702)
+- Bump github/codeql-action from 4.37.9 to 4.38.2 in the github-actions group (#703)
+- Bump actions/checkout from 4 to 7 (#704)
+- Bump actions/setup-go from 5 to 7 (#705)
 
 ## [1.11.15] - 8/25/26
 ### Added
