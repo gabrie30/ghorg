@@ -33,6 +33,64 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GHORG_GITHUB_TOKEN }}
 
+  # Keep this workflow path stable: consumers trust its signing identity.
+  # Signing is optional and cannot alter the release's existing assets.
+  packslip:
+    needs: goreleaser
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      bundle-ready: ${{ steps.sign.outcome == 'success' && steps.stage.outcome == 'success' }}
+    steps:
+      - name: Sign release manifest
+        id: sign
+        continue-on-error: true
+        uses: jdx/packslip@2af36e792faa28130987c8af509e475c7458405d # v1.6.0
+        with:
+          download: ghorg_*.tar.gz
+          bin: ghorg
+          require: bin:git
+          attest: false
+          upload: false
+          resources: |
+            completion/bash,zsh,fish,powershell=exec:ghorg completion {shell}
+            skill/create-ghorg-workspace=repo:skills/ghorg-create-workspace
+      - name: Stage successful manifest
+        id: stage
+        if: steps.sign.outcome == 'success'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: packslip
+          path: ${{ steps.sign.outputs.bundle }}
+          if-no-files-found: error
+          retention-days: 1
+
+  publish-packslip:
+    needs: packslip
+    if: needs.packslip.result == 'success' && needs.packslip.outputs.bundle-ready == 'true'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download successful manifest
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: packslip
+          path: packslip
+      - name: Attach manifest to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release upload "$RELEASE_TAG" packslip/packslip.sigstore.json --clobber
+
   # After a successful release, open the next patch version on master by adding an
   # unreleased CHANGELOG.md entry and bumping ghorgVersion in cmd/version.go.
   # Each update is skipped if the file is already at or past the next version.
