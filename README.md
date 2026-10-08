@@ -43,6 +43,7 @@ Use ghorg to quickly clone all of an orgs, or users repos into a single director
 - [Filter](#selective-repository-cloning) or select specific repositories for cloning
 - Create [backups](#creating-backups) of repositories
 - Simplify complex clone commands using [reclone](#reclone-command) shortcuts
+- Update every repo in a directory with [pull](#pull-command), without discarding local changes
 - Initiate clone operations via [HTTP server](https://github.com/gabrie30/ghorg/blob/master/examples/reclone-server.md)
 - Schedule cloning tasks using [cron](https://github.com/gabrie30/ghorg/blob/master/examples/reclone-cron.md)
 - Monitor and track clone [metrics](#tracking-clone-data-over-time) over time
@@ -445,6 +446,50 @@ For automated execution, ghorg ships with two companion commands. See the linked
 
 - **`ghorg reclone-server`** — Start an HTTP server that triggers reclone commands via HTTP requests. See [examples/reclone-server.md](https://github.com/gabrie30/ghorg/blob/master/examples/reclone-server.md).
 - **`ghorg reclone-cron`** — Run reclone on a scheduled interval. See [examples/reclone-cron.md](https://github.com/gabrie30/ghorg/blob/master/examples/reclone-cron.md).
+
+## Pull Command
+
+`ghorg pull [dir]` a helper command that updates every git repo under `dir` (default: the current directory) without discarding local changes. It works on any directory of repos, whether ghorg cloned them or not, and uses your local git credentials.
+
+```bash
+# Update every repo in the current directory
+ghorg pull .
+
+# Update every repo in a ghorg clone directory
+ghorg pull ~/ghorg/my-org
+```
+
+By default only fast-forward updates are made:
+- The checked out branch is fast-forwarded from its upstream.
+- The local default branch (from `origin/HEAD`) is fast-forwarded without being checked out, so it stays current while you work on another branch.
+- A repo is skipped when it has uncommitted changes or untracked files, a detached HEAD, a branch with no upstream, a branch that has diverged from origin, or an unfinished merge or rebase.
+
+Every skipped or failed repo is listed at the end with the reason:
+
+```
+Skipped (2)
+  billing  feature/x: uncommitted changes (4 files); main +2
+  infra    main: diverged from origin/main (1 ahead, 3 behind)
+
+Failed (1)
+  legacy  fetch failed: Authentication failed for 'https://github.com/my-org/legacy.git/'
+
+Updated 5, up to date 6, skipped 2, failed 1
+```
+
+Add `--verbose` to see what is blocking repos with local changes. Under each repo skipped for uncommitted changes, the summary lists its untracked files and the first 100 lines of `git diff HEAD`, with the command to see the full diff when it is cut off. It has no effect with `--force`, which never skips repos for local changes.
+
+Git uses your existing credentials, such as an SSH agent or a credential helper. ghorg removes tokens from remotes after cloning, so repos cloned over HTTPS need a credential helper (for example `gh auth setup-git`). HTTPS credential prompts are disabled, and SSH runs in batch mode unless you configured your own SSH command (`GIT_SSH_COMMAND`, `GIT_SSH`, or `core.sshCommand`), so a missing credential shows up as a failure instead of hanging.
+
+To make every repo match origin's default branch and discard local changes, add `--force`. It resets, cleans, checks out the default branch, and resets it to origin. Ignored files are kept and other branches are not modified. A repo whose default branch is checked out in another worktree is skipped. `--force` cannot be set in `conf.yaml`.
+
+```bash
+ghorg pull ~/ghorg/my-org --force
+```
+
+Use `--concurrency` to change how many repos are updated at once (default: `GHORG_CONCURRENCY`, 25). Worktrees of the same repo are updated one after another because they share branches. Pull does not update submodule checkouts; run `git submodule update` in repos that use them.
+
+The exit code is `0` when no repo failed and `1` when any repo failed. Skipped repos do not change the exit code.
 
 ## Using Docker
 
