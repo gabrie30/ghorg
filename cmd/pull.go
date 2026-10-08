@@ -35,12 +35,12 @@ SAFE MODE (default):
   With --verbose, each repo skipped for local changes also lists its untracked
   files and the first 100 lines of git diff HEAD.
 
-FORCE MODE (--force):
-  Discards local changes and resets each repo to origin's default branch: reset,
-  clean, check out the default branch, then reset it to origin. Ignored files are
-  kept. Other branches are not modified, and a repo whose default branch is checked
-  out in another worktree is skipped. --force is a flag only. It cannot be set in
-  conf.yaml.
+RESET HARD MODE (--reset-hard), DESTRUCTIVE:
+  Discards local changes, deletes untracked files, and resets each repo to origin's
+  default branch: reset, clean, check out the default branch, then reset it to
+  origin. Ignored files are kept. Other branches are not modified, and a repo whose
+  default branch is checked out in another worktree is skipped. --reset-hard has no
+  short form and cannot be set in conf.yaml.
 
 EXIT CODE:
   0 when no repo failed (skipped repos are expected), 1 when any repo failed.
@@ -53,7 +53,7 @@ EXAMPLES:
   $ ghorg pull ~/ghorg/my-org
 
   # Make every repo match origin's default branch, discarding local changes
-  $ ghorg pull ~/ghorg/my-org --force
+  $ ghorg pull ~/ghorg/my-org --reset-hard
 
   # See the untracked files and diff of each repo skipped for local changes
   $ ghorg pull . --verbose
@@ -66,7 +66,7 @@ func pullFunc(cmd *cobra.Command, argz []string) {
 	if cmd.Flags().Changed("concurrency") {
 		_ = os.Setenv("GHORG_CONCURRENCY", cmd.Flag("concurrency").Value.String())
 	}
-	force, _ := cmd.Flags().GetBool("force")
+	force, _ := cmd.Flags().GetBool("reset-hard")
 	verbose, _ := cmd.Flags().GetBool("verbose")
 
 	dir := "."

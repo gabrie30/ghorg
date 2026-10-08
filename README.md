@@ -477,14 +477,14 @@ Failed (1)
 Updated 5, up to date 6, skipped 2, failed 1
 ```
 
-Add `--verbose` to see what is blocking repos with local changes. Under each repo skipped for uncommitted changes, the summary lists its untracked files and the first 100 lines of `git diff HEAD`, with the command to see the full diff when it is cut off. It has no effect with `--force`, which never skips repos for local changes.
+Add `--verbose` to see what is blocking repos with local changes. Under each repo skipped for uncommitted changes, the summary lists its untracked files and the first 100 lines of `git diff HEAD`, with the command to see the full diff when it is cut off. It has no effect with `--reset-hard`, which never skips repos for local changes.
 
 Git uses your existing credentials, such as an SSH agent or a credential helper. ghorg removes tokens from remotes after cloning, so repos cloned over HTTPS need a credential helper (for example `gh auth setup-git`). HTTPS credential prompts are disabled, and SSH runs in batch mode unless you configured your own SSH command (`GIT_SSH_COMMAND`, `GIT_SSH`, or `core.sshCommand`), so a missing credential shows up as a failure instead of hanging.
 
-To make every repo match origin's default branch and discard local changes, add `--force`. It resets, cleans, checks out the default branch, and resets it to origin. Ignored files are kept and other branches are not modified. A repo whose default branch is checked out in another worktree is skipped. `--force` cannot be set in `conf.yaml`.
+To make every repo match origin's default branch and discard local changes, add `--reset-hard`. This is destructive: it discards uncommitted changes, deletes untracked files, checks out the default branch, and resets it to origin. Ignored files are kept and other branches are not modified. A repo whose default branch is checked out in another worktree is skipped. `--reset-hard` has no short form and cannot be set in `conf.yaml`.
 
 ```bash
-ghorg pull ~/ghorg/my-org --force
+ghorg pull ~/ghorg/my-org --reset-hard
 ```
 
 Use `--concurrency` to change how many repos are updated at once (default: `GHORG_CONCURRENCY`, 25). Worktrees of the same repo are updated one after another because they share branches. Pull does not update submodule checkouts; run `git submodule update` in repos that use them.

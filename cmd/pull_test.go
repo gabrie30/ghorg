@@ -881,10 +881,15 @@ func TestPullSummaryPrintsLocalChanges(t *testing.T) {
 }
 
 func TestPullFlagShorthands(t *testing.T) {
-	for short, long := range map[string]string{"f": "force", "v": "verbose"} {
-		flag := pullCmd.Flags().ShorthandLookup(short)
-		if flag == nil || flag.Name != long {
-			t.Fatalf("-%s should be the shorthand for --%s, got %v", short, long, flag)
-		}
+	if flag := pullCmd.Flags().ShorthandLookup("v"); flag == nil || flag.Name != "verbose" {
+		t.Fatalf("-v should be the shorthand for --verbose, got %v", flag)
+	}
+	// The destructive flag deliberately has no shorthand so it cannot be triggered by a one-letter slip.
+	resetHard := pullCmd.Flags().Lookup("reset-hard")
+	if resetHard == nil || resetHard.Shorthand != "" {
+		t.Fatalf("--reset-hard must exist with no shorthand, got %v", resetHard)
+	}
+	if flag := pullCmd.Flags().ShorthandLookup("f"); flag != nil {
+		t.Fatalf("-f must not be defined, got --%s", flag.Name)
 	}
 }
