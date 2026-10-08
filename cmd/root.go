@@ -501,12 +501,15 @@ func init() {
 
 	lsCmd.Flags().BoolP("long", "l", false, "Display detailed information about each clone directory, including size and number of repositories. Note: This may take longer depending on the number and size of the cloned organizations.")
 	lsCmd.Flags().BoolP("total", "t", false, "Display total amounts of all repos cloned. Note: This may take longer depending on the number and size of the cloned organizations.")
+	pullCmd.Flags().BoolP("force", "f", false, "Discard local changes and reset each repo to origin's default branch. Flag only, it cannot be set in conf.yaml")
+	pullCmd.Flags().String("concurrency", "", "GHORG_CONCURRENCY - Maximum number of repos to update at once. (default: 25)")
+	pullCmd.Flags().BoolP("verbose", "v", false, "Show the untracked files and the first 100 lines of git diff HEAD for each repo skipped for local changes. Flag only, it cannot be set in conf.yaml")
 
 	recloneCronCmd.Flags().StringVarP(&cronTimerMinutes, "minutes", "m", "", "GHORG_CRON_TIMER_MINUTES - Number of minutes to run the reclone command on a cron")
 
 	recloneServerCmd.Flags().StringVarP(&recloneServerPort, "port", "p", "", "GHORG_RECLONE_SERVER_PORT - Specifiy the port the reclone server will run on.")
 
-	rootCmd.AddCommand(lsCmd, versionCmd, cloneCmd, reCloneCmd, examplesCmd, recloneServerCmd, recloneCronCmd)
+	rootCmd.AddCommand(lsCmd, versionCmd, cloneCmd, reCloneCmd, examplesCmd, recloneServerCmd, recloneCronCmd, pullCmd)
 }
 
 func Execute() {
