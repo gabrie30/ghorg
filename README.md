@@ -308,47 +308,31 @@ Maintain a file containing the exact **repository names** you want to clone (one
 
 #### `--repo-filter-hook` - custom filtering with your own executable
 
-When the built-in filters can't express your logic, point `--repo-filter-hook` (or the `GHORG_REPO_FILTER_HOOK` env var) at any executable. After ghorg fetches the repo list and applies all built-in filters, it writes the remaining repos as a JSON array to your executable's stdin, then uses the JSON array your executable writes to stdout as the final clone list. This makes any custom filtering possible: filter by team ownership, repo size, last activity, an allowlist from an internal API, anything you can script.
+When the built-in filters aren't enough, point `--repo-filter-hook` (or `GHORG_REPO_FILTER_HOOK`) at any executable. After all built-in filters run, ghorg writes the remaining repos as a JSON array to the hook's stdin and clones the JSON array the hook writes to stdout. Add `--include-scm-data` (see below) to filter on any field your SCM providers API returns.
 
-- The hook runs **last**, after all built-in filters, so it always has the final word on what gets cloned.
-- The hook may also **modify** repo fields, for example changing `clone_branch` per repo.
-- Returning an empty array `[]` is valid and means clone nothing.
-- The hook inherits ghorg's environment, so it can read `GHORG_SCM_TYPE`, `GHORG_CLONE_TYPE`, and any other `GHORG_` values for context. This includes any credentials ghorg was given, such as `GHORG_GITHUB_TOKEN`, which is by design since the user owns the executable.
-- Write progress or diagnostics to stderr; it is streamed through to ghorg's output.
-- Set `GHORG_DEBUG=true` to print the repos passed to the hook as indented JSON just before it runs. The fields and values are the same as what the hook reads on stdin. This also prints your API token to stdout. It is in ghorg's other debug output and can appear inside each `clone_url` when cloning over HTTPS, so keep the output private.
-- ghorg **aborts the run** if the hook is missing, exits non-zero, or writes invalid JSON, so a broken hook never results in cloning an unfiltered list.
-- A hook path without a path separator, for example `--repo-filter-hook=filter.sh`, is resolved via `PATH` rather than the current directory, so use `./filter.sh` or an absolute path for a local script.
+- The hook runs **last**, so it has the final say on what gets cloned.
+- The hook can **modify** repo fields, for example setting `clone_branch` per repo.
+- Returning `[]` is valid and clones nothing.
+- The hook inherits ghorg's environment, including `GHORG_SCM_TYPE`, `GHORG_CLONE_TYPE`, and credentials such as `GHORG_GITHUB_TOKEN`. This is by design, since you own the executable.
+- Write progress or diagnostics to stderr. ghorg streams it to its own output.
+- ghorg **aborts the run** if the hook is missing, exits non-zero, or writes invalid JSON, so a broken hook never clones an unfiltered list.
+- A path without a separator, such as `filter.sh`, is looked up on `PATH`. Use `./filter.sh` or an absolute path for a local script.
+- `GHORG_DEBUG=true` prints the hook's input as indented JSON just before it runs. Debug output also contains your API token, both in ghorg's other debug lines and inside each `clone_url` when cloning over HTTPS, so keep it private.
 
-Each repo object has these fields: `id`, `name`, `host_path`, `path`, `url`, `clone_url`, `clone_branch`, `is_wiki`, `is_gitlab_snippet`, `is_gitlab_root_level_snippet`, `is_github_gist`, `gitlab_snippet_info`, `commits`, and `scm_data` when `--include-scm-data` is set.
-
-Example with `jq`, keeping only repos whose name starts with `frontend-`:
-
-```sh
-#!/bin/sh
-jq '[.[] | select(.name | startswith("frontend-"))]'
-```
+Each repo object has `id`, `name`, `host_path`, `path`, `url`, `clone_url`, `clone_branch`, `is_wiki`, `is_gitlab_snippet`, `is_gitlab_root_level_snippet`, `is_github_gist`, `gitlab_snippet_info`, `commits`, and `scm_data` when `--include-scm-data` is set.
 
 ##### `--include-scm-data` - filter on anything the SCM provider returns
 
-Set `--include-scm-data` (or `GHORG_INCLUDE_SCM_DATA=true`) alongside `--repo-filter-hook` to add a `scm_data` field to each repo object. It holds the object the SCM provider's API returned for that repo, so your hook can filter on any field the provider exposes, such as size, visibility, last push date, or license. It is off by default because it makes the JSON passed to the hook much larger, around 5 KB per GitHub repo.
+Set `--include-scm-data` (or `GHORG_INCLUDE_SCM_DATA=true`) with `--repo-filter-hook` to add a `scm_data` field to each repo object. It holds the provider's API object for that repo, so your hook can filter on size, visibility, last push date, license, or any other field. It is off by default because it adds about 5 KB per GitHub repo.
 
-- `scm_data` is passed through as the provider returns it and is not normalized, so field names and units differ between providers. For example `size` is in KiB on GitHub and Gitea. Check your provider's API docs for the fields available.
-- Wikis carry their parent repo's `scm_data`, so a hook can skip the wikis of repos it skips. GitHub gists and GitLab snippets carry their own object.
-- GitLab's `runners_token` is blanked before it is passed to the hook.
-- Sourcehut only includes the fields ghorg requests in its GraphQL query: `id`, `name`, `visibility`, `owner`, and `HEAD`.
-- Bitbucket Cloud is not supported and never includes `scm_data`.
-- `scm_data` is dropped after the hook runs, so changes the hook makes to it have no effect.
+- `scm_data` is passed through as is, so field names and units differ between providers. For example, `size` is in KiB on GitHub and Gitea. See the fields GitHub returns for [organization repos](https://docs.github.com/en/rest/repos/repos#list-organization-repositories) and [user repos](https://docs.github.com/en/rest/repos/repos#list-repositories-for-a-user), and GitLab returns for [group projects](https://docs.gitlab.com/api/groups/#list-projects) and [user projects](https://docs.gitlab.com/api/projects/#list-all-personal-projects-for-a-user).
+- Wikis carry their parent repo's `scm_data`, so a hook can skip a repo and its wiki together. GitHub gists and GitLab snippets carry their own.
+- GitLab's `runners_token` is blanked.
+- Sourcehut only includes the fields ghorg queries: `id`, `name`, `visibility`, `owner`, and `HEAD`.
+- Bitbucket Cloud is not supported.
+- `scm_data` is dropped after the hook runs, so editing it has no effect.
 
-Example with `jq` on GitHub, skipping archived repos and repos larger than 1 GB:
-
-```sh
-#!/bin/sh
-jq '[.[] | select(.scm_data.archived != true and .scm_data.size < 1048576)]'
-```
-
-For a complete `scm_data` example, [filter-kubernetes-scm-data.sh](examples/hooks/filter-kubernetes-scm-data.sh) clones the kubernetes GitHub org without its archived repos, read-only staging mirrors, or repos with no pushes in the last year.
-
-See [examples/hooks](examples/hooks) for complete bash and python examples.
+See [examples/hooks](examples/hooks) for complete bash and python hooks, including [filter-kubernetes-scm-data.sh](examples/hooks/filter-kubernetes-scm-data.sh), which clones the kubernetes GitHub org without archived repos, read-only staging mirrors, or repos with no pushes in the last year.
 
 ## Creating Backups
 
