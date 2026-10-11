@@ -433,7 +433,7 @@ For automated execution, ghorg ships with two companion commands. See the linked
 
 ## Pull Command
 
-`ghorg pull [dir]` a helper command that updates every git repo under `dir` (default: the current directory) without discarding local changes. It works on any directory of repos, whether ghorg cloned them or not, and uses your local git credentials.
+`ghorg pull [dir]` a helper command that updates every git repo under `dir` (default: the current directory) without discarding local changes. **It works on any directory of repos, whether ghorg cloned or not and uses your local git credentials.**
 
 ```bash
 # Update every repo in the current directory
