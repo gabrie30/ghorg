@@ -186,6 +186,31 @@ VS Code workspace file:
 
 Replace `<WORKSPACE_NAME>`, `<SCM_ORG>`, and `<HOME_DIR>` with the resolved values.
 
+Then explain to the user what was added and how the pieces fit together, using this structure with resolved values:
+
+```markdown
+**What was added**
+
+1. **Repo list:** `<HOME_DIR>/.config/ghorg/workspace-<WORKSPACE_NAME>.txt`
+   - Contains: the repositories in this workspace, one per line (<N> repos: <names>).
+   - Role: ghorg reads it through `--target-repos-path` to decide which repos to clone. Add or remove lines to change the workspace.
+2. **Reclone entry:** `<WORKSPACE_NAME>` in `<HOME_DIR>/.config/ghorg/reclone.yaml`
+   - Contains: the `ghorg clone` command for this workspace (organization, clone location, repo list, and output folder name).
+   - Role: `ghorg reclone <WORKSPACE_NAME>` runs this command. Run it again to pick up repos added to the repo list.
+3. **Workspace folder:** `<HOME_DIR>/workspaces/<WORKSPACE_NAME>/`
+   - Contains: one folder per cloned repository.
+   - Role: where you work. Each reclone updates these clones in place.
+4. **VS Code workspace file:** `<HOME_DIR>/workspaces/<WORKSPACE_NAME>/<WORKSPACE_NAME>.code-workspace`
+   - Contains: a VS Code / Cursor workspace whose only folder is the workspace root.
+   - Role: open it to load every repo in one editor window.
+
+**Workflow:** edit the repo list, run `ghorg reclone <WORKSPACE_NAME>`, then open the `.code-workspace` file.
+
+**Warning:** by default, ghorg resets existing clones to the remote default branch on every reclone, which discards local changes. Add `--protect-local` (skips repos with local changes) or `--no-clean` (leaves existing repos untouched) to the entry's `cmd` to prevent this.
+
+**Removing it later:** use the `ghorg-remove-workspace` skill. It shows what it will remove and asks before deleting.
+```
+
 ## Failure conditions
 
 Stop and report an error (do not silently continue) if:
