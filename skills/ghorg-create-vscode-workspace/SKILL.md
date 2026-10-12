@@ -1,5 +1,5 @@
 ---
-name: create-ghorg-workspace
+name: ghorg-create-vscode-workspace
 description: Creates a new ghorg reclone command for a VSCode workspace. Works on macOS, Linux, and Windows. Appends to the ghorg reclone.yaml config and creates a workspace repo list file.
 ---
 
@@ -208,7 +208,7 @@ Then explain to the user what was added and how the pieces fit together, using t
 
 **Warning:** by default, ghorg resets existing clones to the remote default branch on every reclone, which discards local changes. Add `--protect-local` (skips repos with local changes) or `--no-clean` (leaves existing repos untouched) to the entry's `cmd` to prevent this.
 
-**Removing it later:** use the `ghorg-remove-workspace` skill. It shows what it will remove and asks before deleting.
+**Removing it later:** use the `ghorg-remove-vscode-workspace` skill. It shows what it will remove and asks before deleting.
 ```
 
 ## Failure conditions

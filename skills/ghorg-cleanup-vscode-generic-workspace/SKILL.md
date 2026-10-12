@@ -1,11 +1,11 @@
 ---
-name: ghorg-cleanup-generic-workspaces
-description: Use when the user wants to clean up ghorg generic workspaces, such as deleting old `<prefix>-<name>` workspace directories created by `ghorg reclone <prefix>-generic-workspace`, or removing a generic workspace template (its reclone.yaml entry, post-exec script, and repo list).
+name: ghorg-cleanup-vscode-generic-workspace
+description: Use when the user wants to clean up ghorg VSCode generic workspaces, such as deleting old `<prefix>-<name>` workspace directories created by `ghorg reclone <prefix>-generic-workspace`, or removing a generic workspace template (its reclone.yaml entry, post-exec script, and repo list).
 ---
 
 # Clean up ghorg generic workspaces
 
-Cleans up after the `ghorg-create-generic-workspace` skill. It supports two kinds of cleanup, and the user picks one or both:
+Cleans up after the `ghorg-create-vscode-generic-workspace` skill. It supports two kinds of cleanup, and the user picks one or both:
 
 - **Delete workspaces:** remove `<PREFIX>-<name>` directories created by runs of the generic workspace.
 - **Remove the template:** remove the `<PREFIX>-generic-workspace` reclone entry, its post-exec script, and its repo list file. Existing workspaces are left alone unless the user also picks "Delete workspaces".

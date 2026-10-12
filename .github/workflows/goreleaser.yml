@@ -59,7 +59,7 @@ jobs:
           upload: false
           resources: |
             completion/bash,zsh,fish,powershell=exec:ghorg completion {shell}
-            skill/create-ghorg-workspace=repo:skills/ghorg-create-workspace
+            skill/ghorg-create-vscode-workspace=repo:skills/ghorg-create-vscode-workspace
       - name: Stage successful manifest
         id: stage
         if: steps.sign.outcome == 'success'

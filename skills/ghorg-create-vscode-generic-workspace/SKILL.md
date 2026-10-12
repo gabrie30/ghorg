@@ -1,13 +1,13 @@
 ---
-name: ghorg-create-generic-workspace
-description: Use when the user wants a reusable ghorg reclone "generic workspace" that clones the same set of repositories into a fresh, separately named workspace on every run, such as `ghorg reclone <prefix>-generic-workspace` producing `<prefix>-<name>` directories.
+name: ghorg-create-vscode-generic-workspace
+description: Use when the user wants a reusable ghorg reclone "generic workspace" that clones the same set of repositories into a fresh, separately named VSCode workspace on every run, such as `ghorg reclone <prefix>-generic-workspace` producing `<prefix>-<name>` directories.
 ---
 
 # Create ghorg generic workspace
 
 A **generic workspace** is a ghorg reclone entry that acts as a template. Every run of `ghorg reclone <PREFIX>-generic-workspace` clones the same repositories into a staging directory, then a `post_exec_script` asks for a name and renames the directory to `<PREFIX>-<name>`. Each run produces a new, independent workspace (one per feature, investigation, or task).
 
-This differs from the `create-ghorg-workspace` skill, which creates one fixed workspace that is updated in place on each reclone.
+This differs from the `ghorg-create-vscode-workspace` skill, which creates one fixed workspace that is updated in place on each reclone.
 
 ## Prerequisites
 
@@ -146,7 +146,7 @@ Tell the user the generic workspace was created, then explain what was added and
 
 **Workflow:** run `ghorg reclone <PREFIX>-generic-workspace` and enter a name (`fix login bug` becomes `<PREFIX>-fix-login-bug`), then work in the new folder. Every run clones into a new folder, so existing workspaces are never reset or overwritten.
 
-**Cleaning up later:** use the `ghorg-cleanup-generic-workspaces` skill to delete old workspaces or remove this template. It shows what it will remove and asks before deleting.
+**Cleaning up later:** use the `ghorg-cleanup-vscode-generic-workspace` skill to delete old workspaces or remove this template. It shows what it will remove and asks before deleting.
 ```
 
 ## How a run works

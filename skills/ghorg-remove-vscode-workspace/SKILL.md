@@ -1,11 +1,11 @@
 ---
-name: ghorg-remove-workspace
-description: Use when the user wants to delete or remove a ghorg reclone workspace created by the create-ghorg-workspace skill, including its reclone.yaml entry, its workspace-<name>.txt repo list, and its cloned directory.
+name: ghorg-remove-vscode-workspace
+description: Use when the user wants to delete or remove a ghorg reclone VSCode workspace created by the ghorg-create-vscode-workspace skill, including its reclone.yaml entry, its workspace-<name>.txt repo list, and its cloned directory.
 ---
 
 # Remove ghorg reclone workspace
 
-Removes a workspace created by the `create-ghorg-workspace` skill. That skill creates three things, and this skill removes them:
+Removes a workspace created by the `ghorg-create-vscode-workspace` skill. That skill creates three things, and this skill removes them:
 
 | Artifact | Location |
 |----------|----------|
@@ -37,11 +37,11 @@ sed -E 's/(-t[= ]|--token[= ])[^ "]+/\1<redacted>/g' "<GHORG_RECLONE_CONFIG>"
 
 ### Step 1: Choose the workspace
 
-Read **GHORG_RECLONE_CONFIG** (redacted). A top-level entry was created by `create-ghorg-workspace` when its `cmd` has a `--target-repos-path=` value ending in `workspace-<KEY>.txt` and `--output-dir=<KEY>`, where `<KEY>` is the entry's key.
+Read **GHORG_RECLONE_CONFIG** (redacted). A top-level entry was created by `ghorg-create-vscode-workspace` when its `cmd` has a `--target-repos-path=` value ending in `workspace-<KEY>.txt` and `--output-dir=<KEY>`, where `<KEY>` is the entry's key.
 
 If the user already named a workspace, use it. Otherwise list the matching keys with their descriptions and ask which one to remove. Store as **WORKSPACE_NAME**.
 
-If WORKSPACE_NAME is not a top-level key, stop with an error. If the key exists but does not match the pattern above, tell the user it was not created by `create-ghorg-workspace` and ask whether to continue anyway.
+If WORKSPACE_NAME is not a top-level key, stop with an error. If the key exists but does not match the pattern above, tell the user it was not created by `ghorg-create-vscode-workspace` and ask whether to continue anyway.
 
 From the entry's `cmd`, record:
 
