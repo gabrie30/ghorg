@@ -26,10 +26,10 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
     steps:
-      - name: Set up Go 1.26.0
+      - name: Set up Go 1.27.3
         uses: actions/setup-go@v7
         with:
-          go-version: 1.26.0
+          go-version: 1.27.3
         id: go
       - name: Check out code into the Go module directory
         uses: actions/checkout@v7
@@ -69,10 +69,10 @@ jobs:
     name: Cloud Integration Tests Windows
     runs-on: windows-latest
     steps:
-      - name: Set up Go 1.26.0
+      - name: Set up Go 1.27.3
         uses: actions/setup-go@v7
         with:
-          go-version: 1.26.0
+          go-version: 1.27.3
         id: go
       - name: Check out code into the Go module directory
         uses: actions/checkout@v7

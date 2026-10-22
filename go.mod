@@ -2,6 +2,8 @@ module github.com/gabrie30/ghorg
 
 go 1.26.0
 
+toolchain go1.27.3
+
 require (
 	code.gitea.io/sdk/gitea v0.25.1
 	github.com/Klaus-Tockloth/go-term-markdown v0.0.0-20250129073703-91600624167c

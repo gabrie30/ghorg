@@ -1,7 +1,7 @@
 # ==================================================
 # Build image
 # ==================================================
-FROM golang:alpine AS build-image
+FROM golang:1.27.3-alpine AS build-image
 
 # ENV GO111MODULE=on
 ENV CGO_ENABLED=0

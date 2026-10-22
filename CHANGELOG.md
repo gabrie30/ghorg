@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 ### Fixed
 ### Security
+- Build with Go 1.27.3 to fix CVE-2026-111943 in `crypto/x509`
 
 ## [1.11.16] - 10/3/26
 ### Added
