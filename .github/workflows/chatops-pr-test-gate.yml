@@ -104,10 +104,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Set up Go 1.26.0
+      - name: Set up Go 1.27.3
         uses: actions/setup-go@v7
         with:
-          go-version: 1.26.0
+          go-version: 1.27.3
         id: go
       - name: Check out pinned PR head
         uses: actions/checkout@v7
@@ -156,10 +156,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Set up Go 1.26.0
+      - name: Set up Go 1.27.3
         uses: actions/setup-go@v7
         with:
-          go-version: 1.26.0
+          go-version: 1.27.3
         id: go
       - name: Check out pinned PR head
         uses: actions/checkout@v7
