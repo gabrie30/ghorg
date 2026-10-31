@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
-## [1.11.17] - unreleased
+## [1.11.17] - 10/31/26
 ### Added
 - `ghorg pull [dir]` to update every git repo in a directory using only fast-forwards, listing each skipped or failed repo with the reason, and `--reset-hard` to discard local changes and reset each repo to origin's default branch
 - `ghorg pull --verbose` to show the untracked files and diff of each repo skipped for local changes
