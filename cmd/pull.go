@@ -20,6 +20,9 @@ var pullCmd = &cobra.Command{
 	Short: "Update every git repo in a directory without discarding local changes",
 	Long: `Update every git repo found under dir (default: the current directory).
 
+When dir is itself a git repo, only that repo is pulled and repos inside it are not
+searched. Any repos directly inside it are listed so you can pull them separately.
+
 No token or SCM API calls are needed. Git uses your existing credentials (SSH agent
 or credential helper). HTTPS credential prompts are disabled, and SSH runs in batch
 mode unless you configured your own SSH command (GIT_SSH_COMMAND, GIT_SSH, or
@@ -95,6 +98,11 @@ func pullFunc(cmd *cobra.Command, argz []string) {
 	disablePullPrompts()
 	if len(repos) > 0 {
 		colorlog.PrintInfo(fmt.Sprintf("Pulling %d repos in %s\n", len(repos), root))
+	}
+	if isWorkTree(root) {
+		if nested := reposDirectlyInside(root); len(nested) > 0 {
+			colorlog.PrintInfo(rootRepoNotice(pullDisplayPath(root, root), nested) + "\n")
+		}
 	}
 
 	results := runPulls(git.NewGit(), root, repos, pullOptions{force: force, verbose: verbose}, concurrency)
@@ -256,6 +264,37 @@ func discoverRepos(root string) ([]string, []string, error) {
 func isWorkTree(dir string) bool {
 	_, err := os.Lstat(filepath.Join(dir, ".git"))
 	return err == nil
+}
+
+// reposDirectlyInside returns the names of dir's immediate subdirectories that are git work trees, in name order.
+// Symlinks are not followed. Pull uses it to name the repos it skips because dir is itself a repo.
+func reposDirectlyInside(dir string) []string {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil
+	}
+	var names []string
+	for _, e := range entries {
+		if e.IsDir() && isWorkTree(filepath.Join(dir, e.Name())) {
+			names = append(names, e.Name())
+		}
+	}
+	return names
+}
+
+// maxNoticeRepos caps how many repo names rootRepoNotice lists so a large directory stays readable.
+const maxNoticeRepos = 10
+
+// rootRepoNotice explains that the repo called name is pulled on its own and lists the repos inside it that are not.
+func rootRepoNotice(name string, nested []string) string {
+	listed := strings.Join(nested[:min(len(nested), maxNoticeRepos)], ", ")
+	if extra := len(nested) - maxNoticeRepos; extra > 0 {
+		listed += fmt.Sprintf(", and %d more", extra)
+	}
+	return fmt.Sprintf("%s is itself a git repo, so ghorg pull only updates it and does not look inside it for other repos.\n"+
+		"Not pulled: %s\n"+
+		"To update them, run ghorg pull on each one. If %s should not be a git repo, "+
+		"delete its .git directory (this erases its git history) and run ghorg pull again.", name, listed, name)
 }
 
 // isBareRepo reports whether dir looks like a bare git repo: a HEAD file next to objects and refs directories.

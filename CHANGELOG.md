@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [1.11.18] - unreleased
 ### Added
+- `ghorg pull` now explains when the directory is itself a git repo and lists the repos directly inside it, which are not pulled
 ### Changed
 ### Deprecated
 ### Removed

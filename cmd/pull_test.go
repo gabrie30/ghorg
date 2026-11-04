@@ -576,6 +576,45 @@ func TestDiscoverReposDoesNotFollowSymlinks(t *testing.T) {
 	}
 }
 
+func TestReposDirectlyInside(t *testing.T) {
+	root := t.TempDir()
+	mkdirs(t, root, ".git", "api/.git", "notes", "group/web/.git")
+	writeTestFile(t, filepath.Join(root, "linked", ".git"), "gitdir: /elsewhere/.git/worktrees/linked\n")
+	writeTestFile(t, filepath.Join(root, "README.md"), "hi\n")
+	outside := t.TempDir()
+	mkdirs(t, outside, "elsewhere/.git")
+	if err := os.Symlink(filepath.Join(outside, "elsewhere"), filepath.Join(root, "link")); err != nil {
+		t.Logf("symlinks not supported here, skipping that case: %v", err)
+	}
+
+	if got, want := reposDirectlyInside(root), []string{"api", "linked"}; !slices.Equal(got, want) {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+}
+
+func TestRootRepoNotice(t *testing.T) {
+	got := rootRepoNotice("tessen-reload-storm", []string{"tessen", "tessen-helloworld", "tessen-infra"})
+	want := "tessen-reload-storm is itself a git repo, so ghorg pull only updates it and does not look inside it for other repos.\n" +
+		"Not pulled: tessen, tessen-helloworld, tessen-infra\n" +
+		"To update them, run ghorg pull on each one. If tessen-reload-storm should not be a git repo, " +
+		"delete its .git directory (this erases its git history) and run ghorg pull again."
+	if got != want {
+		t.Fatalf("got:\n%s\nwant:\n%s", got, want)
+	}
+}
+
+func TestRootRepoNoticeListsAtMostTenRepos(t *testing.T) {
+	var names []string
+	for i := 1; i <= 12; i++ {
+		names = append(names, fmt.Sprintf("r%02d", i))
+	}
+	got := rootRepoNotice("workspace", names)
+	want := "Not pulled: r01, r02, r03, r04, r05, r06, r07, r08, r09, r10, and 2 more\n"
+	if !strings.Contains(got, want) {
+		t.Fatalf("got:\n%s\nwant it to contain %q", got, want)
+	}
+}
+
 func TestPullDisplayPath(t *testing.T) {
 	root := filepath.Join("home", "me", "my-org")
 	if got := pullDisplayPath(root, root); got != "my-org" {
