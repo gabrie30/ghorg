@@ -443,6 +443,8 @@ ghorg pull .
 ghorg pull ~/ghorg/my-org
 ```
 
+When `dir` is itself a git repo, only that repo is pulled and repos inside it are not searched. Pull lists any repos directly inside it so you can pull them separately.
+
 By default only fast-forward updates are made:
 - The checked out branch is fast-forwarded from its upstream.
 - The local default branch (from `origin/HEAD`) is fast-forwarded without being checked out, so it stays current while you work on another branch.
