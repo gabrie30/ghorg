@@ -7,11 +7,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/gabrie30/ghorg/git"
 	"github.com/gabrie30/ghorg/scm"
 	"github.com/spf13/cobra"
 )
@@ -154,6 +156,14 @@ func (g MockGitClient) Clone(repo scm.Repo) error {
 		log.Fatal(err)
 	}
 	return nil
+}
+
+func (g MockGitClient) HasLocalOnlyCommits(repo scm.Repo) (bool, error) {
+	return false, nil
+}
+
+func (g MockGitClient) HasStash(repo scm.Repo) (bool, error) {
+	return false, nil
 }
 
 func (g MockGitClient) SetOrigin(repo scm.Repo) error {
@@ -807,7 +817,7 @@ func TestPruneRepos(t *testing.T) {
 	prunableBare := filepath.Join(testing, "prunnable-bare")
 	setUpGitRepository(t, prunableBare, true)
 
-	pruneRepos([]string{repository, repositoryBare})
+	pruneRepos(NewMockGit(), []string{repository, repositoryBare})
 
 	if _, err := os.Stat(repository); os.IsNotExist(err) {
 		t.Errorf("Expected '%s' to exist, but it was deleted", repository)
@@ -821,6 +831,111 @@ func TestPruneRepos(t *testing.T) {
 	}
 	if _, err := os.Stat(prunableBare); !os.IsNotExist(err) {
 		t.Errorf("Expected '%s' to be deleted, but it exists", prunableBare)
+	}
+}
+
+// setUpPruneProtectLocal clones a one commit repo into the output dir once for each state
+// --protect-local cares about and returns the output dir. None of the clones are on the
+// remote any more, so all of them are candidates for pruning.
+func setUpPruneProtectLocal(t *testing.T) string {
+	t.Helper()
+	isolateGitConfig(t)
+	t.Cleanup(UnsetEnv("GHORG_"))
+
+	source := filepath.Join(t.TempDir(), "source")
+	mustGit(t, filepath.Dir(source), "init", "-q", "-b", "main", source)
+	writeTestFile(t, filepath.Join(source, "README.md"), "hello\n")
+	mustGit(t, source, "add", ".")
+	mustGit(t, source, "commit", "-q", "-m", "initial")
+
+	root := t.TempDir()
+	previousOutputDir := outputDirAbsolutePath
+	outputDirAbsolutePath = root
+	t.Cleanup(func() { outputDirAbsolutePath = previousOutputDir })
+
+	for _, name := range []string{"clean", "uncommitted", "unpushed", "local-branch", "stashed", "detached"} {
+		mustGit(t, root, "clone", "-q", source, name)
+	}
+	commit := func(clone string) {
+		writeTestFile(t, filepath.Join(root, clone, "new.txt"), "new\n")
+		mustGit(t, filepath.Join(root, clone), "add", "new.txt")
+		mustGit(t, filepath.Join(root, clone), "commit", "-q", "-m", "local")
+	}
+	writeTestFile(t, filepath.Join(root, "uncommitted", "README.md"), "edited\n")
+	commit("unpushed")
+	// Work committed on another branch, then main checked out again
+	mustGit(t, filepath.Join(root, "local-branch"), "checkout", "-q", "-b", "feature")
+	commit("local-branch")
+	mustGit(t, filepath.Join(root, "local-branch"), "checkout", "-q", "main")
+	writeTestFile(t, filepath.Join(root, "stashed", "README.md"), "edited\n")
+	mustGit(t, filepath.Join(root, "stashed"), "stash", "-q")
+	mustGit(t, filepath.Join(root, "detached"), "checkout", "-q", "--detach")
+	commit("detached")
+	// --backup clones are bare mirrors, which have no work tree to hold local changes
+	mustGit(t, root, "clone", "-q", "--mirror", source, "mirror")
+	// A clone git cannot read, so whether it has local changes cannot be checked
+	if err := os.MkdirAll(filepath.Join(root, "unreadable", ".git"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	return root
+}
+
+func TestPruneReposProtectLocal(t *testing.T) {
+	testCases := []struct {
+		name         string
+		protectLocal bool
+		kept         []string
+	}{
+		{
+			name:         "without --protect-local every clone missing from the remote is pruned",
+			protectLocal: false,
+		},
+		{
+			name:         "with --protect-local clones with local work or that cannot be checked are kept",
+			protectLocal: true,
+			kept:         []string{"uncommitted", "unpushed", "local-branch", "stashed", "detached", "unreadable"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			root := setUpPruneProtectLocal(t)
+			_ = os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
+			if tc.protectLocal {
+				_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
+			}
+
+			pruneRepos(git.NewGit(), nil)
+
+			for _, clone := range []string{"clean", "uncommitted", "unpushed", "local-branch", "stashed", "detached", "mirror", "unreadable"} {
+				_, err := os.Stat(filepath.Join(root, clone))
+				if exists, want := err == nil, slices.Contains(tc.kept, clone); exists != want {
+					t.Errorf("clone %q exists after prune: %v, want %v", clone, exists, want)
+				}
+			}
+		})
+	}
+}
+
+func TestPrintDryRunPruneProtectLocal(t *testing.T) {
+	setUpPruneProtectLocal(t)
+	_ = os.Setenv("GHORG_PRUNE", "true")
+	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
+
+	output := captureStdout(t, func() { printDryRun(git.NewGit(), nil) })
+
+	for _, want := range []string{
+		"Would skip pruning uncommitted: uncommitted changes (--protect-local)",
+		"Would skip pruning unpushed: unpushed commits (--protect-local)",
+		"Would skip pruning local-branch: commits not on the remote (--protect-local)",
+		"Would skip pruning stashed: stashed changes (--protect-local)",
+		"Would skip pruning detached: commits not on the remote (--protect-local)",
+		"Would skip pruning unreadable: could not check for local changes",
+		"Local clones eligible for pruning: 2\n",
+	} {
+		if !strings.Contains(output, want) {
+			t.Errorf("expected output to contain %q, output:\n%s", want, output)
+		}
 	}
 }
 

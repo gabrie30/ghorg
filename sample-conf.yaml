@@ -63,6 +63,7 @@ GHORG_GIT_FILTER:
 
 # Deletes all files/directories found in your local clone directory that are not found on the remote (e.g., after remote deletion).  With GHORG_SKIP_ARCHIVED set, archived repositories will also be pruned from your local clone.
 # Will prompt before deleting any files unless used in combination with --prune-no-confirm
+# With --protect-local, clones with uncommitted changes, commits not on the remote, or stashes are not deleted
 # flag (--prune)
 GHORG_PRUNE: false
 
@@ -176,10 +177,12 @@ GHORG_NO_CLEAN: false
 #   - Uncommitted changes: repos with dirty working directory are skipped
 #   - Unpushed commits: repos with commits ahead of remote are skipped
 #   - Current branch: restores your original branch after pulling default branch
+#   - Pruning: with --prune, clones with uncommitted changes, commits not on the remote (on any local branch or a detached HEAD), or stashes are not deleted
 #
 # Use cases:
 #   --protect-local              Safe re-clone: updates clean repos, skips dirty ones, restores branches
 #   --protect-local --dry-run    Preview which repos would be skipped due to local changes
+#   --protect-local --prune      Delete clones of repos removed on remote, keeping any with local changes
 #
 # Compare to --no-clean:
 #   --no-clean skips ALL existing repos regardless of their state

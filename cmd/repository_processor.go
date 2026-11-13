@@ -252,6 +252,32 @@ func (rp *RepositoryProcessor) hasLocalChanges(repo *scm.Repo) (bool, string, er
 	return false, "", nil
 }
 
+// hasLocalWork extends hasLocalChanges with the work that deleting a clone loses but pulling it
+// does not: commits on other local branches or a detached HEAD, and stashes
+func (rp *RepositoryProcessor) hasLocalWork(repo *scm.Repo) (bool, string, error) {
+	if hasChanges, reason, err := rp.hasLocalChanges(repo); err != nil || hasChanges {
+		return hasChanges, reason, err
+	}
+
+	localOnly, err := rp.git.HasLocalOnlyCommits(*repo)
+	if err != nil {
+		return false, "", err
+	}
+	if localOnly {
+		return true, "commits not on the remote", nil
+	}
+
+	stashed, err := rp.git.HasStash(*repo)
+	if err != nil {
+		return false, "", err
+	}
+	if stashed {
+		return true, "stashed changes", nil
+	}
+
+	return false, "", nil
+}
+
 // handleExistingRepository processes repositories that already exist locally
 func (rp *RepositoryProcessor) handleExistingRepository(repo *scm.Repo, action *string) bool {
 	*action = "pulling"

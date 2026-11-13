@@ -692,10 +692,17 @@ func printDryRun(gitter git.Gitter, repos []scm.Repo) {
 				log.Fatal(err)
 			}
 
+			processor := NewRepositoryProcessor(gitter)
+			eligibleForPrune := 0
 			for _, repository := range repositories {
+				if reason := protectedFromPrune(processor, filepath.Join(outputDirAbsolutePath, repository)); reason != "" {
+					colorlog.PrintSubtleInfo(fmt.Sprintf("Would skip pruning %s: %s (--protect-local)", repository, reason))
+					continue
+				}
+				eligibleForPrune++
 				colorlog.PrintSubtleInfo(fmt.Sprintf("%s not found in remote.", repository))
 			}
-			colorlog.PrintSuccess(fmt.Sprintf("Local clones eligible for pruning: %d", len(repositories)))
+			colorlog.PrintSuccess(fmt.Sprintf("Local clones eligible for pruning: %d", eligibleForPrune))
 		}
 	}
 }
@@ -955,7 +962,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	allReposToCloneCount := len(cloneTargets)
 	// Now, clean up local repos that don't exist in remote, if prune flag is set
 	if os.Getenv("GHORG_PRUNE") == "true" {
-		pruneCount = pruneRepos(processor.GetHostPaths())
+		pruneCount = pruneRepos(git, processor.GetHostPaths())
 	}
 
 	if os.Getenv("GHORG_QUIET") != "true" {
@@ -1243,7 +1250,29 @@ func findPrunableRepos(hostPaths []string) ([]string, error) {
 	return prunable, nil
 }
 
-func pruneRepos(hostPaths []string) int {
+// protectedFromPrune returns why --protect-local keeps the clone at clonePath from being pruned,
+// or "" if it can be pruned. A clone that cannot be checked is kept, since it might hold local work.
+func protectedFromPrune(processor *RepositoryProcessor, clonePath string) string {
+	if os.Getenv("GHORG_PROTECT_LOCAL") != "true" {
+		return ""
+	}
+
+	// Bare clones (--backup) have no work tree, so they have no local changes to lose
+	if _, err := os.Stat(filepath.Join(clonePath, ".git")); os.IsNotExist(err) {
+		return ""
+	}
+
+	hasChanges, reason, err := processor.hasLocalWork(&scm.Repo{HostPath: clonePath})
+	if err != nil {
+		return fmt.Sprintf("could not check for local changes: %v", err)
+	}
+	if hasChanges {
+		return reason
+	}
+	return ""
+}
+
+func pruneRepos(gitter git.Gitter, hostPaths []string) int {
 	count := 0
 	colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
@@ -1251,6 +1280,8 @@ func pruneRepos(hostPaths []string) int {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	processor := NewRepositoryProcessor(gitter)
 
 	// The first time around, we set userAgreesToDelete to true, otherwise we'd immediately
 	// break out of the loop.
@@ -1267,6 +1298,11 @@ func pruneRepos(hostPaths []string) int {
 		// We check userAgreesToDelete here, so that if the user says "No" at any time, we stop
 		// trying to prune things altogether.
 		if userAgreesToDelete {
+			if reason := protectedFromPrune(processor, absolutePathToDelete); reason != "" {
+				colorlog.PrintInfo(fmt.Sprintf("Skipping prune of %s: %s (--protect-local)", absolutePathToDelete, reason))
+				continue
+			}
+
 			// If the user specified --prune-no-confirm, we needn't prompt interactively.
 			userAgreesToDelete = pruneNoConfirm || interactiveYesNoPrompt(
 				fmt.Sprintf("%s was not found in remote.  Do you want to prune it? %s", repository, absolutePathToDelete))
