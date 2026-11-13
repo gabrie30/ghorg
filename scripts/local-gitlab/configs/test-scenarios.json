@@ -816,6 +816,58 @@
                 "test ! -d {{.GhorgDir}}/local-gitlab-filter-hook/baz2",
                 "test ! -d {{.GhorgDir}}/local-gitlab-filter-hook/baz3"
             ]
+        },
+        {
+            "name": "all-groups-flat-prune",
+            "description": "Test --prune keeps clones renamed for repo name collisions and deletes only the clone missing from the remote",
+            "command": "ghorg clone all-groups --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --output-dir=local-gitlab-latest-repos-flat-prune --prune --prune-no-confirm",
+            "run_twice": true,
+            "setup_commands": [
+                "git init {{.GhorgDir}}/local-gitlab-latest-repos-flat-prune/removed-on-remote"
+            ],
+            "expected_structure": [
+                "local-gitlab-latest-repos-flat-prune/local-gitlab-group1_baz0",
+                "local-gitlab-latest-repos-flat-prune/local-gitlab-group1_baz1",
+                "local-gitlab-latest-repos-flat-prune/local-gitlab-group1_baz2",
+                "local-gitlab-latest-repos-flat-prune/local-gitlab-group1_baz3",
+                "local-gitlab-latest-repos-flat-prune/local-gitlab-group2_baz0",
+                "local-gitlab-latest-repos-flat-prune/local-gitlab-group2_baz1",
+                "local-gitlab-latest-repos-flat-prune/local-gitlab-group2_baz2",
+                "local-gitlab-latest-repos-flat-prune/local-gitlab-group2_baz3",
+                "local-gitlab-latest-repos-flat-prune/subgroup_a_repo_0",
+                "local-gitlab-latest-repos-flat-prune/subgroup_a_repo_1",
+                "local-gitlab-latest-repos-flat-prune/subgroup_a_repo_2",
+                "local-gitlab-latest-repos-flat-prune/subgroup_a_repo_3",
+                "local-gitlab-latest-repos-flat-prune/subgroup_b_repo_0",
+                "local-gitlab-latest-repos-flat-prune/subgroup_b_repo_1",
+                "local-gitlab-latest-repos-flat-prune/subgroup_b_repo_2",
+                "local-gitlab-latest-repos-flat-prune/subgroup_b_repo_3"
+            ],
+            "verify_commands": [
+                "test ! -d {{.GhorgDir}}/local-gitlab-latest-repos-flat-prune/removed-on-remote"
+            ]
+        },
+        {
+            "name": "top-level-group-nested-prune",
+            "description": "Test --prune keeps subgroup clones flattened into the output dir and deletes only the clone missing from the remote",
+            "command": "ghorg clone local-gitlab-group3 --scm=gitlab --base-url={{.BaseURL}} --token={{.Token}} --output-dir=local-gitlab-latest-group3-prune --prune --prune-no-confirm",
+            "run_twice": true,
+            "setup_commands": [
+                "git init {{.GhorgDir}}/local-gitlab-latest-group3-prune/removed-on-remote"
+            ],
+            "expected_structure": [
+                "local-gitlab-latest-group3-prune/subgroup_a_repo_0",
+                "local-gitlab-latest-group3-prune/subgroup_a_repo_1",
+                "local-gitlab-latest-group3-prune/subgroup_a_repo_2",
+                "local-gitlab-latest-group3-prune/subgroup_a_repo_3",
+                "local-gitlab-latest-group3-prune/subgroup_b_repo_0",
+                "local-gitlab-latest-group3-prune/subgroup_b_repo_1",
+                "local-gitlab-latest-group3-prune/subgroup_b_repo_2",
+                "local-gitlab-latest-group3-prune/subgroup_b_repo_3"
+            ],
+            "verify_commands": [
+                "test ! -d {{.GhorgDir}}/local-gitlab-latest-group3-prune/removed-on-remote"
+            ]
         }
     ]
 }

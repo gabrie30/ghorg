@@ -25,6 +25,8 @@ type Gitter interface {
 	GetCurrentBranch(scm.Repo) (string, error)
 	RevListCompare(scm.Repo, string, string) (string, error)
 	ShortStatus(scm.Repo) (string, error)
+	HasLocalOnlyCommits(scm.Repo) (bool, error)
+	HasStash(scm.Repo) (bool, error)
 	Branch(scm.Repo) (string, error)
 	UpdateRemote(scm.Repo) error
 	FetchAll(scm.Repo) error
@@ -302,6 +304,20 @@ func (g GitClient) RevListCompare(repo scm.Repo, localBranch string, remoteBranc
 		return "", err
 	}
 	return strings.TrimSpace(string(output)), nil
+}
+
+// HasLocalOnlyCommits reports whether a local branch or a detached HEAD has commits that are not on any
+// remote-tracking branch, so deleting the clone would lose them. A repo with no commits yet has none.
+func (g GitClient) HasLocalOnlyCommits(repo scm.Repo) (bool, error) {
+	// --ignore-missing skips HEAD before the first commit, when it does not resolve yet
+	commits, err := runGitOutput(repo, "rev-list", "--max-count=1", "--ignore-missing", "HEAD", "--branches", "--not", "--remotes")
+	return commits != "", err
+}
+
+// HasStash reports whether the repo has any stash entries.
+func (g GitClient) HasStash(repo scm.Repo) (bool, error) {
+	stashes, err := runGitOutput(repo, "stash", "list")
+	return stashes != "", err
 }
 
 func (g GitClient) FetchCloneBranch(repo scm.Repo) error {

@@ -145,6 +145,45 @@
                 "test ! -d {{.GhorgDir}}/local-gitea-filter-hook/baz2",
                 "test ! -d {{.GhorgDir}}/local-gitea-filter-hook/baz3"
             ]
+        },
+        {
+            "name": "prune-keeps-current-clones",
+            "description": "Test --prune deletes only the clone missing from the remote and keeps clones of repos that still exist",
+            "command": "ghorg clone local-gitea-org1 --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-prune --prune --prune-no-confirm --insecure-gitea-client",
+            "run_twice": true,
+            "setup_commands": [
+                "git init {{.GhorgDir}}/local-gitea-prune/removed-on-remote"
+            ],
+            "expected_structure": [
+                "local-gitea-prune/baz0",
+                "local-gitea-prune/baz1",
+                "local-gitea-prune/baz2",
+                "local-gitea-prune/baz3"
+            ],
+            "verify_commands": [
+                "test ! -d {{.GhorgDir}}/local-gitea-prune/removed-on-remote"
+            ]
+        },
+        {
+            "name": "prune-protect-local-keeps-local-work",
+            "description": "Test --prune with --protect-local keeps a clone missing from the remote that has local changes and deletes one that does not",
+            "command": "ghorg clone local-gitea-org1 --scm=gitea --base-url={{.BaseURL}} --no-token --output-dir=local-gitea-prune-protect-local --prune --prune-no-confirm --protect-local --insecure-gitea-client",
+            "run_twice": true,
+            "setup_commands": [
+                "git init {{.GhorgDir}}/local-gitea-prune-protect-local/removed-with-local-changes",
+                "touch {{.GhorgDir}}/local-gitea-prune-protect-local/removed-with-local-changes/notes.txt",
+                "git init {{.GhorgDir}}/local-gitea-prune-protect-local/removed-clean"
+            ],
+            "expected_structure": [
+                "local-gitea-prune-protect-local/baz0",
+                "local-gitea-prune-protect-local/baz1",
+                "local-gitea-prune-protect-local/baz2",
+                "local-gitea-prune-protect-local/baz3",
+                "local-gitea-prune-protect-local/removed-with-local-changes"
+            ],
+            "verify_commands": [
+                "test ! -d {{.GhorgDir}}/local-gitea-prune-protect-local/removed-clean"
+            ]
         }
     ]
 }

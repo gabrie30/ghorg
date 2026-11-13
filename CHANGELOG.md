@@ -7,10 +7,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Added
 - `ghorg pull` now explains when the directory is itself a git repo and lists the repos directly inside it, which are not pulled
 ### Changed
+- `--protect-local` now also keeps `--prune` from deleting clones with uncommitted changes, commits not on the remote (on any local branch or a detached HEAD), or stashes, and `--dry-run` shows which ones it would keep
 ### Deprecated
 ### Removed
 ### Fixed
-- `--prune` on Gitea deleting every local clone, because the clone folders were compared with the repo's full name
+- `--prune` deleting clones of repos that still exist on the remote, and `--dry-run --prune` listing them, when not using `--preserve-dir` on Gitea, Bitbucket, and GitLab subgroups or repos renamed for name collisions. Clones are now matched on the folder ghorg clones each repo to, not on the repo's name or path; thanks @jayhemnani9910
 ### Security
 
 ## [1.11.17] - 10/31/26
