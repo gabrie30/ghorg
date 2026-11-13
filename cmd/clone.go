@@ -1347,7 +1347,9 @@ func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
 		normalizedPath = strings.ReplaceAll(normalizedPath, "\\", "/")
 		normalizedPath = filepath.ToSlash(normalizedPath)
 
-		if normalizedPath == needle {
+		// Without --preserve-dir a clone sits in a folder named after the repo, while some
+		// SCMs (e.g. Gitea) set Path to "owner/repo".
+		if normalizedPath == needle || (repo.Name != "" && repo.Name == needle) {
 			if os.Getenv("GHORG_DEBUG") != "" {
 				fmt.Printf("Debug: Match found for repo path: %s\n", repo.Path)
 			}
