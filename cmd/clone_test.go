@@ -873,6 +873,12 @@ func TestSliceContainsNamedRepoWithPathSeparators(t *testing.T) {
 			needle:      "different/path",
 			shouldMatch: false,
 		},
+		{
+			name:        "Clone folder named after the repo, Path with owner (Gitea)",
+			repos:       []scm.Repo{{Name: "repo01", Path: "acme/repo01"}},
+			needle:      "repo01",
+			shouldMatch: true,
+		},
 	}
 
 	for _, tc := range testCases {

@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
+- `--prune` on Gitea deleting every local clone, because the clone folders were compared with the repo's full name
 ### Security
 
 ## [1.11.17] - 10/31/26
