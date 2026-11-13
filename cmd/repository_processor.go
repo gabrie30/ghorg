@@ -34,6 +34,7 @@ type RepositoryProcessor struct {
 	mutex          *sync.RWMutex
 	untouchedRepos []string
 	protectedRepos []string
+	hostPaths      []string
 }
 
 // CloneStats tracks statistics during clone operations
@@ -65,6 +66,7 @@ func (rp *RepositoryProcessor) ProcessRepository(repo *scm.Repo, repoNameWithCol
 
 	// Set the final host path
 	repo.HostPath = rp.buildHostPath(*repo, finalRepoSlug)
+	rp.addHostPath(repo.HostPath)
 
 	// Handle prune untouched logic
 	if rp.shouldPruneUntouched(repo) {
@@ -598,6 +600,12 @@ func (rp *RepositoryProcessor) addProtected(repoPath string) {
 	rp.mutex.Unlock()
 }
 
+func (rp *RepositoryProcessor) addHostPath(hostPath string) {
+	rp.mutex.Lock()
+	rp.hostPaths = append(rp.hostPaths, hostPath)
+	rp.mutex.Unlock()
+}
+
 // GetStats returns a copy of the current statistics
 func (rp *RepositoryProcessor) GetStats() CloneStats {
 	rp.mutex.RLock()
@@ -630,6 +638,15 @@ func (rp *RepositoryProcessor) GetProtectedRepos() []string {
 	defer rp.mutex.RUnlock()
 	// Return a copy to prevent external modifications
 	return append([]string(nil), rp.protectedRepos...)
+}
+
+// GetHostPaths returns the local path of every repository processed, so prune
+// can tell which local clones still belong to a repository on the remote
+func (rp *RepositoryProcessor) GetHostPaths() []string {
+	rp.mutex.RLock()
+	defer rp.mutex.RUnlock()
+	// Return a copy to prevent external modifications
+	return append([]string(nil), rp.hostPaths...)
 }
 
 // SetTotalDuration sets the total duration in seconds for the clone operation

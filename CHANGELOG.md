@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 ### Removed
 ### Fixed
-- `--prune` on Gitea deleting every local clone, because the clone folders were compared with the repo's full name
+- `--prune` deleting clones of repos that still exist on the remote, and `--dry-run --prune` listing them, when not using `--preserve-dir` on Gitea, Bitbucket, and GitLab subgroups or repos renamed for name collisions. Clones are now matched on the folder ghorg clones each repo to, not on the repo's name or path; thanks @jayhemnani9910
 ### Security
 
 ## [1.11.17] - 10/31/26

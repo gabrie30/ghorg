@@ -789,8 +789,6 @@ func BenchmarkRelativePathRepositories(b *testing.B) {
 func TestPruneRepos(t *testing.T) {
 	_ = os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
 
-	cloneTargets := []scm.Repo{{Path: "/repository"}, {Path: "/repository-bare"}}
-
 	testing, err := os.MkdirTemp("", "testing")
 	if err != nil {
 		t.Fatalf("Failed to create directory: %v", err)
@@ -809,7 +807,7 @@ func TestPruneRepos(t *testing.T) {
 	prunableBare := filepath.Join(testing, "prunnable-bare")
 	setUpGitRepository(t, prunableBare, true)
 
-	pruneRepos(cloneTargets)
+	pruneRepos([]string{repository, repositoryBare})
 
 	if _, err := os.Stat(repository); os.IsNotExist(err) {
 		t.Errorf("Expected '%s' to exist, but it was deleted", repository)
@@ -826,67 +824,134 @@ func TestPruneRepos(t *testing.T) {
 	}
 }
 
-func TestSliceContainsNamedRepoWithPathSeparators(t *testing.T) {
-	// Test that path separator normalization works correctly
-	// This simulates the Windows issue where GitLab API returns forward slashes
-	// but Windows filesystem uses backslashes
+// pruneScenarios are clone targets shaped the way each SCM client reports them, with
+// the folders the clone step puts them in (relative to the output dir).
+var pruneScenarios = []struct {
+	name        string
+	env         map[string]string
+	repos       []scm.Repo
+	localClones []string
+}{
+	{
+		name:        "gitea, Path is owner/repo",
+		repos:       []scm.Repo{{Name: "repo01", Path: "acme/repo01", URL: "https://gitea.example.com/acme/repo01.git"}},
+		localClones: []string{"repo01"},
+	},
+	{
+		name:        "gitea with --preserve-dir",
+		env:         map[string]string{"GHORG_PRESERVE_DIRECTORY_STRUCTURE": "true"},
+		repos:       []scm.Repo{{Name: "repo01", Path: "acme/repo01", URL: "https://gitea.example.com/acme/repo01.git"}},
+		localClones: []string{filepath.Join("acme", "repo01")},
+	},
+	{
+		name: "gitea wiki",
+		env:  map[string]string{"GHORG_CLONE_WIKI": "true"},
+		repos: []scm.Repo{
+			{Name: "repo01", Path: "acme/repo01", URL: "https://gitea.example.com/acme/repo01.git"},
+			{IsWiki: true, Path: "repo01.wiki", URL: "https://gitea.example.com/acme/repo01.wiki.git"},
+		},
+		localClones: []string{"repo01", "repo01.wiki"},
+	},
+	{
+		name:        "bitbucket cloud, Name differs from slug",
+		repos:       []scm.Repo{{Name: "My Repo", Path: "workspace/my-repo", URL: "https://bitbucket.org/workspace/my-repo.git"}},
+		localClones: []string{"my-repo"},
+	},
+	{
+		name:        "bitbucket server, Path is PROJECT/slug",
+		repos:       []scm.Repo{{Name: "My Repo", Path: "PROJ/my-repo", URL: "https://bitbucket.example.com/scm/proj/my-repo.git"}},
+		localClones: []string{"my-repo"},
+	},
+	{
+		name:        "gitlab subgroup, Name differs from slug",
+		repos:       []scm.Repo{{Name: "My Project", Path: "/sub/my-project", URL: "https://gitlab.example.com/group/sub/my-project.git"}},
+		localClones: []string{"my-project"},
+	},
+	{
+		name:        "gitlab subgroup with --preserve-dir",
+		env:         map[string]string{"GHORG_PRESERVE_DIRECTORY_STRUCTURE": "true"},
+		repos:       []scm.Repo{{Name: "My Project", Path: "/sub/my-project", URL: "https://gitlab.example.com/group/sub/my-project.git"}},
+		localClones: []string{filepath.Join("sub", "my-project")},
+	},
+	{
+		name: "gitlab repo name collision",
+		env:  map[string]string{"GHORG_GITLAB_TOKEN": "token"},
+		repos: []scm.Repo{
+			{Name: "repo", Path: "/sub1/repo", URL: "https://gitlab.example.com/group/sub1/repo.git"},
+			{Name: "repo", Path: "/sub2/repo", URL: "https://gitlab.example.com/group/sub2/repo.git"},
+		},
+		localClones: []string{"_sub1_repo", "_sub2_repo"},
+	},
+}
 
-	testCases := []struct {
-		name        string
-		repos       []scm.Repo
-		needle      string
-		shouldMatch bool
-	}{
-		{
-			name:        "Forward slash in repo, forward slash in needle",
-			repos:       []scm.Repo{{Path: "group/subgroup/repo"}},
-			needle:      "group/subgroup/repo",
-			shouldMatch: true,
-		},
-		{
-			name:        "Forward slash in repo, backslash in needle (Windows case)",
-			repos:       []scm.Repo{{Path: "group/subgroup/repo"}},
-			needle:      "group\\subgroup\\repo",
-			shouldMatch: true,
-		},
-		{
-			name:        "Backslash in repo, forward slash in needle",
-			repos:       []scm.Repo{{Path: "group\\subgroup\\repo"}},
-			needle:      "group/subgroup/repo",
-			shouldMatch: true,
-		},
-		{
-			name:        "Leading slash normalization",
-			repos:       []scm.Repo{{Path: "/group/subgroup/repo"}},
-			needle:      "group\\subgroup\\repo",
-			shouldMatch: true,
-		},
-		{
-			name:        "Mixed separators",
-			repos:       []scm.Repo{{Path: "group/subgroup\\repo"}},
-			needle:      "group\\subgroup/repo",
-			shouldMatch: true,
-		},
-		{
-			name:        "No match case",
-			repos:       []scm.Repo{{Path: "group/subgroup/repo"}},
-			needle:      "different/path",
-			shouldMatch: false,
-		},
-		{
-			name:        "Clone folder named after the repo, Path with owner (Gitea)",
-			repos:       []scm.Repo{{Name: "repo01", Path: "acme/repo01"}},
-			needle:      "repo01",
-			shouldMatch: true,
-		},
+// setUpPruneScenario points ghorg at a fresh output dir with the given env, isolated
+// from the user's ghorgonly and ghorgignore files.
+func setUpPruneScenario(t *testing.T, env map[string]string) string {
+	t.Helper()
+	t.Cleanup(UnsetEnv("GHORG_"))
+	root := t.TempDir()
+	previousOutputDir := outputDirAbsolutePath
+	outputDirAbsolutePath = root
+	t.Cleanup(func() { outputDirAbsolutePath = previousOutputDir })
+
+	missing := filepath.Join(root, "does-not-exist")
+	_ = os.Setenv("GHORG_ONLY_PATH", missing)
+	_ = os.Setenv("GHORG_IGNORE_PATH", missing)
+	_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", root)
+	for k, v := range env {
+		_ = os.Setenv(k, v)
 	}
+	return root
+}
 
-	for _, tc := range testCases {
+func TestCloneAllReposPruneOnlyDeletesClonesMissingFromRemote(t *testing.T) {
+	for _, tc := range pruneScenarios {
 		t.Run(tc.name, func(t *testing.T) {
-			result := sliceContainsNamedRepo(tc.repos, tc.needle)
-			if result != tc.shouldMatch {
-				t.Errorf("Expected %v, got %v for needle '%s' in repos %+v",
-					tc.shouldMatch, result, tc.needle, tc.repos)
+			root := setUpPruneScenario(t, tc.env)
+			_ = os.Setenv("GHORG_CONCURRENCY", "1")
+			_ = os.Setenv("GHORG_PRUNE", "true")
+			_ = os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
+			_ = os.Setenv("GHORG_DONT_EXIT_UNDER_TEST", "true")
+
+			for _, clone := range tc.localClones {
+				setUpGitRepository(t, filepath.Join(root, clone), false)
+			}
+			removedOnRemote := filepath.Join(root, "removed-on-remote")
+			setUpGitRepository(t, removedOnRemote, false)
+
+			CloneAllRepos(NewMockGit(), tc.repos)
+
+			for _, clone := range tc.localClones {
+				if _, err := os.Stat(filepath.Join(root, clone)); err != nil {
+					t.Errorf("clone %q of a repo that still exists on the remote was pruned", clone)
+				}
+			}
+			if _, err := os.Stat(removedOnRemote); !os.IsNotExist(err) {
+				t.Errorf("clone of a repo removed on the remote was not pruned")
+			}
+		})
+	}
+}
+
+func TestCloneAllReposDryRunPruneOnlyReportsClonesMissingFromRemote(t *testing.T) {
+	for _, tc := range pruneScenarios {
+		t.Run(tc.name, func(t *testing.T) {
+			root := setUpPruneScenario(t, tc.env)
+			_ = os.Setenv("GHORG_DRY_RUN", "true")
+			_ = os.Setenv("GHORG_PRUNE", "true")
+
+			for _, clone := range tc.localClones {
+				setUpGitRepository(t, filepath.Join(root, clone), false)
+			}
+			setUpGitRepository(t, filepath.Join(root, "removed-on-remote"), false)
+
+			output := captureStdout(t, func() { CloneAllRepos(NewMockGit(), tc.repos) })
+
+			if !strings.Contains(output, "Local clones eligible for pruning: 1\n") {
+				t.Errorf("expected exactly 1 clone eligible for pruning, output:\n%s", output)
+			}
+			if !strings.Contains(output, "removed-on-remote not found in remote.") {
+				t.Errorf("expected the clone removed on the remote to be reported, output:\n%s", output)
 			}
 		})
 	}

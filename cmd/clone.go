@@ -681,21 +681,21 @@ func printDryRun(gitter git.Gitter, repos []scm.Repo) {
 			// to do.
 			colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
-			repositories, err := getRelativePathRepositories(outputDirAbsolutePath)
+			resolved := resolveHostPaths(repos)
+			hostPaths := make([]string, len(resolved))
+			for i, repo := range resolved {
+				hostPaths[i] = repo.HostPath
+			}
+
+			repositories, err := findPrunableRepos(hostPaths)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			eligibleForPrune := 0
 			for _, repository := range repositories {
-				// for each item in the org's clone directory, let's make sure we found a
-				// corresponding repo on the remote.
-				if !sliceContainsNamedRepo(repos, repository) {
-					eligibleForPrune++
-					colorlog.PrintSubtleInfo(fmt.Sprintf("%s not found in remote.", repository))
-				}
+				colorlog.PrintSubtleInfo(fmt.Sprintf("%s not found in remote.", repository))
 			}
-			colorlog.PrintSuccess(fmt.Sprintf("Local clones eligible for pruning: %d", eligibleForPrune))
+			colorlog.PrintSuccess(fmt.Sprintf("Local clones eligible for pruning: %d", len(repositories)))
 		}
 	}
 }
@@ -728,21 +728,10 @@ func previewProtectLocal(gitter git.Gitter, repos []scm.Repo) int {
 
 	colorlog.PrintInfo("\nScanning for local changes that would be protected by --protect-local...")
 
-	repoNameWithCollisions, hasCollisions := hasRepoNameCollisions(repos)
 	processor := NewRepositoryProcessor(gitter)
 
 	protectedCount := 0
-	for i := range repos {
-		repo := repos[i]
-
-		repoSlug := initialRepoSlug(repo)
-		if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
-			repoSlug = repo.Path
-		}
-
-		finalRepoSlug := processor.handleNameCollisions(repo, repoNameWithCollisions, hasCollisions, repoSlug, i)
-		repo.HostPath = processor.buildHostPath(repo, finalRepoSlug)
-
+	for _, repo := range resolveHostPaths(repos) {
 		if !repoExistsLocally(repo) {
 			continue
 		}
@@ -760,6 +749,26 @@ func previewProtectLocal(gitter git.Gitter, repos []scm.Repo) int {
 
 	colorlog.PrintSuccess(fmt.Sprintf("Repos that would be skipped due to --protect-local: %d", protectedCount))
 	return protectedCount
+}
+
+// resolveHostPaths returns a copy of repos with HostPath set to where the clone step puts
+// each one (via RepositoryProcessor), for the dry run, which never runs the clone step.
+func resolveHostPaths(repos []scm.Repo) []scm.Repo {
+	repoNameWithCollisions, hasCollisions := hasRepoNameCollisions(repos)
+	processor := NewRepositoryProcessor(nil)
+
+	resolved := make([]scm.Repo, len(repos))
+	for i, repo := range repos {
+		repoSlug := initialRepoSlug(repo)
+		if repo.Path != "" && os.Getenv("GHORG_PRESERVE_DIRECTORY_STRUCTURE") == "true" {
+			repoSlug = repo.Path
+		}
+
+		finalRepoSlug := processor.handleNameCollisions(repo, repoNameWithCollisions, hasCollisions, repoSlug, i)
+		repo.HostPath = processor.buildHostPath(repo, finalRepoSlug)
+		resolved[i] = repo
+	}
+	return resolved
 }
 
 func trimCollisionFilename(filename string) string {
@@ -946,7 +955,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	allReposToCloneCount := len(cloneTargets)
 	// Now, clean up local repos that don't exist in remote, if prune flag is set
 	if os.Getenv("GHORG_PRUNE") == "true" {
-		pruneCount = pruneRepos(cloneTargets)
+		pruneCount = pruneRepos(processor.GetHostPaths())
 	}
 
 	if os.Getenv("GHORG_QUIET") != "true" {
@@ -1211,11 +1220,34 @@ func filterByTargetReposPath(cloneTargets []scm.Repo) []scm.Repo {
 	return cloneTargets
 }
 
-func pruneRepos(cloneTargets []scm.Repo) int {
+// findPrunableRepos returns the local clones, relative to outputDirAbsolutePath, that are not
+// at any of hostPaths. hostPaths must be the paths the clone step uses for the remote's repos,
+// so a clone is matched on where ghorg put it rather than on a guess from the repo's name.
+func findPrunableRepos(hostPaths []string) ([]string, error) {
+	onRemote := make(map[string]bool, len(hostPaths))
+	for _, hostPath := range hostPaths {
+		onRemote[filepath.Clean(hostPath)] = true
+	}
+
+	repositories, err := getRelativePathRepositories(outputDirAbsolutePath)
+	if err != nil {
+		return nil, err
+	}
+
+	var prunable []string
+	for _, repository := range repositories {
+		if !onRemote[filepath.Join(outputDirAbsolutePath, repository)] {
+			prunable = append(prunable, repository)
+		}
+	}
+	return prunable, nil
+}
+
+func pruneRepos(hostPaths []string) int {
 	count := 0
 	colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
-	repositories, err := getRelativePathRepositories(outputDirAbsolutePath)
+	repositories, err := findPrunableRepos(hostPaths)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1232,10 +1264,9 @@ func pruneRepos(cloneTargets []scm.Repo) int {
 			colorlog.PrintErrorAndExit(fmt.Sprintf("DANGEROUS ACTION DETECTED! Preventing deletion of %s as it is outside the base directory this deletion is not expected, exiting.", absolutePathToDelete))
 		}
 
-		// For each item in the org's clone directory, let's make sure we found a corresponding
-		// repo on the remote.  We check userAgreesToDelete here too, so that if the user says
-		// "No" at any time, we stop trying to prune things altogether.
-		if userAgreesToDelete && !sliceContainsNamedRepo(cloneTargets, repository) {
+		// We check userAgreesToDelete here, so that if the user says "No" at any time, we stop
+		// trying to prune things altogether.
+		if userAgreesToDelete {
 			// If the user specified --prune-no-confirm, we needn't prompt interactively.
 			userAgreesToDelete = pruneNoConfirm || interactiveYesNoPrompt(
 				fmt.Sprintf("%s was not found in remote.  Do you want to prune it? %s", repository, absolutePathToDelete))
@@ -1323,40 +1354,6 @@ func interactiveYesNoPrompt(prompt string) bool {
 	if s == "y" || s == "yes" {
 		return true
 	}
-	return false
-}
-
-// There's probably a nicer way of finding whether any scm.Repo in the slice matches a given name.
-func sliceContainsNamedRepo(haystack []scm.Repo, needle string) bool {
-
-	// GitLab Cloud vs GitLab on Prem seem to have different needle/repo.Paths when it comes to this,
-	// so normalize to handle both
-	// I'm not really sure whats going on here though, could be a bug with how this is set
-	needle = strings.TrimPrefix(needle, "/")
-
-	// Normalize path separators for cross-platform compatibility (Windows vs Unix)
-	// Convert both needle and repo paths to use forward slashes for comparison
-	// We need to handle both forward and back slashes regardless of OS
-	needle = strings.ReplaceAll(needle, "\\", "/")
-	needle = filepath.ToSlash(needle)
-
-	for _, repo := range haystack {
-		normalizedPath := strings.TrimPrefix(repo.Path, "/")
-		// Convert repo path to forward slashes for comparison
-		// We need to handle both forward and back slashes regardless of OS
-		normalizedPath = strings.ReplaceAll(normalizedPath, "\\", "/")
-		normalizedPath = filepath.ToSlash(normalizedPath)
-
-		// Without --preserve-dir a clone sits in a folder named after the repo, while some
-		// SCMs (e.g. Gitea) set Path to "owner/repo".
-		if normalizedPath == needle || (repo.Name != "" && repo.Name == needle) {
-			if os.Getenv("GHORG_DEBUG") != "" {
-				fmt.Printf("Debug: Match found for repo path: %s\n", repo.Path)
-			}
-			return true
-		}
-	}
-
 	return false
 }
 
