@@ -922,7 +922,7 @@ func TestPrintDryRunPruneProtectLocal(t *testing.T) {
 	_ = os.Setenv("GHORG_PRUNE", "true")
 	_ = os.Setenv("GHORG_PROTECT_LOCAL", "true")
 
-	output := captureStdout(t, func() { printDryRun(git.NewGit(), nil) })
+	output := captureStdout(t, func() { printDryRun(git.NewGit(), nil, nil) })
 
 	for _, want := range []string{
 		"Would skip pruning uncommitted: uncommitted changes (--protect-local)",
@@ -966,6 +966,15 @@ var pruneScenarios = []struct {
 			{IsWiki: true, Path: "repo01.wiki", URL: "https://gitea.example.com/acme/repo01.wiki.git"},
 		},
 		localClones: []string{"repo01", "repo01.wiki"},
+	},
+	{
+		name: "repo left out by --match-prefix",
+		env:  map[string]string{"GHORG_MATCH_PREFIX": "api-"},
+		repos: []scm.Repo{
+			{Name: "api-one", URL: "https://github.com/acme/api-one.git"},
+			{Name: "web-site", URL: "https://github.com/acme/web-site.git"},
+		},
+		localClones: []string{"api-one", "web-site"},
 	},
 	{
 		name:        "bitbucket cloud, Name differs from slug",
