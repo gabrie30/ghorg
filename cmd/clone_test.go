@@ -944,6 +944,7 @@ func TestPrintDryRunPruneProtectLocal(t *testing.T) {
 var pruneScenarios = []struct {
 	name        string
 	env         map[string]string
+	ignore      []string
 	repos       []scm.Repo
 	localClones []string
 }{
@@ -1006,11 +1007,23 @@ var pruneScenarios = []struct {
 		},
 		localClones: []string{"_sub1_repo", "_sub2_repo"},
 	},
+	{
+		// With sub2/repo ignored there is no collision in this run, so sub1/repo is cloned
+		// to "repo". sub2/repo is still on the remote, so its clone from an earlier run stays.
+		name:   "gitlab repo name collision, one repo left out by ghorgignore",
+		env:    map[string]string{"GHORG_GITLAB_TOKEN": "token"},
+		ignore: []string{"sub2/repo"},
+		repos: []scm.Repo{
+			{Name: "repo", Path: "/sub1/repo", URL: "https://gitlab.example.com/group/sub1/repo.git"},
+			{Name: "repo", Path: "/sub2/repo", URL: "https://gitlab.example.com/group/sub2/repo.git"},
+		},
+		localClones: []string{"repo", "_sub2_repo"},
+	},
 }
 
-// setUpPruneScenario points ghorg at a fresh output dir with the given env, isolated
-// from the user's ghorgonly and ghorgignore files.
-func setUpPruneScenario(t *testing.T, env map[string]string) string {
+// setUpPruneScenario points ghorg at a fresh output dir with the given env and ghorgignore
+// patterns, isolated from the user's ghorgonly and ghorgignore files.
+func setUpPruneScenario(t *testing.T, env map[string]string, ignore []string) string {
 	t.Helper()
 	t.Cleanup(UnsetEnv("GHORG_"))
 	root := t.TempDir()
@@ -1021,6 +1034,13 @@ func setUpPruneScenario(t *testing.T, env map[string]string) string {
 	missing := filepath.Join(root, "does-not-exist")
 	_ = os.Setenv("GHORG_ONLY_PATH", missing)
 	_ = os.Setenv("GHORG_IGNORE_PATH", missing)
+	if len(ignore) > 0 {
+		ignorePath := filepath.Join(t.TempDir(), "ghorgignore")
+		if err := os.WriteFile(ignorePath, []byte(strings.Join(ignore, "\n")+"\n"), 0o600); err != nil {
+			t.Fatalf("Failed to write ghorgignore: %v", err)
+		}
+		_ = os.Setenv("GHORG_IGNORE_PATH", ignorePath)
+	}
 	_ = os.Setenv("GHORG_ABSOLUTE_PATH_TO_CLONE_TO", root)
 	for k, v := range env {
 		_ = os.Setenv(k, v)
@@ -1031,7 +1051,7 @@ func setUpPruneScenario(t *testing.T, env map[string]string) string {
 func TestCloneAllReposPruneOnlyDeletesClonesMissingFromRemote(t *testing.T) {
 	for _, tc := range pruneScenarios {
 		t.Run(tc.name, func(t *testing.T) {
-			root := setUpPruneScenario(t, tc.env)
+			root := setUpPruneScenario(t, tc.env, tc.ignore)
 			_ = os.Setenv("GHORG_CONCURRENCY", "1")
 			_ = os.Setenv("GHORG_PRUNE", "true")
 			_ = os.Setenv("GHORG_PRUNE_NO_CONFIRM", "true")
@@ -1060,7 +1080,7 @@ func TestCloneAllReposPruneOnlyDeletesClonesMissingFromRemote(t *testing.T) {
 func TestCloneAllReposDryRunPruneOnlyReportsClonesMissingFromRemote(t *testing.T) {
 	for _, tc := range pruneScenarios {
 		t.Run(tc.name, func(t *testing.T) {
-			root := setUpPruneScenario(t, tc.env)
+			root := setUpPruneScenario(t, tc.env, tc.ignore)
 			_ = os.Setenv("GHORG_DRY_RUN", "true")
 			_ = os.Setenv("GHORG_PRUNE", "true")
 

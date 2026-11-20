@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 ### Fixed
 - `--prune` deleting clones of repos that still exist on the remote, and `--dry-run --prune` listing them, when not using `--preserve-dir` on Gitea, Bitbucket, and GitLab subgroups or repos renamed for name collisions. Clones are now matched on the folder ghorg clones each repo to, not on the repo's name or path; thanks @jayhemnani9910
-- `--prune` deleting clones of repos that still exist on the remote when a filter (`--match-prefix`, `--match-regex`, `--topics`, ghorgignore...) leaves them out of the run, and `--dry-run --prune` listing them
+- `--prune` deleting clones of repos that still exist on the remote when a filter (`--match-prefix`, `--match-regex`, ghorgignore...) leaves them out of the run, and `--dry-run --prune` listing them
 ### Security
 
 ## [1.11.17] - 10/31/26
