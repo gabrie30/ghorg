@@ -681,10 +681,12 @@ func printDryRun(gitter git.Gitter, repos []scm.Repo, remoteRepos []scm.Repo) {
 			// to do.
 			colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
-			resolved := resolveHostPaths(remoteRepos)
-			hostPaths := make([]string, len(resolved))
-			for i, repo := range resolved {
-				hostPaths[i] = repo.HostPath
+			// Keep the same paths the real prune does: where this run clones each repo, and where
+			// every repo still on the remote would go. These differ when a filter changes which
+			// GitLab repos collide on name.
+			var hostPaths []string
+			for _, repo := range append(resolveHostPaths(repos), resolveHostPaths(remoteRepos)...) {
+				hostPaths = append(hostPaths, repo.HostPath)
 			}
 
 			repositories, err := findPrunableRepos(hostPaths)
@@ -841,7 +843,9 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	// Initialize filter and apply all filtering
 	filter := NewRepositoryFilter()
 	// Prune keeps the clone of every repo still on the remote, including the
-	// ones a filter (--match-prefix, --topics, ghorgignore...) leaves out of this run.
+	// ones a filter (--match-prefix, ghorgignore...) leaves out of this run.
+	// Filters the SCM clients apply (--topics, --skip-archived, --skip-forks) run
+	// before this, so prune still removes the repos they leave out.
 	remoteTargets := append([]scm.Repo(nil), cloneTargets...)
 	cloneTargets = filter.ApplyAllFilters(cloneTargets)
 
