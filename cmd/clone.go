@@ -663,7 +663,7 @@ func hasRepoNameCollisions(repos []scm.Repo) (map[string]bool, bool) {
 	return repoNameWithCollisions, hasCollisions
 }
 
-func printDryRun(gitter git.Gitter, repos []scm.Repo) {
+func printDryRun(gitter git.Gitter, repos []scm.Repo, remoteRepos []scm.Repo) {
 	for _, repo := range repos {
 		colorlog.PrintSubtleInfo(repo.URL)
 	}
@@ -681,7 +681,7 @@ func printDryRun(gitter git.Gitter, repos []scm.Repo) {
 			// to do.
 			colorlog.PrintInfo("\nScanning for local clones that have been removed on remote...")
 
-			resolved := resolveHostPaths(repos)
+			resolved := resolveHostPaths(remoteRepos)
 			hostPaths := make([]string, len(resolved))
 			for i, repo := range resolved {
 				hostPaths[i] = repo.HostPath
@@ -840,6 +840,9 @@ func getRelativePathRepositories(root string) ([]string, error) {
 func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	// Initialize filter and apply all filtering
 	filter := NewRepositoryFilter()
+	// Prune keeps the clone of every repo still on the remote, including the
+	// ones a filter (--match-prefix, --topics, ghorgignore...) leaves out of this run.
+	remoteTargets := append([]scm.Repo(nil), cloneTargets...)
 	cloneTargets = filter.ApplyAllFilters(cloneTargets)
 
 	totalResourcesToClone, reposToCloneCount, snippetToCloneCount, wikisToCloneCount, gistsToCloneCount := getCloneableInventory(cloneTargets)
@@ -869,7 +872,7 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	}
 
 	if os.Getenv("GHORG_DRY_RUN") == "true" {
-		printDryRun(git, cloneTargets)
+		printDryRun(git, cloneTargets, remoteTargets)
 		return
 	}
 
@@ -962,7 +965,11 @@ func CloneAllRepos(git git.Gitter, cloneTargets []scm.Repo) {
 	allReposToCloneCount := len(cloneTargets)
 	// Now, clean up local repos that don't exist in remote, if prune flag is set
 	if os.Getenv("GHORG_PRUNE") == "true" {
-		pruneCount = pruneRepos(git, processor.GetHostPaths())
+		keep := processor.GetHostPaths()
+		for _, repo := range resolveHostPaths(remoteTargets) {
+			keep = append(keep, repo.HostPath)
+		}
+		pruneCount = pruneRepos(git, keep)
 	}
 
 	if os.Getenv("GHORG_QUIET") != "true" {
